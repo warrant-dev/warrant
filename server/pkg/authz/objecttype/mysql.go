@@ -29,7 +29,7 @@ func (repo MySQLObjectTypeRepository) Create(objectType ObjectType) (int64, erro
 
 	result, err = repo.DB.Exec(
 		`
-			INSERT INTO warrant.objectType (
+			INSERT INTO objectType (
 				typeId,
 				definition
 			) VALUES (?, ?)
@@ -65,7 +65,7 @@ func (repo MySQLObjectTypeRepository) GetById(id int64) (*ObjectType, error) {
 		&objectType,
 		`
 			SELECT id, typeId, definition, createdAt, updatedAt, deletedAt
-			FROM warrant.objectType
+			FROM objectType
 			WHERE
 				id = ? AND
 				deletedAt IS NULL
@@ -90,7 +90,7 @@ func (repo MySQLObjectTypeRepository) GetByTypeId(typeId string) (*ObjectType, e
 		&objectType,
 		`
 			SELECT id, typeId, definition, createdAt, updatedAt, deletedAt
-			FROM warrant.objectType
+			FROM objectType
 			WHERE
 				typeId = ? AND
 				deletedAt IS NULL
@@ -114,7 +114,7 @@ func (repo MySQLObjectTypeRepository) List(listParams middleware.ListParams) ([]
 	replacements := make([]interface{}, 0)
 	query := `
 		SELECT id, typeId, definition, createdAt, updatedAt, deletedAt
-		FROM warrant.objectType
+		FROM objectType
 		WHERE
 			deletedAt IS NULL
 	`
@@ -221,7 +221,7 @@ func (repo MySQLObjectTypeRepository) List(listParams middleware.ListParams) ([]
 func (repo MySQLObjectTypeRepository) UpdateByTypeId(typeId string, objectType ObjectType) error {
 	_, err := repo.DB.Exec(
 		`
-			UPDATE warrant.objectType
+			UPDATE objectType
 			SET
 				definition = ?
 			WHERE
@@ -246,7 +246,7 @@ func (repo MySQLObjectTypeRepository) UpdateByTypeId(typeId string, objectType O
 func (repo MySQLObjectTypeRepository) DeleteByTypeId(typeId string) error {
 	_, err := repo.DB.Exec(
 		`
-			UPDATE warrant.objectType
+			UPDATE objectType
 			SET
 				deletedAt = ?
 			WHERE
