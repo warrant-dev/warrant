@@ -23,8 +23,8 @@ const PrefixWarrant = "warrant"
 // Config structure for shared app config and resources
 type Config struct {
 	Port            int                     `mapstructure:"port"`
-	LogLevel        int8                    `mapstructure:"log_level"`
-	EnableAccessLog bool                    `mapstructure:"enable_access_log"`
+	LogLevel        int8                    `mapstructure:"logLevel"`
+	EnableAccessLog bool                    `mapstructure:"enableAccessLog"`
 	Database        database.DatabaseConfig `mapstructure:"database"`
 }
 

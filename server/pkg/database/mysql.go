@@ -41,14 +41,15 @@ func (ds *MySQL) Connect() error {
 	sql.Register("sql", sqlmw.Driver(mysql.MySQLDriver{}, new(SQLInterceptor)))
 	db, err = sqlx.Open("sql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.Database))
 	if err != nil {
-		log.Fatal().Err(err).Msg("Unable to establish connection to database. Shutting down server.")
+		log.Fatal().Err(err).Msgf("Unable to establish connection to mysql database %s. Shutting down server.", ds.Config.Database)
 	}
 
 	err = db.Ping()
 	if err != nil {
-		log.Fatal().Err(err).Msg("Unable to ping database. Shutting down server.")
+		log.Fatal().Err(err).Msgf("Unable to ping mysql database %s. Shutting down server.", ds.Config.Database)
 	}
 
+	log.Info().Msgf("Connected to mysql database %s", ds.Config.Database)
 	ds.DB = db
 	return nil
 }

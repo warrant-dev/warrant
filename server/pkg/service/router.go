@@ -55,8 +55,11 @@ func NewRouter(config *Config, pathPrefix string, routes []Route, additionalMidd
 	router := mux.NewRouter()
 
 	// Setup default middleware
-	logger := zerolog.New(os.Stderr).With().Timestamp().Logger()
-	logger.WithLevel(zerolog.Level(config.LogLevel))
+	logger := zerolog.New(os.Stderr).
+		With().
+		Timestamp().
+		Logger().
+		Level(zerolog.Level(config.LogLevel))
 	if logger.GetLevel() == zerolog.DebugLevel {
 		logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
@@ -102,12 +105,15 @@ func accessLogMiddleware(next http.Handler) http.Handler {
 		if referer := r.Referer(); referer != "" {
 			logEvent = logEvent.Str("referer", referer)
 		}
+
 		if userAgent := r.UserAgent(); userAgent != "" {
 			logEvent = logEvent.Str("userAgent", userAgent)
 		}
+
 		if duration.Milliseconds() >= 500 {
 			logEvent = logEvent.Bool("slow", true)
 		}
+
 		logEvent.Msg("ACCESS")
 	})(next)
 }
