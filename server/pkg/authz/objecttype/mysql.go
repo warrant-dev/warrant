@@ -12,22 +12,18 @@ import (
 	"github.com/warrant-dev/warrant/server/pkg/service"
 )
 
-type MySQLObjectTypeRepository struct {
+type MySQLRepository struct {
 	database.SQLRepository
 }
 
-func NewMySQLRepository(db *database.MySQL) MySQLObjectTypeRepository {
-	return MySQLObjectTypeRepository{
+func NewMySQLRepository(db *database.MySQL) MySQLRepository {
+	return MySQLRepository{
 		database.NewSQLRepository(db),
 	}
 }
 
-func (repo MySQLObjectTypeRepository) Create(objectType ObjectType) (int64, error) {
-	var newObjectTypeId int64
-	var result sql.Result
-	var err error
-
-	result, err = repo.DB.Exec(
+func (repo MySQLRepository) Create(objectType ObjectType) (int64, error) {
+	result, err := repo.DB.Exec(
 		`
 			INSERT INTO objectType (
 				typeId,
@@ -51,7 +47,7 @@ func (repo MySQLObjectTypeRepository) Create(objectType ObjectType) (int64, erro
 		return 0, err
 	}
 
-	newObjectTypeId, err = result.LastInsertId()
+	newObjectTypeId, err := result.LastInsertId()
 	if err != nil {
 		return 0, err
 	}
@@ -59,7 +55,7 @@ func (repo MySQLObjectTypeRepository) Create(objectType ObjectType) (int64, erro
 	return newObjectTypeId, nil
 }
 
-func (repo MySQLObjectTypeRepository) GetById(id int64) (*ObjectType, error) {
+func (repo MySQLRepository) GetById(id int64) (*ObjectType, error) {
 	var objectType ObjectType
 	err := repo.DB.Get(
 		&objectType,
@@ -84,7 +80,7 @@ func (repo MySQLObjectTypeRepository) GetById(id int64) (*ObjectType, error) {
 	return &objectType, nil
 }
 
-func (repo MySQLObjectTypeRepository) GetByTypeId(typeId string) (*ObjectType, error) {
+func (repo MySQLRepository) GetByTypeId(typeId string) (*ObjectType, error) {
 	var objectType ObjectType
 	err := repo.DB.Get(
 		&objectType,
@@ -109,7 +105,7 @@ func (repo MySQLObjectTypeRepository) GetByTypeId(typeId string) (*ObjectType, e
 	return &objectType, nil
 }
 
-func (repo MySQLObjectTypeRepository) List(listParams middleware.ListParams) ([]ObjectType, error) {
+func (repo MySQLRepository) List(listParams middleware.ListParams) ([]ObjectType, error) {
 	objectTypes := make([]ObjectType, 0)
 	replacements := make([]interface{}, 0)
 	query := `
@@ -218,7 +214,7 @@ func (repo MySQLObjectTypeRepository) List(listParams middleware.ListParams) ([]
 	return objectTypes, nil
 }
 
-func (repo MySQLObjectTypeRepository) UpdateByTypeId(typeId string, objectType ObjectType) error {
+func (repo MySQLRepository) UpdateByTypeId(typeId string, objectType ObjectType) error {
 	_, err := repo.DB.Exec(
 		`
 			UPDATE objectType
@@ -243,7 +239,7 @@ func (repo MySQLObjectTypeRepository) UpdateByTypeId(typeId string, objectType O
 	return nil
 }
 
-func (repo MySQLObjectTypeRepository) DeleteByTypeId(typeId string) error {
+func (repo MySQLRepository) DeleteByTypeId(typeId string) error {
 	_, err := repo.DB.Exec(
 		`
 			UPDATE objectType

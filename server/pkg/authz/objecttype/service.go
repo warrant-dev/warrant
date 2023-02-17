@@ -1,9 +1,6 @@
 package authz
 
 import (
-	"fmt"
-
-	"github.com/warrant-dev/warrant/server/pkg/database"
 	"github.com/warrant-dev/warrant/server/pkg/middleware"
 	"github.com/warrant-dev/warrant/server/pkg/service"
 )
@@ -12,7 +9,7 @@ type ObjectTypeService struct {
 	service.BaseService
 }
 
-func NewObjectTypeService(env service.Env) ObjectTypeService {
+func NewService(env service.Env) ObjectTypeService {
 	return ObjectTypeService{
 		BaseService: service.NewBaseService(env),
 	}
@@ -20,7 +17,7 @@ func NewObjectTypeService(env service.Env) ObjectTypeService {
 
 // Create creates a new ObjectType
 func (svc ObjectTypeService) Create(objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error) {
-	objectTypeRepository, err := NewObjectTypeRepository(svc.Env().DB())
+	objectTypeRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +47,7 @@ func (svc ObjectTypeService) Create(objectTypeSpec ObjectTypeSpec) (*ObjectTypeS
 
 // GetByTypeId gets the ObjectType with the given typeId
 func (svc ObjectTypeService) GetByTypeId(typeId string) (*ObjectTypeSpec, error) {
-	objectTypeRepository, err := NewObjectTypeRepository(svc.Env().DB())
+	objectTypeRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +62,7 @@ func (svc ObjectTypeService) GetByTypeId(typeId string) (*ObjectTypeSpec, error)
 
 // List gets the ObjectTypes with the given organizationId
 func (svc ObjectTypeService) List(listParams middleware.ListParams) ([]ObjectTypeSpec, error) {
-	objectTypeRepository, err := NewObjectTypeRepository(svc.Env().DB())
+	objectTypeRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +87,7 @@ func (svc ObjectTypeService) List(listParams middleware.ListParams) ([]ObjectTyp
 
 // Update updates the given ObjectType and returns the updated ObjectType
 func (svc ObjectTypeService) UpdateByTypeId(typeId string, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error) {
-	objectTypeRepository, err := NewObjectTypeRepository(svc.Env().DB())
+	objectTypeRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +112,7 @@ func (svc ObjectTypeService) UpdateByTypeId(typeId string, objectTypeSpec Object
 }
 
 func (svc ObjectTypeService) DeleteByTypeId(typeId string) error {
-	objectTypeRepository, err := NewObjectTypeRepository(svc.Env().DB())
+	objectTypeRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {
 		return err
 	}
@@ -126,18 +123,4 @@ func (svc ObjectTypeService) DeleteByTypeId(typeId string) error {
 	}
 
 	return nil
-}
-
-func NewObjectTypeRepository(db database.Database) (ObjectTypeRepository, error) {
-	switch db.Type() {
-	case database.TypeMySQL:
-		mysql, ok := db.(*database.MySQL)
-		if !ok {
-			return nil, service.NewInternalError("Invalid database provided")
-		}
-
-		return NewMySQLRepository(mysql), nil
-	default:
-		return nil, service.NewInternalError(fmt.Sprintf("Invalid database type %s specified", db.Type()))
-	}
 }
