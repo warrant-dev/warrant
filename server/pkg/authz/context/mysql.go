@@ -1,6 +1,7 @@
 package authz
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strconv"
@@ -23,8 +24,9 @@ func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	}
 }
 
-func (repository MySQLRepository) CreateAll(contexts []Context) ([]Context, error) {
-	_, err := repository.DB.NamedExec(
+func (repository MySQLRepository) CreateAll(ctx context.Context, contexts []Context) ([]Context, error) {
+	_, err := repository.DB.NamedExecContext(
+		ctx,
 		`
 			INSERT INTO warrant.context (
 				warrantId,
@@ -49,10 +51,10 @@ func (repository MySQLRepository) CreateAll(contexts []Context) ([]Context, erro
 		return nil, err
 	}
 
-	return repository.ListByWarrantId([]int64{contexts[0].WarrantId})
+	return repository.ListByWarrantId(ctx, []int64{contexts[0].WarrantId})
 }
 
-func (repository MySQLRepository) ListByWarrantId(warrantIds []int64) ([]Context, error) {
+func (repository MySQLRepository) ListByWarrantId(ctx context.Context, warrantIds []int64) ([]Context, error) {
 	contexts := make([]Context, 0)
 	if len(warrantIds) == 0 {
 		return contexts, nil
@@ -63,7 +65,8 @@ func (repository MySQLRepository) ListByWarrantId(warrantIds []int64) ([]Context
 		warrantIdStrings = append(warrantIdStrings, strconv.FormatInt(warrantId, 10))
 	}
 
-	err := repository.DB.Select(
+	err := repository.DB.SelectContext(
+		ctx,
 		&contexts,
 		fmt.Sprintf(
 			`
@@ -88,8 +91,9 @@ func (repository MySQLRepository) ListByWarrantId(warrantIds []int64) ([]Context
 	return contexts, nil
 }
 
-func (repository MySQLRepository) DeleteAllByWarrantId(warrantId int64) error {
-	_, err := repository.DB.Exec(
+func (repository MySQLRepository) DeleteAllByWarrantId(ctx context.Context, warrantId int64) error {
+	_, err := repository.DB.ExecContext(
+		ctx,
 		`
 			UPDATE warrant.context
 			SET

@@ -1,6 +1,7 @@
 package authz
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/warrant-dev/warrant/server/pkg/database"
@@ -8,9 +9,9 @@ import (
 )
 
 type ContextRepository interface {
-	CreateAll(contexts []Context) ([]Context, error)
-	ListByWarrantId(warrantIds []int64) ([]Context, error)
-	DeleteAllByWarrantId(warrantId int64) error
+	CreateAll(ctx context.Context, contexts []Context) ([]Context, error)
+	ListByWarrantId(ctx context.Context, warrantIds []int64) ([]Context, error)
+	DeleteAllByWarrantId(ctx context.Context, warrantId int64) error
 }
 
 func NewRepository(db database.Database) (ContextRepository, error) {

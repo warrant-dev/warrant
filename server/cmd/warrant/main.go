@@ -33,7 +33,7 @@ func main() {
 
 	svcEnv := NewServiceEnv(database)
 	svcs := []service.Service{
-		objecttype.NewObjectTypeService(&svcEnv),
+		objecttype.NewService(&svcEnv),
 	}
 
 	routes := make([]service.Route, 0)

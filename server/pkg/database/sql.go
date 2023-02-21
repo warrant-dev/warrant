@@ -76,101 +76,20 @@ func (t NullTime) MarshalJSON() ([]byte, error) {
 }
 
 type SqlQueryable interface {
-	Exec(query string, args ...interface{}) (sql.Result, error)
-	Get(dest interface{}, query string, args ...interface{}) error
-	NamedExec(query string, arg interface{}) (sql.Result, error)
-	Prepare(query string) (*sql.Stmt, error)
-	Query(query string, args ...interface{}) (*sql.Rows, error)
-	QueryRow(query string, args ...interface{}) *sql.Row
-	Select(dest interface{}, query string, args ...interface{}) error
+	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+	GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+	NamedExecContext(ctx context.Context, query string, arg interface{}) (sql.Result, error)
+	PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
+	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
+	QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
+	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
 }
 
-type ErrorHandlingQueryable struct {
-	DB *sqlx.DB
-}
-
-func (q ErrorHandlingQueryable) Exec(query string, args ...interface{}) (sql.Result, error) {
-	result, err := q.DB.Exec(query, args...)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return result, err
-		default:
-			return result, errors.Wrap(err, "sql error")
-		}
-	}
-	return result, err
-}
-
-func (q ErrorHandlingQueryable) Get(dest interface{}, query string, args ...interface{}) error {
-	err := q.DB.Get(dest, query, args...)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return err
-		default:
-			return errors.Wrap(err, "sql error")
-		}
-	}
-	return err
-}
-
-func (q ErrorHandlingQueryable) NamedExec(query string, arg interface{}) (sql.Result, error) {
-	result, err := q.DB.NamedExec(query, arg)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return result, err
-		default:
-			return result, errors.Wrap(err, "sql error")
-		}
-	}
-	return result, err
-}
-
-func (q ErrorHandlingQueryable) Prepare(query string) (*sql.Stmt, error) {
-	stmt, err := q.DB.Prepare(query)
-	if err != nil {
-		return stmt, errors.Wrap(err, "sql error")
-	}
-	return stmt, err
-}
-
-func (q ErrorHandlingQueryable) Query(query string, args ...interface{}) (*sql.Rows, error) {
-	rows, err := q.DB.Query(query, args...)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return rows, err
-		default:
-			return rows, errors.Wrap(err, "sql error")
-		}
-	}
-	return rows, err
-}
-
-func (q ErrorHandlingQueryable) QueryRow(query string, args ...interface{}) *sql.Row {
-	return q.DB.QueryRow(query, args...)
-}
-
-func (q ErrorHandlingQueryable) Select(dest interface{}, query string, args ...interface{}) error {
-	err := q.DB.Select(dest, query, args...)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return err
-		default:
-			return errors.Wrap(err, "sql error")
-		}
-	}
-	return err
-}
-
-type ErrorHandlingTx struct {
+type SqlTx struct {
 	Tx *sqlx.Tx
 }
 
-func (q ErrorHandlingTx) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (q SqlTx) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
 	result, err := q.Tx.Exec(query, args...)
 	if err != nil {
 		switch err {
@@ -183,7 +102,7 @@ func (q ErrorHandlingTx) Exec(query string, args ...interface{}) (sql.Result, er
 	return result, err
 }
 
-func (q ErrorHandlingTx) Get(dest interface{}, query string, args ...interface{}) error {
+func (q SqlTx) GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
 	err := q.Tx.Get(dest, query, args...)
 	if err != nil {
 		switch err {
@@ -196,7 +115,7 @@ func (q ErrorHandlingTx) Get(dest interface{}, query string, args ...interface{}
 	return err
 }
 
-func (q ErrorHandlingTx) NamedExec(query string, arg interface{}) (sql.Result, error) {
+func (q SqlTx) NamedExec(ctx context.Context, query string, arg interface{}) (sql.Result, error) {
 	result, err := q.Tx.NamedExec(query, arg)
 	if err != nil {
 		switch err {
@@ -209,7 +128,7 @@ func (q ErrorHandlingTx) NamedExec(query string, arg interface{}) (sql.Result, e
 	return result, err
 }
 
-func (q ErrorHandlingTx) Prepare(query string) (*sql.Stmt, error) {
+func (q SqlTx) Prepare(ctx context.Context, query string) (*sql.Stmt, error) {
 	stmt, err := q.Tx.Prepare(query)
 	if err != nil {
 		return stmt, errors.Wrap(err, "sql error")
@@ -217,7 +136,7 @@ func (q ErrorHandlingTx) Prepare(query string) (*sql.Stmt, error) {
 	return stmt, err
 }
 
-func (q ErrorHandlingTx) Query(query string, args ...interface{}) (*sql.Rows, error) {
+func (q SqlTx) Query(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
 	rows, err := q.Tx.Query(query, args...)
 	if err != nil {
 		switch err {
@@ -230,11 +149,11 @@ func (q ErrorHandlingTx) Query(query string, args ...interface{}) (*sql.Rows, er
 	return rows, err
 }
 
-func (q ErrorHandlingTx) QueryRow(query string, args ...interface{}) *sql.Row {
+func (q SqlTx) QueryRow(ctx context.Context, query string, args ...interface{}) *sql.Row {
 	return q.Tx.QueryRow(query, args...)
 }
 
-func (q ErrorHandlingTx) Select(dest interface{}, query string, args ...interface{}) error {
+func (q SqlTx) Select(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
 	err := q.Tx.Select(dest, query, args...)
 	if err != nil {
 		switch err {
@@ -245,6 +164,141 @@ func (q ErrorHandlingTx) Select(dest interface{}, query string, args ...interfac
 		}
 	}
 	return err
+}
+
+type SQL struct {
+	DB *sqlx.DB
+}
+
+func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(ctx context.Context) error) error {
+	// If transaction already started, re-use it
+	if _, ok := ctx.Value(txKey{}).(*sqlx.Tx); ok {
+		err := txFunc(ctx)
+		return err
+	}
+
+	tx, err := ds.DB.Beginx()
+	if err != nil {
+		return errors.Wrap(err, "Error beginning sql transaction")
+	}
+
+	defer func() {
+		if p := recover(); p != nil {
+			err = tx.Rollback()
+			if err != nil {
+				log.Err(err).Msg("error rolling back sql transaction")
+			}
+
+			panic(p)
+		} else if err != nil {
+			err = tx.Rollback()
+			if err != nil {
+				log.Err(err).Msg("error rolling back sql transaction")
+			}
+		} else {
+			err = tx.Commit()
+			if err != nil {
+				log.Err(err).Msg("error committing sql transaction")
+			}
+		}
+	}()
+
+	err = txFunc(context.WithValue(ctx, txKey{}, SqlTx{
+		Tx: tx,
+	}))
+	return err
+}
+
+func (ds SQL) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	queryable := ds.getQueryableFromContext(ctx)
+	result, err := queryable.ExecContext(ctx, query, args...)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return result, err
+		default:
+			return result, errors.Wrap(err, "Error when calling mysql ExecContext")
+		}
+	}
+	return result, err
+}
+
+func (ds SQL) GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
+	queryable := ds.getQueryableFromContext(ctx)
+	err := queryable.GetContext(ctx, dest, query, args...)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return err
+		default:
+			return errors.Wrap(err, "Error when calling mysql GetContext")
+		}
+	}
+	return err
+}
+
+func (ds SQL) NamedExecContext(ctx context.Context, query string, arg interface{}) (sql.Result, error) {
+	queryable := ds.getQueryableFromContext(ctx)
+	result, err := queryable.NamedExecContext(ctx, query, arg)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return result, err
+		default:
+			return result, errors.Wrap(err, "Error when calling mysql NamedExecContext")
+		}
+	}
+	return result, err
+}
+
+func (ds SQL) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
+	queryable := ds.getQueryableFromContext(ctx)
+	stmt, err := queryable.PrepareContext(ctx, query)
+	if err != nil {
+		return stmt, errors.Wrap(err, "Error when calling mysql PrepareContext")
+	}
+	return stmt, err
+}
+
+func (ds SQL) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+	queryable := ds.getQueryableFromContext(ctx)
+	rows, err := queryable.QueryContext(ctx, query, args...)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return rows, err
+		default:
+			return rows, errors.Wrap(err, "Error when calling mysql QueryContext")
+		}
+	}
+	return rows, err
+}
+
+func (ds SQL) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
+	queryable := ds.getQueryableFromContext(ctx)
+	return queryable.QueryRowContext(ctx, query, args...)
+}
+
+func (ds SQL) SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
+	queryable := ds.getQueryableFromContext(ctx)
+	err := queryable.SelectContext(ctx, dest, query, args...)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return err
+		default:
+			return errors.Wrap(err, "Error when calling mysql SelectContext")
+		}
+	}
+	return err
+}
+
+func (ds SQL) getQueryableFromContext(ctx context.Context) SqlQueryable {
+	if tx, ok := ctx.Value(txKey{}).(*sqlx.Tx); ok {
+		return tx
+	} else {
+		return ds.DB
+	}
 }
 
 // SQLRepository type

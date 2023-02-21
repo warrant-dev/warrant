@@ -1,6 +1,8 @@
 package authz
 
 import (
+	"context"
+
 	"github.com/warrant-dev/warrant/server/pkg/middleware"
 	"github.com/warrant-dev/warrant/server/pkg/service"
 )
@@ -16,13 +18,13 @@ func NewService(env service.Env) ObjectTypeService {
 }
 
 // Create creates a new ObjectType
-func (svc ObjectTypeService) Create(objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error) {
+func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error) {
 	objectTypeRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = objectTypeRepository.GetByTypeId(objectTypeSpec.Type)
+	_, err = objectTypeRepository.GetByTypeId(ctx, objectTypeSpec.Type)
 	if err == nil {
 		return nil, service.NewDuplicateRecordError("ObjectType", objectTypeSpec.Type, "ObjectType with given type already exists")
 	}
@@ -32,12 +34,12 @@ func (svc ObjectTypeService) Create(objectTypeSpec ObjectTypeSpec) (*ObjectTypeS
 		return nil, err
 	}
 
-	newObjectTypeId, err := objectTypeRepository.Create(*objectType)
+	newObjectTypeId, err := objectTypeRepository.Create(ctx, *objectType)
 	if err != nil {
 		return nil, err
 	}
 
-	newObjectType, err := objectTypeRepository.GetById(newObjectTypeId)
+	newObjectType, err := objectTypeRepository.GetById(ctx, newObjectTypeId)
 	if err != nil {
 		return nil, err
 	}
@@ -46,13 +48,13 @@ func (svc ObjectTypeService) Create(objectTypeSpec ObjectTypeSpec) (*ObjectTypeS
 }
 
 // GetByTypeId gets the ObjectType with the given typeId
-func (svc ObjectTypeService) GetByTypeId(typeId string) (*ObjectTypeSpec, error) {
+func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*ObjectTypeSpec, error) {
 	objectTypeRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {
 		return nil, err
 	}
 
-	objectType, err := objectTypeRepository.GetByTypeId(typeId)
+	objectType, err := objectTypeRepository.GetByTypeId(ctx, typeId)
 	if err != nil {
 		return nil, err
 	}
@@ -61,13 +63,13 @@ func (svc ObjectTypeService) GetByTypeId(typeId string) (*ObjectTypeSpec, error)
 }
 
 // List gets the ObjectTypes with the given organizationId
-func (svc ObjectTypeService) List(listParams middleware.ListParams) ([]ObjectTypeSpec, error) {
+func (svc ObjectTypeService) List(ctx context.Context, listParams middleware.ListParams) ([]ObjectTypeSpec, error) {
 	objectTypeRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {
 		return nil, err
 	}
 
-	objectTypes, err := objectTypeRepository.List(listParams)
+	objectTypes, err := objectTypeRepository.List(ctx, listParams)
 	if err != nil {
 		return nil, err
 	}
@@ -86,13 +88,13 @@ func (svc ObjectTypeService) List(listParams middleware.ListParams) ([]ObjectTyp
 }
 
 // Update updates the given ObjectType and returns the updated ObjectType
-func (svc ObjectTypeService) UpdateByTypeId(typeId string, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error) {
+func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error) {
 	objectTypeRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {
 		return nil, err
 	}
 
-	currentObjectType, err := objectTypeRepository.GetByTypeId(typeId)
+	currentObjectType, err := objectTypeRepository.GetByTypeId(ctx, typeId)
 	if err != nil {
 		return nil, err
 	}
@@ -103,21 +105,21 @@ func (svc ObjectTypeService) UpdateByTypeId(typeId string, objectTypeSpec Object
 	}
 
 	currentObjectType.Definition = updateTo.Definition
-	err = objectTypeRepository.UpdateByTypeId(typeId, *currentObjectType)
+	err = objectTypeRepository.UpdateByTypeId(ctx, typeId, *currentObjectType)
 	if err != nil {
 		return nil, err
 	}
 
-	return svc.GetByTypeId(typeId)
+	return svc.GetByTypeId(ctx, typeId)
 }
 
-func (svc ObjectTypeService) DeleteByTypeId(typeId string) error {
+func (svc ObjectTypeService) DeleteByTypeId(ctx context.Context, typeId string) error {
 	objectTypeRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {
 		return err
 	}
 
-	err = objectTypeRepository.DeleteByTypeId(typeId)
+	err = objectTypeRepository.DeleteByTypeId(ctx, typeId)
 	if err != nil {
 		return err
 	}

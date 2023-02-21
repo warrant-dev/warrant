@@ -1,6 +1,7 @@
 package authz
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -22,8 +23,9 @@ func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	}
 }
 
-func (repo MySQLRepository) Create(objectType ObjectType) (int64, error) {
-	result, err := repo.DB.Exec(
+func (repo MySQLRepository) Create(ctx context.Context, objectType ObjectType) (int64, error) {
+	result, err := repo.DB.ExecContext(
+		ctx,
 		`
 			INSERT INTO objectType (
 				typeId,
@@ -55,9 +57,10 @@ func (repo MySQLRepository) Create(objectType ObjectType) (int64, error) {
 	return newObjectTypeId, nil
 }
 
-func (repo MySQLRepository) GetById(id int64) (*ObjectType, error) {
+func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*ObjectType, error) {
 	var objectType ObjectType
-	err := repo.DB.Get(
+	err := repo.DB.GetContext(
+		ctx,
 		&objectType,
 		`
 			SELECT id, typeId, definition, createdAt, updatedAt, deletedAt
@@ -80,9 +83,10 @@ func (repo MySQLRepository) GetById(id int64) (*ObjectType, error) {
 	return &objectType, nil
 }
 
-func (repo MySQLRepository) GetByTypeId(typeId string) (*ObjectType, error) {
+func (repo MySQLRepository) GetByTypeId(ctx context.Context, typeId string) (*ObjectType, error) {
 	var objectType ObjectType
-	err := repo.DB.Get(
+	err := repo.DB.GetContext(
+		ctx,
 		&objectType,
 		`
 			SELECT id, typeId, definition, createdAt, updatedAt, deletedAt
@@ -105,7 +109,7 @@ func (repo MySQLRepository) GetByTypeId(typeId string) (*ObjectType, error) {
 	return &objectType, nil
 }
 
-func (repo MySQLRepository) List(listParams middleware.ListParams) ([]ObjectType, error) {
+func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]ObjectType, error) {
 	objectTypes := make([]ObjectType, 0)
 	replacements := make([]interface{}, 0)
 	query := `
@@ -197,7 +201,8 @@ func (repo MySQLRepository) List(listParams middleware.ListParams) ([]ObjectType
 		}
 	}
 
-	err := repo.DB.Select(
+	err := repo.DB.SelectContext(
+		ctx,
 		&objectTypes,
 		query,
 		replacements...,
@@ -214,8 +219,9 @@ func (repo MySQLRepository) List(listParams middleware.ListParams) ([]ObjectType
 	return objectTypes, nil
 }
 
-func (repo MySQLRepository) UpdateByTypeId(typeId string, objectType ObjectType) error {
-	_, err := repo.DB.Exec(
+func (repo MySQLRepository) UpdateByTypeId(ctx context.Context, typeId string, objectType ObjectType) error {
+	_, err := repo.DB.ExecContext(
+		ctx,
 		`
 			UPDATE objectType
 			SET
@@ -239,8 +245,9 @@ func (repo MySQLRepository) UpdateByTypeId(typeId string, objectType ObjectType)
 	return nil
 }
 
-func (repo MySQLRepository) DeleteByTypeId(typeId string) error {
-	_, err := repo.DB.Exec(
+func (repo MySQLRepository) DeleteByTypeId(ctx context.Context, typeId string) error {
+	_, err := repo.DB.ExecContext(
+		ctx,
 		`
 			UPDATE objectType
 			SET
