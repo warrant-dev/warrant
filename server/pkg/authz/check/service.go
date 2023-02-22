@@ -24,28 +24,6 @@ func NewService(env service.Env) CheckService {
 	}
 }
 
-// A set of Warrant strings
-type WarrantSet map[string]uint16
-
-// Set of Warrant strings where value indicates if warrant is direct match
-type WarrantQuerySet map[string]bool
-
-func (set WarrantSet) Add(key string) {
-	log.Debug().Msgf("Adding warrant %s to WarrantSet", key)
-
-	if count, ok := set[key]; ok {
-		set[key] = count + 1
-		return
-	}
-
-	set[key] = 1
-}
-
-func (set WarrantSet) Contains(key string) bool {
-	_, ok := set[key]
-	return ok
-}
-
 func (svc CheckService) getWithContextMatch(ctx context.Context, spec warrant.WarrantSpec) (*warrant.WarrantSpec, error) {
 	warrantRepository, err := warrant.NewRepository(svc.Env().DB())
 	if err != nil {

@@ -40,7 +40,7 @@ func (svc TenantService) Create(ctx context.Context, tenantSpec TenantSpec) (*Te
 		if err != nil {
 			switch err.(type) {
 			case *service.DuplicateRecordError:
-				return service.NewDuplicateRecordError("Tenant", tenantSpec.TenantId, "Tenant with given tenantId already exists")
+				return service.NewDuplicateRecordError("Tenant", tenantSpec.TenantId, "A tenant with the given tenantId already exists")
 			default:
 				return err
 			}
@@ -48,7 +48,7 @@ func (svc TenantService) Create(ctx context.Context, tenantSpec TenantSpec) (*Te
 
 		_, err = tenantRepository.GetByTenantId(txCtx, tenantSpec.TenantId)
 		if err == nil {
-			return service.NewDuplicateRecordError("Tenant", tenantSpec.TenantId, "Tenant with given tenantId already exists")
+			return service.NewDuplicateRecordError("Tenant", tenantSpec.TenantId, "A tenant with the given tenantId already exists")
 		}
 
 		newTenantId, err := tenantRepository.Create(txCtx, *tenantSpec.ToTenant(createdObject.ID))

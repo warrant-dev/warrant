@@ -188,7 +188,7 @@
                     "type": "User",
                     "key": "5555555555555",
                     "code": "duplicate_record",
-                    "message": "Duplicate User 5555555555555, User with given userId already exists"
+                    "message": "Duplicate User 5555555555555, A user with the given userId already exists"
                 }
             }
         },

@@ -8,6 +8,8 @@ import (
 	check "github.com/warrant-dev/warrant/server/pkg/authz/check"
 	object "github.com/warrant-dev/warrant/server/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/server/pkg/authz/objecttype"
+	permission "github.com/warrant-dev/warrant/server/pkg/authz/permission"
+	role "github.com/warrant-dev/warrant/server/pkg/authz/role"
 	tenant "github.com/warrant-dev/warrant/server/pkg/authz/tenant"
 	user "github.com/warrant-dev/warrant/server/pkg/authz/user"
 	warrant "github.com/warrant-dev/warrant/server/pkg/authz/warrant"
@@ -41,6 +43,8 @@ func main() {
 		check.NewService(&svcEnv),
 		object.NewService(&svcEnv),
 		objecttype.NewService(&svcEnv),
+		permission.NewService(&svcEnv),
+		role.NewService(&svcEnv),
 		tenant.NewService(&svcEnv),
 		user.NewService(&svcEnv),
 		warrant.NewService(&svcEnv),

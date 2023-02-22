@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
 	objecttype "github.com/warrant-dev/warrant/server/pkg/authz/objecttype"
 	"github.com/warrant-dev/warrant/server/pkg/database"
@@ -46,17 +45,12 @@ func (repo MySQLRepository) Create(ctx context.Context, user User) (int64, error
 		user.Email,
 	)
 	if err != nil {
-		mysqlErr, ok := err.(*mysql.MySQLError)
-		if ok && mysqlErr.Number == 1062 {
-			return 0, service.NewDuplicateRecordError("User", user.UserId, "User with given userId already exists")
-		}
-
-		return 0, err
+		return 0, errors.Wrap(err, "Unable to create user")
 	}
 
 	newUserId, err := result.LastInsertId()
 	if err != nil {
-		return 0, err
+		return 0, errors.Wrap(err, "Unable to create user")
 	}
 
 	return newUserId, nil
@@ -68,7 +62,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*User, error
 		ctx,
 		&user,
 		`
-			SELECT id, objectId, userId, email, createdAt
+			SELECT id, objectId, userId, email, createdAt, updatedAt, deletedAt
 			FROM user
 			WHERE
 				id = ? AND
@@ -94,7 +88,7 @@ func (repo MySQLRepository) GetByUserId(ctx context.Context, userId string) (*Us
 		ctx,
 		&user,
 		`
-			SELECT id, objectId, userId, email, createdAt
+			SELECT id, objectId, userId, email, createdAt, updatedAt, deletedAt
 			FROM user
 			WHERE
 				userId = ? AND
@@ -117,7 +111,7 @@ func (repo MySQLRepository) GetByUserId(ctx context.Context, userId string) (*Us
 func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]User, error) {
 	users := make([]User, 0)
 	query := `
-		SELECT id, objectId, userId, email, createdAt
+		SELECT id, objectId, userId, email, createdAt, updatedAt, deletedAt
 		FROM user
 		WHERE
 			deletedAt IS NULL

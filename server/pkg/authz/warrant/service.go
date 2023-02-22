@@ -3,7 +3,6 @@ package authz
 import (
 	"context"
 
-	"github.com/rs/zerolog/log"
 	wntContext "github.com/warrant-dev/warrant/server/pkg/authz/context"
 	objecttype "github.com/warrant-dev/warrant/server/pkg/authz/objecttype"
 	"github.com/warrant-dev/warrant/server/pkg/middleware"
@@ -22,39 +21,17 @@ func NewService(env service.Env) WarrantService {
 	}
 }
 
-// A set of Warrant strings
-type WarrantSet map[string]uint16
-
-// Set of Warrant strings where value indicates if warrant is direct match
-type WarrantQuerySet map[string]bool
-
-func (set WarrantSet) Add(key string) {
-	log.Debug().Msgf("Adding warrant %s to WarrantSet", key)
-
-	if count, ok := set[key]; ok {
-		set[key] = count + 1
-		return
-	}
-
-	set[key] = 1
-}
-
-func (set WarrantSet) Contains(key string) bool {
-	_, ok := set[key]
-	return ok
-}
-
 func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (*WarrantSpec, error) {
 	// Check that objectType is valid
 	objectTypeDef, err := objecttype.NewService(svc.Env()).GetByTypeId(ctx, warrantSpec.ObjectType)
 	if err != nil {
-		return nil, service.NewInvalidParameterError("objectType", "Object type does not exist.")
+		return nil, service.NewInvalidParameterError("objectType", "The given object type does not exist.")
 	}
 
 	// Check that relation is valid for objectType
 	_, exists := objectTypeDef.Relations[warrantSpec.Relation]
 	if !exists {
-		return nil, service.NewInvalidParameterError("relation", "Object type with the given relation does not exist.")
+		return nil, service.NewInvalidParameterError("relation", "An object type with the given relation does not exist.")
 	}
 
 	warrantRepository, err := NewRepository(svc.Env().DB())
@@ -65,7 +42,7 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 	// Check that warrant does not already exist
 	_, err = warrantRepository.Get(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Context.String())
 	if err == nil {
-		return nil, service.NewDuplicateRecordError("Warrant", warrantSpec, "Warrant with the given objectType, objectId, relation, subject, and context already exists")
+		return nil, service.NewDuplicateRecordError("Warrant", warrantSpec, "A warrant with the given objectType, objectId, relation, subject, and context already exists")
 	}
 
 	var createdWarrant *Warrant
@@ -83,7 +60,7 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 		contexts := warrantSpec.Context.ToSlice(createdWarrantId)
 		for _, contextObject := range contexts {
 			if !contextObject.IsValid() {
-				return service.NewInvalidParameterError("context", "context name and value must only contain alphanumeric characters, '-', and/or '_'")
+				return service.NewInvalidParameterError("context", "The context name and value must only contain alphanumeric characters, '-', and/or '_'")
 			}
 		}
 		if len(contexts) > 0 {

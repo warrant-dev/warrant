@@ -107,14 +107,12 @@ func get(env service.Env, w http.ResponseWriter, r *http.Request) error {
 
 func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	listParams := middleware.GetListParamsFromContext(r.Context())
-	objectService := NewService(env)
-
-	objects, err := objectService.List(r.Context(), listParams)
+	tenants, err := NewService(env).List(r.Context(), listParams)
 	if err != nil {
 		return err
 	}
 
-	service.SendJSONResponse(w, objects)
+	service.SendJSONResponse(w, tenants)
 	return nil
 }
 

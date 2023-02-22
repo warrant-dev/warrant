@@ -1,0 +1,103 @@
+{
+    "ignoredFields": [
+        "createdAt"
+    ],
+    "tests": [
+        {
+            "name": "createRole",
+            "request": {
+                "method": "POST",
+                "url": "/v1/roles",
+                "body": {
+                    "roleId": "test-admin"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "roleId": "test-admin",
+                    "name": null,
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "getRoleById",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles/test-admin"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "roleId": "test-admin",
+                    "name": null,
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "updateRolePOST",
+            "request": {
+                "method": "POST",
+                "url": "/v1/roles/test-admin",
+                "body": {
+                    "name": "Test Admin"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "roleId": "test-admin",
+                    "name": "Test Admin",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "updateRolePUT",
+            "request": {
+                "method": "PUT",
+                "url": "/v1/roles/test-admin",
+                "body": {
+                    "name": "Test Administrator"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "roleId": "test-admin",
+                    "name": "Test Administrator",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "getRoles",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "test-admin",
+                        "name": "Test Administrator",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "deleteRole",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/roles/test-admin"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}

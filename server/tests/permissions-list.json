@@ -1,0 +1,465 @@
+{
+    "ignoredFields": [
+        "createdAt"
+    ],
+    "tests": [
+        {
+            "name": "createPermission1",
+            "request": {
+                "method": "POST",
+                "url": "/v1/permissions",
+                "body": {
+                    "permissionId": "permission-1",
+                    "name": "Permission B"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "permissionId": "permission-1",
+                    "name": "Permission B",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "createPermission2",
+            "request": {
+                "method": "POST",
+                "url": "/v1/permissions",
+                "body": {
+                    "permissionId": "permission-2",
+                    "name": "Permission A"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "permissionId": "permission-2",
+                    "name": "Permission A",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "createPermission3",
+            "request": {
+                "method": "POST",
+                "url": "/v1/permissions",
+                "body": {
+                    "permissionId": "permission-3",
+                    "name": ""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "permissionId": "permission-3",
+                    "name": "",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "createPermission4",
+            "request": {
+                "method": "POST",
+                "url": "/v1/permissions",
+                "body": {
+                    "permissionId": "permission-4"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "permissionId": "permission-4",
+                    "name": null,
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "createPermission5",
+            "request": {
+                "method": "POST",
+                "url": "/v1/permissions",
+                "body": {
+                    "permissionId": "permission-5",
+                    "name": "Permission C"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "permissionId": "permission-5",
+                    "name": "Permission C",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "getPermissionsSortByCreatedAtDESC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=createdAt&sortOrder=DESC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-5",
+                        "name": "Permission C",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-4",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-3",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-2",
+                        "name": "Permission A",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-1",
+                        "name": "Permission B",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPermissionsSortByCreatedAtASC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=createdAt&sortOrder=ASC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-1",
+                        "name": "Permission B",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-2",
+                        "name": "Permission A",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-3",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-4",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-5",
+                        "name": "Permission C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPermissionsSortByNameDESC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=DESC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-5",
+                        "name": "Permission C",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-1",
+                        "name": "Permission B",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-2",
+                        "name": "Permission A",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-3",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-4",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPermissionsSortByNameASC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=ASC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-4",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-3",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-2",
+                        "name": "Permission A",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-1",
+                        "name": "Permission B",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-5",
+                        "name": "Permission C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPermissionsPage1Limit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?page=1&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-1",
+                        "name": "Permission B",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-2",
+                        "name": "Permission A",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPermissionsPage2Limit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?page=2&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-3",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-4",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPermissionsPage3Limit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?page=3&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-5",
+                        "name": "Permission C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPermissionsSortByNameASCLimit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=ASC&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-4",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-3",
+                        "name": "",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPermissionsSortByCreatedAtASCLimit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=createdAt&sortOrder=ASC&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-1",
+                        "name": "Permission B",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-2",
+                        "name": "Permission A",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPermissionsLimit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-1",
+                        "name": "Permission B",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-2",
+                        "name": "Permission A",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPermissionsLimit2AfterId1",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?limit=2&afterId=permission-2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-3",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-4",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPermissionsLimit2AfterId2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?limit=2&afterId=permission-4"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-5",
+                        "name": "Permission C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "deletePermission1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/permissions/permission-1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePermission2",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/permissions/permission-2"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePermission3",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/permissions/permission-3"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePermission4",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/permissions/permission-4"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePermission5",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/permissions/permission-5"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}
