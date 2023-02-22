@@ -2,6 +2,7 @@ package authz
 
 import (
 	"context"
+	"regexp"
 
 	"github.com/google/uuid"
 	object "github.com/warrant-dev/warrant/server/pkg/authz/object"
@@ -120,7 +121,7 @@ func (svc UserService) ListByTenantId(ctx context.Context, tenantId string, list
 	return tenantUserSpecs, nil
 }
 
-func (svc UserService) UpdateByUserId(ctx context.Context, userId string, userSpec UserSpec) (*UserSpec, error) {
+func (svc UserService) UpdateByUserId(ctx context.Context, userId string, userSpec UpdateUserSpec) (*UserSpec, error) {
 	userRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {
 		return nil, err
@@ -169,9 +170,10 @@ func (svc UserService) DeleteByUserId(ctx context.Context, userId string) error 
 }
 
 func validateOrGenerateUserIdInSpec(userSpec *UserSpec) error {
+	userIdRegExp := regexp.MustCompile(`^[a-zA-Z0-9_\-\.@]+$`)
 	if userSpec.UserId != "" {
 		// Validate userId if provided
-		if !IsUserIdValid(userSpec.UserId) {
+		if !userIdRegExp.Match([]byte(userSpec.UserId)) {
 			return service.NewInvalidParameterError("userId", "must be provided and can only contain alphanumeric characters and/or '-', '_', and '@'")
 		}
 	} else {

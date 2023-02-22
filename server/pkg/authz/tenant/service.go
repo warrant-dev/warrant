@@ -123,7 +123,7 @@ func (svc TenantService) ListByUserId(ctx context.Context, userId string, listPa
 	return tenantSpecs, nil
 }
 
-func (svc TenantService) UpdateByTenantId(ctx context.Context, tenantId string, tenantSpec TenantSpec) (*TenantSpec, error) {
+func (svc TenantService) UpdateByTenantId(ctx context.Context, tenantId string, tenantSpec UpdateTenantSpec) (*TenantSpec, error) {
 	tenantRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {
 		return nil, err
