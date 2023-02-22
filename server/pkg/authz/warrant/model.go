@@ -49,7 +49,7 @@ func (warrant *Warrant) ToWarrantSpec() *WarrantSpec {
 	return &warrantSpec
 }
 
-func StringToWarrant(warrantString string, organizationId int64, environmentId int64) (*Warrant, error) {
+func StringToWarrant(warrantString string) (*Warrant, error) {
 	warrantSpec, err := StringToWarrantSpec(warrantString)
 	if err != nil {
 		return nil, err

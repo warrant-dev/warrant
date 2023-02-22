@@ -9,12 +9,12 @@ import (
 
 // ObjectType model
 type ObjectType struct {
-	ID         int64             `json:"-" db:"id"`
-	TypeId     string            `json:"typeId" db:"typeId"`
-	Definition string            `json:"definition" db:"definition"`
-	CreatedAt  time.Time         `json:"-" db:"createdAt"`
-	UpdatedAt  time.Time         `json:"-" db:"updatedAt"`
-	DeletedAt  database.NullTime `json:"-" db:"deletedAt"`
+	ID         int64             `db:"id"`
+	TypeId     string            `db:"typeId"`
+	Definition string            `db:"definition"`
+	CreatedAt  time.Time         `db:"createdAt"`
+	UpdatedAt  time.Time         `db:"updatedAt"`
+	DeletedAt  database.NullTime `db:"deletedAt"`
 }
 
 func (objectType ObjectType) ToObjectTypeSpec() (*ObjectTypeSpec, error) {
