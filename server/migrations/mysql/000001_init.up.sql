@@ -51,8 +51,8 @@ CREATE TABLE IF NOT EXISTS object (
   deletedAt timestamp NULL DEFAULT NULL,
   PRIMARY KEY (id),
   UNIQUE KEY object_uk_obj_type_obj_id (objectType, objectId),
-  KEY object_uk_org_id_env_id_created_at_object_id (createdAt, objectId),
-  KEY object_uk_org_id_env_id_object_type_object_id (objectType, objectId)
+  KEY object_uk_created_at_object_id (createdAt, objectId),
+  KEY object_uk_object_type_object_id (objectType, objectId)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS permission (
