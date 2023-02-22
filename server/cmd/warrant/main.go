@@ -5,7 +5,9 @@ import (
 	"net/http"
 
 	"github.com/rs/zerolog/log"
+	check "github.com/warrant-dev/warrant/server/pkg/authz/check"
 	objecttype "github.com/warrant-dev/warrant/server/pkg/authz/objecttype"
+	warrant "github.com/warrant-dev/warrant/server/pkg/authz/warrant"
 	"github.com/warrant-dev/warrant/server/pkg/database"
 	"github.com/warrant-dev/warrant/server/pkg/service"
 )
@@ -33,7 +35,9 @@ func main() {
 
 	svcEnv := NewServiceEnv(database)
 	svcs := []service.Service{
-		objecttype.NewObjectTypeService(&svcEnv),
+		check.NewService(&svcEnv),
+		objecttype.NewService(&svcEnv),
+		warrant.NewService(&svcEnv),
 	}
 
 	routes := make([]service.Route, 0)

@@ -63,7 +63,7 @@ func create(env service.Env, w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	createdObjectTypeSpec, err := NewObjectTypeService(env).Create(objectTypeSpec)
+	createdObjectTypeSpec, err := NewService(env).Create(r.Context(), objectTypeSpec)
 	if err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func create(env service.Env, w http.ResponseWriter, r *http.Request) error {
 
 func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	listParams := middleware.GetListParamsFromContext(r.Context())
-	objectTypeSpecs, err := NewObjectTypeService(env).List(listParams)
+	objectTypeSpecs, err := NewService(env).List(r.Context(), listParams)
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
 
 func getByTypeId(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	typeParam := mux.Vars(r)["type"]
-	objectTypeSpec, err := NewObjectTypeService(env).GetByTypeId(typeParam)
+	objectTypeSpec, err := NewService(env).GetByTypeId(r.Context(), typeParam)
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	typeParam := mux.Vars(r)["type"]
-	updatedObjectTypeSpec, err := NewObjectTypeService(env).UpdateByTypeId(typeParam, objectTypeSpec)
+	updatedObjectTypeSpec, err := NewService(env).UpdateByTypeId(r.Context(), typeParam, objectTypeSpec)
 	if err != nil {
 		return err
 	}
@@ -113,7 +113,7 @@ func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
 
 func delete(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	typeId := mux.Vars(r)["type"]
-	err := NewObjectTypeService(env).DeleteByTypeId(typeId)
+	err := NewService(env).DeleteByTypeId(r.Context(), typeId)
 	if err != nil {
 		return err
 	}

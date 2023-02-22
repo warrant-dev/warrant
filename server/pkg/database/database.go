@@ -1,5 +1,7 @@
 package database
 
+import "context"
+
 const (
 	TypeMySQL = "mysql"
 	// TypePgSQL  = "postgres"
@@ -14,6 +16,5 @@ type Database interface {
 	Type() string
 	Connect() error
 	Ping() error
-	GetConnection() interface{}
-	WithTransaction(conn interface{}, txCallback func(tx interface{}) error) error
+	WithinTransaction(ctx context.Context, txCallback func(ctx context.Context) error) error
 }
