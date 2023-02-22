@@ -115,8 +115,8 @@ func (q SqlTx) GetContext(ctx context.Context, dest interface{}, query string, a
 	return err
 }
 
-func (q SqlTx) NamedExec(ctx context.Context, query string, arg interface{}) (sql.Result, error) {
-	result, err := q.Tx.NamedExec(query, arg)
+func (q SqlTx) NamedExecContext(ctx context.Context, query string, arg interface{}) (sql.Result, error) {
+	result, err := q.Tx.NamedExecContext(ctx, query, arg)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -128,16 +128,16 @@ func (q SqlTx) NamedExec(ctx context.Context, query string, arg interface{}) (sq
 	return result, err
 }
 
-func (q SqlTx) Prepare(ctx context.Context, query string) (*sql.Stmt, error) {
-	stmt, err := q.Tx.Prepare(query)
+func (q SqlTx) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
+	stmt, err := q.Tx.PrepareContext(ctx, query)
 	if err != nil {
 		return stmt, errors.Wrap(err, "sql error")
 	}
 	return stmt, err
 }
 
-func (q SqlTx) Query(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
-	rows, err := q.Tx.Query(query, args...)
+func (q SqlTx) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+	rows, err := q.Tx.QueryContext(ctx, query, args...)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -149,12 +149,12 @@ func (q SqlTx) Query(ctx context.Context, query string, args ...interface{}) (*s
 	return rows, err
 }
 
-func (q SqlTx) QueryRow(ctx context.Context, query string, args ...interface{}) *sql.Row {
-	return q.Tx.QueryRow(query, args...)
+func (q SqlTx) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
+	return q.Tx.QueryRowContext(ctx, query, args...)
 }
 
-func (q SqlTx) Select(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
-	err := q.Tx.Select(dest, query, args...)
+func (q SqlTx) SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
+	err := q.Tx.SelectContext(ctx, dest, query, args...)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -172,7 +172,7 @@ type SQL struct {
 
 func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(ctx context.Context) error) error {
 	// If transaction already started, re-use it
-	if _, ok := ctx.Value(txKey{}).(*sqlx.Tx); ok {
+	if _, ok := ctx.Value(txKey{}).(*SqlTx); ok {
 		err := txFunc(ctx)
 		return err
 	}
@@ -203,7 +203,7 @@ func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(ctx context.Con
 		}
 	}()
 
-	err = txFunc(context.WithValue(ctx, txKey{}, SqlTx{
+	err = txFunc(context.WithValue(ctx, txKey{}, &SqlTx{
 		Tx: tx,
 	}))
 	return err
@@ -294,7 +294,7 @@ func (ds SQL) SelectContext(ctx context.Context, dest interface{}, query string,
 }
 
 func (ds SQL) getQueryableFromContext(ctx context.Context) SqlQueryable {
-	if tx, ok := ctx.Value(txKey{}).(*sqlx.Tx); ok {
+	if tx, ok := ctx.Value(txKey{}).(*SqlTx); ok {
 		return tx
 	} else {
 		return ds.DB
@@ -303,11 +303,11 @@ func (ds SQL) getQueryableFromContext(ctx context.Context) SqlQueryable {
 
 // SQLRepository type
 type SQLRepository struct {
-	DB SqlQueryable
+	DB *SQL
 }
 
 // NewSQLRepository returns an instance of SQLRepository
-func NewSQLRepository(db SqlQueryable) SQLRepository {
+func NewSQLRepository(db *SQL) SQLRepository {
 	if db == nil {
 		log.Fatal().Msg("Cannot initialize SQLRepository with a nil db parameter")
 	}

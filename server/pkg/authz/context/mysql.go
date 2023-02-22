@@ -20,7 +20,7 @@ type MySQLRepository struct {
 
 func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	return MySQLRepository{
-		database.NewSQLRepository(db),
+		database.NewSQLRepository(&db.SQL),
 	}
 }
 
@@ -28,7 +28,7 @@ func (repository MySQLRepository) CreateAll(ctx context.Context, contexts []Cont
 	_, err := repository.DB.NamedExecContext(
 		ctx,
 		`
-			INSERT INTO warrant.context (
+			INSERT INTO context (
 				warrantId,
 				name,
 				value
@@ -71,7 +71,7 @@ func (repository MySQLRepository) ListByWarrantId(ctx context.Context, warrantId
 		fmt.Sprintf(
 			`
 				SELECT id, warrantId, name, value, createdAt, updatedAt
-				FROM warrant.context
+				FROM context
 				WHERE
 					warrantId IN (%s) AND
 					deletedAt IS NULL
@@ -95,7 +95,7 @@ func (repository MySQLRepository) DeleteAllByWarrantId(ctx context.Context, warr
 	_, err := repository.DB.ExecContext(
 		ctx,
 		`
-			UPDATE warrant.context
+			UPDATE context
 			SET
 				deletedAt = ?
 			WHERE

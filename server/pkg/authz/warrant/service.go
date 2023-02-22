@@ -92,7 +92,7 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 				return err
 			}
 
-			createdWarrant.Context, err = contextRepository.CreateAll(ctx, contexts)
+			createdWarrant.Context, err = contextRepository.CreateAll(txCtx, contexts)
 			if err != nil {
 				return err
 			}
@@ -219,7 +219,7 @@ func (svc WarrantService) DeleteRelatedWarrants(ctx context.Context, objectType 
 			return err
 		}
 
-		err = warrantRepository.DeleteAllBySubject(ctx, objectType, objectId)
+		err = warrantRepository.DeleteAllBySubject(txCtx, objectType, objectId)
 		if err != nil {
 			return err
 		}

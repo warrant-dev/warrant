@@ -71,7 +71,7 @@ func (svc CheckService) getWithContextMatch(ctx context.Context, spec warrant.Wa
 }
 
 func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType string, objectId string, relation string, subjectType string, wntCtx wntContext.ContextSetSpec) ([]warrant.WarrantSpec, error) {
-	log.Debug().Msgf("Getting matching subjects for %s:%s#%s%s@%s:", objectType, objectId, relation, subjectType, ctx)
+	log.Debug().Msgf("Getting matching subjects for %s:%s#%s@%s:___%s", objectType, objectId, relation, subjectType, wntCtx)
 
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
 	warrantRepository, err := warrant.NewRepository(svc.Env().DB())
