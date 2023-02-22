@@ -17,7 +17,6 @@ func NewService(env service.Env) ObjectTypeService {
 	}
 }
 
-// Create creates a new ObjectType
 func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error) {
 	objectTypeRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {
@@ -47,7 +46,6 @@ func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTy
 	return newObjectType.ToObjectTypeSpec()
 }
 
-// GetByTypeId gets the ObjectType with the given typeId
 func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*ObjectTypeSpec, error) {
 	objectTypeRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {
@@ -62,7 +60,6 @@ func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*O
 	return objectType.ToObjectTypeSpec()
 }
 
-// List gets the ObjectTypes with the given organizationId
 func (svc ObjectTypeService) List(ctx context.Context, listParams middleware.ListParams) ([]ObjectTypeSpec, error) {
 	objectTypeRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {
@@ -87,7 +84,6 @@ func (svc ObjectTypeService) List(ctx context.Context, listParams middleware.Lis
 	return objectTypeSpecs, nil
 }
 
-// Update updates the given ObjectType and returns the updated ObjectType
 func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error) {
 	objectTypeRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {

@@ -32,7 +32,7 @@ func (svc ObjectTypeService) GetRoutes() []service.Route {
 		{
 			Pattern: "/v1/object-types/{type}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc.Env(), getByTypeId),
+			Handler: service.NewRouteHandler(svc.Env(), get),
 		},
 
 		// update
@@ -83,7 +83,7 @@ func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func getByTypeId(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func get(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	typeParam := mux.Vars(r)["type"]
 	objectTypeSpec, err := NewService(env).GetByTypeId(r.Context(), typeParam)
 	if err != nil {

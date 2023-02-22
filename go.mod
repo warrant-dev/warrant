@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/go-playground/validator/v10 v10.11.2
 	github.com/go-sql-driver/mysql v1.7.0
+	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/ngrok/sqlmw v0.0.0-20220520173518-97c9c04efc79

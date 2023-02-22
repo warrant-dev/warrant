@@ -1,0 +1,619 @@
+{
+    "ignoredFields": [
+        "createdAt"
+    ],
+    "tests": [
+        {
+            "name": "createObjectTypePermission",
+            "request": {
+                "method": "POST",
+                "url": "/v1/object-types",
+                "body": {
+                    "type": "permission",
+                    "relations": {
+                        "member": {
+                            "inheritIf": "anyOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "member",
+                                    "ofType": "role",
+                                    "withRelation": "member"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "permission",
+                    "relations": {
+                        "member": {
+                            "inheritIf": "anyOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "member",
+                                    "ofType": "role",
+                                    "withRelation": "member"
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "createObjectTypeRole",
+            "request": {
+                "method": "POST",
+                "url": "/v1/object-types",
+                "body": {
+                    "type": "role",
+                    "relations": {
+                        "member": {
+                            "inheritIf": "anyOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "member",
+                                    "ofType": "role",
+                                    "withRelation": "member"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "role",
+                    "relations": {
+                        "member": {
+                            "inheritIf": "anyOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "member",
+                                    "ofType": "role",
+                                    "withRelation": "member"
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "createObjectTypeReport",
+            "request": {
+                "method": "POST",
+                "url": "/v1/object-types",
+                "body": {
+                    "type": "report",
+                    "relations": {
+                        "owner": {},
+                        "editor": {
+                            "inheritIf": "owner"
+                        },
+                        "viewer": {
+                            "inheritIf": "editor"
+                        },
+                        "editor-viewer": {
+                            "inheritIf": "allOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "editor"
+                                },
+                                {
+                                    "inheritIf": "viewer"
+                                }
+                            ]
+                        },
+                        "non-owner": {
+                            "inheritIf": "noneOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "owner"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "report",
+                    "relations": {
+                        "owner": {},
+                        "editor": {
+                            "inheritIf": "owner"
+                        },
+                        "viewer": {
+                            "inheritIf": "editor"
+                        },
+                        "editor-viewer": {
+                            "inheritIf": "allOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "editor"
+                                },
+                                {
+                                    "inheritIf": "viewer"
+                                }
+                            ]
+                        },
+                        "non-owner": {
+                            "inheritIf": "noneOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "owner"
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "createUserUsera",
+            "request": {
+                "method": "POST",
+                "url": "/v1/users",
+                "body": {
+                    "userId": "user-a",
+                    "email": "user-a@warrant.dev"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "userId": "user-a",
+                    "email": "user-a@warrant.dev"
+                }
+            }
+        },
+        {
+            "name": "createWarrant",
+            "request": {
+                "method": "POST",
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "report",
+                    "objectId": "report-a",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "report",
+                    "objectId": "report-a",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    }
+                }
+            }
+        },
+        {
+            "name": "createRoleSeniorAccountant",
+            "request": {
+                "method": "POST",
+                "url": "/v1/roles",
+                "body": {
+                    "roleId": "senior-accountant",
+                    "name": "Senior Accountant",
+                    "description": "Grants access to view and edit the balance sheet."
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "roleId": "senior-accountant",
+                    "name": "Senior Accountant",
+                    "description": "Grants access to view and edit the balance sheet."
+                }
+            }
+        },
+        {
+            "name": "createPermissionViewBalanceSheet",
+            "request": {
+                "method": "POST",
+                "url": "/v1/permissions",
+                "body": {
+                    "permissionId": "view-balance-sheet",
+                    "name": "View Balance Sheet",
+                    "description": "Grants access to view the balance sheet."
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "permissionId": "view-balance-sheet",
+                    "name": "View Balance Sheet",
+                    "description": "Grants access to view the balance sheet."
+                }
+            }
+        },
+        {
+            "name": "createPermissionEditBalanceSheet",
+            "request": {
+                "method": "POST",
+                "url": "/v1/permissions",
+                "body": {
+                    "permissionId": "edit-balance-sheet",
+                    "name": "Edit Balance Sheet",
+                    "description": "Grants access to edit the balance sheet."
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "permissionId": "edit-balance-sheet",
+                    "name": "Edit Balance Sheet",
+                    "description": "Grants access to edit the balance sheet."
+                }
+            }
+        },
+        {
+            "name": "assignPermissionViewBalanceSheetToRoleSeniorAccountant",
+            "request": {
+                "method": "POST",
+                "url": "/v1/roles/senior-accountant/permissions/view-balance-sheet"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "permissionId": "view-balance-sheet",
+                    "name": null,
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "assignPermissionEditBalanceSheetToRoleSeniorAccountant",
+            "request": {
+                "method": "POST",
+                "url": "/v1/roles/senior-accountant/permissions/edit-balance-sheet"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "permissionId": "edit-balance-sheet",
+                    "name": null,
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "assignRoleSeniorAccountantToUserWithContext",
+            "request": {
+                "method": "POST",
+                "url": "/v1/users/user-a/roles/senior-accountant",
+                "body": {
+                    "context": {
+                        "tenant": "tenant-a"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "roleId": "senior-accountant",
+                    "name": null,
+                    "description": null,
+                    "context": {
+                        "tenant": "tenant-a"
+                    }
+                }
+            }
+        },
+        {
+            "name": "checkAccessWithContextAuthorized",
+            "request": {
+                "method": "POST",
+                "url": "/v1/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "permission",
+                            "objectId": "edit-balance-sheet",
+                            "relation": "member",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            },
+                            "context": {
+                                "tenant": "tenant-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized"
+                }
+            }
+        },
+        {
+            "name": "checkAccessWithContextNotAuthorized",
+            "request": {
+                "method": "POST",
+                "url": "/v1/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "permission",
+                            "objectId": "edit-balance-sheet",
+                            "relation": "member",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            },
+                            "context": {
+                                "tenant": "tenant-b"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized"
+                }
+            }
+        },
+        {
+            "name": "checkAccessDirectWarrantAuthorized",
+            "request": {
+                "method": "POST",
+                "url": "/v1/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "editor",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized"
+                }
+            }
+        },
+        {
+            "name": "checkAccessUsersetRuleAuthorized",
+            "request": {
+                "method": "POST",
+                "url": "/v1/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "viewer",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized"
+                }
+            }
+        },
+        {
+            "name": "checkAccessAllOfRuleAuthorized",
+            "request": {
+                "method": "POST",
+                "url": "/v1/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "editor-viewer",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized"
+                }
+            }
+        },
+        {
+            "name": "checkAccessNoneOfRuleAuthorized",
+            "request": {
+                "method": "POST",
+                "url": "/v1/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "non-owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized"
+                }
+            }
+        },
+        {
+            "name": "removeRoleSeniorAccountantFromUserWithContext",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/user-a/roles/senior-accountant",
+                "body": {
+                    "context": {
+                        "tenant": "tenant-a"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removePermissionEditBalanceSheetFromRoleSeniorAccountant",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/roles/senior-accountant/permissions/edit-balance-sheet"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removePermissionViewBalanceSheetFromRoleSeniorAccountant",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/roles/senior-accountant/permissions/view-balance-sheet"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePermissionEditBalanceSheet",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/permissions/edit-balance-sheet",
+                "body": {
+                    "permissionId": "edit-balance-sheet"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePermissionViewBalanceSheet",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/permissions/view-balance-sheet"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteRoleSeniorAccountant",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/roles/senior-accountant"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteWarrant",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "report",
+                    "objectId": "report-a",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserUsera",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/user-a"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectTypeReport",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/object-types/report"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectTypeRole",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/object-types/role"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectTypePermission",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/object-types/permission"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}
