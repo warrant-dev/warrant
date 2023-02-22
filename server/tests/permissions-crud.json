@@ -1,0 +1,103 @@
+{
+    "ignoredFields": [
+        "createdAt"
+    ],
+    "tests": [
+        {
+            "name": "createPermission",
+            "request": {
+                "method": "POST",
+                "url": "/v1/permissions",
+                "body": {
+                    "permissionId": "new-permission-1"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "permissionId": "new-permission-1",
+                    "name": null,
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "getPermissionById",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions/new-permission-1"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "permissionId": "new-permission-1",
+                    "name": null,
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "updatePermissionPOST",
+            "request": {
+                "method": "POST",
+                "url": "/v1/permissions/new-permission-1",
+                "body": {
+                    "name": "New Permission"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "permissionId": "new-permission-1",
+                    "name": "New Permission",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "updatePermissionPUT",
+            "request": {
+                "method": "PUT",
+                "url": "/v1/permissions/new-permission-1",
+                "body": {
+                    "name": "My Permission"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "permissionId": "new-permission-1",
+                    "name": "My Permission",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "getPermissions",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "new-permission-1",
+                        "name": "My Permission",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "deletePermission",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/permissions/new-permission-1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}
