@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	objecttype "github.com/warrant-dev/warrant/server/pkg/authz/objecttype"
 	warrant "github.com/warrant-dev/warrant/server/pkg/authz/warrant"
@@ -49,12 +47,7 @@ func (repo MySQLRepository) Create(ctx context.Context, tenant Tenant) (int64, e
 	)
 
 	if err != nil {
-		mysqlErr, ok := err.(*mysql.MySQLError)
-		if ok && mysqlErr.Number == 1062 {
-			return 0, service.NewDuplicateRecordError("Tenant", tenant.TenantId, "Tenant with given tenantId already exists")
-		}
-
-		return 0, service.NewInternalError("Unable to create Tenant")
+		return 0, errors.Wrap(err, "Unable to create Tenant")
 	}
 
 	newTenantId, err := result.LastInsertId()
@@ -65,148 +58,13 @@ func (repo MySQLRepository) Create(ctx context.Context, tenant Tenant) (int64, e
 	return newTenantId, nil
 }
 
-func (repo MySQLRepository) BatchCreate(ctx context.Context, tenants []Tenant) error {
-	result, err := repo.DB.NamedExecContext(
-		ctx,
-		`
-			INSERT INTO tenant (
-				tenantId,
-				objectId,
-				name
-			) VALUES (
-				:tenantId,
-				:objectId,
-				:name
-			) ON DUPLICATE KEY UPDATE
-				objectId = VALUES(objectId),
-				name = VALUES(name),
-				createdAt = NOW(),
-				deletedAt = NULL
-		`,
-		tenants,
-	)
-	if err != nil {
-		return service.NewInternalError("Unable to create tenants")
-	}
-
-	_, err = result.RowsAffected()
-	if err != nil {
-		return service.NewInternalError("Unable to create tenants")
-	}
-
-	return nil
-}
-
-func (repo MySQLRepository) UpdateByTenantId(ctx context.Context, tenantId string, tenant Tenant) error {
-	_, err := repo.DB.ExecContext(
-		ctx,
-		`
-			UPDATE tenant
-			SET
-				name = ?
-			WHERE
-				tenantId = ? AND
-				deletedAt IS NULL
-		`,
-		tenant.Name,
-		tenantId,
-	)
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating tenant %d", tenant.ID))
-	}
-
-	return nil
-}
-
-func (repo MySQLRepository) DeleteByTenantId(ctx context.Context, tenantId string) error {
-	_, err := repo.DB.ExecContext(
-		ctx,
-		`
-			UPDATE tenant
-			SET
-				deletedAt = ?
-			WHERE
-				tenantId = ? AND
-				deletedAt IS NULL
-		`,
-		time.Now(),
-		tenantId,
-	)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return service.NewRecordNotFoundError("Tenant", tenantId)
-		default:
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (repo MySQLRepository) GetByTenantId(ctx context.Context, tenantId string) (*Tenant, error) {
-	var tenant Tenant
-	err := repo.DB.GetContext(
-		ctx,
-		&tenant,
-		`
-			SELECT id, objectId, tenantId, name, createdAt, updatedAt
-			FROM tenant
-			WHERE
-				tenantId = ? AND
-				deletedAt IS NULL
-		`,
-		tenantId,
-	)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return nil, service.NewRecordNotFoundError("Tenant", tenantId)
-		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get Tenant %s from mysql", tenantId))
-		}
-	}
-
-	return &tenant, nil
-}
-
-func (repo MySQLRepository) BatchGet(ctx context.Context, tenantIds []string) ([]Tenant, error) {
-	tenants := make([]Tenant, 0)
-
-	query, args, err := sqlx.In(
-		`
-			SELECT id, objectId, tenantId, name, createdAt, updatedAt
-			FROM tenant
-			WHERE
-				tenantId IN (?) AND
-				deletedAt IS NULL
-		`,
-		tenantIds,
-	)
-	if err != nil {
-		return tenants, err
-	}
-
-	err = repo.DB.SelectContext(
-		ctx,
-		&tenants,
-		query,
-		args...,
-	)
-	if err != nil {
-		return tenants, err
-	}
-
-	return tenants, nil
-}
-
 func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*Tenant, error) {
 	var tenant Tenant
 	err := repo.DB.GetContext(
 		ctx,
 		&tenant,
 		`
-			SELECT id, objectId, tenantId, name, createdAt, updatedAt
+			SELECT id, objectId, tenantId, name, createdAt, updatedAt, deletedAt
 			FROM tenant
 			WHERE
 				id = ? AND
@@ -226,10 +84,36 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*Tenant, err
 	return &tenant, nil
 }
 
+func (repo MySQLRepository) GetByTenantId(ctx context.Context, tenantId string) (*Tenant, error) {
+	var tenant Tenant
+	err := repo.DB.GetContext(
+		ctx,
+		&tenant,
+		`
+			SELECT id, objectId, tenantId, name, createdAt, updatedAt, deletedAt
+			FROM tenant
+			WHERE
+				tenantId = ? AND
+				deletedAt IS NULL
+		`,
+		tenantId,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, service.NewRecordNotFoundError("Tenant", tenantId)
+		default:
+			return nil, service.NewInternalError(fmt.Sprintf("Unable to get Tenant %s from mysql", tenantId))
+		}
+	}
+
+	return &tenant, nil
+}
+
 func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Tenant, error) {
 	tenants := make([]Tenant, 0)
 	query := `
-		SELECT id, objectId, tenantId, name, createdAt, updatedAt
+		SELECT id, objectId, tenantId, name, createdAt, updatedAt, deletedAt
 		FROM tenant
 		WHERE
 			deletedAt IS NULL
@@ -457,4 +341,51 @@ func (repo MySQLRepository) ListByUserId(ctx context.Context, userId string, lis
 	}
 
 	return tenants, nil
+}
+
+func (repo MySQLRepository) UpdateByTenantId(ctx context.Context, tenantId string, tenant Tenant) error {
+	_, err := repo.DB.ExecContext(
+		ctx,
+		`
+			UPDATE tenant
+			SET
+				name = ?
+			WHERE
+				tenantId = ? AND
+				deletedAt IS NULL
+		`,
+		tenant.Name,
+		tenantId,
+	)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("Error updating tenant %d", tenant.ID))
+	}
+
+	return nil
+}
+
+func (repo MySQLRepository) DeleteByTenantId(ctx context.Context, tenantId string) error {
+	_, err := repo.DB.ExecContext(
+		ctx,
+		`
+			UPDATE tenant
+			SET
+				deletedAt = ?
+			WHERE
+				tenantId = ? AND
+				deletedAt IS NULL
+		`,
+		time.Now(),
+		tenantId,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return service.NewRecordNotFoundError("Tenant", tenantId)
+		default:
+			return err
+		}
+	}
+
+	return nil
 }

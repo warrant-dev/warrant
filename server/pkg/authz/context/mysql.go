@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/server/pkg/database"
 	"github.com/warrant-dev/warrant/server/pkg/service"
@@ -43,12 +42,7 @@ func (repository MySQLRepository) CreateAll(ctx context.Context, contexts []Cont
 		contexts,
 	)
 	if err != nil {
-		mysqlErr, ok := err.(*mysql.MySQLError)
-		if ok && mysqlErr.Number == 1062 {
-			return nil, service.NewDuplicateRecordError("Context", "", "Cannot provide the same context name more than once")
-		}
-
-		return nil, err
+		return nil, errors.Wrap(err, "Unable to create contexts")
 	}
 
 	return repository.ListByWarrantId(ctx, []int64{contexts[0].WarrantId})
@@ -70,7 +64,7 @@ func (repository MySQLRepository) ListByWarrantId(ctx context.Context, warrantId
 		&contexts,
 		fmt.Sprintf(
 			`
-				SELECT id, warrantId, name, value, createdAt, updatedAt
+				SELECT id, warrantId, name, value, createdAt, updatedAt, deletedAt
 				FROM context
 				WHERE
 					warrantId IN (%s) AND

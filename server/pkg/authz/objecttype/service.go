@@ -25,7 +25,7 @@ func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTy
 
 	_, err = objectTypeRepository.GetByTypeId(ctx, objectTypeSpec.Type)
 	if err == nil {
-		return nil, service.NewDuplicateRecordError("ObjectType", objectTypeSpec.Type, "ObjectType with given type already exists")
+		return nil, service.NewDuplicateRecordError("ObjectType", objectTypeSpec.Type, "An objectType with the given type already exists")
 	}
 
 	objectType, err := objectTypeSpec.ToObjectType()

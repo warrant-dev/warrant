@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"github.com/warrant-dev/warrant/server/pkg/database"
@@ -40,13 +39,7 @@ func (repo MySQLRepository) Create(ctx context.Context, object Object) (int64, e
 		object.ObjectId,
 	)
 	if err != nil {
-		mysqlErr, ok := err.(*mysql.MySQLError)
-		if ok && mysqlErr.Number == 1062 {
-			return 0, service.NewDuplicateRecordError("Object", object.ObjectId, "Object with given objectType and objectId already exists")
-		}
-
-		log.Warn().Err(err).Msg("Unable to create object")
-		return 0, service.NewInternalError("Unable to create object")
+		return 0, errors.Wrap(err, "Unable to create object")
 	}
 
 	newObjectId, err := result.LastInsertId()
@@ -64,7 +57,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*Object, err
 		ctx,
 		&object,
 		`
-			SELECT id, objectType, objectId, createdAt
+			SELECT id, objectType, objectId, createdAt, updatedAt, deletedAt
 			FROM object
 			WHERE
 				id = ? AND
@@ -90,7 +83,7 @@ func (repo MySQLRepository) GetByObjectTypeAndId(ctx context.Context, objectType
 		ctx,
 		&object,
 		`
-			SELECT id, objectType, objectId, createdAt
+			SELECT id, objectType, objectId, createdAt, updatedAt, deletedAt
 			FROM object
 			WHERE
 				objectType = ? AND
@@ -115,7 +108,7 @@ func (repo MySQLRepository) GetByObjectTypeAndId(ctx context.Context, objectType
 func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]Object, error) {
 	objects := make([]Object, 0)
 	query := `
-		SELECT id, objectType, objectId, createdAt
+		SELECT id, objectType, objectId, createdAt, updatedAt, deletedAt
 		FROM object
 		WHERE
 			deletedAt IS NULL

@@ -32,7 +32,7 @@ func (svc UserService) Create(ctx context.Context, userSpec UserSpec) (*User, er
 		if err != nil {
 			switch err.(type) {
 			case *service.DuplicateRecordError:
-				return service.NewDuplicateRecordError("User", userSpec.UserId, "User with given userId already exists")
+				return service.NewDuplicateRecordError("User", userSpec.UserId, "A user with the given userId already exists")
 			default:
 				return err
 			}
@@ -45,7 +45,7 @@ func (svc UserService) Create(ctx context.Context, userSpec UserSpec) (*User, er
 
 		_, err = userRepository.GetByUserId(txCtx, userSpec.UserId)
 		if err == nil {
-			return service.NewDuplicateRecordError("User", userSpec.UserId, "User with given userId already exists")
+			return service.NewDuplicateRecordError("User", userSpec.UserId, "A user with the given userId already exists")
 		}
 
 		newUserId, err := userRepository.Create(txCtx, *userSpec.ToUser(createdObject.ID))

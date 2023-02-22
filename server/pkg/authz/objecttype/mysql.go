@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/server/pkg/database"
 	"github.com/warrant-dev/warrant/server/pkg/middleware"
@@ -41,12 +40,7 @@ func (repo MySQLRepository) Create(ctx context.Context, objectType ObjectType) (
 		objectType.Definition,
 	)
 	if err != nil {
-		mysqlErr, ok := err.(*mysql.MySQLError)
-		if ok && mysqlErr.Number == 1062 {
-			return 0, service.NewDuplicateRecordError("ObjectType", objectType.TypeId, "object type with given typeId already exists")
-		}
-
-		return 0, err
+		return 0, errors.Wrap(err, "Unable to create object type")
 	}
 
 	newObjectTypeId, err := result.LastInsertId()
@@ -234,12 +228,7 @@ func (repo MySQLRepository) UpdateByTypeId(ctx context.Context, typeId string, o
 		typeId,
 	)
 	if err != nil {
-		mysqlErr, ok := err.(*mysql.MySQLError)
-		if ok && mysqlErr.Number == 1062 {
-			return service.NewDuplicateRecordError("ObjectType", typeId, "object type with given typeId already exists")
-		}
-
-		return err
+		return errors.Wrap(err, fmt.Sprintf("Error updating object type %s", typeId))
 	}
 
 	return nil

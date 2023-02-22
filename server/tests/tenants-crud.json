@@ -188,7 +188,7 @@
                     "type": "Tenant",
                     "key": "provided-tenant-id",
                     "code": "duplicate_record",
-                    "message": "Duplicate Tenant provided-tenant-id, Tenant with given tenantId already exists"
+                    "message": "Duplicate Tenant provided-tenant-id, A tenant with the given tenantId already exists"
                 }
             }
         },

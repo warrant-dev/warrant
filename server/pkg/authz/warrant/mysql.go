@@ -54,7 +54,7 @@ func (repo MySQLRepository) Create(ctx context.Context, warrant Warrant) (int64,
 			return 0, service.NewDuplicateRecordError("Warrant", fmt.Sprintf("%s, %s, %s, %s", warrant.ObjectType, warrant.ObjectId, warrant.Relation, warrant.Subject), "Warrant for the given objectType, objectId, relation, and subject already exists")
 		}
 
-		return 0, err
+		return 0, errors.Wrap(err, "Unable to create warrant")
 	}
 
 	newWarrantId, err := result.LastInsertId()
@@ -152,7 +152,7 @@ func (repo MySQLRepository) Get(ctx context.Context, objectType string, objectId
 		ctx,
 		&warrant,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
 			FROM warrant
 			WHERE
 				objectType = ? AND
@@ -190,7 +190,7 @@ func (repo MySQLRepository) GetWithContextMatch(ctx context.Context, objectType 
 		ctx,
 		&warrant,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
 			FROM warrant
 			WHERE
 				objectType = ? AND
@@ -228,7 +228,7 @@ func (repo MySQLRepository) GetByID(ctx context.Context, id int64) (*Warrant, er
 		ctx,
 		&warrant,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
 			FROM warrant
 			WHERE
 				id = ? AND
@@ -252,7 +252,7 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 	offset := (listParams.Page - 1) * listParams.Limit
 	warrants := make([]Warrant, 0)
 	query := `
-		SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt
+		SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
 		FROM warrant
 		WHERE
 			deletedAt IS NULL
@@ -361,7 +361,7 @@ func (repo MySQLRepository) GetAllMatchingObjectAndRelation(ctx context.Context,
 		ctx,
 		&warrants,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, contextHash, createdAt, updatedAt
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, contextHash, createdAt, updatedAt, deletedAt
 			FROM warrant
 			WHERE
 				objectType = ? AND
@@ -396,7 +396,7 @@ func (repo MySQLRepository) GetAllMatchingObjectAndSubject(ctx context.Context, 
 		ctx,
 		&warrants,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
 			FROM warrant
 			WHERE
 				((objectType = ? AND objectId = ?) OR (subjectType = ? AND subjectId = ? AND subjectRelation = ?)) AND
@@ -427,7 +427,7 @@ func (repo MySQLRepository) GetAllMatchingSubjectAndRelation(ctx context.Context
 		ctx,
 		&warrants,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
 			FROM warrant
 			WHERE
 				objectType = ? AND
