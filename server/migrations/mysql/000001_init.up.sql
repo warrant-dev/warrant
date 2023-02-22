@@ -121,4 +121,38 @@ CREATE TABLE IF NOT EXISTS user (
   CONSTRAINT user_fk_object_id FOREIGN KEY (objectId) REFERENCES object (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+CREATE TABLE IF NOT EXISTS feature (
+  id int NOT NULL AUTO_INCREMENT,
+  objectId int NOT NULL,
+  featureId varchar(64) NOT NULL,
+  name varchar(255) DEFAULT NULL,
+  description varchar(255) DEFAULT NULL,
+  createdAt timestamp(6) NULL DEFAULT CURRENT_TIMESTAMP(6),
+  updatedAt timestamp(6) NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+  deletedAt timestamp(6) NULL DEFAULT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY feature_uk_feature_id (featureId),
+  KEY objectId (objectId),
+  KEY feature_uk_created_at_feature_id (createdAt, featureId),
+  KEY feature_uk_name_feature_id (name, featureId),
+  CONSTRAINT feature_fk_object_id FOREIGN KEY (objectId) REFERENCES object (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS pricingTier (
+  id int NOT NULL AUTO_INCREMENT,
+  objectId int NOT NULL,
+  pricingTierId varchar(64) NOT NULL,
+  name varchar(255) DEFAULT NULL,
+  description varchar(255) DEFAULT NULL,
+  createdAt timestamp(6) NULL DEFAULT CURRENT_TIMESTAMP(6),
+  updatedAt timestamp(6) NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+  deletedAt timestamp(6) NULL DEFAULT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY pricing_tier_uk_pricing_tier_id (pricingTierId),
+  KEY objectId (objectId),
+  KEY pricing_tier_uk_created_at_pricing_tier_id (createdAt, pricingTierId),
+  KEY pricing_tier_uk_name_pricing_tier_id (name, pricingTierId),
+  CONSTRAINT pricing_tier_fk_object_id FOREIGN KEY (objectId) REFERENCES object (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
 COMMIT;
