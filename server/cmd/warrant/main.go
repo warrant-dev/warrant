@@ -6,9 +6,11 @@ import (
 
 	"github.com/rs/zerolog/log"
 	check "github.com/warrant-dev/warrant/server/pkg/authz/check"
+	feature "github.com/warrant-dev/warrant/server/pkg/authz/feature"
 	object "github.com/warrant-dev/warrant/server/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/server/pkg/authz/objecttype"
 	permission "github.com/warrant-dev/warrant/server/pkg/authz/permission"
+	pricingtier "github.com/warrant-dev/warrant/server/pkg/authz/pricingtier"
 	role "github.com/warrant-dev/warrant/server/pkg/authz/role"
 	tenant "github.com/warrant-dev/warrant/server/pkg/authz/tenant"
 	user "github.com/warrant-dev/warrant/server/pkg/authz/user"
@@ -41,9 +43,11 @@ func main() {
 	svcEnv := NewServiceEnv(database)
 	svcs := []service.Service{
 		check.NewService(&svcEnv),
+		feature.NewService(&svcEnv),
 		object.NewService(&svcEnv),
 		objecttype.NewService(&svcEnv),
 		permission.NewService(&svcEnv),
+		pricingtier.NewService(&svcEnv),
 		role.NewService(&svcEnv),
 		tenant.NewService(&svcEnv),
 		user.NewService(&svcEnv),

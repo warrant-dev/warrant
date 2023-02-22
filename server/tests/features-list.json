@@ -1,0 +1,470 @@
+{
+    "ignoredFields": [
+        "createdAt"
+    ],
+    "tests": [
+        {
+            "name": "createFeature1",
+            "request": {
+                "method": "POST",
+                "url": "/v1/features",
+                "body": {
+                    "featureId": "feature-1",
+                    "name": "Feature B"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "featureId": "feature-1",
+                    "name": "Feature B",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "createFeature2",
+            "request": {
+                "method": "POST",
+                "url": "/v1/features",
+                "body": {
+                    "featureId": "feature-2",
+                    "name": "Feature A"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "featureId": "feature-2",
+                    "name": "Feature A",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "createFeature3",
+            "request": {
+                "method": "POST",
+                "url": "/v1/features",
+                "body": {
+                    "featureId": "feature-3",
+                    "name": ""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "featureId": "feature-3",
+                    "name": "",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "createFeature4",
+            "request": {
+                "method": "POST",
+                "url": "/v1/features",
+                "body": {
+                    "featureId": "feature-4"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "featureId": "feature-4",
+                    "name": null,
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "createFeature5",
+            "request": {
+                "method": "POST",
+                "url": "/v1/features",
+                "body": {
+                    "featureId": "feature-5",
+                    "name": "Feature C"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "featureId": "feature-5",
+                    "name": "Feature C",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "getFeaturesSortByCreatedAtDESC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=createdAt&sortOrder=DESC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-5",
+                        "name": "Feature C",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-4",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-3",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-2",
+                        "name": "Feature A",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-1",
+                        "name": "Feature B",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getFeaturesSortByCreatedAtASC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=createdAt&sortOrder=ASC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-1",
+                        "name": "Feature B",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-2",
+                        "name": "Feature A",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-3",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-4",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-5",
+                        "name": "Feature C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getFeaturesSortByNameDESC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=DESC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-5",
+                        "name": "Feature C",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-1",
+                        "name": "Feature B",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-2",
+                        "name": "Feature A",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-3",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-4",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getFeaturesSortByNameASC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=ASC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-4",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-3",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-2",
+                        "name": "Feature A",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-1",
+                        "name": "Feature B",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-5",
+                        "name": "Feature C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getFeaturesPage1Limit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?page=1&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-1",
+                        "name": "Feature B",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-2",
+                        "name": "Feature A",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getFeaturesPage2Limit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?page=2&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-3",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-4",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getFeaturesPage3Limit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?page=3&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-5",
+                        "name": "Feature C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getFeaturesSortByNameASCLimit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-4",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-3",
+                        "name": "",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getFeaturesSortByCreatedAtASCLimit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=createdAt&sortOrder=ASC&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-1",
+                        "name": "Feature B",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-2",
+                        "name": "Feature A",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getFeaturesLimit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-1",
+                        "name": "Feature B",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-2",
+                        "name": "Feature A",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getFeaturesLimit2AfterId1",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?limit=2&afterId=feature-1"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-2",
+                        "name": "Feature A",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-3",
+                        "name": "",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getFeaturesLimit2AfterId2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?limit=2&afterId=feature-3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-4",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-5",
+                        "name": "Feature C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "deleteFeature1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/features/feature-1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteFeature2",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/features/feature-2"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteFeature3",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/features/feature-3"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteFeature4",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/features/feature-4"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteFeature5",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/features/feature-5"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}

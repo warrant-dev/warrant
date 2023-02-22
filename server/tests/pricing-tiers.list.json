@@ -1,0 +1,470 @@
+{
+    "ignoredFields": [
+        "createdAt"
+    ],
+    "tests": [
+        {
+            "name": "createPricingTier1",
+            "request": {
+                "method": "POST",
+                "url": "/v1/pricing-tiers",
+                "body": {
+                    "pricingTierId": "pricing-tier-1",
+                    "name": "Pricing Tier B"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "pricingTierId": "pricing-tier-1",
+                    "name": "Pricing Tier B",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "createPricingTier2",
+            "request": {
+                "method": "POST",
+                "url": "/v1/pricing-tiers",
+                "body": {
+                    "pricingTierId": "pricing-tier-2",
+                    "name": "Pricing Tier A"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "pricingTierId": "pricing-tier-2",
+                    "name": "Pricing Tier A",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "createPricingTier3",
+            "request": {
+                "method": "POST",
+                "url": "/v1/pricing-tiers",
+                "body": {
+                    "pricingTierId": "pricing-tier-3",
+                    "name": ""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "pricingTierId": "pricing-tier-3",
+                    "name": "",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "createPricingTier4",
+            "request": {
+                "method": "POST",
+                "url": "/v1/pricing-tiers",
+                "body": {
+                    "pricingTierId": "pricing-tier-4"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "pricingTierId": "pricing-tier-4",
+                    "name": null,
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "createPricingTier5",
+            "request": {
+                "method": "POST",
+                "url": "/v1/pricing-tiers",
+                "body": {
+                    "pricingTierId": "pricing-tier-5",
+                    "name": "Pricing Tier C"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "pricingTierId": "pricing-tier-5",
+                    "name": "Pricing Tier C",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "getPricingTiersSortByCreatedAtDESC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/pricing-tiers?sortBy=createdAt&sortOrder=DESC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "pricingTierId": "pricing-tier-5",
+                        "name": "Pricing Tier C",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-4",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-3",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-2",
+                        "name": "Pricing Tier A",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-1",
+                        "name": "Pricing Tier B",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPricingTiersSortByCreatedAtASC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/pricing-tiers?sortBy=createdAt&sortOrder=ASC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "pricingTierId": "pricing-tier-1",
+                        "name": "Pricing Tier B",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-2",
+                        "name": "Pricing Tier A",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-3",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-4",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-5",
+                        "name": "Pricing Tier C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPricingTiersSortByNameDESC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=DESC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "pricingTierId": "pricing-tier-5",
+                        "name": "Pricing Tier C",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-1",
+                        "name": "Pricing Tier B",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-2",
+                        "name": "Pricing Tier A",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-3",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-4",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPricingTiersSortByNameASC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=ASC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "pricingTierId": "pricing-tier-4",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-3",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-2",
+                        "name": "Pricing Tier A",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-1",
+                        "name": "Pricing Tier B",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-5",
+                        "name": "Pricing Tier C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPricingTiersPage1Limit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/pricing-tiers?page=1&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "pricingTierId": "pricing-tier-1",
+                        "name": "Pricing Tier B",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-2",
+                        "name": "Pricing Tier A",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPricingTiersPage2Limit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/pricing-tiers?page=2&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "pricingTierId": "pricing-tier-3",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-4",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPricingTiersPage3Limit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/pricing-tiers?page=3&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "pricingTierId": "pricing-tier-5",
+                        "name": "Pricing Tier C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPricingTiersSortByNameASCLimit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=ASC&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "pricingTierId": "pricing-tier-4",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-3",
+                        "name": "",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPricingTiersSortByCreatedAtASCLimit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/pricing-tiers?sortBy=createdAt&sortOrder=ASC&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "pricingTierId": "pricing-tier-1",
+                        "name": "Pricing Tier B",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-2",
+                        "name": "Pricing Tier A",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPricingTiersLimit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/pricing-tiers?limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "pricingTierId": "pricing-tier-1",
+                        "name": "Pricing Tier B",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-2",
+                        "name": "Pricing Tier A",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPricingTiersLimit2AfterId1",
+            "request": {
+                "method": "GET",
+                "url": "/v1/pricing-tiers?limit=2&afterId=pricing-tier-1"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "pricingTierId": "pricing-tier-2",
+                        "name": "Pricing Tier A",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-3",
+                        "name": "",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getPricingTiersLimit2AfterId2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/pricing-tiers?limit=2&afterId=pricing-tier-3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "pricingTierId": "pricing-tier-4",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-5",
+                        "name": "Pricing Tier C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "deletePricingTier1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/pricing-tiers/pricing-tier-1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePricingTier2",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/pricing-tiers/pricing-tier-2"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePricingTier3",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/pricing-tiers/pricing-tier-3"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePricingTier4",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/pricing-tiers/pricing-tier-4"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePricingTier5",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/pricing-tiers/pricing-tier-5"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}

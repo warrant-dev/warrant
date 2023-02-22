@@ -1,0 +1,103 @@
+{
+    "ignoredFields": [
+        "createdAt"
+    ],
+    "tests": [
+        {
+            "name": "createPricingTier",
+            "request": {
+                "method": "POST",
+                "url": "/v1/pricing-tiers",
+                "body": {
+                    "pricingTierId": "pro"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "pricingTierId": "pro",
+                    "name": null,
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "getPricingTierById",
+            "request": {
+                "method": "GET",
+                "url": "/v1/pricing-tiers/pro"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "pricingTierId": "pro",
+                    "name": null,
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "updatePricingTierPOST",
+            "request": {
+                "method": "POST",
+                "url": "/v1/pricing-tiers/pro",
+                "body": {
+                    "name": "Pro"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "pricingTierId": "pro",
+                    "name": "Pro",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "updatePricingTierPUT",
+            "request": {
+                "method": "PUT",
+                "url": "/v1/pricing-tiers/pro",
+                "body": {
+                    "name": "Pro Tier"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "pricingTierId": "pro",
+                    "name": "Pro Tier",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "getPricingTiers",
+            "request": {
+                "method": "GET",
+                "url": "/v1/pricing-tiers"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "pricingTierId": "pro",
+                        "name": "Pro Tier",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "deletePricingTier",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/pricing-tiers/pro"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}
