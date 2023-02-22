@@ -1,0 +1,113 @@
+{
+    "ignoredFields": [
+        "createdAt"
+    ],
+    "tests": [
+        {
+            "name": "createObject1",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "test",
+                    "objectId": "object-1"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "test",
+                    "objectId": "object-1"
+                }
+            }
+        },
+        {
+            "name": "createObject2",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "test",
+                    "objectId": "object-2"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "test",
+                    "objectId": "object-2"
+                }
+            }
+        },
+        {
+            "name": "getObjectById",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects/test/object-1"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "test",
+                    "objectId": "object-1"
+                }
+            }
+        },
+        {
+            "name": "getObjects",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects?sortBy=createdAt&sortOrder=DESC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "objectType": "test",
+                        "objectId": "object-2"
+                    },
+                    {
+                        "objectType": "test",
+                        "objectId": "object-1"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "filterObjects",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects?q=1"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "objectType": "test",
+                        "objectId": "object-1"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "deleteObject1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/test/object-1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObject2",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/test/object-2"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}

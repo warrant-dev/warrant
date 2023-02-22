@@ -1,0 +1,279 @@
+{
+    "ignoredFields": [
+        "createdAt"
+    ],
+    "tests": [
+        {
+            "name": "createUserWithProvidedIdNoEmail",
+            "request": {
+                "method": "POST",
+                "url": "/v1/users",
+                "body": {
+                    "userId": "4444444444444"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "userId": "4444444444444",
+                    "email": null,
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "createUserWithProvidedIdAndEmail",
+            "request": {
+                "method": "POST",
+                "url": "/v1/users",
+                "body": {
+                    "userId": "5555555555555",
+                    "email": "akajla09@gmail.com"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "userId": "5555555555555",
+                    "email": "akajla09@gmail.com",
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "createUserWithGeneratedIdNoEmail",
+            "request": {
+                "method": "POST",
+                "url": "/v1/users",
+                "body": {}
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "userId": "{{ createUserWithGeneratedIdNoEmail.userId }}",
+                    "email": null,
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "createUserWithGeneratedIdAndEmail",
+            "request": {
+                "method": "POST",
+                "url": "/v1/users",
+                "body": {
+                    "email": "generated@gmail.com"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "userId": "{{ createUserWithGeneratedIdAndEmail.userId }}",
+                    "email": "generated@gmail.com",
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "getUsers",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?sortBy=createdAt&sortOrder=DESC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "{{ createUserWithGeneratedIdAndEmail.userId }}",
+                        "email": "generated@gmail.com",
+                        "createdAt": "2022-09-30T17:04:20Z"
+                    },
+                    {
+                        "userId": "{{ createUserWithGeneratedIdNoEmail.userId }}",
+                        "email": null,
+                        "createdAt": "2022-09-30T17:04:20Z"
+                    },
+                    {
+                        "userId": "5555555555555",
+                        "email": "akajla09@gmail.com",
+                        "createdAt": "2022-09-30T17:04:20Z"
+                    },
+                    {
+                        "userId": "4444444444444",
+                        "email": null,
+                        "createdAt": "2022-09-30T17:04:20Z"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getUserById",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users/{{ createUserWithGeneratedIdNoEmail.userId }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "userId": "{{ createUserWithGeneratedIdNoEmail.userId }}",
+                    "email": null,
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "updateUserEmail",
+            "request": {
+                "method": "PUT",
+                "url": "/v1/users/{{ createUserWithGeneratedIdNoEmail.userId }}",
+                "body": {
+                    "email": "updated@gmail.com"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "userId": "{{ createUserWithGeneratedIdNoEmail.userId }}",
+                    "email": "updated@gmail.com",
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "getUserByIdAfterUpdatingEmail",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users/{{ createUserWithGeneratedIdNoEmail.userId }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "userId": "{{ createUserWithGeneratedIdNoEmail.userId }}",
+                    "email": "updated@gmail.com",
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "failToUpdateUserId",
+            "request": {
+                "method": "PUT",
+                "url": "/v1/users/{{ createUserWithGeneratedIdNoEmail.userId }}",
+                "body": {
+                    "userId": "someupdatedid",
+                    "email": "updated@gmail.com"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "userId": "{{ createUserWithGeneratedIdNoEmail.userId }}",
+                    "email": "updated@gmail.com",
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "failToCreateAUserThatAlreadyExists",
+            "request": {
+                "method": "POST",
+                "url": "/v1/users",
+                "body": {
+                    "userId": "5555555555555"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 400,
+                "body": {
+                    "type": "User",
+                    "key": "5555555555555",
+                    "code": "duplicate_record",
+                    "message": "Duplicate User 5555555555555, User with given userId already exists"
+                }
+            }
+        },
+        {
+            "name": "deleteUser4444444444444",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/4444444444444"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUser5555555555555",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/5555555555555"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserWithGeneratedId1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/{{ createUserWithGeneratedIdNoEmail.userId }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserWithGeneratedId2",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/{{ createUserWithGeneratedIdAndEmail.userId }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "recreateUser4444444444444",
+            "request": {
+                "method": "POST",
+                "url": "/v1/users",
+                "body": {
+                    "userId": "4444444444444"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "userId": "4444444444444",
+                    "email": null,
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "getRecreatedUserById",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users/4444444444444"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "userId": "4444444444444",
+                    "email": null,
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "reDeleteUser4444444444444",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/4444444444444"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}

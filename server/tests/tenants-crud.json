@@ -1,0 +1,279 @@
+{
+    "ignoredFields": [
+        "createdAt"
+    ],
+    "tests": [
+        {
+            "name": "createTenantWithProvidedIdNoName",
+            "request": {
+                "method": "POST",
+                "url": "/v1/tenants",
+                "body": {
+                    "tenantId": "provided-tenant-id"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "tenantId": "provided-tenant-id",
+                    "name": null,
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "createTenantWithProvidedIdAndName",
+            "request": {
+                "method": "POST",
+                "url": "/v1/tenants",
+                "body": {
+                    "tenantId": "provided-tenant-id-with-name",
+                    "name": "custom-tenant-name"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "tenantId": "provided-tenant-id-with-name",
+                    "name": "custom-tenant-name",
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "createTenantWithGeneratedIdNoName",
+            "request": {
+                "method": "POST",
+                "url": "/v1/tenants",
+                "body": {}
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "tenantId": "{{ createTenantWithGeneratedIdNoName.tenantId }}",
+                    "name": null,
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "createTenantWithGeneratedIdAndName",
+            "request": {
+                "method": "POST",
+                "url": "/v1/tenants",
+                "body": {
+                    "name": "generated-tenant-name"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "tenantId": "{{ createTenantWithGeneratedIdAndName.tenantId }}",
+                    "name": "generated-tenant-name",
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "getTenants",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?sortBy=createdAt&sortOrder=DESC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "{{ createTenantWithGeneratedIdAndName.tenantId }}",
+                        "name": "generated-tenant-name",
+                        "createdAt": "2022-09-30T17:04:20Z"
+                    },
+                    {
+                        "tenantId": "{{ createTenantWithGeneratedIdNoName.tenantId }}",
+                        "name": null,
+                        "createdAt": "2022-09-30T17:04:20Z"
+                    },
+                    {
+                        "tenantId": "provided-tenant-id-with-name",
+                        "name": "custom-tenant-name",
+                        "createdAt": "2022-09-30T17:04:20Z"
+                    },
+                    {
+                        "tenantId": "provided-tenant-id",
+                        "name": null,
+                        "createdAt": "2022-09-30T17:04:20Z"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getTenantById",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants/{{ createTenantWithGeneratedIdNoName.tenantId }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "tenantId": "{{ createTenantWithGeneratedIdNoName.tenantId }}",
+                    "name": null,
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "updateTenantName",
+            "request": {
+                "method": "PUT",
+                "url": "/v1/tenants/{{ createTenantWithGeneratedIdNoName.tenantId }}",
+                "body": {
+                    "name": "updated-name"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "tenantId": "{{ createTenantWithGeneratedIdNoName.tenantId }}",
+                    "name": "updated-name",
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "getTenantByIdAfterUpdatingName",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants/{{ createTenantWithGeneratedIdNoName.tenantId }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "tenantId": "{{ createTenantWithGeneratedIdNoName.tenantId }}",
+                    "name": "updated-name",
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "failToUpdateTenantId",
+            "request": {
+                "method": "PUT",
+                "url": "/v1/tenants/{{ createTenantWithGeneratedIdNoName.tenantId }}",
+                "body": {
+                    "tenantId": "someupdatedidtenant",
+                    "name": "updated-name"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "tenantId": "{{ createTenantWithGeneratedIdNoName.tenantId }}",
+                    "name": "updated-name",
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "failToCreateATenantThatAlreadyExists",
+            "request": {
+                "method": "POST",
+                "url": "/v1/tenants",
+                "body": {
+                    "tenantId": "provided-tenant-id"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 400,
+                "body": {
+                    "type": "Tenant",
+                    "key": "provided-tenant-id",
+                    "code": "duplicate_record",
+                    "message": "Duplicate Tenant provided-tenant-id, Tenant with given tenantId already exists"
+                }
+            }
+        },
+        {
+            "name": "deleteTenant1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/tenants/provided-tenant-id"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteTenant2",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/tenants/provided-tenant-id-with-name"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteTenant3",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/tenants/{{ createTenantWithGeneratedIdNoName.tenantId }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteTenant4",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/tenants/{{ createTenantWithGeneratedIdAndName.tenantId }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "recreateTenantWithProvidedId",
+            "request": {
+                "method": "POST",
+                "url": "/v1/tenants",
+                "body": {
+                    "tenantId": "provided-tenant-id"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "tenantId": "provided-tenant-id",
+                    "name": null,
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "getRecreatedTenantById",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants/provided-tenant-id"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "tenantId": "provided-tenant-id",
+                    "name": null,
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
+            "name": "reDeleteTenant",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/tenants/provided-tenant-id"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}

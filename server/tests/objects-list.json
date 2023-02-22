@@ -1,0 +1,343 @@
+{
+    "ignoredFields": [
+        "createdAt"
+    ],
+    "tests": [
+        {
+            "name": "createObject1",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "obj",
+                    "objectId": "obj-1"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "obj",
+                    "objectId": "obj-1"
+                }
+            }
+        },
+        {
+            "name": "createObject2",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "obj",
+                    "objectId": "obj-2"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "obj",
+                    "objectId": "obj-2"
+                }
+            }
+        },
+        {
+            "name": "createObject3",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "obj",
+                    "objectId": "obj-3"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "obj",
+                    "objectId": "obj-3"
+                }
+            }
+        },
+        {
+            "name": "createObject4",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "obj",
+                    "objectId": "obj-4"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "obj",
+                    "objectId": "obj-4"
+                }
+            }
+        },
+        {
+            "name": "createObject5",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "obj",
+                    "objectId": "obj-5"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "obj",
+                    "objectId": "obj-5"
+                }
+            }
+        },
+        {
+            "name": "getObjectsSortByCreatedAtDESC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects?objectType=obj&sortBy=createdAt&sortOrder=DESC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-5"
+                    },
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-4"
+                    },
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-3"
+                    },
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-2"
+                    },
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-1"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getObjectsSortByCreatedAtASC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects?objectType=obj&sortBy=createdAt&sortOrder=ASC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-1"
+                    },
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-2"
+                    },
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-3"
+                    },
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-4"
+                    },
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-5"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getObjectsPage1Limit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects?objectType=obj&page=1&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-1"
+                    },
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-2"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getObjectsPage2Limit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects?objectType=obj&page=2&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-3"
+                    },
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-4"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getObjectsPage3Limit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects?objectType=obj&page=3&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-5"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getObjectsSortByCreatedAtASCLimit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects?objectType=obj&sortBy=createdAt&sortOrder=ASC&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-1"
+                    },
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-2"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getObjectsLimit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects?objectType=obj&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-1"
+                    },
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-2"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getObjectsLimit2AfterId1",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects?objectType=obj&limit=2&afterId=obj-2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-3"
+                    },
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-4"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "getObjectsLimit2AfterId2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects?objectType=obj&limit=2&afterId=obj-4"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "objectType": "obj",
+                        "objectId": "obj-5"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "deleteObject1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/obj/obj-1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObject2",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/obj/obj-2"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObject3",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/obj/obj-3"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObject4",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/obj/obj-4"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObject5",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/obj/obj-5"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}
