@@ -13,10 +13,10 @@ Warrant is an application authorization & access control platform built for deve
 
 Key features include:
 - A centralized service (inspired by Google Zanzibar) for storing and managing authorization models and their associated access rules (we call these warrants). The service supports a wide variety of common access control patterns from coarser Role Based Access Control (RBAC) to fine grained Relationship Based Access Control (ReBAC) and Attribute Based Access Control (ABAC) schemes (ex. `[user:1] is an [editor] of [document:x]`).
-- Built-in support for multi-tenant access control - define access rules by tenant
-- Built-in support for pricing tiers & features - define access rules based on your SaaS pricing tiers and feature packages
 - Real-time, low latency `check` API to check for specific access rules (i.e. *is user:A editor of tenant:X*)
 - Real-time `query` API to query and audit access rules for a given subject or object
+- Built-in support for multi-tenant access control - define access rules by tenant
+- Built-in support for pricing tiers & features - define access rules based on your SaaS pricing tiers and feature packages
 - Front-end components and embeddable pages to allow/deny access to certain pages/UI elements, enable self-service management of permissions, etc.
 - Connectors to sync tenants, users, and access rules from other sources (i.e. IdPs, DBs, etc).
 - A global event log of all operations for audit logging, alerting, and debugging authorization models
