@@ -3,7 +3,6 @@ package authz
 import (
 	"context"
 
-	"github.com/rs/zerolog/log"
 	wntContext "github.com/warrant-dev/warrant/server/pkg/authz/context"
 	objecttype "github.com/warrant-dev/warrant/server/pkg/authz/objecttype"
 	"github.com/warrant-dev/warrant/server/pkg/middleware"
@@ -20,28 +19,6 @@ func NewService(env service.Env) WarrantService {
 		BaseService:   service.NewBaseService(env),
 		objectTypeMap: make(map[string]*objecttype.ObjectTypeSpec),
 	}
-}
-
-// A set of Warrant strings
-type WarrantSet map[string]uint16
-
-// Set of Warrant strings where value indicates if warrant is direct match
-type WarrantQuerySet map[string]bool
-
-func (set WarrantSet) Add(key string) {
-	log.Debug().Msgf("Adding warrant %s to WarrantSet", key)
-
-	if count, ok := set[key]; ok {
-		set[key] = count + 1
-		return
-	}
-
-	set[key] = 1
-}
-
-func (set WarrantSet) Contains(key string) bool {
-	_, ok := set[key]
-	return ok
 }
 
 func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (*WarrantSpec, error) {
