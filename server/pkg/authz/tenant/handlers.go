@@ -134,7 +134,7 @@ func listByUser(env service.Env, w http.ResponseWriter, r *http.Request) error {
 }
 
 func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
-	var updateTenant TenantSpec
+	var updateTenant UpdateTenantSpec
 	err := service.ParseJSONBody(r.Body, &updateTenant)
 	if err != nil {
 		return err

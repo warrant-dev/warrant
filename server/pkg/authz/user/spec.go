@@ -1,7 +1,6 @@
 package authz
 
 import (
-	"regexp"
 	"time"
 
 	object "github.com/warrant-dev/warrant/server/pkg/authz/object"
@@ -30,17 +29,11 @@ func (spec UserSpec) ToObjectSpec() *object.ObjectSpec {
 	}
 }
 
+type UpdateUserSpec struct {
+	Email database.NullString `json:"email" validate:"email"`
+}
+
 type TenantUserSpec struct {
 	UserSpec
 	Role string `json:"role"`
-}
-
-type InviteUserSpec struct {
-	Email  string `json:"email" validate:"required"`
-	RoleId string `json:"roleId"`
-}
-
-func IsUserIdValid(userId string) bool {
-	userIdRegExp := regexp.MustCompile(`^[a-zA-Z0-9_\-\.@]+$`)
-	return userIdRegExp.Match([]byte(userId))
 }
