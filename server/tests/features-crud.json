@@ -1,0 +1,103 @@
+{
+    "ignoredFields": [
+        "createdAt"
+    ],
+    "tests": [
+        {
+            "name": "createFeature",
+            "request": {
+                "method": "POST",
+                "url": "/v1/features",
+                "body": {
+                    "featureId": "feature-a"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "featureId": "feature-a",
+                    "name": null,
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "getFeatureById",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features/feature-a"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "featureId": "feature-a",
+                    "name": null,
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "updateFeaturePOST",
+            "request": {
+                "method": "POST",
+                "url": "/v1/features/feature-a",
+                "body": {
+                    "name": "My Feature"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "featureId": "feature-a",
+                    "name": "My Feature",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "updateFeaturePUT",
+            "request": {
+                "method": "PUT",
+                "url": "/v1/features/feature-a",
+                "body": {
+                    "name": "Feature A"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "featureId": "feature-a",
+                    "name": "Feature A",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "getFeatures",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-a",
+                        "name": "Feature A",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "deleteFeature",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/features/feature-a"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}
