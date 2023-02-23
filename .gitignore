@@ -1,3 +1,4 @@
 warrant.yaml
-bin/
 apirunner.conf
+bin/
+dist/
