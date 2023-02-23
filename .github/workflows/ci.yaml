@@ -1,4 +1,4 @@
-name: Warrant CI
+name: Warrant
 
 on:
   push:
@@ -24,6 +24,12 @@ jobs:
         with:
           version: "2022.1.3"
           install-go: false
-      - name: Build binary
+      - name: Build Binary
         run: make build
         working-directory: server/cmd/warrant
+      - name: GoReleaser Check
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          distribution: goreleaser
+          version: latest
+          args: check
