@@ -26,7 +26,7 @@ jobs:
           install-go: false
       - name: Build Binary
         run: make build
-        working-directory: server/cmd/warrant
+        working-directory: cmd/warrant
       - name: GoReleaser Check
         uses: goreleaser/goreleaser-action@v2
         with:
