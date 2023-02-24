@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
@@ -37,18 +38,9 @@ func NewConfig() Config {
 	viper.SetConfigName("warrant")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
-	viper.AutomaticEnv()
-	viper.SetEnvPrefix(PrefixWarrant)
-	viper.SetEnvKeyReplacer(strings.NewReplacer("_", "."))
-
-	// Configuration defaults
 	viper.SetDefault("port", 8000)
 	viper.SetDefault("levelLevel", zerolog.DebugLevel)
 	viper.SetDefault("enableAccessLog", true)
-	viper.SetDefault("database.mysql.username", os.Getenv("WARRANT_DATABASE_MYSQL_USERNAME"))
-	viper.SetDefault("database.mysql.password", os.Getenv("WARRANT_DATABASE_MYSQL_PASSWORD"))
-	viper.SetDefault("database.mysql.hostname", os.Getenv("WARRANT_DATABASE_MYSQL_HOSTNAME"))
-	viper.SetDefault("database.mysql.database", os.Getenv("WARRANT_DATABASE_MYSQL_DATABASE"))
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
@@ -58,17 +50,16 @@ func NewConfig() Config {
 		}
 	}
 
-	for _, key := range viper.AllKeys() {
-		envKey := strings.ToUpper(fmt.Sprintf("%s_%s", PrefixWarrant, strings.ReplaceAll(key, ".", "_")))
-		err := viper.BindEnv(key, envKey)
-		if err != nil {
-			log.Fatal().Err(err).Msg("Unable to bind env vars from config. Shutting down.")
+	var config Config
+	for _, fieldName := range getFlattenedStructFields(reflect.TypeOf(config)) {
+		envKey := strings.ToUpper(fmt.Sprintf("%s_%s", PrefixWarrant, strings.ReplaceAll(fieldName, ".", "_")))
+		envVar := os.Getenv(envKey)
+		if envVar != "" {
+			viper.Set(fieldName, envVar)
 		}
 	}
 
-	var config Config
-	err := viper.Unmarshal(&config)
-	if err != nil {
+	if err := viper.Unmarshal(&config); err != nil {
 		log.Fatal().Err(err).Msg("Error while creating config. Shutting down.")
 	}
 
@@ -82,4 +73,33 @@ func NewConfig() Config {
 	}
 
 	return config
+}
+
+func getFlattenedStructFields(t reflect.Type) []string {
+	return getFlattenedStructFieldsHelper(t, []string{})
+}
+
+func getFlattenedStructFieldsHelper(t reflect.Type, prefixes []string) []string {
+	unwrappedT := t
+	if t.Kind() == reflect.Pointer {
+		unwrappedT = t.Elem()
+	}
+
+	flattenedFields := make([]string, 0)
+	for i := 0; i < unwrappedT.NumField(); i++ {
+		field := unwrappedT.Field(i)
+		fieldName := field.Tag.Get("mapstructure")
+		switch field.Type.Kind() {
+		case reflect.Struct, reflect.Pointer:
+			flattenedFields = append(flattenedFields, getFlattenedStructFieldsHelper(field.Type, append(prefixes, fieldName))...)
+		default:
+			flattenedField := fieldName
+			if len(prefixes) > 0 {
+				flattenedField = fmt.Sprintf("%s.%s", strings.Join(prefixes, "."), fieldName)
+			}
+			flattenedFields = append(flattenedFields, flattenedField)
+		}
+	}
+
+	return flattenedFields
 }
