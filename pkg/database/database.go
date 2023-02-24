@@ -8,10 +8,6 @@ const (
 	// TypeSQLite = "sqlite"
 )
 
-type DatabaseConfig struct {
-	MySQL *MySQLConfig `mapstructure:"mysql"`
-}
-
 type Database interface {
 	Type() string
 	Connect() error

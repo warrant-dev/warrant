@@ -15,6 +15,7 @@ import (
 	tenant "github.com/warrant-dev/warrant/pkg/authz/tenant"
 	user "github.com/warrant-dev/warrant/pkg/authz/user"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
+	"github.com/warrant-dev/warrant/pkg/config"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -34,7 +35,7 @@ func NewServiceEnv(database database.Database) ServiceEnv {
 }
 
 func main() {
-	config := service.NewConfig()
+	config := config.NewConfig()
 	database, err := initDb(config)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize and connect to the configured database. Shutting down.")
@@ -64,7 +65,7 @@ func main() {
 	log.Fatal().Err(shutdownErr).Msg("")
 }
 
-func initDb(config service.Config) (database.Database, error) {
+func initDb(config config.Config) (database.Database, error) {
 	if config.Database.MySQL != nil {
 		db := database.NewMySQL(*config.Database.MySQL)
 		return db, db.Connect()
