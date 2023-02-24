@@ -11,6 +11,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/hlog"
 	"github.com/rs/zerolog/log"
+	"github.com/warrant-dev/warrant/pkg/config"
 )
 
 type Route struct {
@@ -51,7 +52,7 @@ func (rh RouteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewRouter(config *Config, pathPrefix string, routes []Route, additionalMiddlewares ...mux.MiddlewareFunc) *mux.Router {
+func NewRouter(config *config.Config, pathPrefix string, routes []Route, additionalMiddlewares ...mux.MiddlewareFunc) *mux.Router {
 	router := mux.NewRouter()
 
 	// Setup default middleware

@@ -1,8 +1,6 @@
 package service
 
-import (
-	"github.com/warrant-dev/warrant/pkg/database"
-)
+import "github.com/warrant-dev/warrant/pkg/database"
 
 type Env interface {
 	DB() database.Database

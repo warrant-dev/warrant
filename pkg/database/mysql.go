@@ -8,23 +8,18 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/ngrok/sqlmw"
 	"github.com/rs/zerolog/log"
+
+	"github.com/warrant-dev/warrant/pkg/config"
 )
 
 type txKey struct{}
 
-type MySQLConfig struct {
-	Username string `mapstructure:"username"`
-	Password string `mapstructure:"password"`
-	Hostname string `mapstructure:"hostname"`
-	Database string `mapstructure:"database"`
-}
-
 type MySQL struct {
 	SQL
-	Config MySQLConfig
+	Config config.MySQLConfig
 }
 
-func NewMySQL(config MySQLConfig) *MySQL {
+func NewMySQL(config config.MySQLConfig) *MySQL {
 	return &MySQL{
 		SQL: SQL{
 			DB: nil,
