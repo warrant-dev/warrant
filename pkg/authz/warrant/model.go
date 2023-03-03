@@ -3,7 +3,7 @@ package authz
 import (
 	"time"
 
-	context "github.com/warrant-dev/warrant/pkg/authz/context"
+	context "github.com/warrant-dev/warrant/pkg/context"
 	"github.com/warrant-dev/warrant/pkg/database"
 )
 

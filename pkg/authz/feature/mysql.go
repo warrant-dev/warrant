@@ -258,7 +258,7 @@ func (repo MySQLRepository) DeleteByFeatureId(ctx context.Context, featureId str
 				featureId = ? AND
 				deletedAt IS NULL
 		`,
-		time.Now(),
+		time.Now().UTC(),
 		featureId,
 	)
 	if err != nil {

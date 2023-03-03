@@ -20,7 +20,6 @@ type Route struct {
 	Handler http.Handler
 }
 
-// RouteHandler data type to pass along db session to handlers
 type RouteHandler struct {
 	env     Env
 	handler func(env Env, w http.ResponseWriter, r *http.Request) error

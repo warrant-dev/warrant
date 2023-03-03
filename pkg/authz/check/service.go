@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	wntContext "github.com/warrant-dev/warrant/pkg/authz/context"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
+	wntContext "github.com/warrant-dev/warrant/pkg/context"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -206,7 +206,7 @@ func (svc CheckService) checkRule(ctx context.Context, warrantCheck CheckSpec, r
 }
 
 func (svc CheckService) CheckMany(ctx context.Context, warrantCheck *CheckManySpec) (*CheckResultSpec, error) {
-	start := time.Now()
+	start := time.Now().UTC()
 	if warrantCheck.Op != "" && warrantCheck.Op != objecttype.InheritIfAllOf && warrantCheck.Op != objecttype.InheritIfAnyOf {
 		return nil, service.NewInvalidParameterError("op", "must be either anyOf or allOf")
 	}

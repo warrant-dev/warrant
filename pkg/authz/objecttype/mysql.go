@@ -245,7 +245,7 @@ func (repo MySQLRepository) DeleteByTypeId(ctx context.Context, typeId string) e
 				typeId = ? AND
 				deletedAt IS NULL
 		`,
-		time.Now(),
+		time.Now().UTC(),
 		typeId,
 	)
 	if err != nil {

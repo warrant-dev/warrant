@@ -1,8 +1,8 @@
 package authz
 
 import (
-	context "github.com/warrant-dev/warrant/pkg/authz/context"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
+	context "github.com/warrant-dev/warrant/pkg/context"
 )
 
 const Authorized = "Authorized"
