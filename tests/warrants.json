@@ -85,14 +85,27 @@
             "name": "assignPermissionViewBalanceSheetToRoleSeniorAccountant",
             "request": {
                 "method": "POST",
-                "url": "/v1/roles/senior-accountant/permissions/view-balance-sheet"
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "view-balance-sheet",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "senior-accountant"
+                    }
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "permissionId": "view-balance-sheet",
-                    "name": null,
-                    "description": null
+                    "objectType": "permission",
+                    "objectId": "view-balance-sheet",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "senior-accountant"
+                    }
                 }
             }
         },
@@ -100,14 +113,27 @@
             "name": "assignPermissionEditBalanceSheetToUserUsera",
             "request": {
                 "method": "POST",
-                "url": "/v1/users/user-a/permissions/edit-balance-sheet"
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "edit-balance-sheet",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    }
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "permissionId": "edit-balance-sheet",
-                    "name": null,
-                    "description": null
+                    "objectType": "permission",
+                    "objectId": "edit-balance-sheet",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    }
                 }
             }
         },
@@ -115,8 +141,15 @@
             "name": "assignRoleSeniorAccountantToUserWithContext",
             "request": {
                 "method": "POST",
-                "url": "/v1/users/user-a/roles/senior-accountant",
+                "url": "/v1/warrants",
                 "body": {
+                    "objectType": "role",
+                    "objectId": "senior-accountant",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
                     "context": {
                         "tenant": "tenant-a",
                         "organization": "org-a"
@@ -126,69 +159,17 @@
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "roleId": "senior-accountant",
-                    "name": null,
-                    "description": null,
+                    "objectType": "role",
+                    "objectId": "senior-accountant",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
                     "context": {
                         "tenant": "tenant-a",
                         "organization": "org-a"
                     }
-                }
-            }
-        },
-        {
-            "name": "queryWarrantsForUser",
-            "request": {
-                "method": "GET",
-                "url": "/v1/query?q=SELECT%20warrant%20FOR%20subject=user:user-a%20AND%20context=[organization=org-a%20tenant=tenant-a]%20WHERE%20subject=user:user-a"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": {
-                    "result": [
-                        {
-                            "objectType": "permission",
-                            "objectId": "edit-balance-sheet",
-                            "relation": "member",
-                            "subject": {
-                                "objectType": "user",
-                                "objectId": "user-a"
-                            },
-                            "isImplicit": false,
-                            "createdAt": "0001-01-01T00:00:00Z"
-                        },
-                        {
-                            "objectType": "permission",
-                            "objectId": "view-balance-sheet",
-                            "relation": "member",
-                            "subject": {
-                                "objectType": "user",
-                                "objectId": "user-a"
-                            },
-                            "context": {
-                                "organization": "org-a",
-                                "tenant": "tenant-a"
-                            },
-                            "isImplicit": true,
-                            "createdAt": "0001-01-01T00:00:00Z"
-                        },
-                        {
-                            "objectType": "role",
-                            "objectId": "senior-accountant",
-                            "relation": "member",
-                            "subject": {
-                                "objectType": "user",
-                                "objectId": "user-a"
-                            },
-                            "context": {
-                                "organization": "org-a",
-                                "tenant": "tenant-a"
-                            },
-                            "isImplicit": false,
-                            "createdAt": "0001-01-01T00:00:00Z"
-                        }
-                    ],
-                    "meta": {}
                 }
             }
         },
@@ -196,8 +177,15 @@
             "name": "removeRoleSeniorAccountantFromUserWithContext",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/users/user-a/roles/senior-accountant",
+                "url": "/v1/warrants",
                 "body": {
+                    "objectType": "role",
+                    "objectId": "senior-accountant",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
                     "context": {
                         "tenant": "tenant-a",
                         "organization": "org-a"
@@ -212,7 +200,16 @@
             "name": "removePermissionEditBalanceSheetFromUserUsera",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/users/user-a/permissions/edit-balance-sheet"
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "edit-balance-sheet",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    }
+                }
             },
             "expectedResponse": {
                 "statusCode": 200
@@ -222,7 +219,16 @@
             "name": "removePermissionViewBalanceSheetFromRoleSeniorAccountant",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/roles/senior-accountant/permissions/view-balance-sheet"
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "view-balance-sheet",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "senior-accountant"
+                    }
+                }
             },
             "expectedResponse": {
                 "statusCode": 200
