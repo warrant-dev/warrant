@@ -13,7 +13,6 @@ type TenantRepository interface {
 	GetById(ctx context.Context, id int64) (*Tenant, error)
 	GetByTenantId(ctx context.Context, tenantId string) (*Tenant, error)
 	List(ctx context.Context, listParams middleware.ListParams) ([]Tenant, error)
-	ListByUserId(ctx context.Context, userId string, listParams middleware.ListParams) ([]UserTenant, error)
 	UpdateByTenantId(ctx context.Context, tenantId string, tenant Tenant) error
 	DeleteByTenantId(ctx context.Context, tenantId string) error
 }

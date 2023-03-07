@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -215,128 +213,6 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 			return tenants, nil
 		default:
 			return tenants, service.NewInternalError("Unable to list tenants")
-		}
-	}
-
-	return tenants, nil
-}
-
-func (repo MySQLRepository) ListByUserId(ctx context.Context, userId string, listParams middleware.ListParams) ([]UserTenant, error) {
-	tenants := make([]UserTenant, 0)
-	query := `
-		SELECT tenant.id, tenant.tenantId, tenant.name, warrant.relation, tenant.objectId, tenant.createdAt, tenant.updatedAt
-		FROM tenant
-		INNER JOIN warrant
-			ON tenant.tenantId = warrant.objectId
-		WHERE
-			tenant.deletedAt IS NULL AND
-			warrant.objectType = ? AND
-			warrant.relation IN (?, ?, ?) AND
-			warrant.subject = ? AND
-			warrant.deletedAt IS NULL
-	`
-	replacements := []interface{}{
-		objecttype.ObjectTypeTenant,
-		objecttype.RelationAdmin,
-		objecttype.RelationManager,
-		objecttype.RelationMember,
-		warrant.UserIdToSubjectString(userId),
-	}
-
-	if listParams.Query != "" {
-		searchTermReplacement := fmt.Sprintf("%%%s%%", listParams.Query)
-		query = fmt.Sprintf("%s AND (tenant.tenantId LIKE ? OR tenant.name LIKE ?)", query)
-		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
-	}
-
-	if listParams.UseCursorPagination() {
-		if listParams.AfterId != "" {
-			if listParams.AfterValue != nil {
-				if listParams.SortOrder == middleware.SortOrderAsc {
-					query = fmt.Sprintf("%s AND (%s > ? OR (tenant.tenantId > ? AND tenant.%s = ?))", query, listParams.SortBy, listParams.SortBy)
-					replacements = append(replacements,
-						listParams.AfterValue,
-						listParams.AfterId,
-						listParams.AfterValue,
-					)
-				} else {
-					query = fmt.Sprintf("%s AND (%s < ? OR (tenant.tenantId < ? AND tenant.%s = ?))", query, listParams.SortBy, listParams.SortBy)
-					replacements = append(replacements,
-						listParams.AfterValue,
-						listParams.AfterId,
-						listParams.AfterValue,
-					)
-				}
-			} else {
-				if listParams.SortOrder == middleware.SortOrderAsc {
-					query = fmt.Sprintf("%s AND tenant.tenantId > ?", query)
-					replacements = append(replacements, listParams.AfterId)
-				} else {
-					query = fmt.Sprintf("%s AND tenant.tenantId < ?", query)
-					replacements = append(replacements, listParams.AfterId)
-				}
-			}
-		}
-
-		if listParams.BeforeId != "" {
-			if listParams.BeforeValue != nil {
-				if listParams.SortOrder == middleware.SortOrderAsc {
-					query = fmt.Sprintf("%s AND (%s < ? OR (tenant.tenantId < ? AND tenant.%s = ?))", query, listParams.SortBy, listParams.SortBy)
-					replacements = append(replacements,
-						listParams.BeforeValue,
-						listParams.BeforeId,
-						listParams.BeforeValue,
-					)
-				} else {
-					query = fmt.Sprintf("%s AND (%s > ? OR (tenant.tenantId > ? AND tenant.%s = ?))", query, listParams.SortBy, listParams.SortBy)
-					replacements = append(replacements,
-						listParams.BeforeValue,
-						listParams.BeforeId,
-						listParams.BeforeValue,
-					)
-				}
-			} else {
-				if listParams.SortOrder == middleware.SortOrderAsc {
-					query = fmt.Sprintf("%s AND tenant.tenantId < ?", query)
-					replacements = append(replacements, listParams.AfterId)
-				} else {
-					query = fmt.Sprintf("%s AND tenant.tenantId > ?", query)
-					replacements = append(replacements, listParams.AfterId)
-				}
-			}
-		}
-
-		if listParams.SortBy != "" && listParams.SortBy != "tenantId" {
-			query = fmt.Sprintf("%s ORDER BY tenant.%s %s, tenant.tenantId %s LIMIT ?", query, listParams.SortBy, listParams.SortOrder, listParams.SortOrder)
-			replacements = append(replacements, listParams.Limit)
-		} else {
-			query = fmt.Sprintf("%s ORDER BY tenant.tenantId %s LIMIT ?", query, listParams.SortOrder)
-			replacements = append(replacements, listParams.Limit)
-		}
-	} else {
-		offset := (listParams.Page - 1) * listParams.Limit
-
-		if listParams.SortBy != "" && listParams.SortBy != "tenantId" {
-			query = fmt.Sprintf("%s ORDER BY %s %s, tenant.tenantId %s LIMIT ?, ?", query, listParams.SortBy, listParams.SortOrder, listParams.SortOrder)
-			replacements = append(replacements, offset, listParams.Limit)
-		} else {
-			query = fmt.Sprintf("%s ORDER BY tenant.tenantId %s LIMIT ?, ?", query, listParams.SortOrder)
-			replacements = append(replacements, offset, listParams.Limit)
-		}
-	}
-
-	err := repo.DB.SelectContext(
-		ctx,
-		&tenants,
-		query,
-		replacements...,
-	)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return tenants, nil
-		default:
-			return tenants, service.NewInternalError(fmt.Sprintf("Unable to list tenants for user %s", userId))
 		}
 	}
 
