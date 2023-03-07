@@ -3,14 +3,9 @@ package database
 import (
 	"context"
 	"database/sql"
-	"database/sql/driver"
 	"encoding/json"
-	"fmt"
-	"strings"
-	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/ngrok/sqlmw"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
@@ -85,12 +80,14 @@ type SqlQueryable interface {
 	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
 }
 
+type txKey struct{}
+
 type SqlTx struct {
 	Tx *sqlx.Tx
 }
 
 func (q SqlTx) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
-	result, err := q.Tx.Exec(query, args...)
+	result, err := q.Tx.ExecContext(ctx, query, args...)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -103,7 +100,7 @@ func (q SqlTx) ExecContext(ctx context.Context, query string, args ...interface{
 }
 
 func (q SqlTx) GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
-	err := q.Tx.Get(dest, query, args...)
+	err := q.Tx.GetContext(ctx, dest, query, args...)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -315,41 +312,4 @@ func NewSQLRepository(db *SQL) SQLRepository {
 	return SQLRepository{
 		DB: db,
 	}
-}
-
-// SQLInterceptor type
-type SQLInterceptor struct {
-	sqlmw.NullInterceptor
-}
-
-// StmtQueryContext overrides the base StmtQueryContext sql method and adds latency measurement and logging
-func (in *SQLInterceptor) StmtQueryContext(ctx context.Context, conn driver.StmtQueryContext, query string, args []driver.NamedValue) (context.Context, driver.Rows, error) {
-	startedAt := time.Now().UTC()
-	rows, err := conn.QueryContext(ctx, args)
-	duration := time.Since(startedAt)
-	if duration.Milliseconds() > 50 {
-		log.Warn().
-			Str("query", strings.Join(strings.Fields(query), " ")).
-			Str("args", fmt.Sprintf("%v", args)).
-			Err(err).
-			Dur("duration", duration).
-			Msg("Slow SQL query")
-	}
-	return ctx, rows, err
-}
-
-// StmtExecContext overrides the base StmtExecContext sql method and adds latency measurement and logging
-func (in *SQLInterceptor) StmtExecContext(ctx context.Context, conn driver.StmtExecContext, query string, args []driver.NamedValue) (driver.Result, error) {
-	startedAt := time.Now().UTC()
-	result, err := conn.ExecContext(ctx, args)
-	duration := time.Since(startedAt)
-	if duration.Milliseconds() > 50 {
-		log.Warn().
-			Str("query", strings.Join(strings.Fields(query), " ")).
-			Str("args", fmt.Sprintf("%v", args)).
-			Err(err).
-			Dur("duration", duration).
-			Msg("Slow SQL query")
-	}
-	return result, err
 }

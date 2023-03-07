@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -21,27 +22,42 @@ import (
 )
 
 type ServiceEnv struct {
-	Database database.Database
+	Datastore database.Database
 }
 
-func (env *ServiceEnv) DB() database.Database {
-	return env.Database
+func (env ServiceEnv) DB() database.Database {
+	return env.Datastore
 }
 
-func NewServiceEnv(database database.Database) ServiceEnv {
+func (env *ServiceEnv) InitDB(config config.Config) error {
+	if config.Datastore.MySQL != nil {
+		db := database.NewMySQL(*config.Datastore.MySQL)
+		err := db.Connect(context.Background())
+		if err != nil {
+			return err
+		}
+
+		env.Datastore = db
+		return nil
+	}
+
+	return fmt.Errorf("invalid database configuration provided")
+}
+
+func NewServiceEnv() ServiceEnv {
 	return ServiceEnv{
-		Database: database,
+		Datastore:  nil,
 	}
 }
 
 func main() {
 	config := config.NewConfig()
-	database, err := initDb(config)
+	svcEnv := NewServiceEnv()
+	err := svcEnv.InitDB(config)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize and connect to the configured database. Shutting down.")
+		log.Fatal().Err(err).Msg("Could not initialize and connect to the configured datastore. Shutting down.")
 	}
 
-	svcEnv := NewServiceEnv(database)
 	svcs := []service.Service{
 		check.NewService(&svcEnv),
 		feature.NewService(&svcEnv),
@@ -60,16 +76,7 @@ func main() {
 		routes = append(routes, svc.GetRoutes()...)
 	}
 
-	log.Info().Msgf("Listening on port %d", config.Port)
+	log.Debug().Msgf("Listening on port %d", config.Port)
 	shutdownErr := http.ListenAndServe(fmt.Sprintf(":%d", config.Port), service.NewRouter(&config, "", routes))
 	log.Fatal().Err(shutdownErr).Msg("")
-}
-
-func initDb(config config.Config) (database.Database, error) {
-	if config.Database.MySQL != nil {
-		db := database.NewMySQL(*config.Database.MySQL)
-		return db, db.Connect()
-	}
-
-	return nil, fmt.Errorf("invalid database configuration provided")
 }
