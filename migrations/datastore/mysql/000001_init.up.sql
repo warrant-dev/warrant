@@ -24,8 +24,8 @@ CREATE TABLE IF NOT EXISTS warrant (
   updatedAt timestamp(6) NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
   deletedAt timestamp(6) NULL DEFAULT NULL,
   PRIMARY KEY (id),
+  UNIQUE KEY warrant_uk_obj_rel_sub_ctx_hash (objectType, objectId, relation, subjectType, subjectId, subjectRelation, contextHash),
   KEY warrant_uk_sub_type_sub_id_sub_rel (subjectType, subjectId, subjectRelation),
-  KEY warrant_uk_obj_rel_sub_ctx_hash (objectType, objectId, relation, subjectType, subjectId, subjectRelation, contextHash),
   KEY warrant_uk_obj_type_obj_id_rel (objectType, objectId, relation)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
