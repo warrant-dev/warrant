@@ -24,19 +24,3 @@ func (tenant Tenant) ToTenantSpec() *TenantSpec {
 		CreatedAt: tenant.CreatedAt,
 	}
 }
-
-type UserTenant struct {
-	Tenant
-	Role string `db:"relation"`
-}
-
-func (userTenant UserTenant) ToUserTenantSpec() *UserTenantSpec {
-	return &UserTenantSpec{
-		TenantSpec: TenantSpec{
-			TenantId:  userTenant.TenantId,
-			Name:      userTenant.Name,
-			CreatedAt: userTenant.CreatedAt,
-		},
-		Role: userTenant.Role,
-	}
-}

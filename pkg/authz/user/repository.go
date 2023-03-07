@@ -13,7 +13,6 @@ type UserRepository interface {
 	GetById(ctx context.Context, id int64) (*User, error)
 	GetByUserId(ctx context.Context, userId string) (*User, error)
 	List(ctx context.Context, listParams middleware.ListParams) ([]User, error)
-	ListByTenantId(ctx context.Context, tenantId string, listParams middleware.ListParams) ([]TenantUser, error)
 	UpdateByUserId(ctx context.Context, userId string, user User) error
 	DeleteByUserId(ctx context.Context, userId string) error
 }
