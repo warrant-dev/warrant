@@ -4,6 +4,24 @@
     ],
     "tests": [
         {
+            "name": "createUserWithSpecialCharacters",
+            "request": {
+                "method": "POST",
+                "url": "/v1/users",
+                "body": {
+                    "userId": "test_-.|@User123"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "userId": "test_-.|@User123",
+                    "email": null,
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
             "name": "createUserWithProvidedIdNoEmail",
             "request": {
                 "method": "POST",
@@ -28,14 +46,14 @@
                 "url": "/v1/users",
                 "body": {
                     "userId": "5555555555555",
-                    "email": "akajla09@gmail.com"
+                    "email": "provided@gmail.com"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "userId": "5555555555555",
-                    "email": "akajla09@gmail.com",
+                    "email": "provided@gmail.com",
                     "createdAt": "2022-09-30T17:04:20Z"
                 }
             }
@@ -95,11 +113,16 @@
                     },
                     {
                         "userId": "5555555555555",
-                        "email": "akajla09@gmail.com",
+                        "email": "provided@gmail.com",
                         "createdAt": "2022-09-30T17:04:20Z"
                     },
                     {
                         "userId": "4444444444444",
+                        "email": null,
+                        "createdAt": "2022-09-30T17:04:20Z"
+                    },
+                    {
+                        "userId": "test_-.|@User123",
                         "email": null,
                         "createdAt": "2022-09-30T17:04:20Z"
                     }
@@ -270,6 +293,16 @@
             "request": {
                 "method": "DELETE",
                 "url": "/v1/users/4444444444444"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserWithSpecialCharacters",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/test_-.|@User123"
             },
             "expectedResponse": {
                 "statusCode": 200
