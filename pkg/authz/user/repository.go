@@ -6,7 +6,6 @@ import (
 
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/middleware"
-	"github.com/warrant-dev/warrant/pkg/service"
 )
 
 type UserRepository interface {
@@ -14,7 +13,6 @@ type UserRepository interface {
 	GetById(ctx context.Context, id int64) (*User, error)
 	GetByUserId(ctx context.Context, userId string) (*User, error)
 	List(ctx context.Context, listParams middleware.ListParams) ([]User, error)
-	ListByTenantId(ctx context.Context, tenantId string, listParams middleware.ListParams) ([]TenantUser, error)
 	UpdateByUserId(ctx context.Context, userId string, user User) error
 	DeleteByUserId(ctx context.Context, userId string) error
 }
@@ -24,11 +22,11 @@ func NewRepository(db database.Database) (UserRepository, error) {
 	case database.TypeMySQL:
 		mysql, ok := db.(*database.MySQL)
 		if !ok {
-			return nil, service.NewInternalError("Invalid database provided")
+			return nil, fmt.Errorf("invalid %s database config", database.TypeMySQL)
 		}
 
 		return NewMySQLRepository(mysql), nil
 	default:
-		return nil, service.NewInternalError(fmt.Sprintf("Invalid database type %s specified", db.Type()))
+		return nil, fmt.Errorf("unsupported database type %s specified", db.Type())
 	}
 }

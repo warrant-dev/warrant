@@ -32,14 +32,6 @@ func (svc UserService) GetRoutes() []service.Route {
 				middleware.ListMiddleware[UserListParamParser],
 			),
 		},
-		{
-			Pattern: "/v1/tenants/{tenantId}/users",
-			Method:  "GET",
-			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc.Env(), listByTenantId),
-				middleware.ListMiddleware[UserListParamParser],
-			),
-		},
 
 		// delete
 		{
@@ -97,23 +89,6 @@ func get(env service.Env, w http.ResponseWriter, r *http.Request) error {
 func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	listParams := middleware.GetListParamsFromContext(r.Context())
 	users, err := NewService(env).List(r.Context(), listParams)
-	if err != nil {
-		return err
-	}
-
-	service.SendJSONResponse(w, users)
-	return nil
-}
-
-func listByTenantId(env service.Env, w http.ResponseWriter, r *http.Request) error {
-	listParams := middleware.GetListParamsFromContext(r.Context())
-	tenantIdParam := mux.Vars(r)["tenantId"]
-	tenantId, err := url.QueryUnescape(tenantIdParam)
-	if err != nil {
-		return service.NewInvalidParameterError("tenantId", "")
-	}
-
-	users, err := NewService(env).ListByTenantId(r.Context(), tenantId, listParams)
 	if err != nil {
 		return err
 	}

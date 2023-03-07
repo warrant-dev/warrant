@@ -18,11 +18,6 @@ func (svc TenantService) GetRoutes() []service.Route {
 			Method:  "POST",
 			Handler: service.NewRouteHandler(svc.Env(), create),
 		},
-		{
-			Pattern: "/v1/tenants/{tenantId}/users/{userId}",
-			Method:  "POST",
-			Handler: service.NewRouteHandler(svc.Env(), addUser),
-		},
 
 		// get
 		{
@@ -35,14 +30,6 @@ func (svc TenantService) GetRoutes() []service.Route {
 			Method:  "GET",
 			Handler: middleware.ChainMiddleware(
 				service.NewRouteHandler(svc.Env(), list),
-				middleware.ListMiddleware[TenantListParamParser],
-			),
-		},
-		{
-			Pattern: "/v1/users/{userId}/tenants",
-			Method:  "GET",
-			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc.Env(), listByUser),
 				middleware.ListMiddleware[TenantListParamParser],
 			),
 		},
@@ -64,11 +51,6 @@ func (svc TenantService) GetRoutes() []service.Route {
 			Pattern: "/v1/tenants/{tenantId}",
 			Method:  "DELETE",
 			Handler: service.NewRouteHandler(svc.Env(), delete),
-		},
-		{
-			Pattern: "/v1/tenants/{tenantId}/users/{userId}",
-			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc.Env(), removeUser),
 		},
 	}
 }
@@ -116,23 +98,6 @@ func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func listByUser(env service.Env, w http.ResponseWriter, r *http.Request) error {
-	listParams := middleware.GetListParamsFromContext(r.Context())
-	userIdParam := mux.Vars(r)["userId"]
-	userId, err := url.QueryUnescape(userIdParam)
-	if err != nil {
-		return service.NewInvalidParameterError("userId", "")
-	}
-
-	tenants, err := NewService(env).ListByUserId(r.Context(), userId, listParams)
-	if err != nil {
-		return err
-	}
-
-	service.SendJSONResponse(w, tenants)
-	return nil
-}
-
 func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	var updateTenant UpdateTenantSpec
 	err := service.ParseJSONBody(r.Body, &updateTenant)
@@ -158,31 +123,6 @@ func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
 func delete(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	tenantId := mux.Vars(r)["tenantId"]
 	err := NewService(env).DeleteByTenantId(r.Context(), tenantId)
-	if err != nil {
-		return err
-	}
-
-	w.Header().Set("Content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	return nil
-}
-
-func addUser(env service.Env, w http.ResponseWriter, r *http.Request) error {
-	tenantId := mux.Vars(r)["tenantId"]
-	userId := mux.Vars(r)["userId"]
-	createdWarrant, err := NewService(env).AddUserToTenant(r.Context(), tenantId, userId)
-	if err != nil {
-		return err
-	}
-
-	service.SendJSONResponse(w, createdWarrant)
-	return nil
-}
-
-func removeUser(env service.Env, w http.ResponseWriter, r *http.Request) error {
-	tenantId := mux.Vars(r)["tenantId"]
-	userId := mux.Vars(r)["userId"]
-	err := NewService(env).RemoveUserFromTenant(r.Context(), tenantId, userId)
 	if err != nil {
 		return err
 	}

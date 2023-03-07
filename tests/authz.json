@@ -265,14 +265,27 @@
             "name": "assignPermissionViewBalanceSheetToRoleSeniorAccountant",
             "request": {
                 "method": "POST",
-                "url": "/v1/roles/senior-accountant/permissions/view-balance-sheet"
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "view-balance-sheet",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "senior-accountant"
+                    }
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "permissionId": "view-balance-sheet",
-                    "name": null,
-                    "description": null
+                    "objectType": "permission",
+                    "objectId": "view-balance-sheet",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "senior-accountant"
+                    }
                 }
             }
         },
@@ -280,14 +293,27 @@
             "name": "assignPermissionEditBalanceSheetToRoleSeniorAccountant",
             "request": {
                 "method": "POST",
-                "url": "/v1/roles/senior-accountant/permissions/edit-balance-sheet"
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "edit-balance-sheet",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "senior-accountant"
+                    }
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "permissionId": "edit-balance-sheet",
-                    "name": null,
-                    "description": null
+                    "objectType": "permission",
+                    "objectId": "edit-balance-sheet",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "senior-accountant"
+                    }
                 }
             }
         },
@@ -295,8 +321,15 @@
             "name": "assignRoleSeniorAccountantToUserWithContext",
             "request": {
                 "method": "POST",
-                "url": "/v1/users/user-a/roles/senior-accountant",
+                "url": "/v1/warrants",
                 "body": {
+                    "objectType": "role",
+                    "objectId": "senior-accountant",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
                     "context": {
                         "tenant": "tenant-a"
                     }
@@ -305,9 +338,13 @@
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "roleId": "senior-accountant",
-                    "name": null,
-                    "description": null,
+                    "objectType": "role",
+                    "objectId": "senior-accountant",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
                     "context": {
                         "tenant": "tenant-a"
                     }
@@ -492,8 +529,15 @@
             "name": "removeRoleSeniorAccountantFromUserWithContext",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/users/user-a/roles/senior-accountant",
+                "url": "/v1/warrants",
                 "body": {
+                    "objectType": "role",
+                    "objectId": "senior-accountant",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
                     "context": {
                         "tenant": "tenant-a"
                     }
@@ -507,7 +551,16 @@
             "name": "removePermissionEditBalanceSheetFromRoleSeniorAccountant",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/roles/senior-accountant/permissions/edit-balance-sheet"
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "edit-balance-sheet",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "senior-accountant"
+                    }
+                }
             },
             "expectedResponse": {
                 "statusCode": 200
@@ -517,7 +570,16 @@
             "name": "removePermissionViewBalanceSheetFromRoleSeniorAccountant",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/roles/senior-accountant/permissions/view-balance-sheet"
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "view-balance-sheet",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "senior-accountant"
+                    }
+                }
             },
             "expectedResponse": {
                 "statusCode": 200

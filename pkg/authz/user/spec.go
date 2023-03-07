@@ -32,8 +32,3 @@ func (spec UserSpec) ToObjectSpec() *object.ObjectSpec {
 type UpdateUserSpec struct {
 	Email database.NullString `json:"email" validate:"email"`
 }
-
-type TenantUserSpec struct {
-	UserSpec
-	Role string `json:"role"`
-}

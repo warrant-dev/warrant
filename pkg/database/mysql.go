@@ -1,18 +1,15 @@
 package database
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"github.com/ngrok/sqlmw"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 
 	"github.com/warrant-dev/warrant/pkg/config"
 )
-
-type txKey struct{}
 
 type MySQL struct {
 	SQL
@@ -32,26 +29,33 @@ func (ds MySQL) Type() string {
 	return TypeMySQL
 }
 
-func (ds *MySQL) Connect() error {
+func (ds *MySQL) Connect(ctx context.Context) error {
 	var db *sqlx.DB
 	var err error
 
-	sql.Register("sql", sqlmw.Driver(mysql.MySQLDriver{}, new(SQLInterceptor)))
-	db, err = sqlx.Open("sql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.Database))
+	db, err = sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.Database))
 	if err != nil {
-		log.Fatal().Err(err).Msgf("Unable to establish connection to mysql database %s. Shutting down server.", ds.Config.Database)
+		errors.Wrap(err, fmt.Sprintf("Unable to establish connection to mysql database %s. Shutting down server.", ds.Config.Database))
 	}
 
-	err = db.Ping()
+	err = db.PingContext(ctx)
 	if err != nil {
-		log.Fatal().Err(err).Msgf("Unable to ping mysql database %s. Shutting down server.", ds.Config.Database)
+		errors.Wrap(err, fmt.Sprintf("Unable to ping mysql database %s. Shutting down server.", ds.Config.Database))
 	}
 
-	log.Info().Msgf("Connected to mysql database %s", ds.Config.Database)
+	if ds.Config.MaxIdleConnections != 0 {
+		db.SetMaxIdleConns(ds.Config.MaxIdleConnections)
+	}
+
+	if ds.Config.MaxOpenConnections != 0 {
+		db.SetMaxOpenConns(ds.Config.MaxOpenConnections)
+	}
+
 	ds.DB = db
+	log.Debug().Msgf("Connected to mysql database %s", ds.Config.Database)
 	return nil
 }
 
-func (ds MySQL) Ping() error {
-	return ds.DB.Ping()
+func (ds MySQL) Ping(ctx context.Context) error {
+	return ds.DB.PingContext(ctx)
 }

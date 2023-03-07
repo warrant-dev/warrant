@@ -7,8 +7,6 @@ import (
 	"github.com/google/uuid"
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	user "github.com/warrant-dev/warrant/pkg/authz/user"
-	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -104,25 +102,6 @@ func (svc TenantService) List(ctx context.Context, listParams middleware.ListPar
 	return tenantSpecs, nil
 }
 
-func (svc TenantService) ListByUserId(ctx context.Context, userId string, listParams middleware.ListParams) ([]UserTenantSpec, error) {
-	tenantSpecs := make([]UserTenantSpec, 0)
-	tenantRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return tenantSpecs, err
-	}
-
-	tenants, err := tenantRepository.ListByUserId(ctx, userId, listParams)
-	if err != nil {
-		return tenantSpecs, nil
-	}
-
-	for _, tenant := range tenants {
-		tenantSpecs = append(tenantSpecs, *tenant.ToUserTenantSpec())
-	}
-
-	return tenantSpecs, nil
-}
-
 func (svc TenantService) UpdateByTenantId(ctx context.Context, tenantId string, tenantSpec UpdateTenantSpec) (*TenantSpec, error) {
 	tenantRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {
@@ -171,50 +150,12 @@ func (svc TenantService) DeleteByTenantId(ctx context.Context, tenantId string) 
 	return err
 }
 
-func (svc TenantService) AddUserToTenant(ctx context.Context, tenantId string, userId string) (*warrant.WarrantSpec, error) {
-	_, err := svc.GetByTenantId(ctx, tenantId)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = user.NewService(svc.Env()).GetByUserId(ctx, userId)
-	if err != nil {
-		return nil, err
-	}
-
-	return warrant.NewService(svc.Env()).Create(ctx, warrant.WarrantSpec{
-		ObjectType: objecttype.ObjectTypeTenant,
-		ObjectId:   tenantId,
-		Relation:   objecttype.RelationMember,
-		Subject:    warrant.UserIdToSubjectSpec(userId),
-	})
-}
-
-func (svc TenantService) RemoveUserFromTenant(ctx context.Context, tenantId string, userId string) error {
-	_, err := svc.GetByTenantId(ctx, tenantId)
-	if err != nil {
-		return err
-	}
-
-	_, err = user.NewService(svc.Env()).GetByUserId(ctx, userId)
-	if err != nil {
-		return err
-	}
-
-	return warrant.NewService(svc.Env()).Delete(ctx, warrant.WarrantSpec{
-		ObjectType: objecttype.ObjectTypeTenant,
-		ObjectId:   tenantId,
-		Relation:   objecttype.RelationMember,
-		Subject:    warrant.UserIdToSubjectSpec(userId),
-	})
-}
-
 func validateOrGenerateTenantIdInSpec(tenantSpec *TenantSpec) error {
-	tenantIdRegExp := regexp.MustCompile(`^[a-zA-Z0-9_\-\.@]+$`)
+	tenantIdRegExp := regexp.MustCompile(`^[a-zA-Z0-9_\-\.@\|]+$`)
 	if tenantSpec.TenantId != "" {
 		// Validate tenantId if provided
 		if !tenantIdRegExp.Match([]byte(tenantSpec.TenantId)) {
-			return service.NewInvalidParameterError("tenantId", "must be provided and can only contain alphanumeric characters and/or '-', '_', and '@'")
+			return service.NewInvalidParameterError("tenantId", "must be provided and can only contain alphanumeric characters and/or '-', '_', '@', and '|'")
 		}
 	} else {
 		// Generate a TenantId for the tenant if one isn't supplied

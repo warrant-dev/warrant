@@ -32,8 +32,3 @@ func (spec TenantSpec) ToObjectSpec() *object.ObjectSpec {
 type UpdateTenantSpec struct {
 	Name database.NullString `json:"name"`
 }
-
-type UserTenantSpec struct {
-	TenantSpec
-	Role string `json:"role"`
-}

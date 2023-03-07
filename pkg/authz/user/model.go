@@ -7,13 +7,13 @@ import (
 )
 
 type User struct {
-	ID        int64               `json:"-" db:"id"`
-	ObjectId  int64               `json:"-" db:"objectId"`
-	UserId    string              `json:"userId" db:"userId"`
-	Email     database.NullString `json:"email" db:"email"`
-	CreatedAt time.Time           `json:"createdAt" db:"createdAt"`
-	UpdatedAt time.Time           `json:"-" db:"updatedAt"`
-	DeletedAt database.NullTime   `json:"-" db:"deletedAt"`
+	ID        int64               `db:"id"`
+	ObjectId  int64               `db:"objectId"`
+	UserId    string              `db:"userId"`
+	Email     database.NullString `db:"email"`
+	CreatedAt time.Time           `db:"createdAt"`
+	UpdatedAt time.Time           `db:"updatedAt"`
+	DeletedAt database.NullTime   `db:"deletedAt"`
 }
 
 func (user User) ToUserSpec() *UserSpec {
@@ -21,21 +21,5 @@ func (user User) ToUserSpec() *UserSpec {
 		UserId:    user.UserId,
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
-	}
-}
-
-type TenantUser struct {
-	User
-	Role string `json:"-" db:"relation"`
-}
-
-func (tenantUser TenantUser) ToTenantUserSpec() *TenantUserSpec {
-	return &TenantUserSpec{
-		UserSpec: UserSpec{
-			UserId:    tenantUser.UserId,
-			Email:     tenantUser.Email,
-			CreatedAt: tenantUser.CreatedAt,
-		},
-		Role: tenantUser.Role,
 	}
 }

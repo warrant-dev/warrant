@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -196,128 +195,6 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 			replacements = append(replacements, offset, listParams.Limit)
 		} else {
 			query = fmt.Sprintf("%s ORDER BY userId %s LIMIT ?, ?", query, listParams.SortOrder)
-			replacements = append(replacements, offset, listParams.Limit)
-		}
-	}
-
-	err := repo.DB.SelectContext(
-		ctx,
-		&users,
-		query,
-		replacements...,
-	)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return users, nil
-		default:
-			return nil, err
-		}
-	}
-
-	return users, nil
-}
-
-func (repo MySQLRepository) ListByTenantId(ctx context.Context, tenantId string, listParams middleware.ListParams) ([]TenantUser, error) {
-	users := make([]TenantUser, 0)
-	query := `
-		SELECT user.id, user.objectId, user.userId, user.email, warrant.relation, user.createdAt, user.updatedAt
-		FROM user
-		INNER JOIN warrant ON
-			concat("user:", user.userId) = warrant.subject
-		WHERE
-			warrant.objectType = ? AND
-			warrant.objectId = ? AND
-			warrant.relation IN (?, ?, ?) AND
-			user.deletedAt IS NULL AND
-			warrant.deletedAt IS NULL
-	`
-	replacements := []interface{}{
-		objecttype.ObjectTypeTenant,
-		tenantId,
-		objecttype.RelationAdmin,
-		objecttype.RelationManager,
-		objecttype.RelationMember,
-	}
-
-	if listParams.Query != "" {
-		searchTermReplacement := fmt.Sprintf("%%%s%%", listParams.Query)
-		query = fmt.Sprintf("%s AND (user.userId LIKE ? OR user.email LIKE ?)", query)
-		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
-	}
-
-	if listParams.UseCursorPagination() {
-		if listParams.AfterId != "" {
-			if listParams.AfterValue != nil {
-				if listParams.SortOrder == middleware.SortOrderAsc {
-					query = fmt.Sprintf("%s AND (%s > ? OR (user.userId > ? AND user.%s = ?))", query, listParams.SortBy, listParams.SortBy)
-					replacements = append(replacements,
-						listParams.AfterValue,
-						listParams.AfterId,
-						listParams.AfterValue,
-					)
-				} else {
-					query = fmt.Sprintf("%s AND (%s < ? OR (user.userId < ? AND user.%s = ?))", query, listParams.SortBy, listParams.SortBy)
-					replacements = append(replacements,
-						listParams.AfterValue,
-						listParams.AfterId,
-						listParams.AfterValue,
-					)
-				}
-			} else {
-				if listParams.SortOrder == middleware.SortOrderAsc {
-					query = fmt.Sprintf("%s AND user.userId > ?", query)
-					replacements = append(replacements, listParams.AfterId)
-				} else {
-					query = fmt.Sprintf("%s AND user.userId < ?", query)
-					replacements = append(replacements, listParams.AfterId)
-				}
-			}
-		}
-
-		if listParams.BeforeId != "" {
-			if listParams.BeforeValue != nil {
-				if listParams.SortOrder == middleware.SortOrderAsc {
-					query = fmt.Sprintf("%s AND (%s < ? OR (user.userId < ? AND user.%s = ?))", query, listParams.SortBy, listParams.SortBy)
-					replacements = append(replacements,
-						listParams.BeforeValue,
-						listParams.BeforeId,
-						listParams.BeforeValue,
-					)
-				} else {
-					query = fmt.Sprintf("%s AND (%s > ? OR (user.userId > ? AND user.%s = ?))", query, listParams.SortBy, listParams.SortBy)
-					replacements = append(replacements,
-						listParams.BeforeValue,
-						listParams.BeforeId,
-						listParams.BeforeValue,
-					)
-				}
-			} else {
-				if listParams.SortOrder == middleware.SortOrderAsc {
-					query = fmt.Sprintf("%s AND user.userId < ?", query)
-					replacements = append(replacements, listParams.AfterId)
-				} else {
-					query = fmt.Sprintf("%s AND user.userId > ?", query)
-					replacements = append(replacements, listParams.AfterId)
-				}
-			}
-		}
-
-		if listParams.SortBy != "" && listParams.SortBy != "userId" {
-			query = fmt.Sprintf("%s ORDER BY user.%s %s, user.userId %s LIMIT ?", query, listParams.SortBy, listParams.SortOrder, listParams.SortOrder)
-			replacements = append(replacements, listParams.Limit)
-		} else {
-			query = fmt.Sprintf("%s ORDER BY user.userId %s LIMIT ?", query, listParams.SortOrder)
-			replacements = append(replacements, listParams.Limit)
-		}
-	} else {
-		offset := (listParams.Page - 1) * listParams.Limit
-
-		if listParams.SortBy != "" && listParams.SortBy != "userId" {
-			query = fmt.Sprintf("%s ORDER BY %s %s, user.userId %s LIMIT ?, ?", query, listParams.SortBy, listParams.SortOrder, listParams.SortOrder)
-			replacements = append(replacements, offset, listParams.Limit)
-		} else {
-			query = fmt.Sprintf("%s ORDER BY user.userId %s LIMIT ?, ?", query, listParams.SortOrder)
 			replacements = append(replacements, offset, listParams.Limit)
 		}
 	}

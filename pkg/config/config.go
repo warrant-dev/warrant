@@ -15,23 +15,24 @@ import (
 
 const PrefixWarrant = "warrant"
 
-// Config structure for shared app config and resources
 type Config struct {
-	Port            int            `mapstructure:"port"`
-	LogLevel        int8           `mapstructure:"logLevel"`
-	EnableAccessLog bool           `mapstructure:"enableAccessLog"`
-	Database        DatabaseConfig `mapstructure:"database"`
+	Port            int             `mapstructure:"port"`
+	LogLevel        int8            `mapstructure:"logLevel"`
+	EnableAccessLog bool            `mapstructure:"enableAccessLog"`
+	Datastore       DatastoreConfig `mapstructure:"datastore"`
 }
 
-type DatabaseConfig struct {
+type DatastoreConfig struct {
 	MySQL *MySQLConfig `mapstructure:"mysql"`
 }
 
 type MySQLConfig struct {
-	Username string `mapstructure:"username"`
-	Password string `mapstructure:"password"`
-	Hostname string `mapstructure:"hostname"`
-	Database string `mapstructure:"database"`
+	Username           string `mapstructure:"username"`
+	Password           string `mapstructure:"password"`
+	Hostname           string `mapstructure:"hostname"`
+	Database           string `mapstructure:"database"`
+	MaxIdleConnections int    `mapstructure:"maxIdleConnections"`
+	MaxOpenConnections int    `mapstructure:"maxOpenConncetions"`
 }
 
 func NewConfig() Config {

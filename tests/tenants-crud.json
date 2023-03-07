@@ -4,6 +4,24 @@
     ],
     "tests": [
         {
+            "name": "createTenantWithSpecialCharacters",
+            "request": {
+                "method": "POST",
+                "url": "/v1/tenants",
+                "body": {
+                    "tenantId": "test_-.|@Tenant123"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "tenantId": "test_-.|@Tenant123",
+                    "name": null,
+                    "createdAt": "2022-09-30T17:04:20Z"
+                }
+            }
+        },
+        {
             "name": "createTenantWithProvidedIdNoName",
             "request": {
                 "method": "POST",
@@ -100,6 +118,11 @@
                     },
                     {
                         "tenantId": "provided-tenant-id",
+                        "name": null,
+                        "createdAt": "2022-09-30T17:04:20Z"
+                    },
+                    {
+                        "tenantId": "test_-.|@Tenant123",
                         "name": null,
                         "createdAt": "2022-09-30T17:04:20Z"
                     }
@@ -270,6 +293,16 @@
             "request": {
                 "method": "DELETE",
                 "url": "/v1/tenants/provided-tenant-id"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteTenantWithSpecialCharacters",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/tenants/test_-.|@Tenant123"
             },
             "expectedResponse": {
                 "statusCode": 200

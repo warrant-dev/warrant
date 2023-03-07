@@ -21,7 +21,7 @@ func NewService(env service.Env) UserService {
 	}
 }
 
-func (svc UserService) Create(ctx context.Context, userSpec UserSpec) (*User, error) {
+func (svc UserService) Create(ctx context.Context, userSpec UserSpec) (*UserSpec, error) {
 	err := validateOrGenerateUserIdInSpec(&userSpec)
 	if err != nil {
 		return nil, err
@@ -66,10 +66,10 @@ func (svc UserService) Create(ctx context.Context, userSpec UserSpec) (*User, er
 		return nil, err
 	}
 
-	return newUser, nil
+	return newUser.ToUserSpec(), nil
 }
 
-func (svc UserService) GetByUserId(ctx context.Context, userId string) (*User, error) {
+func (svc UserService) GetByUserId(ctx context.Context, userId string) (*UserSpec, error) {
 	userRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (svc UserService) GetByUserId(ctx context.Context, userId string) (*User, e
 		return nil, err
 	}
 
-	return user, nil
+	return user.ToUserSpec(), nil
 }
 
 func (svc UserService) List(ctx context.Context, listParams middleware.ListParams) ([]UserSpec, error) {
@@ -102,32 +102,13 @@ func (svc UserService) List(ctx context.Context, listParams middleware.ListParam
 	return userSpecs, nil
 }
 
-func (svc UserService) ListByTenantId(ctx context.Context, tenantId string, listParams middleware.ListParams) ([]TenantUserSpec, error) {
-	tenantUserSpecs := make([]TenantUserSpec, 0)
-	userRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
-
-	tenantUsers, err := userRepository.ListByTenantId(ctx, tenantId, listParams)
-	if err != nil {
-		return tenantUserSpecs, err
-	}
-
-	for _, tenantUser := range tenantUsers {
-		tenantUserSpecs = append(tenantUserSpecs, *tenantUser.ToTenantUserSpec())
-	}
-
-	return tenantUserSpecs, nil
-}
-
 func (svc UserService) UpdateByUserId(ctx context.Context, userId string, userSpec UpdateUserSpec) (*UserSpec, error) {
 	userRepository, err := NewRepository(svc.Env().DB())
 	if err != nil {
 		return nil, err
 	}
 
-	currentUser, err := svc.GetByUserId(ctx, userId)
+	currentUser, err := userRepository.GetByUserId(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -170,11 +151,11 @@ func (svc UserService) DeleteByUserId(ctx context.Context, userId string) error 
 }
 
 func validateOrGenerateUserIdInSpec(userSpec *UserSpec) error {
-	userIdRegExp := regexp.MustCompile(`^[a-zA-Z0-9_\-\.@]+$`)
+	userIdRegExp := regexp.MustCompile(`^[a-zA-Z0-9_\-\.@\|]+$`)
 	if userSpec.UserId != "" {
 		// Validate userId if provided
 		if !userIdRegExp.Match([]byte(userSpec.UserId)) {
-			return service.NewInvalidParameterError("userId", "must be provided and can only contain alphanumeric characters and/or '-', '_', and '@'")
+			return service.NewInvalidParameterError("userId", "must be provided and can only contain alphanumeric characters and/or '-', '_', '@', and '|'")
 		}
 	} else {
 		// Generate a UserID for the user if one isn't supplied

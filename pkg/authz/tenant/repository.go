@@ -6,7 +6,6 @@ import (
 
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/middleware"
-	"github.com/warrant-dev/warrant/pkg/service"
 )
 
 type TenantRepository interface {
@@ -14,7 +13,6 @@ type TenantRepository interface {
 	GetById(ctx context.Context, id int64) (*Tenant, error)
 	GetByTenantId(ctx context.Context, tenantId string) (*Tenant, error)
 	List(ctx context.Context, listParams middleware.ListParams) ([]Tenant, error)
-	ListByUserId(ctx context.Context, userId string, listParams middleware.ListParams) ([]UserTenant, error)
 	UpdateByTenantId(ctx context.Context, tenantId string, tenant Tenant) error
 	DeleteByTenantId(ctx context.Context, tenantId string) error
 }
@@ -24,11 +22,11 @@ func NewRepository(db database.Database) (TenantRepository, error) {
 	case database.TypeMySQL:
 		mysql, ok := db.(*database.MySQL)
 		if !ok {
-			return nil, service.NewInternalError("Invalid database provided")
+			return nil, fmt.Errorf("invalid %s database config", database.TypeMySQL)
 		}
 
 		return NewMySQLRepository(mysql), nil
 	default:
-		return nil, service.NewInternalError(fmt.Sprintf("Invalid database type %s specified", db.Type()))
+		return nil, fmt.Errorf("unsupported database type %s specified", db.Type())
 	}
 }

@@ -10,7 +10,7 @@ const (
 
 type Database interface {
 	Type() string
-	Connect() error
-	Ping() error
+	Connect(ctx context.Context) error
+	Ping(ctx context.Context) error
 	WithinTransaction(ctx context.Context, txCallback func(ctx context.Context) error) error
 }
