@@ -371,7 +371,7 @@ func (repo MySQLRepository) DeleteByUserId(ctx context.Context, userId string) e
 				userId = ? AND
 				deletedAt IS NULL
 		`,
-		time.Now(),
+		time.Now().UTC(),
 		userId,
 	)
 	if err != nil {

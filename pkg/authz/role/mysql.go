@@ -258,7 +258,7 @@ func (repo MySQLRepository) DeleteByRoleId(ctx context.Context, roleId string) e
 				roleId = ? AND
 				deletedAt IS NULL
 		`,
-		time.Now(),
+		time.Now().UTC(),
 		roleId,
 	)
 	if err != nil {

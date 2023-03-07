@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	context "github.com/warrant-dev/warrant/pkg/authz/context"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
+	context "github.com/warrant-dev/warrant/pkg/context"
 	"github.com/warrant-dev/warrant/pkg/database"
 )
 

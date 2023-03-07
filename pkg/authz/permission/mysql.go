@@ -258,7 +258,7 @@ func (repo MySQLRepository) DeleteByPermissionId(ctx context.Context, permission
 				permissionId = ? AND
 				deletedAt IS NULL
 		`,
-		time.Now(),
+		time.Now().UTC(),
 		permissionId,
 	)
 	if err != nil {

@@ -6,7 +6,6 @@ import (
 	"github.com/warrant-dev/warrant/pkg/database"
 )
 
-// Object model
 type Object struct {
 	ID         int64             `db:"id"`
 	ObjectType string            `db:"objectType"`

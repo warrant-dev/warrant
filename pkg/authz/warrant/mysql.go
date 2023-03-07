@@ -75,7 +75,7 @@ func (repo MySQLRepository) DeleteById(ctx context.Context, id int64) error {
 				id = ? AND
 				deletedAt IS NULL
 		`,
-		time.Now(),
+		time.Now().UTC(),
 		id,
 	)
 	if err != nil {
@@ -102,7 +102,7 @@ func (repo MySQLRepository) DeleteAllByObject(ctx context.Context, objectType st
 				objectId = ? AND
 				deletedAt IS NULL
 		`,
-		time.Now(),
+		time.Now().UTC(),
 		objectType,
 		objectId,
 	)
@@ -130,7 +130,7 @@ func (repo MySQLRepository) DeleteAllBySubject(ctx context.Context, subjectType 
 				subjectId = ? AND
 				deletedAt IS NULL
 		`,
-		time.Now(),
+		time.Now().UTC(),
 		subjectType,
 		subjectId,
 	)

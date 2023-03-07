@@ -324,7 +324,7 @@ type SQLInterceptor struct {
 
 // StmtQueryContext overrides the base StmtQueryContext sql method and adds latency measurement and logging
 func (in *SQLInterceptor) StmtQueryContext(ctx context.Context, conn driver.StmtQueryContext, query string, args []driver.NamedValue) (context.Context, driver.Rows, error) {
-	startedAt := time.Now()
+	startedAt := time.Now().UTC()
 	rows, err := conn.QueryContext(ctx, args)
 	duration := time.Since(startedAt)
 	if duration.Milliseconds() > 50 {
@@ -340,7 +340,7 @@ func (in *SQLInterceptor) StmtQueryContext(ctx context.Context, conn driver.Stmt
 
 // StmtExecContext overrides the base StmtExecContext sql method and adds latency measurement and logging
 func (in *SQLInterceptor) StmtExecContext(ctx context.Context, conn driver.StmtExecContext, query string, args []driver.NamedValue) (driver.Result, error) {
-	startedAt := time.Now()
+	startedAt := time.Now().UTC()
 	result, err := conn.ExecContext(ctx, args)
 	duration := time.Since(startedAt)
 	if duration.Milliseconds() > 50 {

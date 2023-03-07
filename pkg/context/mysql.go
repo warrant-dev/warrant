@@ -1,4 +1,4 @@
-package authz
+package context
 
 import (
 	"context"
@@ -96,7 +96,7 @@ func (repository MySQLRepository) DeleteAllByWarrantId(ctx context.Context, warr
 				warrantId = ? AND
 				deletedAt IS NULL
 		`,
-		time.Now(),
+		time.Now().UTC(),
 		warrantId,
 	)
 	if err != nil {

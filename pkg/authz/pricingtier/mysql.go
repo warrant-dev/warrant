@@ -258,7 +258,7 @@ func (repo MySQLRepository) DeleteByPricingTierId(ctx context.Context, pricingTi
 				pricingTierId = ? AND
 				deletedAt IS NULL
 		`,
-		time.Now(),
+		time.Now().UTC(),
 		pricingTierId,
 	)
 	if err != nil {

@@ -3,8 +3,8 @@ package authz
 import (
 	"context"
 
-	wntContext "github.com/warrant-dev/warrant/pkg/authz/context"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
+	wntContext "github.com/warrant-dev/warrant/pkg/context"
 	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )

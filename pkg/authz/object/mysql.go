@@ -232,7 +232,7 @@ func (repo MySQLRepository) DeleteByObjectTypeAndId(ctx context.Context, objectT
 				objectId = ? AND
 				deletedAt IS NULL
 		`,
-		time.Now(),
+		time.Now().UTC(),
 		objectType,
 		objectId,
 	)
