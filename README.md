@@ -36,7 +36,7 @@ Key features of Warrant include:
   - PHP
   - Ruby
 
-## Get Started
+## Getting Started
 
 ### Warrant Cloud
 
