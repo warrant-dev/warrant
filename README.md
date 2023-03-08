@@ -5,37 +5,67 @@
   <a href="https://warrant.dev/">Website</a> |
   <a href="https://docs.warrant.dev/">Docs</a> |
   <a href="https://docs.warrant.dev/objecttypes/get-all-object-types/">API Reference</a> |
-  <a href="https://join.slack.com/t/warrantcommunity/shared_invite/zt-12g84updv-5l1pktJf2bI5WIKN4_~f4w">Slack</a> | 
+  <a href="https://join.slack.com/t/warrantcommunity/shared_invite/zt-12g84updv-5l1pktJf2bI5WIKN4_~f4w">Slack</a> |
   <a href="https://twitter.com/warrant_dev">Twitter</a>
 </p>
 
-Warrant is an application authorization & access control platform built for developers and product teams. It's designed to abstract away the complexity of managing authorization from teams so they can focus their efforts on building their core product.
+# Warrant - an open source access control service
 
-Key features include:
-- A centralized service (inspired by Google Zanzibar) for storing and managing authorization models and their associated access rules (we call these warrants). The service supports a wide variety of common access control patterns from coarser Role Based Access Control (RBAC) to fine grained Relationship Based Access Control (ReBAC) and Attribute Based Access Control (ABAC) schemes (ex. `[user:1] is an [editor] of [document:x]`).
-- Real-time, low latency `check` API to check for specific access rules (i.e. *is user:A editor of tenant:X*)
-- Real-time `query` API to query and audit access rules for a given subject or object
-- Built-in support for multi-tenant access control - define access rules by tenant
-- Built-in support for pricing tiers & features - define access rules based on your SaaS pricing tiers and feature packages
-- Front-end components and embeddable pages to allow/deny access to certain pages/UI elements, enable self-service management of permissions, etc.
-- Connectors to sync tenants, users, and access rules from other sources (i.e. IdPs, DBs, etc).
-- A global event log of all operations for audit logging, alerting, and debugging authorization models
+Warrant is an application access control service built for developers and product teams. It's designed to abstract away the complexity of managing user authorization from teams building software products, so they (1) can offer best-in-class access control to their customers from day one and (2) focus their efforts on building their core product.
 
-## Getting Started
+Key features of Warrant include:
+
+- A centralized authorization service (inspired by Google Zanzibar) for storing and managing your product's authorization model and access rules (we call these warrants). This authz service supports:
+  - A wide variety of common access control models from coarser Role Based Access Control (RBAC) to fine grained Relationship Based Access Control (ReBAC) and Attribute Based Access Control (ABAC) (e.g. `[user:1] is an [editor] of [document:x]`).
+  - A Real-time, low latency `check` API to perform access checks in your application at runtime (e.g. is ` user:A editor of tenant:X_`?)
+  - A Real-time `query` API to query and audit access rules for a given subject or object
+- Built-in support for multi-tenant access control
+  - Define roles, permissions, and other access rules _per tenant_ and even support users who have varying levels of access to resources depending on which tenant (or role) they're currently logged in as.
+- Built-in support for pricing tiers
+  - Control access to the features in real time based on the different pricing tiers offered by your product (e.g. free-tier, growth, business, enterprise, etc).
+- Front-end components and embeddable pages to allow/deny access to certain pages/UI elements and enable self-service management of roles &amp; permissions.
+  - Pre-built components that help you build UIs to give your customers the ability to manage roles &amp; permissions for themselves and their teammates.
+- Integrates with custom and third-party authn/identity providers
+  - Use Warrant with your in-house authentication or with a third-party identity provider like Auth0.
+- A global event log that tracks all updates to authorization models and rules for auditing, alerting, and debugging.
+- SDK support for many of the most commonly used programming languages:
+  - Go
+  - Java
+  - JS/TS
+  - Python
+  - PHP
+  - Ruby
+
+## Get Started
 
 ### Warrant Cloud
 
-The fastest and easiest way to get started with Warrant is through the managed cloud service. You can sign-up for a free account [here](https://app.warrant.dev/signup).
+The quickest and easiest way to get started with Warrant is by using the managed cloud service. You can sign-up for a free account [here](https://app.warrant.dev/signup).
 
-Warrant Cloud is compatible with the same APIs as this open source version with additional functionality such as the admin dashboard, multi-region availability, and improved latency &amp; throughput for large scale use cases.
+Warrant Cloud is compatible with the same APIs as this open source version and provides additional functionality like:
 
-Once you've created an account, use one of our [SDKs](/#SDKs) and reference the [docs](https://docs.warrant.dev/) to get started.
+- An admin dashboard for quickly managing your authorization model and access rules via an intuitive, easy-to-use UI
+- Multi-region availability
+- Improved access check latency &amp; throughput for large scale use cases.
 
-### Self-hosted
+Once you've created an account, refer to our [docs](https://docs.warrant.dev/) to get started.
 
-```shell
-[Steps to install Warrant via Docker/binary]
-```
+### Self-hosting
+
+Warrant requires a database to store authorization models and access rules. The open source version currently has support for the following databases:
+
+- MySQL
+- Postgres (coming soon)
+- SQLite (coming soon)
+- To request support for another database, please [open an issue](https://github.com/warrant-dev/warrant/issues/new/choose)!
+
+If you'd like to self-host the open source version of Warrant, you have a few options:
+
+#### Install and run the binary
+
+#### Run with Docker
+
+#### Run with Kubernetes
 
 ## Use Cases
 
@@ -53,7 +83,8 @@ Warrant is built specifically for application authorization and access control u
 
 ## SDKs
 
-Warrant's native SDKs are compatible with both the cloud and open-source version. We currently support:
+Warrant's native SDKs are compatible with both the cloud and open-source versions of Warrant. We currently support SDKs for:
+
 - [Node.js](https://github.com/warrant-dev/warrant-node)
 - [Go](https://github.com/warrant-dev/warrant-go)
 - [Python](https://github.com/warrant-dev/warrant-python)
@@ -66,14 +97,17 @@ Warrant's native SDKs are compatible with both the cloud and open-source version
 
 ## Documentation & Support
 
-Check out our [docs](https://docs.warrant.dev/) for deep-dives into key concepts and architecture as well as [quickstarts](https://docs.warrant.dev/quickstart/role-based-access-control/) and the [API reference](https://docs.warrant.dev/objecttypes/get-all-object-types/).
+Visit our [docs](https://docs.warrant.dev/) to learn more about Warrant's key concepts &amp; architecture and view our [quickstarts](https://docs.warrant.dev/quickstart/role-based-access-control/) &amp; [API reference](https://docs.warrant.dev/objecttypes/get-all-object-types/).
 
 Join our [Slack community](https://join.slack.com/t/warrantcommunity/shared_invite/zt-12g84updv-5l1pktJf2bI5WIKN4_~f4w) to ask questions and get support.
 
 ## Contributing
 
-TBD
+To report a bug you found or request a feature that you'd like, open an issue. If you'd like to contribute, submit a PR to resolve the issue.
 
-## License
+Contributions from the community are welcome! Just be sure to follow some ground rules:
 
-TBD
+- Never submit a PR without an issue.
+- Issues should mention whether the issue is a bug or a feature.
+- Issues reporting a bug should describe (1) steps to reproduce the bug, (2) what the current behavior is, and (3) what the expected behavior should be.
+- Issues requesting a feature should (1) provide a description of the feature and (2) explain the intended use case for the feature.
