@@ -15,19 +15,19 @@ Warrant is an application access control service built for developers and produc
 
 Key features of Warrant include:
 
-- A centralized authorization service (inspired by Google Zanzibar) for storing and managing your product's authorization model and access rules (we call these warrants). This authz service supports:
-  - A wide variety of common access control models from coarser Role Based Access Control (RBAC) to fine grained Relationship Based Access Control (ReBAC) and Attribute Based Access Control (ABAC) (e.g. `[user:1] is an [editor] of [document:x]`).
-  - A Real-time, low latency `check` API to perform access checks in your application at runtime (e.g. is ` user:A editor of tenant:X_`?)
-  - A Real-time `query` API to query and audit access rules for a given subject or object
+- A centralized authorization service (inspired by Google Zanzibar) for storing and managing your product's authorization model and access rules (we call these warrants).
+  - Supports a wide variety of common access control models from coarser Role Based Access Control (RBAC) to fine grained Relationship Based Access Control (ReBAC) and Attribute Based Access Control (ABAC) (e.g. `[user:1] is an [editor] of [document:x]`).
+  - Real-time, low latency `check` API to perform access checks in your application at runtime (e.g. is `user:A editor of tenant:X`?)
+  - Real-time `query` API to query and audit access rules for a given subject or object
 - Built-in support for multi-tenant access control
-  - Define roles, permissions, and other access rules _per tenant_ and even support users who have varying levels of access to resources depending on which tenant (or role) they're currently logged in as.
+  - Define roles, permissions, and other access rules _per tenant_
+  - Support scenarios where users have varying levels of access to resources depending on which tenant (or role) they're currently logged in as.
 - Built-in support for pricing tiers
-  - Control access to the features in real time based on the different pricing tiers offered by your product (e.g. free-tier, growth, business, enterprise, etc).
-- Front-end components and embeddable pages to allow/deny access to certain pages/UI elements and enable self-service management of roles &amp; permissions.
-  - Pre-built components that help you build UIs to give your customers the ability to manage roles &amp; permissions for themselves and their teammates.
-- Integrates with custom and third-party authn/identity providers
-  - Use Warrant with your in-house authentication or with a third-party identity provider like Auth0.
-- A global event log that tracks all updates to authorization models and rules for auditing, alerting, and debugging.
+  - Control access to your application&apos;s features in real time based on the pricing tiers offered by your product (e.g. free-tier, growth, business, enterprise, etc).
+- Front-end components and embeddable pages to allow/deny access to specific pages/UI elements and enable self-service management of roles &amp; permissions.
+  - Pre-built components that help you build UIs that give your customers the ability to manage roles &amp; permissions for themselves and their teammates.
+- Easily integrates with in-house and third-party authn/identity providers like Auth0
+- Maintains a global event log that tracks all updates to authorization models and rules to make auditing, alerting, and debugging simple.
 - SDK support for many of the most commonly used programming languages:
   - Go
   - Java
