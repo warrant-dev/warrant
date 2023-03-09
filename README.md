@@ -31,12 +31,12 @@ Warrant is an application access control service built for developers and produc
 - Easily integrates with in-house and third-party authn/identity providers like Auth0
 - Maintains a global event log that tracks all updates to authorization models and rules to make auditing, alerting, and debugging simple
 - SDK support for many of the most commonly used programming languages:
-  - Go
-  - Java
-  - JS/TS
-  - Python
-  - PHP
-  - Ruby
+  - [Go](https://github.com/warrant-dev/warrant-go)
+  - [Java](https://github.com/warrant-dev/warrant-java)
+  - [JS/TS](https://github.com/warrant-dev/warrant-node)
+  - [Python](https://github.com/warrant-dev/warrant-python)
+  - [PHP](https://github.com/warrant-dev/warrant-php)
+  - [Ruby](https://github.com/warrant-dev/warrant-ruby)
 
 ## Use Cases
 
