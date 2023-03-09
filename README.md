@@ -9,9 +9,9 @@
   <a href="https://twitter.com/warrant_dev">Twitter</a>
 </p>
 
-# Warrant - Open Source Access Control as a Service
+# Warrant - Open Source Access Control Service
 
-Warrant is an application access control service built for developers and product teams. It's designed to abstract away the complexity of managing user access control from teams building software products so they (1) can offer best-in-class access control to customers from day one and (2) focus their efforts on building their core product.
+Warrant is an application access control service built for developers and product teams. It's designed to abstract away the complexity of managing user access control from teams building software products so they can (1) offer best-in-class access control to customers from day one and (2) focus their efforts on building their core product.
 
 ## Features
 
@@ -68,20 +68,105 @@ Once you've created an account, refer to our [docs](https://docs.warrant.dev/) t
 
 ### Self-hosting
 
-Warrant requires a database to store authorization models and access rules. The open source version currently has support for the following databases:
+#### Configuring the database
 
-- MySQL
+Warrant requires a database to persist access control data, authorization models, and access rules, so if you choose to self-host Warrant, you'll first need to setup a database, then configure Warrant to connect to the database on startup. The open source version of Warrant currently supports the following databases:
+
+- MySQL (>= v8.0.31)
 - Postgres (coming soon)
 - SQLite (coming soon)
 - To request support for another database, please [open an issue](https://github.com/warrant-dev/warrant/issues/new/choose)!
 
-If you'd like to self-host the open source version of Warrant, you have a few options:
+#### Configuring the database schema
 
-#### Install and run the binary
+Once you've setup your database, you can create the database schema using [golang-migrate](https://github.com/golang-migrate/migrate).
 
-#### Run with Docker
+Update to the latest schema:
 
-#### Run with Kubernetes
+```bash
+migrate -source github://warrant-dev/warrant/migrations/datastore/mysql -database mysql://root@/warrant up
+```
+
+#### Run the Warrant Docker image
+
+Pull the latest Warrant Docker image
+
+```bash
+docker pull warrantdev/warrant
+```
+
+Create a configuration file `warrant.env` with the following
+
+```bash
+WARRANT_PORT=8000
+WARRANT_LOGLEVEL=0
+WARRANT_ENABLEACCESSLOG=true
+WARRANT_DATASTORE=mysql
+WARRANT_DATASTORE_MYSQL_USERNAME=root
+WARRANT_DATASTORE_MYSQL_PASSWORD=
+WARRANT_DATASTORE_MYSQL_HOSTNAME=127.0.0.1
+WARRANT_DATASTORE_MYSQL_DATABASE=warrant
+```
+
+Start the container, passing in the configuration file as environment variables to the container
+
+```bash
+docker run --name warrant --env-file warrant.env warrantdev/warrant
+```
+
+#### Docker Swarm
+
+To make it easier to run a database alongside Warrant, you can use [Docker Compose](https://docs.docker.com/compose/) to automatically setup and manage the database alongside Warrant. You can also accomplish this by running Warrant with [Kubernetes](https://kubernetes.io/).
+
+Here's an example `docker-compose.yaml` that sets up a MySQL database, creates the database schema required by Warrant, and finally starts Warrant.
+
+```yaml
+version: "3.9"
+services:
+  datastore:
+    image: mysql:8.0.32
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "true"
+      MYSQL_PASSWORD:
+      MYSQL_DATABASE: warrant
+    ports:
+      - 3306:3306
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 10
+
+  migrate-datastore:
+    image: migrate/migrate
+    command:
+      [
+        "-source",
+        "github://warrant-dev/warrant/migrations/datastore/mysql",
+        "-database",
+        "mysql://root@tcp(datastore:3306)/warrant",
+        "up",
+      ]
+    depends_on:
+      datastore:
+        condition: service_healthy
+
+  web:
+    image: warrantdev/warrant
+    ports:
+      - 8000:8000
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      WARRANT_PORT: 8000
+      WARRANT_LOGLEVEL: 1
+      WARRANT_ENABLEACCESSLOG: "true"
+      WARRANT_DATASTORE: mysql
+      WARRANT_DATASTORE_MYSQL_USERNAME: root
+      WARRANT_DATASTORE_MYSQL_PASSWORD:
+      WARRANT_DATASTORE_MYSQL_HOSTNAME: datastore
+      WARRANT_DATASTORE_MYSQL_DATABASE: warrantOSS
+```
 
 ## SDKs
 
