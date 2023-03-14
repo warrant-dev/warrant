@@ -11,39 +11,31 @@
 
 # Warrant - Open Source Access Control Service
 
-Warrant is an application access control service built for developers and product teams. It's designed to abstract away the complexity of managing user access control from teams building software products so they can (1) offer best-in-class access control to customers from day one and (2) focus their efforts on building their core product.
+Warrant is an application access control service built for developers and product teams. It is a centralized authorization service (inspired by Google Zanzibar) designed to abstract away the complexity of managing user access control from teams building software products, so they can (1) offer best-in-class access control to customers from day one and (2) focus efforts on building their core product.
+
+Warrant allows you to define, store, and manage your product's authorization model and access rules (we call these warrants), then check or query against these rules from your application at runtime. This allows you to easily implement any access control model from coarser role based access control (RBAC) (e.g. `does [user:1] have [permission:view-billing-details]?`) to fine grained relationship based access control (ReBAC) (e.g. `is [user:1] an [editor] of [document:docA]?`) and attribute based access control (ABAC) (e.g. `is [user:1] in [department:accounting]?`).
 
 ## Features
 
-- A centralized authorization service (inspired by Google Zanzibar) for defining, storing, and managing your product's authorization model and access rules (we call these warrants).
-- Supports a wide variety of common access control models from coarser Role Based Access Control (RBAC) to fine grained Relationship Based Access Control (ReBAC) and Attribute Based Access Control (ABAC) (e.g. `[user:1] is an [editor] of [document:x]`)
-- Real-time, low latency `check` API to perform access checks in your application at runtime (e.g. _is `user:A editor of tenant:X`?_)
-- Real-time `query` API to query and audit access rules for a given subject or object (e.g. _`which users in tenant:1 have access to object:A?`_)
-- Built-in support for roles &amp; permissions (RBAC)
-  - API endpoints to create and manage custom roles and permissions for your users
+- A real-time, low latency `check` API to perform access checks in your application at runtime (e.g. _is `user:A editor of tenant:X`?_)
+- A real-time `query` API to query and audit access rules for a given subject or object (e.g. _`which users in tenant:1 have access to object:A?`_)
+- Built-in support for roles & permissions (RBAC) + API endpoints to create and manage custom roles & permissions from your application
 - Built-in support for multi-tenant access control
-  - Define roles, permissions, and other access rules _per tenant_
-  - Support scenarios where users have varying levels of access to resources depending on which tenant (or role) they're currently logged in as.
-- Built-in support for pricing tiers
-  - Control access to your application&apos;s features in real time based on the pricing tiers offered by your product (e.g. free-tier, growth, business, enterprise, etc)
-- Front-end components and embeddable pages to allow/deny access to specific pages/UI elements and enable self-service management of roles &amp; permissions
-  - Pre-built components that help you build UIs that give your customers the ability to manage roles &amp; permissions for themselves and their teammates
-- Easily integrates with in-house and third-party authn/identity providers like Auth0
-- Maintains a global event log that tracks all updates to authorization models and rules to make auditing, alerting, and debugging simple
-- SDK support for many of the most commonly used programming languages:
-  - [Go](https://github.com/warrant-dev/warrant-go)
-  - [Java](https://github.com/warrant-dev/warrant-java)
-  - [JS/TS](https://github.com/warrant-dev/warrant-node)
-  - [Python](https://github.com/warrant-dev/warrant-python)
-  - [PHP](https://github.com/warrant-dev/warrant-php)
-  - [Ruby](https://github.com/warrant-dev/warrant-ruby)
+  - Define roles, permissions, access rules, etc. _per tenant_
+  - Support scenarios where a user's level of access in your application is dependent on which tenant (or role) they're currently logged in as.
+- Built-in support for pricing tiers - control access to your application's features in real time based on your product's pricing plans (e.g. free-tier, growth, business, enterprise, etc)
+- Permission-aware front-end components to allow/deny access to specific pages/UI elements
+- Pre-built components & embeddable pages to build UIs that give customers the ability to manage roles, permissions, and other access rules for themselves and teammates
+- Integrates with in-house and third-party authn/identity providers like Auth0
+- A global event log that tracks all updates to authorization models and access rules, making auditing, alerting, and debugging simple
+- [SDKs](#sdks) in the most popular languages and frameworks
 
 ## Use Cases
 
 Warrant is built specifically for application authorization and access control, particularly for product, security, and compliance use-cases. Examples of problems Warrant solves are:
 
 - Add role based access control (RBAC) to your SaaS application with the ability for your customers to self-manage their roles and permissions via the Warrant self service dashboard or your own custom dashboard built using Warrant's component library.
-- Allow your customers to define and manage their own roles &amp; permissions for their tenant (organization)
+- Allow your customers to define and manage their own roles & permissions for their tenant (organization)
 - Add 'fine grained RBAC' (role based access to specific resources)
 - Implement fine grained, object/resource-level authorization specific to your application's data model (`[user:1] is an [editor] of [document:x]`)
 - Add centralized and auditable access control around your internal applications.
@@ -62,7 +54,7 @@ Warrant Cloud is compatible with the same APIs as this open source version and p
 
 - An admin dashboard for quickly managing your authorization model and access rules via an intuitive, easy-to-use UI
 - Multi-region availability
-- Improved access check latency &amp; throughput for large scale use cases.
+- Improved access check latency & throughput for large scale use cases.
 
 Once you've created an account, refer to our [docs](https://docs.warrant.dev/) to get started.
 
@@ -184,7 +176,7 @@ Warrant's native SDKs are compatible with both the cloud and open-source version
 
 ## Documentation
 
-Visit our [docs](https://docs.warrant.dev/) to learn more about Warrant's key concepts &amp; architecture and view our [quickstarts](https://docs.warrant.dev/quickstart/role-based-access-control/) &amp; [API reference](https://docs.warrant.dev/objecttypes/get-all-object-types/).
+Visit our [docs](https://docs.warrant.dev/) to learn more about Warrant's key concepts & architecture and view our [quickstarts](https://docs.warrant.dev/quickstart/role-based-access-control/) & [API reference](https://docs.warrant.dev/objecttypes/get-all-object-types/).
 
 ## Support
 
