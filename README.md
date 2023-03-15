@@ -106,7 +106,7 @@ Start the container, passing in the configuration file as environment variables 
 docker run --name warrant --env-file warrant.env warrantdev/warrant
 ```
 
-#### Docker Swarm
+#### Docker Compose
 
 To make it easier to run a database alongside Warrant, you can use [Docker Compose](https://docs.docker.com/compose/) to automatically setup and manage the database alongside Warrant. You can also accomplish this by running Warrant with [Kubernetes](https://kubernetes.io/).
 
@@ -147,7 +147,7 @@ services:
     ports:
       - 8000:8000
     depends_on:
-      migrate:
+      migrate-datastore:
         condition: service_completed_successfully
     environment:
       WARRANT_PORT: 8000
@@ -157,7 +157,7 @@ services:
       WARRANT_DATASTORE_MYSQL_USERNAME: root
       WARRANT_DATASTORE_MYSQL_PASSWORD:
       WARRANT_DATASTORE_MYSQL_HOSTNAME: datastore
-      WARRANT_DATASTORE_MYSQL_DATABASE: warrantOSS
+      WARRANT_DATASTORE_MYSQL_DATABASE: warrant
 ```
 
 ## SDKs
