@@ -23,7 +23,8 @@ type Config struct {
 }
 
 type DatastoreConfig struct {
-	MySQL *MySQLConfig `mapstructure:"mysql"`
+	MySQL    *MySQLConfig    `mapstructure:"mysql"`
+	Postgres *PostgresConfig `mapstructure:"postgres"`
 }
 
 type MySQLConfig struct {
@@ -31,6 +32,16 @@ type MySQLConfig struct {
 	Password           string `mapstructure:"password"`
 	Hostname           string `mapstructure:"hostname"`
 	Database           string `mapstructure:"database"`
+	MaxIdleConnections int    `mapstructure:"maxIdleConnections"`
+	MaxOpenConnections int    `mapstructure:"maxOpenConncetions"`
+}
+
+type PostgresConfig struct {
+	Username           string `mapstructure:"username"`
+	Password           string `mapstructure:"password"`
+	Hostname           string `mapstructure:"hostname"`
+	Database           string `mapstructure:"database"`
+	SSLMode            string `mapstructure:"sslmode"`
 	MaxIdleConnections int    `mapstructure:"maxIdleConnections"`
 	MaxOpenConnections int    `mapstructure:"maxOpenConncetions"`
 }

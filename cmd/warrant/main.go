@@ -41,12 +41,23 @@ func (env *ServiceEnv) InitDB(config config.Config) error {
 		return nil
 	}
 
+	if config.Datastore.Postgres != nil {
+		db := database.NewPostgres(*config.Datastore.Postgres)
+		err := db.Connect(context.Background())
+		if err != nil {
+			return err
+		}
+
+		env.Datastore = db
+		return nil
+	}
+
 	return fmt.Errorf("invalid database configuration provided")
 }
 
 func NewServiceEnv() ServiceEnv {
 	return ServiceEnv{
-		Datastore:  nil,
+		Datastore: nil,
 	}
 }
 

@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/warrant-dev/warrant/pkg/config"
 )
 

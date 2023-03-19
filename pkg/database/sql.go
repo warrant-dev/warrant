@@ -87,6 +87,7 @@ type SqlTx struct {
 }
 
 func (q SqlTx) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	query = q.Tx.Rebind(query)
 	result, err := q.Tx.ExecContext(ctx, query, args...)
 	if err != nil {
 		switch err {
@@ -100,6 +101,7 @@ func (q SqlTx) ExecContext(ctx context.Context, query string, args ...interface{
 }
 
 func (q SqlTx) GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
+	query = q.Tx.Rebind(query)
 	err := q.Tx.GetContext(ctx, dest, query, args...)
 	if err != nil {
 		switch err {
@@ -113,6 +115,7 @@ func (q SqlTx) GetContext(ctx context.Context, dest interface{}, query string, a
 }
 
 func (q SqlTx) NamedExecContext(ctx context.Context, query string, arg interface{}) (sql.Result, error) {
+	query = q.Tx.Rebind(query)
 	result, err := q.Tx.NamedExecContext(ctx, query, arg)
 	if err != nil {
 		switch err {
@@ -126,6 +129,7 @@ func (q SqlTx) NamedExecContext(ctx context.Context, query string, arg interface
 }
 
 func (q SqlTx) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
+	query = q.Tx.Rebind(query)
 	stmt, err := q.Tx.PrepareContext(ctx, query)
 	if err != nil {
 		return stmt, errors.Wrap(err, "sql error")
@@ -134,6 +138,7 @@ func (q SqlTx) PrepareContext(ctx context.Context, query string) (*sql.Stmt, err
 }
 
 func (q SqlTx) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+	query = q.Tx.Rebind(query)
 	rows, err := q.Tx.QueryContext(ctx, query, args...)
 	if err != nil {
 		switch err {
@@ -147,10 +152,12 @@ func (q SqlTx) QueryContext(ctx context.Context, query string, args ...interface
 }
 
 func (q SqlTx) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
+	query = q.Tx.Rebind(query)
 	return q.Tx.QueryRowContext(ctx, query, args...)
 }
 
 func (q SqlTx) SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
+	query = q.Tx.Rebind(query)
 	err := q.Tx.SelectContext(ctx, dest, query, args...)
 	if err != nil {
 		switch err {
@@ -207,6 +214,7 @@ func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(ctx context.Con
 }
 
 func (ds SQL) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	query = ds.DB.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
 	result, err := queryable.ExecContext(ctx, query, args...)
 	if err != nil {
@@ -214,13 +222,14 @@ func (ds SQL) ExecContext(ctx context.Context, query string, args ...interface{}
 		case sql.ErrNoRows:
 			return result, err
 		default:
-			return result, errors.Wrap(err, "Error when calling mysql ExecContext")
+			return result, errors.Wrap(err, "Error when calling sql ExecContext")
 		}
 	}
 	return result, err
 }
 
 func (ds SQL) GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
+	query = ds.DB.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
 	err := queryable.GetContext(ctx, dest, query, args...)
 	if err != nil {
@@ -228,13 +237,14 @@ func (ds SQL) GetContext(ctx context.Context, dest interface{}, query string, ar
 		case sql.ErrNoRows:
 			return err
 		default:
-			return errors.Wrap(err, "Error when calling mysql GetContext")
+			return errors.Wrap(err, "Error when calling sql GetContext")
 		}
 	}
 	return err
 }
 
 func (ds SQL) NamedExecContext(ctx context.Context, query string, arg interface{}) (sql.Result, error) {
+	query = ds.DB.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
 	result, err := queryable.NamedExecContext(ctx, query, arg)
 	if err != nil {
@@ -242,22 +252,24 @@ func (ds SQL) NamedExecContext(ctx context.Context, query string, arg interface{
 		case sql.ErrNoRows:
 			return result, err
 		default:
-			return result, errors.Wrap(err, "Error when calling mysql NamedExecContext")
+			return result, errors.Wrap(err, "Error when calling sql NamedExecContext")
 		}
 	}
 	return result, err
 }
 
 func (ds SQL) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
+	query = ds.DB.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
 	stmt, err := queryable.PrepareContext(ctx, query)
 	if err != nil {
-		return stmt, errors.Wrap(err, "Error when calling mysql PrepareContext")
+		return stmt, errors.Wrap(err, "Error when calling sql PrepareContext")
 	}
 	return stmt, err
 }
 
 func (ds SQL) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+	query = ds.DB.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
 	rows, err := queryable.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -265,18 +277,20 @@ func (ds SQL) QueryContext(ctx context.Context, query string, args ...interface{
 		case sql.ErrNoRows:
 			return rows, err
 		default:
-			return rows, errors.Wrap(err, "Error when calling mysql QueryContext")
+			return rows, errors.Wrap(err, "Error when calling sql QueryContext")
 		}
 	}
 	return rows, err
 }
 
 func (ds SQL) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
+	query = ds.DB.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
 	return queryable.QueryRowContext(ctx, query, args...)
 }
 
 func (ds SQL) SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
+	query = ds.DB.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
 	err := queryable.SelectContext(ctx, dest, query, args...)
 	if err != nil {
@@ -284,7 +298,7 @@ func (ds SQL) SelectContext(ctx context.Context, dest interface{}, query string,
 		case sql.ErrNoRows:
 			return err
 		default:
-			return errors.Wrap(err, "Error when calling mysql SelectContext")
+			return errors.Wrap(err, "Error when calling sql SelectContext")
 		}
 	}
 	return err
