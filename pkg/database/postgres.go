@@ -55,7 +55,7 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 	}
 
 	// map struct attributes to db column names
-	db.Mapper = reflectx.NewMapperFunc("pq", func(s string) string { return s })
+	db.Mapper = reflectx.NewMapperFunc("postgres", func(s string) string { return s })
 
 	ds.DB = db
 	log.Debug().Msgf("Connected to postgres database %s", ds.Config.Database)
