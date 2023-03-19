@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/jmoiron/sqlx/reflectx"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 
@@ -50,6 +51,9 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 	if ds.Config.MaxOpenConnections != 0 {
 		db.SetMaxOpenConns(ds.Config.MaxOpenConnections)
 	}
+
+	// map struct attributes to db column names
+	db.Mapper = reflectx.NewMapperFunc("mysql", func(s string) string { return s })
 
 	ds.DB = db
 	log.Debug().Msgf("Connected to mysql database %s", ds.Config.Database)

@@ -9,13 +9,13 @@ import (
 
 // Context model
 type Context struct {
-	Id        int64             `db:"id"`
-	WarrantId int64             `db:"warrantId"`
-	Name      string            `db:"name"`
-	Value     string            `db:"value"`
-	CreatedAt time.Time         `db:"createdAt"`
-	UpdatedAt time.Time         `db:"updatedAt"`
-	DeletedAt database.NullTime `db:"deletedAt"`
+	Id        int64             `mysql:"id"`
+	WarrantId int64             `mysql:"warrantId"`
+	Name      string            `mysql:"name"`
+	Value     string            `mysql:"value"`
+	CreatedAt time.Time         `mysql:"createdAt"`
+	UpdatedAt time.Time         `mysql:"updatedAt"`
+	DeletedAt database.NullTime `mysql:"deletedAt"`
 }
 
 func (context Context) IsValid() bool {

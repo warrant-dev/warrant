@@ -7,12 +7,12 @@ import (
 )
 
 type Object struct {
-	ID         int64             `db:"id"`
-	ObjectType string            `db:"objectType"`
-	ObjectId   string            `db:"objectId"`
-	CreatedAt  time.Time         `db:"createdAt"`
-	UpdatedAt  time.Time         `db:"updatedAt"`
-	DeletedAt  database.NullTime `db:"deletedAt"`
+	ID         int64             `mysql:"id"`
+	ObjectType string            `mysql:"objectType"`
+	ObjectId   string            `mysql:"objectId"`
+	CreatedAt  time.Time         `mysql:"createdAt"`
+	UpdatedAt  time.Time         `mysql:"updatedAt"`
+	DeletedAt  database.NullTime `mysql:"deletedAt"`
 }
 
 func (object Object) ToObjectSpec() *ObjectSpec {

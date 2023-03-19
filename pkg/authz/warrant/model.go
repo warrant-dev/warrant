@@ -9,19 +9,18 @@ import (
 
 // Warrant model
 type Warrant struct {
-	ID              int64               `db:"id"`
-	ObjectType      string              `db:"objectType"`
-	ObjectId        string              `db:"objectId"`
-	Relation        string              `db:"relation"`
-	Subject         string              `db:"subject"`
-	SubjectType     string              `db:"subjectType"`
-	SubjectId       string              `db:"subjectId"`
-	SubjectRelation database.NullString `db:"subjectRelation"`
-	ContextHash     string              `db:"contextHash"`
-	Context         []context.Context   `db:"context"`
-	CreatedAt       time.Time           `db:"createdAt"`
-	UpdatedAt       time.Time           `db:"updatedAt"`
-	DeletedAt       database.NullTime   `db:"deletedAt"`
+	ID              int64               `mysql:"id"`
+	ObjectType      string              `mysql:"objectType"`
+	ObjectId        string              `mysql:"objectId"`
+	Relation        string              `mysql:"relation"`
+	SubjectType     string              `mysql:"subjectType"`
+	SubjectId       string              `mysql:"subjectId"`
+	SubjectRelation database.NullString `mysql:"subjectRelation"`
+	ContextHash     string              `mysql:"contextHash"`
+	Context         []context.Context   `mysql:"context"`
+	CreatedAt       time.Time           `mysql:"createdAt"`
+	UpdatedAt       time.Time           `mysql:"updatedAt"`
+	DeletedAt       database.NullTime   `mysql:"deletedAt"`
 }
 
 func (warrant *Warrant) ToWarrantSpec() *WarrantSpec {
