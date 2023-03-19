@@ -36,7 +36,7 @@ func (repository MySQLRepository) CreateAll(ctx context.Context, contexts []Cont
 				:name,
 				:value
 			) ON DUPLICATE KEY UPDATE
-				createdAt = NOW(),
+				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
 		contexts,

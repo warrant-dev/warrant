@@ -34,7 +34,7 @@ func (repo MySQLRepository) Create(ctx context.Context, tenant Tenant) (int64, e
 			ON DUPLICATE KEY UPDATE
 				objectId = ?,
 				name = ?,
-				createdAt = NOW(),
+				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
 		tenant.TenantId,

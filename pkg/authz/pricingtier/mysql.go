@@ -37,7 +37,7 @@ func (repo MySQLRepository) Create(ctx context.Context, pricingTier PricingTier)
 				pricingTierId = ?,
 				name = ?,
 				description = ?,
-				createdAt = NOW(),
+				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
 		pricingTier.ObjectId,

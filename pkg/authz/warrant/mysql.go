@@ -37,7 +37,7 @@ func (repo MySQLRepository) Create(ctx context.Context, warrant Warrant) (int64,
 				contextHash
 			) VALUES (?, ?, ?, ?, ?, ?, ?)
 			ON DUPLICATE KEY UPDATE
-				createdAt = NOW(),
+				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
 		warrant.ObjectType,

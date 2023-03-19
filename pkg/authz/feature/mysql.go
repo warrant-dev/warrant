@@ -37,7 +37,7 @@ func (repo MySQLRepository) Create(ctx context.Context, feature Feature) (int64,
 				featureId = ?,
 				name = ?,
 				description = ?,
-				createdAt = NOW(),
+				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
 		feature.ObjectId,

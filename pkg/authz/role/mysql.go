@@ -37,7 +37,7 @@ func (repo MySQLRepository) Create(ctx context.Context, role Role) (int64, error
 				roleId = ?,
 				name = ?,
 				description = ?,
-				createdAt = NOW(),
+				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
 		role.ObjectId,

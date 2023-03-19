@@ -34,7 +34,7 @@ func (repo MySQLRepository) Create(ctx context.Context, user User) (int64, error
 			ON DUPLICATE KEY UPDATE
 				objectId = ?,
 				email = ?,
-				createdAt = NOW(),
+				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
 		user.UserId,

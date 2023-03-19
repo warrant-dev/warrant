@@ -32,7 +32,7 @@ func (repo MySQLRepository) Create(ctx context.Context, object Object) (int64, e
 				objectId
 			) VALUES (?, ?)
 			ON DUPLICATE KEY UPDATE
-				createdAt = NOW(),
+				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
 		object.ObjectType,
