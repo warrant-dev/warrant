@@ -67,7 +67,7 @@ Once you've setup and started your database, you can setup the database schema u
 Migrate to the latest schema:
 
 ```bash
-migrate -source github://warrant-dev/warrant/migrations/datastore/mysql -database mysql://<replace_with_username>@/warrant up
+migrate -source github://warrant-dev/warrant/migrations/datastore/mysql -database mysql://replace_with_username@/warrant up
 ```
 
 ### Download and Run the Binary
