@@ -1,0 +1,267 @@
+package authz
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"regexp"
+	"time"
+
+	"github.com/pkg/errors"
+	"github.com/warrant-dev/warrant/pkg/database"
+	"github.com/warrant-dev/warrant/pkg/middleware"
+	"github.com/warrant-dev/warrant/pkg/service"
+)
+
+type PostgresRepository struct {
+	database.SQLRepository
+}
+
+func NewPostgresRepository(db *database.Postgres) PostgresRepository {
+	return PostgresRepository{
+		database.NewSQLRepository(&db.SQL),
+	}
+}
+
+func (repo PostgresRepository) Create(ctx context.Context, permission Permission) (int64, error) {
+	var newPermissionId int64
+	err := repo.DB.GetContext(
+		ctx,
+		&newPermissionId,
+		`
+			INSERT INTO permission (
+				object_id,
+				permission_id,
+				name,
+				description
+			) VALUES (?, ?, ?, ?)
+			ON CONFLICT (permission_id) DO UPDATE SET
+				object_id = ?,
+				permission_id = ?,
+				name = ?,
+				description = ?,
+				created_at = CURRENT_TIMESTAMP(6),
+				deleted_at = NULL
+			RETURNING id
+		`,
+		permission.ObjectId,
+		permission.PermissionId,
+		permission.Name,
+		permission.Description,
+		permission.ObjectId,
+		permission.PermissionId,
+		permission.Name,
+		permission.Description,
+	)
+
+	if err != nil {
+		return 0, errors.Wrap(err, "Unable to create permission")
+	}
+
+	return newPermissionId, nil
+}
+
+func (repo PostgresRepository) GetById(ctx context.Context, id int64) (*Permission, error) {
+	var permission Permission
+	err := repo.DB.GetContext(
+		ctx,
+		&permission,
+		`
+			SELECT id, object_id, permission_id, name, description, created_at, updated_at, deleted_at
+			FROM permission
+			WHERE
+				id = ? AND
+				deleted_at IS NULL
+		`,
+		id,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, service.NewRecordNotFoundError("Permission", id)
+		default:
+			return nil, service.NewInternalError(fmt.Sprintf("Unable to get permission id %d from postgres", id))
+		}
+	}
+
+	return &permission, nil
+}
+
+func (repo PostgresRepository) GetByPermissionId(ctx context.Context, permissionId string) (*Permission, error) {
+	var permission Permission
+	err := repo.DB.GetContext(
+		ctx,
+		&permission,
+		`
+			SELECT id, object_id, permission_id, name, description, created_at, updated_at, deleted_at
+			FROM permission
+			WHERE
+				permission_id = ? AND
+				deleted_at IS NULL
+		`,
+		permissionId,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, service.NewRecordNotFoundError("Permission", permissionId)
+		default:
+			return nil, service.NewInternalError(fmt.Sprintf("Unable to get permission %s from postgres", permissionId))
+		}
+	}
+
+	return &permission, nil
+}
+
+func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Permission, error) {
+	permissions := make([]Permission, 0)
+	query := `
+		SELECT id, object_id, permission_id, name, description, created_at, updated_at, deleted_at
+		FROM permission
+		WHERE
+			deleted_at IS NULL
+	`
+	replacements := []interface{}{}
+
+	if listParams.Query != "" {
+		searchTermReplacement := fmt.Sprintf("%%%s%%", listParams.Query)
+		query = fmt.Sprintf("%s AND (permission_id LIKE ? OR name LIKE ?)", query)
+		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
+	}
+
+	sortBy := regexp.MustCompile("([A-Z])").ReplaceAllString(listParams.SortBy, `_$1`)
+	if listParams.AfterId != "" {
+		if listParams.AfterValue != nil {
+			if listParams.SortOrder == middleware.SortOrderAsc {
+				query = fmt.Sprintf("%s AND (%s > ? OR (permission_id > ? AND %s = ?))", query, sortBy, sortBy)
+				replacements = append(replacements,
+					listParams.AfterValue,
+					listParams.AfterId,
+					listParams.AfterValue,
+				)
+			} else {
+				query = fmt.Sprintf("%s AND (%s < ? OR (permission_id < ? AND %s = ?))", query, sortBy, sortBy)
+				replacements = append(replacements,
+					listParams.AfterValue,
+					listParams.AfterId,
+					listParams.AfterValue,
+				)
+			}
+		} else {
+			if listParams.SortOrder == middleware.SortOrderAsc {
+				query = fmt.Sprintf("%s AND permission_id > ?", query)
+				replacements = append(replacements, listParams.AfterId)
+			} else {
+				query = fmt.Sprintf("%s AND permission_id < ?", query)
+				replacements = append(replacements, listParams.AfterId)
+			}
+		}
+	}
+
+	if listParams.BeforeId != "" {
+		if listParams.BeforeValue != nil {
+			if listParams.SortOrder == middleware.SortOrderAsc {
+				query = fmt.Sprintf("%s AND (%s < ? OR (permission_id < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				replacements = append(replacements,
+					listParams.BeforeValue,
+					listParams.BeforeId,
+					listParams.BeforeValue,
+				)
+			} else {
+				query = fmt.Sprintf("%s AND (%s > ? OR (permission_id > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				replacements = append(replacements,
+					listParams.BeforeValue,
+					listParams.BeforeId,
+					listParams.BeforeValue,
+				)
+			}
+		} else {
+			if listParams.SortOrder == middleware.SortOrderAsc {
+				query = fmt.Sprintf("%s AND permission_id < ?", query)
+				replacements = append(replacements, listParams.AfterId)
+			} else {
+				query = fmt.Sprintf("%s AND permission_id > ?", query)
+				replacements = append(replacements, listParams.AfterId)
+			}
+		}
+	}
+
+	nullSortClause := "NULLS LAST"
+	if listParams.SortOrder == middleware.SortOrderAsc {
+		nullSortClause = "NULLS FIRST"
+	}
+
+	if listParams.SortBy != "permissionId" {
+		query = fmt.Sprintf("%s ORDER BY %s %s %s, permission_id %s LIMIT ?", query, sortBy, listParams.SortOrder, nullSortClause, listParams.SortOrder)
+		replacements = append(replacements, listParams.Limit)
+	} else {
+		query = fmt.Sprintf("%s ORDER BY permission_id %s %s LIMIT ?", query, listParams.SortOrder, nullSortClause)
+		replacements = append(replacements, listParams.Limit)
+	}
+
+	err := repo.DB.SelectContext(
+		ctx,
+		&permissions,
+		query,
+		replacements...,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return permissions, nil
+		default:
+			return permissions, service.NewInternalError("Unable to list permissions")
+		}
+	}
+
+	return permissions, nil
+}
+
+func (repo PostgresRepository) UpdateByPermissionId(ctx context.Context, permissionId string, permission Permission) error {
+	_, err := repo.DB.ExecContext(
+		ctx,
+		`
+			UPDATE permission
+			SET
+				name = ?,
+				description = ?
+			WHERE
+				permission_id = ? AND
+				deleted_at IS NULL
+		`,
+		permission.Name,
+		permission.Description,
+		permissionId,
+	)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("Error updating permission %s", permissionId))
+	}
+
+	return nil
+}
+
+func (repo PostgresRepository) DeleteByPermissionId(ctx context.Context, permissionId string) error {
+	_, err := repo.DB.ExecContext(
+		ctx,
+		`
+			UPDATE permission
+			SET
+				deleted_at = ?
+			WHERE
+				permission_id = ? AND
+				deleted_at IS NULL
+		`,
+		time.Now().UTC(),
+		permissionId,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return service.NewRecordNotFoundError("Permission", permissionId)
+		default:
+			return err
+		}
+	}
+
+	return nil
+}

@@ -125,7 +125,6 @@ func (spec *WarrantSpec) ToWarrant() *Warrant {
 		SubjectType:     spec.Subject.ObjectType,
 		SubjectId:       spec.Subject.ObjectId,
 		SubjectRelation: database.StringToNullString(&spec.Subject.Relation),
-		Subject:         spec.Subject.String(),
 	}
 
 	if len(spec.Context) > 0 {
