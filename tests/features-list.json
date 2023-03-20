@@ -246,67 +246,6 @@
             }
         },
         {
-            "name": "getFeaturesPage1Limit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/features?page=1&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "featureId": "feature-1",
-                        "name": "Feature B",
-                        "description": null
-                    },
-                    {
-                        "featureId": "feature-2",
-                        "name": "Feature A",
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getFeaturesPage2Limit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/features?page=2&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "featureId": "feature-3",
-                        "name": "",
-                        "description": null
-                    },
-                    {
-                        "featureId": "feature-4",
-                        "name": null,
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getFeaturesPage3Limit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/features?page=3&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "featureId": "feature-5",
-                        "name": "Feature C",
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
             "name": "getFeaturesSortByNameASCLimit2",
             "request": {
                 "method": "GET",

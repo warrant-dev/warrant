@@ -246,67 +246,6 @@
             }
         },
         {
-            "name": "getRolesPage1Limit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/roles?page=1&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "roleId": "role-1",
-                        "name": "Role B",
-                        "description": null
-                    },
-                    {
-                        "roleId": "role-2",
-                        "name": "Role A",
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getRolesPage2Limit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/roles?page=2&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "roleId": "role-3",
-                        "name": "",
-                        "description": null
-                    },
-                    {
-                        "roleId": "role-4",
-                        "name": null,
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getRolesPage3Limit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/roles?page=3&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "roleId": "role-5",
-                        "name": "Role C",
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
             "name": "getRolesSortByNameASCLimit2",
             "request": {
                 "method": "GET",

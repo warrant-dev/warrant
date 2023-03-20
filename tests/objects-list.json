@@ -158,62 +158,6 @@
             }
         },
         {
-            "name": "getObjectsPage1Limit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/objects?objectType=obj&page=1&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "objectType": "obj",
-                        "objectId": "obj-1"
-                    },
-                    {
-                        "objectType": "obj",
-                        "objectId": "obj-2"
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getObjectsPage2Limit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/objects?objectType=obj&page=2&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "objectType": "obj",
-                        "objectId": "obj-3"
-                    },
-                    {
-                        "objectType": "obj",
-                        "objectId": "obj-4"
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getObjectsPage3Limit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/objects?objectType=obj&page=3&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "objectType": "obj",
-                        "objectId": "obj-5"
-                    }
-                ]
-            }
-        },
-        {
             "name": "getObjectsSortByCreatedAtASCLimit2",
             "request": {
                 "method": "GET",

@@ -221,62 +221,6 @@
             }
         },
         {
-            "name": "getTenantsPage1Limit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/tenants?page=1&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "tenantId": "tenant-1",
-                        "name": "Tenant B"
-                    },
-                    {
-                        "tenantId": "tenant-2",
-                        "name": "Tenant A"
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getTenantsPage2Limit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/tenants?page=2&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "tenantId": "tenant-3",
-                        "name": ""
-                    },
-                    {
-                        "tenantId": "tenant-4",
-                        "name": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getTenantsPage3Limit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/tenants?page=3&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "tenantId": "tenant-5",
-                        "name": "Tenant C"
-                    }
-                ]
-            }
-        },
-        {
             "name": "getTenantsSortByNameASCLimit2",
             "request": {
                 "method": "GET",

@@ -35,7 +35,6 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 	var db *sqlx.DB
 	var err error
 
-	log.Debug().Msgf("postgres://%s:%s@%s/%s?sslmode=%s", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.Database, ds.Config.SSLMode)
 	db, err = sqlx.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=%s", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.Database, ds.Config.SSLMode))
 	if err != nil {
 		errors.Wrap(err, fmt.Sprintf("Unable to establish connection to postgres database %s. Shutting down server.", ds.Config.Database))

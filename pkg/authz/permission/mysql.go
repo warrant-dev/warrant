@@ -130,80 +130,68 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
 	}
 
-	if listParams.UseCursorPagination() {
-		if listParams.AfterId != "" {
-			if listParams.AfterValue != nil {
-				if listParams.SortOrder == middleware.SortOrderAsc {
-					query = fmt.Sprintf("%s AND (%s > ? OR (permissionId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
-					replacements = append(replacements,
-						listParams.AfterValue,
-						listParams.AfterId,
-						listParams.AfterValue,
-					)
-				} else {
-					query = fmt.Sprintf("%s AND (%s < ? OR (permissionId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
-					replacements = append(replacements,
-						listParams.AfterValue,
-						listParams.AfterId,
-						listParams.AfterValue,
-					)
-				}
+	if listParams.AfterId != "" {
+		if listParams.AfterValue != nil {
+			if listParams.SortOrder == middleware.SortOrderAsc {
+				query = fmt.Sprintf("%s AND (%s > ? OR (permissionId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				replacements = append(replacements,
+					listParams.AfterValue,
+					listParams.AfterId,
+					listParams.AfterValue,
+				)
 			} else {
-				if listParams.SortOrder == middleware.SortOrderAsc {
-					query = fmt.Sprintf("%s AND permissionId > ?", query)
-					replacements = append(replacements, listParams.AfterId)
-				} else {
-					query = fmt.Sprintf("%s AND permissionId < ?", query)
-					replacements = append(replacements, listParams.AfterId)
-				}
+				query = fmt.Sprintf("%s AND (%s < ? OR (permissionId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				replacements = append(replacements,
+					listParams.AfterValue,
+					listParams.AfterId,
+					listParams.AfterValue,
+				)
 			}
-		}
-
-		if listParams.BeforeId != "" {
-			if listParams.BeforeValue != nil {
-				if listParams.SortOrder == middleware.SortOrderAsc {
-					query = fmt.Sprintf("%s AND (%s < ? OR (permissionId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
-					replacements = append(replacements,
-						listParams.BeforeValue,
-						listParams.BeforeId,
-						listParams.BeforeValue,
-					)
-				} else {
-					query = fmt.Sprintf("%s AND (%s > ? OR (permissionId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
-					replacements = append(replacements,
-						listParams.BeforeValue,
-						listParams.BeforeId,
-						listParams.BeforeValue,
-					)
-				}
-			} else {
-				if listParams.SortOrder == middleware.SortOrderAsc {
-					query = fmt.Sprintf("%s AND permissionId < ?", query)
-					replacements = append(replacements, listParams.AfterId)
-				} else {
-					query = fmt.Sprintf("%s AND permissionId > ?", query)
-					replacements = append(replacements, listParams.AfterId)
-				}
-			}
-		}
-
-		if listParams.SortBy != "" && listParams.SortBy != "permissionId" {
-			query = fmt.Sprintf("%s ORDER BY %s %s, permissionId %s LIMIT ?", query, listParams.SortBy, listParams.SortOrder, listParams.SortOrder)
-			replacements = append(replacements, listParams.Limit)
 		} else {
-			query = fmt.Sprintf("%s ORDER BY permissionId %s LIMIT ?", query, listParams.SortOrder)
-			replacements = append(replacements, listParams.Limit)
+			if listParams.SortOrder == middleware.SortOrderAsc {
+				query = fmt.Sprintf("%s AND permissionId > ?", query)
+				replacements = append(replacements, listParams.AfterId)
+			} else {
+				query = fmt.Sprintf("%s AND permissionId < ?", query)
+				replacements = append(replacements, listParams.AfterId)
+			}
 		}
+	}
+
+	if listParams.BeforeId != "" {
+		if listParams.BeforeValue != nil {
+			if listParams.SortOrder == middleware.SortOrderAsc {
+				query = fmt.Sprintf("%s AND (%s < ? OR (permissionId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				replacements = append(replacements,
+					listParams.BeforeValue,
+					listParams.BeforeId,
+					listParams.BeforeValue,
+				)
+			} else {
+				query = fmt.Sprintf("%s AND (%s > ? OR (permissionId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				replacements = append(replacements,
+					listParams.BeforeValue,
+					listParams.BeforeId,
+					listParams.BeforeValue,
+				)
+			}
+		} else {
+			if listParams.SortOrder == middleware.SortOrderAsc {
+				query = fmt.Sprintf("%s AND permissionId < ?", query)
+				replacements = append(replacements, listParams.AfterId)
+			} else {
+				query = fmt.Sprintf("%s AND permissionId > ?", query)
+				replacements = append(replacements, listParams.AfterId)
+			}
+		}
+	}
+
+	if listParams.SortBy != "permissionId" {
+		query = fmt.Sprintf("%s ORDER BY %s %s, permissionId %s LIMIT ?", query, listParams.SortBy, listParams.SortOrder, listParams.SortOrder)
+		replacements = append(replacements, listParams.Limit)
 	} else {
-		offset := (listParams.Page - 1) * listParams.Limit
-
-		if listParams.SortBy != "" && listParams.SortBy != "permissionId" {
-			query = fmt.Sprintf("%s ORDER BY %s %s, permissionId %s LIMIT ?, ?", query, listParams.SortBy, listParams.SortOrder, listParams.SortOrder)
-			replacements = append(replacements, offset, listParams.Limit)
-		} else {
-			query = fmt.Sprintf("%s ORDER BY permissionId %s LIMIT ?, ?", query, listParams.SortOrder)
-			replacements = append(replacements, offset, listParams.Limit)
-		}
+		query = fmt.Sprintf("%s ORDER BY permissionId %s LIMIT ?", query, listParams.SortOrder)
+		replacements = append(replacements, listParams.Limit)
 	}
 
 	err := repo.DB.SelectContext(
