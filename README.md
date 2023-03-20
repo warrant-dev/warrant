@@ -64,7 +64,7 @@ To self-host or run Warrant locally, follow one of the guides below (select the 
 
 - [MySQL](/migrations/datastore/mysql/README.md)
 - [Postgres](/migrations/datastore/postgres/README.md)
-- SQLite (coming soon) - Upvote [the issue](#14)
+- SQLite (coming soon) - Upvote [the issue](https://github.com/warrant-dev/warrant/issues/14)
 - To request support for another database, please [open an issue](https://github.com/warrant-dev/warrant/issues/new/choose)!
 
 ## SDKs
