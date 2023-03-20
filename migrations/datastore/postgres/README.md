@@ -12,7 +12,6 @@ services:
   datastore:
     image: postgres:14.7
     environment:
-      POSTGRES_USER: replace_with_username
       POSTGRES_PASSWORD: replace_with_password
       POSTGRES_DB: warrant
     ports:
@@ -29,7 +28,7 @@ services:
         "-source",
         "github://warrant-dev/warrant/migrations/datastore/postgres",
         "-database",
-        "postgres://replace_with_username:replace_with_password@tcp(datastore:5432)/warrant?sslmode=disable",
+        "postgres://postgres:replace_with_password@datastore/warrant?sslmode=disable",
         "up",
       ]
     depends_on:
@@ -41,7 +40,7 @@ services:
     ports:
       - 8000:8000
     depends_on:
-      migrate:
+      migrate-datastore:
         condition: service_completed_successfully
     environment:
       WARRANT_PORT: 8000
@@ -49,9 +48,10 @@ services:
       WARRANT_ENABLEACCESSLOG: "true"
       WARRANT_DATASTORE: postgres
       WARRANT_DATASTORE_POSTGRES_USERNAME: postgres
-      WARRANT_DATASTORE_POSTGRES_PASSWORD:
+      WARRANT_DATASTORE_POSTGRES_PASSWORD: replace_with_password
       WARRANT_DATASTORE_POSTGRES_HOSTNAME: datastore
       WARRANT_DATASTORE_POSTGRES_DATABASE: warrant
+      WARRANT_DATASTORE_POSTGRES_SSLMODE: disable
 ```
 
 ## Running the Binary
@@ -67,7 +67,7 @@ Once you've setup and started your database, you can setup the database schema u
 Migrate to the latest schema:
 
 ```bash
-migrate -source github://warrant-dev/warrant/migrations/datastore/postgres -database postgres://replace_with_username:replace_with_password@/warrant?sslmode=disable up
+migrate -source github://warrant-dev/warrant/migrations/datastore/postgres -database postgres://postgres:replace_with_password@/warrant?sslmode=disable up
 ```
 
 ### Download and Run the Binary
