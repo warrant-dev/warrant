@@ -7,14 +7,14 @@ import (
 )
 
 type Role struct {
-	ID          int64               `db:"id"`
-	ObjectId    int64               `db:"objectId"`
-	RoleId      string              `db:"roleId"`
-	Name        database.NullString `db:"name"`
-	Description database.NullString `db:"description"`
-	CreatedAt   time.Time           `db:"createdAt"`
-	UpdatedAt   time.Time           `db:"updatedAt"`
-	DeletedAt   database.NullTime   `db:"deletedAt"`
+	ID          int64               `mysql:"id" postgres:"id"`
+	ObjectId    int64               `mysql:"objectId" postgres:"object_id"`
+	RoleId      string              `mysql:"roleId" postgres:"role_id"`
+	Name        database.NullString `mysql:"name" postgres:"name"`
+	Description database.NullString `mysql:"description" postgres:"description"`
+	CreatedAt   time.Time           `mysql:"createdAt" postgres:"created_at"`
+	UpdatedAt   time.Time           `mysql:"updatedAt" postgres:"updated_at"`
+	DeletedAt   database.NullTime   `mysql:"deletedAt" postgres:"deleted_at"`
 }
 
 func (role Role) ToRoleSpec() *RoleSpec {

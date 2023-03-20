@@ -32,6 +32,13 @@ func NewRepository(db database.Database) (WarrantRepository, error) {
 		}
 
 		return NewMySQLRepository(mysql), nil
+	case database.TypePostgres:
+		postgres, ok := db.(*database.Postgres)
+		if !ok {
+			return nil, fmt.Errorf("invalid %s database config", database.TypePostgres)
+		}
+
+		return NewPostgresRepository(postgres), nil
 	default:
 		return nil, fmt.Errorf("unsupported database type %s specified", db.Type())
 	}

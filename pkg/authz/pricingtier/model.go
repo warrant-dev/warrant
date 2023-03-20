@@ -7,14 +7,14 @@ import (
 )
 
 type PricingTier struct {
-	ID            int64               `db:"id"`
-	ObjectId      int64               `db:"objectId"`
-	PricingTierId string              `db:"pricingTierId"`
-	Name          database.NullString `db:"name"`
-	Description   database.NullString `db:"description"`
-	CreatedAt     time.Time           `db:"createdAt"`
-	UpdatedAt     time.Time           `db:"updatedAt"`
-	DeletedAt     database.NullTime   `db:"deletedAt"`
+	ID            int64               `mysql:"id" postgres:"id"`
+	ObjectId      int64               `mysql:"objectId" postgres:"object_id"`
+	PricingTierId string              `mysql:"pricingTierId" postgres:"pricing_tier_id"`
+	Name          database.NullString `mysql:"name" postgres:"name"`
+	Description   database.NullString `mysql:"description" postgres:"description"`
+	CreatedAt     time.Time           `mysql:"createdAt" postgres:"created_at"`
+	UpdatedAt     time.Time           `mysql:"updatedAt" postgres:"updated_at"`
+	DeletedAt     database.NullTime   `mysql:"deletedAt" postgres:"deleted_at"`
 }
 
 func (pricingTier PricingTier) ToPricingTierSpec() *PricingTierSpec {

@@ -13,31 +13,31 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-type MySQLRepository struct {
+type PostgresRepository struct {
 	database.SQLRepository
 }
 
-func NewMySQLRepository(db *database.MySQL) MySQLRepository {
-	return MySQLRepository{
+func NewPostgresRepository(db *database.Postgres) PostgresRepository {
+	return PostgresRepository{
 		database.NewSQLRepository(&db.SQL),
 	}
 }
 
-func (repository MySQLRepository) CreateAll(ctx context.Context, contexts []Context) ([]Context, error) {
+func (repository PostgresRepository) CreateAll(ctx context.Context, contexts []Context) ([]Context, error) {
 	_, err := repository.DB.NamedExecContext(
 		ctx,
 		`
 			INSERT INTO context (
-				warrantId,
+				warrant_id,
 				name,
 				value
 			) VALUES (
-				:warrantId,
+				:warrant_id,
 				:name,
 				:value
-			) ON DUPLICATE KEY UPDATE
-				createdAt = CURRENT_TIMESTAMP(6),
-				deletedAt = NULL
+			) ON CONFLICT (warrant_id, name) DO UPDATE SET
+				created_at = CURRENT_TIMESTAMP(6),
+				deleted_at = NULL
 		`,
 		contexts,
 	)
@@ -48,7 +48,7 @@ func (repository MySQLRepository) CreateAll(ctx context.Context, contexts []Cont
 	return repository.ListByWarrantId(ctx, []int64{contexts[0].WarrantId})
 }
 
-func (repository MySQLRepository) ListByWarrantId(ctx context.Context, warrantIds []int64) ([]Context, error) {
+func (repository PostgresRepository) ListByWarrantId(ctx context.Context, warrantIds []int64) ([]Context, error) {
 	contexts := make([]Context, 0)
 	if len(warrantIds) == 0 {
 		return contexts, nil
@@ -64,11 +64,11 @@ func (repository MySQLRepository) ListByWarrantId(ctx context.Context, warrantId
 		&contexts,
 		fmt.Sprintf(
 			`
-				SELECT id, warrantId, name, value, createdAt, updatedAt, deletedAt
+				SELECT id, warrant_id, name, value, created_at, updated_at, deleted_at
 				FROM context
 				WHERE
-					warrantId IN (%s) AND
-					deletedAt IS NULL
+					warrant_id IN (%s) AND
+					deleted_at IS NULL
 			`,
 			strings.Join(warrantIdStrings, ", "),
 		),
@@ -78,23 +78,23 @@ func (repository MySQLRepository) ListByWarrantId(ctx context.Context, warrantId
 		case sql.ErrNoRows:
 			return contexts, nil
 		default:
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to list contexts for warrant ids %s from mysql", strings.Join(warrantIdStrings, ", ")))
+			return nil, errors.Wrap(err, fmt.Sprintf("Unable to list contexts for warrant ids %s from postgres", strings.Join(warrantIdStrings, ", ")))
 		}
 	}
 
 	return contexts, nil
 }
 
-func (repository MySQLRepository) DeleteAllByWarrantId(ctx context.Context, warrantId int64) error {
+func (repository PostgresRepository) DeleteAllByWarrantId(ctx context.Context, warrantId int64) error {
 	_, err := repository.DB.ExecContext(
 		ctx,
 		`
 			UPDATE context
 			SET
-				deletedAt = ?
+				deleted_at = ?
 			WHERE
-				warrantId = ? AND
-				deletedAt IS NULL
+				warrant_id = ? AND
+				deleted_at IS NULL
 		`,
 		time.Now().UTC(),
 		warrantId,

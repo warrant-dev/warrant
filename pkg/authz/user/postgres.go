@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/pkg/errors"
@@ -12,30 +13,33 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-type MySQLRepository struct {
+type PostgresRepository struct {
 	database.SQLRepository
 }
 
-func NewMySQLRepository(db *database.MySQL) MySQLRepository {
-	return MySQLRepository{
+func NewPostgresRepository(db *database.Postgres) PostgresRepository {
+	return PostgresRepository{
 		database.NewSQLRepository(&db.SQL),
 	}
 }
 
-func (repo MySQLRepository) Create(ctx context.Context, user User) (int64, error) {
-	result, err := repo.DB.ExecContext(
+func (repo PostgresRepository) Create(ctx context.Context, user User) (int64, error) {
+	var newUserId int64
+	err := repo.DB.GetContext(
 		ctx,
+		&newUserId,
 		`
-			INSERT INTO user (
-				userId,
-				objectId,
+			INSERT INTO "user" (
+				user_id,
+				object_id,
 				email
 			) VALUES (?, ?, ?)
-			ON DUPLICATE KEY UPDATE
-				objectId = ?,
+			ON CONFLICT (user_id) DO UPDATE SET
+				object_id = ?,
 				email = ?,
-				createdAt = CURRENT_TIMESTAMP(6),
-				deletedAt = NULL
+				created_at = CURRENT_TIMESTAMP(6),
+				deleted_at = NULL
+			RETURNING id
 		`,
 		user.UserId,
 		user.ObjectId,
@@ -47,25 +51,20 @@ func (repo MySQLRepository) Create(ctx context.Context, user User) (int64, error
 		return 0, errors.Wrap(err, "Unable to create user")
 	}
 
-	newUserId, err := result.LastInsertId()
-	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create user")
-	}
-
 	return newUserId, nil
 }
 
-func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*User, error) {
+func (repo PostgresRepository) GetById(ctx context.Context, id int64) (*User, error) {
 	var user User
 	err := repo.DB.GetContext(
 		ctx,
 		&user,
 		`
-			SELECT id, objectId, userId, email, createdAt, updatedAt, deletedAt
-			FROM user
+			SELECT id, object_id, user_id, email, created_at, updated_at, deleted_at
+			FROM "user"
 			WHERE
 				id = ? AND
-				deletedAt IS NULL
+				deleted_at IS NULL
 		`,
 		id,
 	)
@@ -81,17 +80,17 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*User, error
 	return &user, nil
 }
 
-func (repo MySQLRepository) GetByUserId(ctx context.Context, userId string) (*User, error) {
+func (repo PostgresRepository) GetByUserId(ctx context.Context, userId string) (*User, error) {
 	var user User
 	err := repo.DB.GetContext(
 		ctx,
 		&user,
 		`
-			SELECT id, objectId, userId, email, createdAt, updatedAt, deletedAt
-			FROM user
+			SELECT id, object_id, user_id, email, created_at, updated_at, deleted_at
+			FROM "user"
 			WHERE
-				userId = ? AND
-				deletedAt IS NULL
+				user_id = ? AND
+				deleted_at IS NULL
 		`,
 		userId,
 	)
@@ -107,33 +106,34 @@ func (repo MySQLRepository) GetByUserId(ctx context.Context, userId string) (*Us
 	return &user, nil
 }
 
-func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]User, error) {
+func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]User, error) {
 	users := make([]User, 0)
 	query := `
-		SELECT id, objectId, userId, email, createdAt, updatedAt, deletedAt
-		FROM user
+		SELECT id, object_id, user_id, email, created_at, updated_at, deleted_at
+		FROM "user"
 		WHERE
-			deletedAt IS NULL
+			deleted_at IS NULL
 	`
 	replacements := []interface{}{}
 
 	if listParams.Query != "" {
 		searchTermReplacement := fmt.Sprintf("%%%s%%", listParams.Query)
-		query = fmt.Sprintf("%s AND (userId LIKE ? OR email LIKE ?)", query)
+		query = fmt.Sprintf("%s AND (user_id LIKE ? OR email LIKE ?)", query)
 		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
 	}
 
+	sortBy := regexp.MustCompile("([A-Z])").ReplaceAllString(listParams.SortBy, `_$1`)
 	if listParams.AfterId != "" {
 		if listParams.AfterValue != nil {
 			if listParams.SortOrder == middleware.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s > ? OR (userId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s > ? OR (user_id > ? AND %s = ?))", query, sortBy, sortBy)
 				replacements = append(replacements,
 					listParams.AfterValue,
 					listParams.AfterId,
 					listParams.AfterValue,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s < ? OR (userId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s < ? OR (user_id < ? AND %s = ?))", query, sortBy, sortBy)
 				replacements = append(replacements,
 					listParams.AfterValue,
 					listParams.AfterId,
@@ -142,10 +142,10 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 			}
 		} else {
 			if listParams.SortOrder == middleware.SortOrderAsc {
-				query = fmt.Sprintf("%s AND userId > ?", query)
+				query = fmt.Sprintf("%s AND user_id > ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			} else {
-				query = fmt.Sprintf("%s AND userId < ?", query)
+				query = fmt.Sprintf("%s AND user_id < ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			}
 		}
@@ -154,14 +154,14 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 	if listParams.BeforeId != "" {
 		if listParams.BeforeValue != nil {
 			if listParams.SortOrder == middleware.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s < ? OR (userId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s < ? OR (user_id < ? AND %s = ?))", query, sortBy, sortBy)
 				replacements = append(replacements,
 					listParams.BeforeValue,
 					listParams.BeforeId,
 					listParams.BeforeValue,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s > ? OR (userId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s > ? OR (user_id > ? AND %s = ?))", query, sortBy, sortBy)
 				replacements = append(replacements,
 					listParams.BeforeValue,
 					listParams.BeforeId,
@@ -170,20 +170,25 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 			}
 		} else {
 			if listParams.SortOrder == middleware.SortOrderAsc {
-				query = fmt.Sprintf("%s AND userId < ?", query)
+				query = fmt.Sprintf("%s AND user_id < ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			} else {
-				query = fmt.Sprintf("%s AND userId > ?", query)
+				query = fmt.Sprintf("%s AND user_id > ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			}
 		}
 	}
 
+	nullSortClause := "NULLS LAST"
+	if listParams.SortOrder == middleware.SortOrderAsc {
+		nullSortClause = "NULLS FIRST"
+	}
+
 	if listParams.SortBy != "userId" {
-		query = fmt.Sprintf("%s ORDER BY %s %s, userId %s LIMIT ?", query, listParams.SortBy, listParams.SortOrder, listParams.SortOrder)
+		query = fmt.Sprintf("%s ORDER BY %s %s %s, user_id %s LIMIT ?", query, sortBy, listParams.SortOrder, nullSortClause, listParams.SortOrder)
 		replacements = append(replacements, listParams.Limit)
 	} else {
-		query = fmt.Sprintf("%s ORDER BY userId %s LIMIT ?", query, listParams.SortOrder)
+		query = fmt.Sprintf("%s ORDER BY user_id %s %s LIMIT ?", query, listParams.SortOrder, nullSortClause)
 		replacements = append(replacements, listParams.Limit)
 	}
 
@@ -205,16 +210,16 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 	return users, nil
 }
 
-func (repo MySQLRepository) UpdateByUserId(ctx context.Context, userId string, user User) error {
+func (repo PostgresRepository) UpdateByUserId(ctx context.Context, userId string, user User) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
-			UPDATE user
+			UPDATE "user"
 			SET
 				email = ?
 			WHERE
-				userId = ? AND
-				deletedAt IS NULL
+				user_id = ? AND
+				deleted_at IS NULL
 		`,
 		user.Email,
 		user.UserId,
@@ -226,15 +231,15 @@ func (repo MySQLRepository) UpdateByUserId(ctx context.Context, userId string, u
 	return nil
 }
 
-func (repo MySQLRepository) DeleteByUserId(ctx context.Context, userId string) error {
+func (repo PostgresRepository) DeleteByUserId(ctx context.Context, userId string) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
-			UPDATE user
-			SET deletedAt = ?
+			UPDATE "user"
+			SET deleted_at = ?
 			WHERE
-				userId = ? AND
-				deletedAt IS NULL
+				user_id = ? AND
+				deleted_at IS NULL
 		`,
 		time.Now().UTC(),
 		userId,

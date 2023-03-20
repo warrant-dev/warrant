@@ -19,10 +19,17 @@ func NewRepository(db database.Database) (ContextRepository, error) {
 	case database.TypeMySQL:
 		mysql, ok := db.(*database.MySQL)
 		if !ok {
-			return nil, service.NewInternalError("Invalid database provided")
+			return nil, fmt.Errorf("invalid %s database config", database.TypeMySQL)
 		}
 
 		return NewMySQLRepository(mysql), nil
+	case database.TypePostgres:
+		postgres, ok := db.(*database.Postgres)
+		if !ok {
+			return nil, fmt.Errorf("invalid %s database config", database.TypePostgres)
+		}
+
+		return NewPostgresRepository(postgres), nil
 	default:
 		return nil, service.NewInternalError(fmt.Sprintf("Invalid database type %s specified", db.Type()))
 	}

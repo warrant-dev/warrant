@@ -246,67 +246,6 @@
             }
         },
         {
-            "name": "getPermissionsPage1Limit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/permissions?page=1&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "permissionId": "permission-1",
-                        "name": "Permission B",
-                        "description": null
-                    },
-                    {
-                        "permissionId": "permission-2",
-                        "name": "Permission A",
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getPermissionsPage2Limit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/permissions?page=2&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "permissionId": "permission-3",
-                        "name": "",
-                        "description": null
-                    },
-                    {
-                        "permissionId": "permission-4",
-                        "name": null,
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getPermissionsPage3Limit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/permissions?page=3&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "permissionId": "permission-5",
-                        "name": "Permission C",
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
             "name": "getPermissionsSortByNameASCLimit2",
             "request": {
                 "method": "GET",

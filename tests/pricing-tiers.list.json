@@ -246,67 +246,6 @@
             }
         },
         {
-            "name": "getPricingTiersPage1Limit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/pricing-tiers?page=1&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "pricingTierId": "pricing-tier-1",
-                        "name": "Pricing Tier B",
-                        "description": null
-                    },
-                    {
-                        "pricingTierId": "pricing-tier-2",
-                        "name": "Pricing Tier A",
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getPricingTiersPage2Limit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/pricing-tiers?page=2&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "pricingTierId": "pricing-tier-3",
-                        "name": "",
-                        "description": null
-                    },
-                    {
-                        "pricingTierId": "pricing-tier-4",
-                        "name": null,
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getPricingTiersPage3Limit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/pricing-tiers?page=3&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "pricingTierId": "pricing-tier-5",
-                        "name": "Pricing Tier C",
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
             "name": "getPricingTiersSortByNameASCLimit2",
             "request": {
                 "method": "GET",

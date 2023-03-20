@@ -3,8 +3,8 @@ package database
 import "context"
 
 const (
-	TypeMySQL = "mysql"
-	// TypePgSQL  = "postgres"
+	TypeMySQL    = "mysql"
+	TypePostgres = "postgres"
 	// TypeSQLite = "sqlite"
 )
 

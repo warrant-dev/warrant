@@ -4,41 +4,45 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"regexp"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
+	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-type MySQLRepository struct {
+type PostgresRepository struct {
 	database.SQLRepository
 }
 
-func NewMySQLRepository(db *database.MySQL) MySQLRepository {
-	return MySQLRepository{
+func NewPostgresRepository(db *database.Postgres) PostgresRepository {
+	return PostgresRepository{
 		database.NewSQLRepository(&db.SQL),
 	}
 }
 
-func (repo MySQLRepository) Create(ctx context.Context, warrant Warrant) (int64, error) {
-	result, err := repo.DB.ExecContext(
+func (repo PostgresRepository) Create(ctx context.Context, warrant Warrant) (int64, error) {
+	var newWarrantId int64
+	err := repo.DB.GetContext(
 		ctx,
+		&newWarrantId,
 		`
 			INSERT INTO warrant (
-				objectType,
-				objectId,
+				object_type,
+				object_id,
 				relation,
-				subjectType,
-				subjectId,
-				subjectRelation,
-				contextHash
+				subject_type,
+				subject_id,
+				subject_relation,
+				context_hash
 			) VALUES (?, ?, ?, ?, ?, ?, ?)
-			ON DUPLICATE KEY UPDATE
-				createdAt = CURRENT_TIMESTAMP(6),
-				deletedAt = NULL
+			ON CONFLICT (object_type, object_id, relation, subject_type, subject_id, subject_relation, context_hash) DO UPDATE SET
+				created_at = CURRENT_TIMESTAMP(6),
+				deleted_at = NULL
+			RETURNING id
 		`,
 		warrant.ObjectType,
 		warrant.ObjectId,
@@ -49,31 +53,26 @@ func (repo MySQLRepository) Create(ctx context.Context, warrant Warrant) (int64,
 		warrant.ContextHash,
 	)
 	if err != nil {
-		mysqlErr, ok := err.(*mysql.MySQLError)
-		if ok && mysqlErr.Number == 1062 {
+		postgresErr, ok := err.(*pq.Error)
+		if ok && postgresErr.Code.Name() == "duplicate_object" {
 			return 0, service.NewDuplicateRecordError("Warrant", warrant, "Warrant for the given objectType, objectId, relation, and subject already exists")
 		}
 
 		return 0, errors.Wrap(err, "Unable to create warrant")
 	}
 
-	newWarrantId, err := result.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
-
 	return newWarrantId, nil
 }
 
-func (repo MySQLRepository) DeleteById(ctx context.Context, id int64) error {
+func (repo PostgresRepository) DeleteById(ctx context.Context, id int64) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE warrant
-			SET deletedAt = ?
+			SET deleted_at = ?
 			WHERE
 				id = ? AND
-				deletedAt IS NULL
+				deleted_at IS NULL
 		`,
 		time.Now().UTC(),
 		id,
@@ -90,17 +89,17 @@ func (repo MySQLRepository) DeleteById(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (repo MySQLRepository) DeleteAllByObject(ctx context.Context, objectType string, objectId string) error {
+func (repo PostgresRepository) DeleteAllByObject(ctx context.Context, objectType string, objectId string) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE warrant
 			SET
-				deletedAt = ?
+				deleted_at = ?
 			WHERE
-				objectType = ? AND
-				objectId = ? AND
-				deletedAt IS NULL
+				object_type = ? AND
+				object_id = ? AND
+				deleted_at IS NULL
 		`,
 		time.Now().UTC(),
 		objectType,
@@ -118,17 +117,17 @@ func (repo MySQLRepository) DeleteAllByObject(ctx context.Context, objectType st
 	return nil
 }
 
-func (repo MySQLRepository) DeleteAllBySubject(ctx context.Context, subjectType string, subjectId string) error {
+func (repo PostgresRepository) DeleteAllBySubject(ctx context.Context, subjectType string, subjectId string) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE warrant
 			SET
-				deletedAt = ?
+				deleted_at = ?
 			WHERE
-				subjectType = ? AND
-				subjectId = ? AND
-				deletedAt IS NULL
+				subject_type = ? AND
+				subject_id = ? AND
+				deleted_at IS NULL
 		`,
 		time.Now().UTC(),
 		subjectType,
@@ -146,23 +145,23 @@ func (repo MySQLRepository) DeleteAllBySubject(ctx context.Context, subjectType 
 	return nil
 }
 
-func (repo MySQLRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (*Warrant, error) {
+func (repo PostgresRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (*Warrant, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
 		&warrant,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, created_at, updated_at, deleted_at
 			FROM warrant
 			WHERE
-				objectType = ? AND
-				objectId = ? AND
+				object_type = ? AND
+				object_id = ? AND
 				relation = ? AND
-				subjectType = ? AND
-				subjectId = ? AND
-				subjectRelation = ? AND
-				contextHash = ? AND
-				deletedAt IS NULL
+				subject_type = ? AND
+				subject_id = ? AND
+				subject_relation = ? AND
+				context_hash = ? AND
+				deleted_at IS NULL
 		`,
 		objectType,
 		objectId,
@@ -184,23 +183,23 @@ func (repo MySQLRepository) Get(ctx context.Context, objectType string, objectId
 	return &warrant, nil
 }
 
-func (repo MySQLRepository) GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (*Warrant, error) {
+func (repo PostgresRepository) GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (*Warrant, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
 		&warrant,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, created_at, updated_at, deleted_at
 			FROM warrant
 			WHERE
-				objectType = ? AND
-				(objectId = ? OR objectId = "*") AND
+				object_type = ? AND
+				(object_id = ? OR object_id = '*') AND
 				relation = ? AND
-				subjectType = ? AND
-				subjectId = ? AND
-				subjectRelation = ? AND
-				(contextHash = ? OR contextHash = "") AND
-				deletedAt IS NULL
+				subject_type = ? AND
+				subject_id = ? AND
+				subject_relation = ? AND
+				(context_hash = ? OR context_hash = '') AND
+				deleted_at IS NULL
 		`,
 		objectType,
 		objectId,
@@ -222,17 +221,17 @@ func (repo MySQLRepository) GetWithContextMatch(ctx context.Context, objectType 
 	return &warrant, nil
 }
 
-func (repo MySQLRepository) GetByID(ctx context.Context, id int64) (*Warrant, error) {
+func (repo PostgresRepository) GetByID(ctx context.Context, id int64) (*Warrant, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
 		&warrant,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, created_at, updated_at, deleted_at
 			FROM warrant
 			WHERE
 				id = ? AND
-				deletedAt IS NULL
+				deleted_at IS NULL
 		`,
 		id,
 	)
@@ -248,45 +247,46 @@ func (repo MySQLRepository) GetByID(ctx context.Context, id int64) (*Warrant, er
 	return &warrant, nil
 }
 
-func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]Warrant, error) {
+func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]Warrant, error) {
 	offset := (listParams.Page - 1) * listParams.Limit
 	warrants := make([]Warrant, 0)
 	query := `
-		SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
+		SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, created_at, updated_at, deleted_at
 		FROM warrant
 		WHERE
-			deletedAt IS NULL
+			deleted_at IS NULL
 	`
 	replacements := []interface{}{}
 
 	if filterOptions.ObjectType != "" {
-		query = fmt.Sprintf("%s AND objectType = ?", query)
+		query = fmt.Sprintf(`%s AND object_type = ?`, query)
 		replacements = append(replacements, filterOptions.ObjectType)
 	}
 
 	if filterOptions.ObjectId != "" {
-		query = fmt.Sprintf("%s AND objectId = ?", query)
+		query = fmt.Sprintf(`%s AND object_id = ?`, query)
 		replacements = append(replacements, filterOptions.ObjectId)
 	}
 
 	if filterOptions.Relation != "" {
-		query = fmt.Sprintf("%s AND relation = ?", query)
+		query = fmt.Sprintf(`%s AND relation = ?`, query)
 		replacements = append(replacements, filterOptions.Relation)
 	}
 
 	if filterOptions.Subject != nil {
-		query = fmt.Sprintf("%s AND subjectType = ? AND subjectId = ? AND subjectRelation = ?", query)
+		query = fmt.Sprintf(`%s AND subject_type = ? AND subject_id = ? AND subject_relation = ?`, query)
 		replacements = append(replacements, filterOptions.Subject.ObjectType, filterOptions.Subject.ObjectId, filterOptions.Subject.Relation)
 	}
 
 	if listParams.SortBy != "" {
-		query = fmt.Sprintf("%s ORDER BY %s %s", query, listParams.SortBy, listParams.SortOrder)
+		sortBy := regexp.MustCompile("([A-Z])").ReplaceAllString(listParams.SortBy, `_$1`)
+		query = fmt.Sprintf(`%s ORDER BY %s %s`, query, sortBy, listParams.SortOrder)
 	} else {
-		query = fmt.Sprintf("%s ORDER BY createdAt DESC, id DESC", query)
+		query = fmt.Sprintf(`%s ORDER BY created_at DESC, id DESC`, query)
 	}
 
-	query = fmt.Sprintf("%s LIMIT ?, ?", query)
-	replacements = append(replacements, offset, listParams.Limit)
+	query = fmt.Sprintf(`%s LIMIT ? OFFSET ?`, query)
+	replacements = append(replacements, listParams.Limit, offset)
 	err := repo.DB.SelectContext(
 		ctx,
 		&warrants,
@@ -305,7 +305,7 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 	return warrants, nil
 }
 
-func (repo MySQLRepository) GetAllMatchingWildcard(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Warrant, error) {
+func (repo PostgresRepository) GetAllMatchingWildcard(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Warrant, error) {
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
@@ -313,30 +313,30 @@ func (repo MySQLRepository) GetAllMatchingWildcard(ctx context.Context, objectTy
 		`
 			SELECT
 				w2.id,
-				w2.objectType,
-				w2.objectId,
+				w2.object_type,
+				w2.object_id,
 				w2.relation,
-				w1.subjectType,
-				w1.subjectId,
-				w1.subjectRelation,
-				w2.contextHash,
-				w2.createdAt,
-				w2.updatedAt
+				w1.subject_type,
+				w1.subject_id,
+				w1.subject_relation,
+				w2.context_hash,
+				w2.created_at,
+				w2.updated_at
 			FROM warrant AS w1
 			JOIN warrant AS w2 ON
 				w1.id != w2.id AND
-				w1.objectType = w2.objectType AND
+				w1.object_type = w2.object_type AND
 				w1.relation = w2.relation AND
-				w1.contextHash = w2.contextHash
+				w1.context_hash = w2.context_hash
 			WHERE
-				w1.objectType = ? AND
-				w1.objectId = "*" AND
-				w2.objectId = ? AND
+				w1.object_type = ? AND
+				w1.object_id = '*' AND
+				w2.object_id = ? AND
 				w1.relation = ? AND
-				(w1.contextHash = ? OR w1.contextHash = "") AND
-				w1.deletedAt IS NULL AND
-				w2.deletedAt IS NULL
-			ORDER BY w2.createdAt DESC, w2.id DESC
+				(w1.context_hash = ? OR w1.context_hash = '') AND
+				w1.deleted_at IS NULL AND
+				w2.deleted_at IS NULL
+			ORDER BY w2.created_at DESC, w2.id DESC
 		`,
 		objectType,
 		objectId,
@@ -355,22 +355,22 @@ func (repo MySQLRepository) GetAllMatchingWildcard(ctx context.Context, objectTy
 	return warrants, nil
 }
 
-func (repo MySQLRepository) GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Warrant, error) {
+func (repo PostgresRepository) GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Warrant, error) {
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
 		&warrants,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, contextHash, createdAt, updatedAt, deletedAt
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, context_hash, created_at, updated_at, deleted_at
 			FROM warrant
 			WHERE
-				objectType = ? AND
-				objectId = ? AND
+				object_type = ? AND
+				object_id = ? AND
 				relation = ? AND
-				subjectType = ? AND
-				(contextHash = ? OR contextHash = "") AND
-				deletedAt IS NULL
-			ORDER BY createdAt DESC, id DESC
+				subject_type = ? AND
+				(context_hash = ? OR context_hash = '') AND
+				deleted_at IS NULL
+			ORDER BY created_at DESC, id DESC
 		`,
 		objectType,
 		objectId,
@@ -390,18 +390,18 @@ func (repo MySQLRepository) GetAllMatchingObjectAndRelation(ctx context.Context,
 	return warrants, nil
 }
 
-func (repo MySQLRepository) GetAllMatchingObjectAndSubject(ctx context.Context, objectType string, objectId string, subjectType string, subjectId string, subjectRelation string) ([]Warrant, error) {
+func (repo PostgresRepository) GetAllMatchingObjectAndSubject(ctx context.Context, objectType string, objectId string, subjectType string, subjectId string, subjectRelation string) ([]Warrant, error) {
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
 		&warrants,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, created_at, updated_at, deleted_at
 			FROM warrant
 			WHERE
-				((objectType = ? AND objectId = ?) OR (subjectType = ? AND subjectId = ? AND subjectRelation = ?)) AND
-				deletedAt IS NULL
-			ORDER BY createdAt DESC, id DESC
+				((object_type = ? AND object_id = ?) OR (subject_type = ? AND subject_id = ? AND subject_relation = ?)) AND
+				deleted_at IS NULL
+			ORDER BY created_at DESC, id DESC
 		`,
 		objectType,
 		objectId,
@@ -421,22 +421,22 @@ func (repo MySQLRepository) GetAllMatchingObjectAndSubject(ctx context.Context, 
 	return warrants, nil
 }
 
-func (repo MySQLRepository) GetAllMatchingSubjectAndRelation(ctx context.Context, objectType string, relation string, subjectType string, subjectId string, subjectRelation string) ([]Warrant, error) {
+func (repo PostgresRepository) GetAllMatchingSubjectAndRelation(ctx context.Context, objectType string, relation string, subjectType string, subjectId string, subjectRelation string) ([]Warrant, error) {
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
 		&warrants,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, created_at, updated_at, deleted_at
 			FROM warrant
 			WHERE
-				objectType = ? AND
+				object_type = ? AND
 				relation = ? AND
-				subjectType = ? AND
-				subjectId = ? AND
-				subjectRelation = ? AND
-				deletedAt IS NULL
-			ORDER BY createdAt DESC, id DESC
+				subject_type = ? AND
+				subject_id = ? AND
+				subject_relation = ? AND
+				deleted_at IS NULL
+			ORDER BY created_at DESC, id DESC
 		`,
 		objectType,
 		relation,

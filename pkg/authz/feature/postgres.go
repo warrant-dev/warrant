@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/pkg/errors"
@@ -12,33 +13,36 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-type MySQLRepository struct {
+type PostgresRepository struct {
 	database.SQLRepository
 }
 
-func NewMySQLRepository(db *database.MySQL) MySQLRepository {
-	return MySQLRepository{
+func NewPostgresRepository(db *database.Postgres) PostgresRepository {
+	return PostgresRepository{
 		database.NewSQLRepository(&db.SQL),
 	}
 }
 
-func (repo MySQLRepository) Create(ctx context.Context, feature Feature) (int64, error) {
-	result, err := repo.DB.ExecContext(
+func (repo PostgresRepository) Create(ctx context.Context, feature Feature) (int64, error) {
+	var newFeatureId int64
+	err := repo.DB.GetContext(
 		ctx,
+		&newFeatureId,
 		`
 			INSERT INTO feature (
-				objectId,
-				featureId,
+				object_id,
+				feature_id,
 				name,
 				description
 			) VALUES (?, ?, ?, ?)
-			ON DUPLICATE KEY UPDATE
-				objectId = ?,
-				featureId = ?,
+			ON CONFLICT (feature_id) DO UPDATE SET
+				object_id = ?,
+				feature_id = ?,
 				name = ?,
 				description = ?,
-				createdAt = CURRENT_TIMESTAMP(6),
-				deletedAt = NULL
+				created_at = CURRENT_TIMESTAMP(6),
+				deleted_at = NULL
+			RETURNING id
 		`,
 		feature.ObjectId,
 		feature.FeatureId,
@@ -54,25 +58,20 @@ func (repo MySQLRepository) Create(ctx context.Context, feature Feature) (int64,
 		return 0, errors.Wrap(err, "Unable to create feature")
 	}
 
-	newFeatureId, err := result.LastInsertId()
-	if err != nil {
-		return 0, service.NewInternalError("Unable to create feature")
-	}
-
 	return newFeatureId, err
 }
 
-func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*Feature, error) {
+func (repo PostgresRepository) GetById(ctx context.Context, id int64) (*Feature, error) {
 	var feature Feature
 	err := repo.DB.GetContext(
 		ctx,
 		&feature,
 		`
-			SELECT id, objectId, featureId, name, description, createdAt, updatedAt, deletedAt
+			SELECT id, object_id, feature_id, name, description, created_at, updated_at, deleted_at
 			FROM feature
 			WHERE
 				id = ? AND
-				deletedAt IS NULL
+				deleted_at IS NULL
 		`,
 		id,
 	)
@@ -81,24 +80,24 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*Feature, er
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Feature", id)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get feature id %d from mysql", id))
+			return nil, service.NewInternalError(fmt.Sprintf("Unable to get feature id %d from postgres", id))
 		}
 	}
 
 	return &feature, nil
 }
 
-func (repo MySQLRepository) GetByFeatureId(ctx context.Context, featureId string) (*Feature, error) {
+func (repo PostgresRepository) GetByFeatureId(ctx context.Context, featureId string) (*Feature, error) {
 	var feature Feature
 	err := repo.DB.GetContext(
 		ctx,
 		&feature,
 		`
-			SELECT id, objectId, featureId, name, description, createdAt, updatedAt, deletedAt
+			SELECT id, object_id, feature_id, name, description, created_at, updated_at, deleted_at
 			FROM feature
 			WHERE
-				featureId = ? AND
-				deletedAt IS NULL
+				feature_id = ? AND
+				deleted_at IS NULL
 		`,
 		featureId,
 	)
@@ -107,40 +106,41 @@ func (repo MySQLRepository) GetByFeatureId(ctx context.Context, featureId string
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Feature", featureId)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get feature %s from mysql", featureId))
+			return nil, service.NewInternalError(fmt.Sprintf("Unable to get feature %s from postgres", featureId))
 		}
 	}
 
 	return &feature, nil
 }
 
-func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Feature, error) {
+func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Feature, error) {
 	features := make([]Feature, 0)
 	query := `
-		SELECT id, objectId, featureId, name, description, createdAt, updatedAt, deletedAt
+		SELECT id, object_id, feature_id, name, description, created_at, updated_at, deleted_at
 		FROM feature
 		WHERE
-			deletedAt IS NULL
+			deleted_at IS NULL
 	`
 	replacements := []interface{}{}
 
 	if listParams.Query != "" {
 		searchTermReplacement := fmt.Sprintf("%%%s%%", listParams.Query)
-		query = fmt.Sprintf("%s AND (featureId LIKE ? OR name LIKE ?)", query)
+		query = fmt.Sprintf("%s AND (feature_id LIKE ? OR name LIKE ?)", query)
 		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
 	}
 
+	sortBy := regexp.MustCompile("([A-Z])").ReplaceAllString(listParams.SortBy, `_$1`)
 	if listParams.AfterId != "" {
 		if listParams.AfterValue != nil {
 			if listParams.SortOrder == middleware.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s > ? OR (featureId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s > ? OR (feature_id > ? AND %s = ?))", query, sortBy, sortBy)
 				replacements = append(replacements,
 					listParams.AfterValue,
 					listParams.AfterId,
 					listParams.AfterValue,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s < ? OR (featureId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s < ? OR (feature_id < ? AND %s = ?))", query, sortBy, sortBy)
 				replacements = append(replacements,
 					listParams.AfterValue,
 					listParams.AfterId,
@@ -149,10 +149,10 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 			}
 		} else {
 			if listParams.SortOrder == middleware.SortOrderAsc {
-				query = fmt.Sprintf("%s AND featureId > ?", query)
+				query = fmt.Sprintf("%s AND feature_id > ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			} else {
-				query = fmt.Sprintf("%s AND featureId < ?", query)
+				query = fmt.Sprintf("%s AND feature_id < ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			}
 		}
@@ -161,14 +161,14 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 	if listParams.BeforeId != "" {
 		if listParams.BeforeValue != nil {
 			if listParams.SortOrder == middleware.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s < ? OR (featureId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s < ? OR (feature_id < ? AND %s = ?))", query, sortBy, sortBy)
 				replacements = append(replacements,
 					listParams.BeforeValue,
 					listParams.BeforeId,
 					listParams.BeforeValue,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s > ? OR (featureId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s > ? OR (feature_id > ? AND %s = ?))", query, sortBy, sortBy)
 				replacements = append(replacements,
 					listParams.BeforeValue,
 					listParams.BeforeId,
@@ -177,20 +177,25 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 			}
 		} else {
 			if listParams.SortOrder == middleware.SortOrderAsc {
-				query = fmt.Sprintf("%s AND featureId < ?", query)
+				query = fmt.Sprintf("%s AND feature_id < ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			} else {
-				query = fmt.Sprintf("%s AND featureId > ?", query)
+				query = fmt.Sprintf("%s AND feature_id > ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			}
 		}
 	}
 
+	nullSortClause := "NULLS LAST"
+	if listParams.SortOrder == middleware.SortOrderAsc {
+		nullSortClause = "NULLS FIRST"
+	}
+
 	if listParams.SortBy != "featureId" {
-		query = fmt.Sprintf("%s ORDER BY %s %s, featureId %s LIMIT ?", query, listParams.SortBy, listParams.SortOrder, listParams.SortOrder)
+		query = fmt.Sprintf("%s ORDER BY %s %s %s, feature_id %s LIMIT ?", query, sortBy, listParams.SortOrder, nullSortClause, listParams.SortOrder)
 		replacements = append(replacements, listParams.Limit)
 	} else {
-		query = fmt.Sprintf("%s ORDER BY featureId %s LIMIT ?", query, listParams.SortOrder)
+		query = fmt.Sprintf("%s ORDER BY feature_id %s %s LIMIT ?", query, listParams.SortOrder, nullSortClause)
 		replacements = append(replacements, listParams.Limit)
 	}
 
@@ -212,7 +217,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 	return features, nil
 }
 
-func (repo MySQLRepository) UpdateByFeatureId(ctx context.Context, featureId string, feature Feature) error {
+func (repo PostgresRepository) UpdateByFeatureId(ctx context.Context, featureId string, feature Feature) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -221,8 +226,8 @@ func (repo MySQLRepository) UpdateByFeatureId(ctx context.Context, featureId str
 				name = ?,
 				description = ?
 			WHERE
-				featureId = ? AND
-				deletedAt IS NULL
+				feature_id = ? AND
+				deleted_at IS NULL
 		`,
 		feature.Name,
 		feature.Description,
@@ -235,16 +240,16 @@ func (repo MySQLRepository) UpdateByFeatureId(ctx context.Context, featureId str
 	return nil
 }
 
-func (repo MySQLRepository) DeleteByFeatureId(ctx context.Context, featureId string) error {
+func (repo PostgresRepository) DeleteByFeatureId(ctx context.Context, featureId string) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE feature
 			SET
-				deletedAt = ?
+				deleted_at = ?
 			WHERE
-				featureId = ? AND
-				deletedAt IS NULL
+				feature_id = ? AND
+				deleted_at IS NULL
 		`,
 		time.Now().UTC(),
 		featureId,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/pkg/errors"
@@ -12,33 +13,36 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-type MySQLRepository struct {
+type PostgresRepository struct {
 	database.SQLRepository
 }
 
-func NewMySQLRepository(db *database.MySQL) MySQLRepository {
-	return MySQLRepository{
+func NewPostgresRepository(db *database.Postgres) PostgresRepository {
+	return PostgresRepository{
 		database.NewSQLRepository(&db.SQL),
 	}
 }
 
-func (repo MySQLRepository) Create(ctx context.Context, role Role) (int64, error) {
-	result, err := repo.DB.ExecContext(
+func (repo PostgresRepository) Create(ctx context.Context, role Role) (int64, error) {
+	var newRoleId int64
+	err := repo.DB.GetContext(
 		ctx,
+		&newRoleId,
 		`
 			INSERT INTO role (
-				objectId,
-				roleId,
+				object_id,
+				role_id,
 				name,
 				description
 			) VALUES (?, ?, ?, ?)
-			ON DUPLICATE KEY UPDATE
-				objectId = ?,
-				roleId = ?,
+			ON CONFLICT (role_id) DO UPDATE SET
+				object_id = ?,
+				role_id = ?,
 				name = ?,
 				description = ?,
-				createdAt = CURRENT_TIMESTAMP(6),
-				deletedAt = NULL
+				created_at = CURRENT_TIMESTAMP(6),
+				deleted_at = NULL
+			RETURNING id
 		`,
 		role.ObjectId,
 		role.RoleId,
@@ -54,25 +58,20 @@ func (repo MySQLRepository) Create(ctx context.Context, role Role) (int64, error
 		return 0, errors.Wrap(err, "Unable to create role")
 	}
 
-	newRoleId, err := result.LastInsertId()
-	if err != nil {
-		return 0, service.NewInternalError("Unable to create role")
-	}
-
 	return newRoleId, err
 }
 
-func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*Role, error) {
+func (repo PostgresRepository) GetById(ctx context.Context, id int64) (*Role, error) {
 	var role Role
 	err := repo.DB.GetContext(
 		ctx,
 		&role,
 		`
-			SELECT id, objectId, roleId, name, description, createdAt, updatedAt, deletedAt
+			SELECT id, object_id, role_id, name, description, created_at, updated_at, deleted_at
 			FROM role
 			WHERE
 				id = ? AND
-				deletedAt IS NULL
+				deleted_at IS NULL
 		`,
 		id,
 	)
@@ -88,17 +87,17 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*Role, error
 	return &role, nil
 }
 
-func (repo MySQLRepository) GetByRoleId(ctx context.Context, roleId string) (*Role, error) {
+func (repo PostgresRepository) GetByRoleId(ctx context.Context, roleId string) (*Role, error) {
 	var role Role
 	err := repo.DB.GetContext(
 		ctx,
 		&role,
 		`
-			SELECT id, objectId, roleId, name, description, createdAt, updatedAt, deletedAt
+			SELECT id, object_id, role_id, name, description, created_at, updated_at, deleted_at
 			FROM role
 			WHERE
-				roleId = ? AND
-				deletedAt IS NULL
+				role_id = ? AND
+				deleted_at IS NULL
 		`,
 		roleId,
 	)
@@ -114,33 +113,34 @@ func (repo MySQLRepository) GetByRoleId(ctx context.Context, roleId string) (*Ro
 	return &role, nil
 }
 
-func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Role, error) {
+func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Role, error) {
 	roles := make([]Role, 0)
 	query := `
-		SELECT id, objectId, roleId, name, description, createdAt, updatedAt, deletedAt
+		SELECT id, object_id, role_id, name, description, created_at, updated_at, deleted_at
 		FROM role
 		WHERE
-			deletedAt IS NULL
+			deleted_at IS NULL
 	`
 	replacements := []interface{}{}
 
 	if listParams.Query != "" {
 		searchTermReplacement := fmt.Sprintf("%%%s%%", listParams.Query)
-		query = fmt.Sprintf("%s AND (roleId LIKE ? OR name LIKE ?)", query)
+		query = fmt.Sprintf("%s AND (role_id LIKE ? OR name LIKE ?)", query)
 		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
 	}
 
+	sortBy := regexp.MustCompile("([A-Z])").ReplaceAllString(listParams.SortBy, `_$1`)
 	if listParams.AfterId != "" {
 		if listParams.AfterValue != nil {
 			if listParams.SortOrder == middleware.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s > ? OR (roleId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s > ? OR (role_id > ? AND %s = ?))", query, sortBy, sortBy)
 				replacements = append(replacements,
 					listParams.AfterValue,
 					listParams.AfterId,
 					listParams.AfterValue,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s < ? OR (roleId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s < ? OR (role_id < ? AND %s = ?))", query, sortBy, sortBy)
 				replacements = append(replacements,
 					listParams.AfterValue,
 					listParams.AfterId,
@@ -149,10 +149,10 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 			}
 		} else {
 			if listParams.SortOrder == middleware.SortOrderAsc {
-				query = fmt.Sprintf("%s AND roleId > ?", query)
+				query = fmt.Sprintf("%s AND role_id > ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			} else {
-				query = fmt.Sprintf("%s AND roleId < ?", query)
+				query = fmt.Sprintf("%s AND role_id < ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			}
 		}
@@ -161,14 +161,14 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 	if listParams.BeforeId != "" {
 		if listParams.BeforeValue != nil {
 			if listParams.SortOrder == middleware.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s < ? OR (roleId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s < ? OR (role_id < ? AND %s = ?))", query, sortBy, sortBy)
 				replacements = append(replacements,
 					listParams.BeforeValue,
 					listParams.BeforeId,
 					listParams.BeforeValue,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s > ? OR (roleId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s > ? OR (role_id > ? AND %s = ?))", query, sortBy, sortBy)
 				replacements = append(replacements,
 					listParams.BeforeValue,
 					listParams.BeforeId,
@@ -177,20 +177,25 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 			}
 		} else {
 			if listParams.SortOrder == middleware.SortOrderAsc {
-				query = fmt.Sprintf("%s AND roleId < ?", query)
+				query = fmt.Sprintf("%s AND role_id < ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			} else {
-				query = fmt.Sprintf("%s AND roleId > ?", query)
+				query = fmt.Sprintf("%s AND role_id > ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			}
 		}
 	}
 
+	nullSortClause := "NULLS LAST"
+	if listParams.SortOrder == middleware.SortOrderAsc {
+		nullSortClause = "NULLS FIRST"
+	}
+
 	if listParams.SortBy != "roleId" {
-		query = fmt.Sprintf("%s ORDER BY %s %s, roleId %s LIMIT ?", query, listParams.SortBy, listParams.SortOrder, listParams.SortOrder)
+		query = fmt.Sprintf("%s ORDER BY %s %s %s, role_id %s LIMIT ?", query, sortBy, listParams.SortOrder, nullSortClause, listParams.SortOrder)
 		replacements = append(replacements, listParams.Limit)
 	} else {
-		query = fmt.Sprintf("%s ORDER BY roleId %s LIMIT ?", query, listParams.SortOrder)
+		query = fmt.Sprintf("%s ORDER BY role_id %s %s LIMIT ?", query, listParams.SortOrder, nullSortClause)
 		replacements = append(replacements, listParams.Limit)
 	}
 
@@ -212,7 +217,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 	return roles, nil
 }
 
-func (repo MySQLRepository) UpdateByRoleId(ctx context.Context, roleId string, role Role) error {
+func (repo PostgresRepository) UpdateByRoleId(ctx context.Context, roleId string, role Role) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -221,8 +226,8 @@ func (repo MySQLRepository) UpdateByRoleId(ctx context.Context, roleId string, r
 				name = ?,
 				description = ?
 			WHERE
-				roleId = ? AND
-				deletedAt IS NULL
+				role_id = ? AND
+				deleted_at IS NULL
 		`,
 		role.Name,
 		role.Description,
@@ -235,16 +240,16 @@ func (repo MySQLRepository) UpdateByRoleId(ctx context.Context, roleId string, r
 	return nil
 }
 
-func (repo MySQLRepository) DeleteByRoleId(ctx context.Context, roleId string) error {
+func (repo PostgresRepository) DeleteByRoleId(ctx context.Context, roleId string) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE role
 			SET
-				deletedAt = ?
+				deleted_at = ?
 			WHERE
-				roleId = ? AND
-				deletedAt IS NULL
+				role_id = ? AND
+				deleted_at IS NULL
 		`,
 		time.Now().UTC(),
 		roleId,

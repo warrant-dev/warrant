@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/pkg/errors"
@@ -12,30 +13,33 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-type MySQLRepository struct {
+type PostgresRepository struct {
 	database.SQLRepository
 }
 
-func NewMySQLRepository(db *database.MySQL) MySQLRepository {
-	return MySQLRepository{
+func NewPostgresRepository(db *database.Postgres) PostgresRepository {
+	return PostgresRepository{
 		database.NewSQLRepository(&db.SQL),
 	}
 }
 
-func (repo MySQLRepository) Create(ctx context.Context, tenant Tenant) (int64, error) {
-	result, err := repo.DB.ExecContext(
+func (repo PostgresRepository) Create(ctx context.Context, tenant Tenant) (int64, error) {
+	var newTenantId int64
+	err := repo.DB.GetContext(
 		ctx,
+		&newTenantId,
 		`
 			INSERT INTO tenant (
-				tenantId,
-				objectId,
+				tenant_id,
+				object_id,
 				name
 			) VALUES (?, ?, ?)
-			ON DUPLICATE KEY UPDATE
-				objectId = ?,
+			ON CONFLICT (tenant_id) DO UPDATE SET
+				object_id = ?,
 				name = ?,
-				createdAt = CURRENT_TIMESTAMP(6),
-				deletedAt = NULL
+				created_at = CURRENT_TIMESTAMP(6),
+				deleted_at = NULL
+			RETURNING id
 		`,
 		tenant.TenantId,
 		tenant.ObjectId,
@@ -48,25 +52,20 @@ func (repo MySQLRepository) Create(ctx context.Context, tenant Tenant) (int64, e
 		return 0, errors.Wrap(err, "Unable to create Tenant")
 	}
 
-	newTenantId, err := result.LastInsertId()
-	if err != nil {
-		return 0, service.NewInternalError("Unable to create Tenant")
-	}
-
 	return newTenantId, nil
 }
 
-func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*Tenant, error) {
+func (repo PostgresRepository) GetById(ctx context.Context, id int64) (*Tenant, error) {
 	var tenant Tenant
 	err := repo.DB.GetContext(
 		ctx,
 		&tenant,
 		`
-			SELECT id, objectId, tenantId, name, createdAt, updatedAt, deletedAt
+			SELECT id, object_id, tenant_id, name, created_at, updated_at, deleted_at
 			FROM tenant
 			WHERE
 				id = ? AND
-				deletedAt IS NULL
+				deleted_at IS NULL
 		`,
 		id,
 	)
@@ -82,17 +81,17 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*Tenant, err
 	return &tenant, nil
 }
 
-func (repo MySQLRepository) GetByTenantId(ctx context.Context, tenantId string) (*Tenant, error) {
+func (repo PostgresRepository) GetByTenantId(ctx context.Context, tenantId string) (*Tenant, error) {
 	var tenant Tenant
 	err := repo.DB.GetContext(
 		ctx,
 		&tenant,
 		`
-			SELECT id, objectId, tenantId, name, createdAt, updatedAt, deletedAt
+			SELECT id, object_id, tenant_id, name, created_at, updated_at, deleted_at
 			FROM tenant
 			WHERE
-				tenantId = ? AND
-				deletedAt IS NULL
+				tenant_id = ? AND
+				deleted_at IS NULL
 		`,
 		tenantId,
 	)
@@ -108,34 +107,35 @@ func (repo MySQLRepository) GetByTenantId(ctx context.Context, tenantId string) 
 	return &tenant, nil
 }
 
-func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Tenant, error) {
+func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Tenant, error) {
 	tenants := make([]Tenant, 0)
 	query := `
-		SELECT id, objectId, tenantId, name, createdAt, updatedAt, deletedAt
+		SELECT id, object_id, tenant_id, name, created_at, updated_at, deleted_at
 		FROM tenant
 		WHERE
-			deletedAt IS NULL
+			deleted_at IS NULL
 
 	`
 	replacements := []interface{}{}
 
 	if listParams.Query != "" {
 		searchTermReplacement := fmt.Sprintf("%%%s%%", listParams.Query)
-		query = fmt.Sprintf("%s AND (tenantId LIKE ? OR name LIKE ?)", query)
+		query = fmt.Sprintf("%s AND (tenant_id LIKE ? OR name LIKE ?)", query)
 		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
 	}
 
+	sortBy := regexp.MustCompile("([A-Z])").ReplaceAllString(listParams.SortBy, `_$1`)
 	if listParams.AfterId != "" {
 		if listParams.AfterValue != nil {
 			if listParams.SortOrder == middleware.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s > ? OR (tenantId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s > ? OR (tenant_id > ? AND %s = ?))", query, sortBy, sortBy)
 				replacements = append(replacements,
 					listParams.AfterValue,
 					listParams.AfterId,
 					listParams.AfterValue,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s < ? OR (tenantId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s < ? OR (tenant_id < ? AND %s = ?))", query, sortBy, sortBy)
 				replacements = append(replacements,
 					listParams.AfterValue,
 					listParams.AfterId,
@@ -144,10 +144,10 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 			}
 		} else {
 			if listParams.SortOrder == middleware.SortOrderAsc {
-				query = fmt.Sprintf("%s AND tenantId > ?", query)
+				query = fmt.Sprintf("%s AND tenant_id > ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			} else {
-				query = fmt.Sprintf("%s AND tenantId < ?", query)
+				query = fmt.Sprintf("%s AND tenant_id < ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			}
 		}
@@ -156,14 +156,14 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 	if listParams.BeforeId != "" {
 		if listParams.BeforeValue != nil {
 			if listParams.SortOrder == middleware.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s < ? OR (tenantId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s < ? OR (tenant_id < ? AND %s = ?))", query, sortBy, sortBy)
 				replacements = append(replacements,
 					listParams.BeforeValue,
 					listParams.BeforeId,
 					listParams.BeforeValue,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s > ? OR (tenantId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s > ? OR (tenant_id > ? AND %s = ?))", query, sortBy, sortBy)
 				replacements = append(replacements,
 					listParams.BeforeValue,
 					listParams.BeforeId,
@@ -172,20 +172,25 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 			}
 		} else {
 			if listParams.SortOrder == middleware.SortOrderAsc {
-				query = fmt.Sprintf("%s AND tenantId < ?", query)
+				query = fmt.Sprintf("%s AND tenant_id < ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			} else {
-				query = fmt.Sprintf("%s AND tenantId > ?", query)
+				query = fmt.Sprintf("%s AND tenant_id > ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			}
 		}
 	}
 
+	nullSortClause := "NULLS LAST"
+	if listParams.SortOrder == middleware.SortOrderAsc {
+		nullSortClause = "NULLS FIRST"
+	}
+
 	if listParams.SortBy != "tenantId" {
-		query = fmt.Sprintf("%s ORDER BY %s %s, tenantId %s LIMIT ?", query, listParams.SortBy, listParams.SortOrder, listParams.SortOrder)
+		query = fmt.Sprintf("%s ORDER BY %s %s %s, tenant_id %s LIMIT ?", query, sortBy, listParams.SortOrder, nullSortClause, listParams.SortOrder)
 		replacements = append(replacements, listParams.Limit)
 	} else {
-		query = fmt.Sprintf("%s ORDER BY tenantId %s LIMIT ?", query, listParams.SortOrder)
+		query = fmt.Sprintf("%s ORDER BY tenant_id %s %s LIMIT ?", query, listParams.SortOrder, nullSortClause)
 		replacements = append(replacements, listParams.Limit)
 	}
 
@@ -207,7 +212,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 	return tenants, nil
 }
 
-func (repo MySQLRepository) UpdateByTenantId(ctx context.Context, tenantId string, tenant Tenant) error {
+func (repo PostgresRepository) UpdateByTenantId(ctx context.Context, tenantId string, tenant Tenant) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -215,8 +220,8 @@ func (repo MySQLRepository) UpdateByTenantId(ctx context.Context, tenantId strin
 			SET
 				name = ?
 			WHERE
-				tenantId = ? AND
-				deletedAt IS NULL
+				tenant_id = ? AND
+				deleted_at IS NULL
 		`,
 		tenant.Name,
 		tenantId,
@@ -228,16 +233,16 @@ func (repo MySQLRepository) UpdateByTenantId(ctx context.Context, tenantId strin
 	return nil
 }
 
-func (repo MySQLRepository) DeleteByTenantId(ctx context.Context, tenantId string) error {
+func (repo PostgresRepository) DeleteByTenantId(ctx context.Context, tenantId string) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE tenant
 			SET
-				deletedAt = ?
+				deleted_at = ?
 			WHERE
-				tenantId = ? AND
-				deletedAt IS NULL
+				tenant_id = ? AND
+				deleted_at IS NULL
 		`,
 		time.Now().UTC(),
 		tenantId,
