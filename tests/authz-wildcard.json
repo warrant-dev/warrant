@@ -531,7 +531,7 @@
             "name": "checkUserAOwnerOfReportA",
             "request": {
                 "method": "POST",
-                "url": "/v1/authorize",
+                "url": "/v2/authorize",
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -562,7 +562,7 @@
             "name": "checkUserANotOwnerOfReportB",
             "request": {
                 "method": "POST",
-                "url": "/v1/authorize",
+                "url": "/v2/authorize",
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -593,7 +593,7 @@
             "name": "checkUserBNotOwnerOfReportA",
             "request": {
                 "method": "POST",
-                "url": "/v1/authorize",
+                "url": "/v2/authorize",
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -624,7 +624,7 @@
             "name": "checkUserBOwnerOfReportB",
             "request": {
                 "method": "POST",
-                "url": "/v1/authorize",
+                "url": "/v2/authorize",
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -655,7 +655,7 @@
             "name": "checkUserCOwnerOfReportA",
             "request": {
                 "method": "POST",
-                "url": "/v1/authorize",
+                "url": "/v2/authorize",
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -686,7 +686,7 @@
             "name": "checkUserCNotOwnerOfReportB",
             "request": {
                 "method": "POST",
-                "url": "/v1/authorize",
+                "url": "/v2/authorize",
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -717,7 +717,7 @@
             "name": "checkUserDNotOwnerOfReportA",
             "request": {
                 "method": "POST",
-                "url": "/v1/authorize",
+                "url": "/v2/authorize",
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -748,7 +748,7 @@
             "name": "checkUserDOwnerOfReportB",
             "request": {
                 "method": "POST",
-                "url": "/v1/authorize",
+                "url": "/v2/authorize",
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -779,7 +779,7 @@
             "name": "checkUserEOwnerOfReportA",
             "request": {
                 "method": "POST",
-                "url": "/v1/authorize",
+                "url": "/v2/authorize",
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -810,7 +810,7 @@
             "name": "checkUserENotOwnerOfReportB",
             "request": {
                 "method": "POST",
-                "url": "/v1/authorize",
+                "url": "/v2/authorize",
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -841,7 +841,7 @@
             "name": "checkUserFNotOwnerOfReportA",
             "request": {
                 "method": "POST",
-                "url": "/v1/authorize",
+                "url": "/v2/authorize",
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -872,7 +872,7 @@
             "name": "checkUserFOwnerOfReportB",
             "request": {
                 "method": "POST",
-                "url": "/v1/authorize",
+                "url": "/v2/authorize",
                 "body": {
                     "op": "anyOf",
                     "warrants": [

@@ -11,7 +11,7 @@ func (svc CheckService) GetRoutes() []service.Route {
 	return []service.Route{
 		// Standard Authorization
 		{
-			Pattern: "/v1/authorize",
+			Pattern: "/v2/authorize",
 			Method:  "POST",
 			Handler: middleware.ChainMiddleware(
 				service.NewRouteHandler(svc.Env(), authorize),
