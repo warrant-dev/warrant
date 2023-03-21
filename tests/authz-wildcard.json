@@ -86,90 +86,10 @@
             }
         },
         {
-            "name": "createObjectTypePermission",
+            "name": "updateObjectTypeUser",
             "request": {
-                "method": "POST",
-                "url": "/v1/object-types",
-                "body": {
-                    "type": "permission",
-                    "relations": {
-                        "member": {
-                            "inheritIf": "anyOf",
-                            "rules": [
-                                {
-                                    "inheritIf": "member",
-                                    "ofType": "role",
-                                    "withRelation": "member"
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": {
-                    "type": "permission",
-                    "relations": {
-                        "member": {
-                            "inheritIf": "anyOf",
-                            "rules": [
-                                {
-                                    "inheritIf": "member",
-                                    "ofType": "role",
-                                    "withRelation": "member"
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        {
-            "name": "createObjectTypeRole",
-            "request": {
-                "method": "POST",
-                "url": "/v1/object-types",
-                "body": {
-                    "type": "role",
-                    "relations": {
-                        "member": {
-                            "inheritIf": "anyOf",
-                            "rules": [
-                                {
-                                    "inheritIf": "member",
-                                    "ofType": "role",
-                                    "withRelation": "member"
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": {
-                    "type": "role",
-                    "relations": {
-                        "member": {
-                            "inheritIf": "anyOf",
-                            "rules": [
-                                {
-                                    "inheritIf": "member",
-                                    "ofType": "role",
-                                    "withRelation": "member"
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        {
-            "name": "createObjectTypeUser",
-            "request": {
-                "method": "POST",
-                "url": "/v1/object-types",
+                "method": "PUT",
+                "url": "/v1/object-types/user",
                 "body": {
                     "type": "user",
                     "relations": {
@@ -1246,33 +1166,21 @@
             }
         },
         {
-            "name": "deleteObjectTypeUser",
+            "name": "revertObjectTypeUser",
             "request": {
-                "method": "DELETE",
-                "url": "/v1/object-types/user"
+                "method": "PUT",
+                "url": "/v1/object-types/user",
+                "body": {
+                    "type": "user",
+                    "relations": {}
+                }
             },
             "expectedResponse": {
-                "statusCode": 200
-            }
-        },
-        {
-            "name": "deleteObjectTypeRole",
-            "request": {
-                "method": "DELETE",
-                "url": "/v1/object-types/role"
-            },
-            "expectedResponse": {
-                "statusCode": 200
-            }
-        },
-        {
-            "name": "deleteObjectTypePermission",
-            "request": {
-                "method": "DELETE",
-                "url": "/v1/object-types/permission"
-            },
-            "expectedResponse": {
-                "statusCode": 200
+                "statusCode": 200,
+                "body": {
+                    "type": "user",
+                    "relations": {}
+                }
             }
         },
         {
