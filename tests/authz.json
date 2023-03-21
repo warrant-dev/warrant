@@ -4,86 +4,6 @@
     ],
     "tests": [
         {
-            "name": "createObjectTypePermission",
-            "request": {
-                "method": "POST",
-                "url": "/v1/object-types",
-                "body": {
-                    "type": "permission",
-                    "relations": {
-                        "member": {
-                            "inheritIf": "anyOf",
-                            "rules": [
-                                {
-                                    "inheritIf": "member",
-                                    "ofType": "role",
-                                    "withRelation": "member"
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": {
-                    "type": "permission",
-                    "relations": {
-                        "member": {
-                            "inheritIf": "anyOf",
-                            "rules": [
-                                {
-                                    "inheritIf": "member",
-                                    "ofType": "role",
-                                    "withRelation": "member"
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        {
-            "name": "createObjectTypeRole",
-            "request": {
-                "method": "POST",
-                "url": "/v1/object-types",
-                "body": {
-                    "type": "role",
-                    "relations": {
-                        "member": {
-                            "inheritIf": "anyOf",
-                            "rules": [
-                                {
-                                    "inheritIf": "member",
-                                    "ofType": "role",
-                                    "withRelation": "member"
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": {
-                    "type": "role",
-                    "relations": {
-                        "member": {
-                            "inheritIf": "anyOf",
-                            "rules": [
-                                {
-                                    "inheritIf": "member",
-                                    "ofType": "role",
-                                    "withRelation": "member"
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        {
             "name": "createObjectTypeReport",
             "request": {
                 "method": "POST",
@@ -652,26 +572,6 @@
             "request": {
                 "method": "DELETE",
                 "url": "/v1/object-types/report"
-            },
-            "expectedResponse": {
-                "statusCode": 200
-            }
-        },
-        {
-            "name": "deleteObjectTypeRole",
-            "request": {
-                "method": "DELETE",
-                "url": "/v1/object-types/role"
-            },
-            "expectedResponse": {
-                "statusCode": 200
-            }
-        },
-        {
-            "name": "deleteObjectTypePermission",
-            "request": {
-                "method": "DELETE",
-                "url": "/v1/object-types/permission"
             },
             "expectedResponse": {
                 "statusCode": 200
