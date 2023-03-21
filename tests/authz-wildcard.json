@@ -1172,14 +1172,26 @@
                 "url": "/v1/object-types/user",
                 "body": {
                     "type": "user",
-                    "relations": {}
+                    "relations": {
+                        "parent": {
+                            "inheritIf": "parent",
+                            "ofType": "user",
+                            "withRelation": "parent"
+                        }
+                    }
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "type": "user",
-                    "relations": {}
+                    "relations": {
+                        "parent": {
+                            "inheritIf": "parent",
+                            "ofType": "user",
+                            "withRelation": "parent"
+                        }
+                    }
                 }
             }
         },
