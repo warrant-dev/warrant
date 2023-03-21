@@ -30,7 +30,7 @@ const (
 type ObjectTypeSpec struct {
 	Type      string                  `json:"type" validate:"required,valid_object_type"`
 	Source    *Source                 `json:"source,omitempty"`
-	Relations map[string]RelationRule `json:"relations" validate:"required,min=1,dive"` // NOTE: map key = name of relation
+	Relations map[string]RelationRule `json:"relations" validate:"required,dive"` // NOTE: map key = name of relation
 }
 
 func (spec ObjectTypeSpec) ToObjectType() (*ObjectType, error) {
