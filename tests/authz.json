@@ -355,7 +355,7 @@
             "name": "checkAccessWithContextAuthorized",
             "request": {
                 "method": "POST",
-                "url": "/v1/authorize",
+                "url": "/v2/authorize",
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -386,7 +386,7 @@
             "name": "checkAccessWithContextNotAuthorized",
             "request": {
                 "method": "POST",
-                "url": "/v1/authorize",
+                "url": "/v2/authorize",
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -417,7 +417,7 @@
             "name": "checkAccessDirectWarrantAuthorized",
             "request": {
                 "method": "POST",
-                "url": "/v1/authorize",
+                "url": "/v2/authorize",
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -445,7 +445,7 @@
             "name": "checkAccessUsersetRuleAuthorized",
             "request": {
                 "method": "POST",
-                "url": "/v1/authorize",
+                "url": "/v2/authorize",
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -473,7 +473,7 @@
             "name": "checkAccessAllOfRuleAuthorized",
             "request": {
                 "method": "POST",
-                "url": "/v1/authorize",
+                "url": "/v2/authorize",
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -501,7 +501,7 @@
             "name": "checkAccessNoneOfRuleAuthorized",
             "request": {
                 "method": "POST",
-                "url": "/v1/authorize",
+                "url": "/v2/authorize",
                 "body": {
                     "op": "anyOf",
                     "warrants": [
