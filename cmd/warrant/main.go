@@ -22,11 +22,16 @@ import (
 )
 
 type ServiceEnv struct {
-	Datastore database.Database
+	Datastore  database.Database
+	Eventstore database.Database
 }
 
 func (env ServiceEnv) DB() database.Database {
 	return env.Datastore
+}
+
+func (env ServiceEnv) EventDB() database.Database {
+	return env.Eventstore
 }
 
 func (env *ServiceEnv) InitDB(config config.Config) error {
@@ -55,9 +60,36 @@ func (env *ServiceEnv) InitDB(config config.Config) error {
 	return fmt.Errorf("invalid database configuration provided")
 }
 
+func (env *ServiceEnv) InitEventDB(config config.Config) error {
+	if config.Eventstore.MySQL != nil {
+		db := database.NewMySQL(*config.Eventstore.MySQL)
+		err := db.Connect(context.Background())
+		if err != nil {
+			return err
+		}
+
+		env.Eventstore = db
+		return nil
+	}
+
+	if config.Eventstore.Postgres != nil {
+		db := database.NewPostgres(*config.Eventstore.Postgres)
+		err := db.Connect(context.Background())
+		if err != nil {
+			return err
+		}
+
+		env.Eventstore = db
+		return nil
+	}
+
+	return fmt.Errorf("invalid database configuration provided")
+}
+
 func NewServiceEnv() ServiceEnv {
 	return ServiceEnv{
-		Datastore: nil,
+		Datastore:  nil,
+		Eventstore: nil,
 	}
 }
 
@@ -67,6 +99,11 @@ func main() {
 	err := svcEnv.InitDB(config)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize and connect to the configured datastore. Shutting down.")
+	}
+
+	err = svcEnv.InitEventDB(config)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Could not initialize and connect to the configured eventstore. Shutting down.")
 	}
 
 	svcs := []service.Service{

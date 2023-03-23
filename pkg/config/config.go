@@ -16,10 +16,11 @@ import (
 const PrefixWarrant = "warrant"
 
 type Config struct {
-	Port            int             `mapstructure:"port"`
-	LogLevel        int8            `mapstructure:"logLevel"`
-	EnableAccessLog bool            `mapstructure:"enableAccessLog"`
-	Datastore       DatastoreConfig `mapstructure:"datastore"`
+	Port            int              `mapstructure:"port"`
+	LogLevel        int8             `mapstructure:"logLevel"`
+	EnableAccessLog bool             `mapstructure:"enableAccessLog"`
+	Datastore       DatastoreConfig  `mapstructure:"datastore"`
+	Eventstore      EventstoreConfig `mapstructure:"eventstore"`
 }
 
 type DatastoreConfig struct {
@@ -44,6 +45,11 @@ type PostgresConfig struct {
 	SSLMode            string `mapstructure:"sslmode"`
 	MaxIdleConnections int    `mapstructure:"maxIdleConnections"`
 	MaxOpenConnections int    `mapstructure:"maxOpenConncetions"`
+}
+
+type EventstoreConfig struct {
+	MySQL    *MySQLConfig    `mapstructure:"mysql"`
+	Postgres *PostgresConfig `mapstructure:"postgres"`
 }
 
 func NewConfig() Config {
