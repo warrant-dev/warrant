@@ -80,7 +80,7 @@ func NewRouter(config *config.Config, pathPrefix string, routes []Route, additio
 	// Setup routes
 	for _, route := range routes {
 		routePattern := fmt.Sprintf("%s%s", pathPrefix, route.Pattern)
-		router.Handle(routePattern, route.Handler).Methods(route.Method)
+		router.Handle(routePattern, AuthMiddleware(route.Handler, config)).Methods(route.Method)
 	}
 
 	// Configure catch all handler for 404s
