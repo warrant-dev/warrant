@@ -21,6 +21,7 @@ type Config struct {
 	EnableAccessLog bool             `mapstructure:"enableAccessLog"`
 	Datastore       DatastoreConfig  `mapstructure:"datastore"`
 	Eventstore      EventstoreConfig `mapstructure:"eventstore"`
+	ApiKey          string           `mapstructure:"apiKey"`
 }
 
 type DatastoreConfig struct {
@@ -88,6 +89,10 @@ func NewConfig() Config {
 	zerolog.SetGlobalLevel(zerolog.Level(config.LogLevel))
 	if zerolog.GlobalLevel() == zerolog.DebugLevel {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	}
+
+	if config.ApiKey == "" {
+		log.Info().Msg("Running without an API key. We recommend providing an API key when running in production.")
 	}
 
 	return config

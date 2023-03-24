@@ -52,6 +52,7 @@ services:
       WARRANT_DATASTORE_MYSQL_PASSWORD: replace_with_password
       WARRANT_DATASTORE_MYSQL_HOSTNAME: datastore
       WARRANT_DATASTORE_MYSQL_DATABASE: warrant
+      WARRANT_API_KEY: replace_with_api_key
 ```
 
 ## Running the Binary
