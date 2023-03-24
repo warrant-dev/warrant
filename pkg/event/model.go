@@ -10,13 +10,13 @@ import (
 )
 
 type ResourceEvent struct {
-	ID           string              `mysql:"id"`
-	Type         string              `mysql:"type"`
-	Source       string              `mysql:"source"`
-	ResourceType string              `mysql:"resourceType"`
-	ResourceId   string              `mysql:"resourceId"`
-	Meta         database.NullString `mysql:"meta"`
-	CreatedAt    time.Time           `mysql:"createdAt"`
+	ID           string              `mysql:"id" postgres:"id"`
+	Type         string              `mysql:"type" postgres:"type"`
+	Source       string              `mysql:"source" postgres:"source"`
+	ResourceType string              `mysql:"resourceType" postgres:"resource_type"`
+	ResourceId   string              `mysql:"resourceId" postgres:"resource_id"`
+	Meta         database.NullString `mysql:"meta" postgres:"meta"`
+	CreatedAt    time.Time           `mysql:"createdAt" postgres:"created_at"`
 }
 
 func (resourceEvent ResourceEvent) ToResourceEventSpec() (*ResourceEventSpec, error) {
@@ -40,18 +40,18 @@ func (resourceEvent ResourceEvent) ToResourceEventSpec() (*ResourceEventSpec, er
 }
 
 type AccessEvent struct {
-	ID              string              `mysql:"id"`
-	Type            string              `mysql:"type"`
-	Source          string              `mysql:"source"`
-	ObjectType      string              `mysql:"objectType"`
-	ObjectId        string              `mysql:"objectId"`
-	Relation        string              `mysql:"relation"`
-	SubjectType     string              `mysql:"subjectType"`
-	SubjectId       string              `mysql:"subjectId"`
-	SubjectRelation string              `mysql:"subjectRelation"`
-	Context         database.NullString `mysql:"context"`
-	Meta            database.NullString `mysql:"meta"`
-	CreatedAt       time.Time           `mysql:"createdAt"`
+	ID              string              `mysql:"id" postgres:"id"`
+	Type            string              `mysql:"type" postgres:"type"`
+	Source          string              `mysql:"source" postgres:"source"`
+	ObjectType      string              `mysql:"objectType" postgres:"object_type"`
+	ObjectId        string              `mysql:"objectId" postgres:"object_id"`
+	Relation        string              `mysql:"relation" postgres:"relation"`
+	SubjectType     string              `mysql:"subjectType" postgres:"subject_type"`
+	SubjectId       string              `mysql:"subjectId" postgres:"subject_id"`
+	SubjectRelation string              `mysql:"subjectRelation" postgres:"subject_relation"`
+	Context         database.NullString `mysql:"context" postgres:"context"`
+	Meta            database.NullString `mysql:"meta" postgres:"meta"`
+	CreatedAt       time.Time           `mysql:"createdAt" postgres:"created_at"`
 }
 
 func (accessEvent AccessEvent) ToAccessEventSpec() (*AccessEventSpec, error) {
