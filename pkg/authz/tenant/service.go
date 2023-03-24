@@ -150,10 +150,7 @@ func (svc TenantService) DeleteByTenantId(ctx context.Context, tenantId string) 
 			return err
 		}
 
-		err = event.NewService(svc.Env()).TrackResourceDeletedSync(ctx, ResourceTypeTenant, tenantId, nil)
-		if err != nil {
-			return err
-		}
+		event.NewService(svc.Env()).TrackResourceDeleted(ctx, ResourceTypeTenant, tenantId, nil)
 		return nil
 	})
 
