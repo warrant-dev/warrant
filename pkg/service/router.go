@@ -15,9 +15,10 @@ import (
 )
 
 type Route struct {
-	Pattern string
-	Method  string
-	Handler http.Handler
+	Pattern     string
+	Method      string
+	Handler     http.Handler
+	DisableAuth bool
 }
 
 type RouteHandler struct {
@@ -80,7 +81,11 @@ func NewRouter(config *config.Config, pathPrefix string, routes []Route, additio
 	// Setup routes
 	for _, route := range routes {
 		routePattern := fmt.Sprintf("%s%s", pathPrefix, route.Pattern)
-		router.Handle(routePattern, AuthMiddleware(route.Handler, config)).Methods(route.Method)
+		if route.DisableAuth {
+			router.Handle(routePattern, route.Handler).Methods(route.Method)
+		} else {
+			router.Handle(routePattern, AuthMiddleware(route.Handler, config)).Methods(route.Method)
+		}
 	}
 
 	// Configure catch all handler for 404s
