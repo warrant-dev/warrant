@@ -18,6 +18,7 @@ import (
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	"github.com/warrant-dev/warrant/pkg/config"
 	"github.com/warrant-dev/warrant/pkg/database"
+	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -108,6 +109,7 @@ func main() {
 
 	svcs := []service.Service{
 		check.NewService(&svcEnv),
+		event.NewService(&svcEnv),
 		feature.NewService(&svcEnv),
 		object.NewService(&svcEnv),
 		objecttype.NewService(&svcEnv),

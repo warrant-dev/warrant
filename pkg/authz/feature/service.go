@@ -5,9 +5,12 @@ import (
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
+	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
+
+const ResourceTypeFeature = "feature"
 
 type FeatureService struct {
 	service.BaseService
@@ -47,6 +50,7 @@ func (svc FeatureService) Create(ctx context.Context, featureSpec FeatureSpec) (
 			return err
 		}
 
+		event.NewService(svc.Env()).TrackResourceCreated(txCtx, ResourceTypeFeature, newFeature.FeatureId, newFeature.ToFeatureSpec())
 		return nil
 	})
 
@@ -113,7 +117,9 @@ func (svc FeatureService) UpdateByFeatureId(ctx context.Context, featureId strin
 		return nil, err
 	}
 
-	return updatedFeature.ToFeatureSpec(), nil
+	updatedFeatureSpec := updatedFeature.ToFeatureSpec()
+	event.NewService(svc.Env()).TrackResourceUpdated(ctx, ResourceTypeFeature, updatedFeature.FeatureId, updatedFeatureSpec)
+	return updatedFeatureSpec, nil
 }
 
 func (svc FeatureService) DeleteByFeatureId(ctx context.Context, featureId string) error {
@@ -133,6 +139,7 @@ func (svc FeatureService) DeleteByFeatureId(ctx context.Context, featureId strin
 			return err
 		}
 
+		event.NewService(svc.Env()).TrackResourceDeleted(ctx, ResourceTypeFeature, featureId, nil)
 		return nil
 	})
 

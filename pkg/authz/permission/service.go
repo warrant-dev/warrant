@@ -5,9 +5,12 @@ import (
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
+	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
+
+const ResourceTypePermission = "permission"
 
 type PermissionService struct {
 	service.BaseService
@@ -47,6 +50,7 @@ func (svc PermissionService) Create(ctx context.Context, permissionSpec Permissi
 			return err
 		}
 
+		event.NewService(svc.Env()).TrackResourceCreated(txCtx, ResourceTypePermission, newPermission.PermissionId, newPermission.ToPermissionSpec())
 		return nil
 	})
 
@@ -113,7 +117,9 @@ func (svc PermissionService) UpdateByPermissionId(ctx context.Context, permissio
 		return nil, err
 	}
 
-	return updatedPermission.ToPermissionSpec(), nil
+	updatedPermissionSpec := updatedPermission.ToPermissionSpec()
+	event.NewService(svc.Env()).TrackResourceUpdated(ctx, ResourceTypePermission, updatedPermission.PermissionId, updatedPermissionSpec)
+	return updatedPermissionSpec, nil
 }
 
 func (svc PermissionService) DeleteByPermissionId(ctx context.Context, permissionId string) error {
@@ -133,6 +139,7 @@ func (svc PermissionService) DeleteByPermissionId(ctx context.Context, permissio
 			return err
 		}
 
+		event.NewService(svc.Env()).TrackResourceDeleted(txCtx, ResourceTypePermission, permissionId, nil)
 		return nil
 	})
 

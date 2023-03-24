@@ -5,6 +5,7 @@ import (
 
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	wntContext "github.com/warrant-dev/warrant/pkg/context"
+	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -75,6 +76,7 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 			}
 		}
 
+		event.NewService(svc.Env()).TrackAccessGrantedEvent(txCtx, createdWarrant.ObjectType, createdWarrant.ObjectId, createdWarrant.Relation, createdWarrant.SubjectType, createdWarrant.SubjectId, createdWarrant.SubjectRelation.String, warrantSpec.Context)
 		return nil
 	})
 	if err != nil {
@@ -175,6 +177,7 @@ func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) e
 			return err
 		}
 
+		event.NewService(svc.Env()).TrackAccessRevokedEvent(txCtx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Context)
 		return nil
 	})
 	if err != nil {

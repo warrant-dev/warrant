@@ -7,9 +7,12 @@ import (
 	"github.com/google/uuid"
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
+	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
+
+const ResourceTypeUser = "user"
 
 type UserService struct {
 	service.BaseService
@@ -59,6 +62,7 @@ func (svc UserService) Create(ctx context.Context, userSpec UserSpec) (*UserSpec
 			return err
 		}
 
+		event.NewService(svc.Env()).TrackResourceCreated(txCtx, ResourceTypeUser, newUser.UserId, newUser.ToUserSpec())
 		return nil
 	})
 
@@ -124,7 +128,9 @@ func (svc UserService) UpdateByUserId(ctx context.Context, userId string, userSp
 		return nil, err
 	}
 
-	return updatedUser.ToUserSpec(), nil
+	updatedUserSpec := updatedUser.ToUserSpec()
+	event.NewService(svc.Env()).TrackResourceUpdated(ctx, ResourceTypeUser, updatedUser.UserId, updatedUserSpec)
+	return updatedUserSpec, nil
 }
 
 func (svc UserService) DeleteByUserId(ctx context.Context, userId string) error {
@@ -144,6 +150,7 @@ func (svc UserService) DeleteByUserId(ctx context.Context, userId string) error 
 			return err
 		}
 
+		event.NewService(svc.Env()).TrackResourceDeleted(txCtx, ResourceTypeUser, userId, nil)
 		return nil
 	})
 

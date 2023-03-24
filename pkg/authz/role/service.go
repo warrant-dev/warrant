@@ -5,9 +5,12 @@ import (
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
+	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
+
+const ResourceTypeRole = "role"
 
 type RoleService struct {
 	service.BaseService
@@ -47,6 +50,7 @@ func (svc RoleService) Create(ctx context.Context, roleSpec RoleSpec) (*RoleSpec
 			return err
 		}
 
+		event.NewService(svc.Env()).TrackResourceCreated(txCtx, ResourceTypeRole, newRole.RoleId, newRole.ToRoleSpec())
 		return nil
 	})
 
@@ -113,7 +117,9 @@ func (svc RoleService) UpdateByRoleId(ctx context.Context, roleId string, roleSp
 		return nil, err
 	}
 
-	return updatedRole.ToRoleSpec(), nil
+	updatedRoleSpec := updatedRole.ToRoleSpec()
+	event.NewService(svc.Env()).TrackResourceUpdated(ctx, ResourceTypeRole, updatedRole.RoleId, updatedRoleSpec)
+	return updatedRoleSpec, nil
 }
 
 func (svc RoleService) DeleteByRoleId(ctx context.Context, roleId string) error {
@@ -133,6 +139,7 @@ func (svc RoleService) DeleteByRoleId(ctx context.Context, roleId string) error 
 			return err
 		}
 
+		event.NewService(svc.Env()).TrackResourceDeleted(txCtx, ResourceTypeRole, roleId, nil)
 		return nil
 	})
 
