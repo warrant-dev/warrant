@@ -52,6 +52,7 @@ services:
       WARRANT_DATASTORE_POSTGRES_HOSTNAME: datastore
       WARRANT_DATASTORE_POSTGRES_DATABASE: warrant
       WARRANT_DATASTORE_POSTGRES_SSLMODE: disable
+      WARRANT_API_KEY: replace_with_api_key
 ```
 
 ## Running the Binary
