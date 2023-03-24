@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
 )
 
@@ -21,7 +22,7 @@ func (objectType ObjectType) ToObjectTypeSpec() (*ObjectTypeSpec, error) {
 	var objectTypeSpec ObjectTypeSpec
 	err := json.Unmarshal([]byte(objectType.Definition), &objectTypeSpec)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err, "error unmarshaling object type %s", objectTypeSpec)
 	}
 
 	return &objectTypeSpec, nil

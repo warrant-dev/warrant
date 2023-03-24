@@ -7,9 +7,12 @@ import (
 	"github.com/google/uuid"
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
+	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
+
+const ResourceTypeTenant = "tenant"
 
 type TenantService struct {
 	service.BaseService
@@ -59,6 +62,7 @@ func (svc TenantService) Create(ctx context.Context, tenantSpec TenantSpec) (*Te
 			return err
 		}
 
+		event.NewService(svc.Env()).TrackResourceCreated(txCtx, ResourceTypeTenant, newTenant.TenantId, newTenant.ToTenantSpec())
 		return nil
 	})
 
@@ -124,7 +128,9 @@ func (svc TenantService) UpdateByTenantId(ctx context.Context, tenantId string, 
 		return nil, err
 	}
 
-	return updatedTenant.ToTenantSpec(), nil
+	updatedTenantSpec := updatedTenant.ToTenantSpec()
+	event.NewService(svc.Env()).TrackResourceUpdated(ctx, ResourceTypeTenant, updatedTenant.TenantId, updatedTenantSpec)
+	return updatedTenantSpec, nil
 }
 
 func (svc TenantService) DeleteByTenantId(ctx context.Context, tenantId string) error {
@@ -144,6 +150,7 @@ func (svc TenantService) DeleteByTenantId(ctx context.Context, tenantId string) 
 			return err
 		}
 
+		event.NewService(svc.Env()).TrackResourceDeleted(ctx, ResourceTypeTenant, tenantId, nil)
 		return nil
 	})
 

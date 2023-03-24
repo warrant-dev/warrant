@@ -3,9 +3,12 @@ package authz
 import (
 	"context"
 
+	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
+
+const ResourceTypeObjectType = "object-type"
 
 type ObjectTypeService struct {
 	service.BaseService
@@ -43,7 +46,13 @@ func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTy
 		return nil, err
 	}
 
-	return newObjectType.ToObjectTypeSpec()
+	newObjectTypeSpec, err := newObjectType.ToObjectTypeSpec()
+	if err != nil {
+		return nil, err
+	}
+
+	event.NewService(svc.Env()).TrackResourceCreated(ctx, ResourceTypeObjectType, newObjectType.TypeId, newObjectTypeSpec)
+	return newObjectTypeSpec, nil
 }
 
 func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*ObjectTypeSpec, error) {
@@ -106,7 +115,13 @@ func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, 
 		return nil, err
 	}
 
-	return svc.GetByTypeId(ctx, typeId)
+	updatedObjectTypeSpec, err := svc.GetByTypeId(ctx, typeId)
+	if err != nil {
+		return nil, err
+	}
+
+	event.NewService(svc.Env()).TrackResourceUpdated(ctx, ResourceTypeObjectType, typeId, updatedObjectTypeSpec)
+	return updatedObjectTypeSpec, nil
 }
 
 func (svc ObjectTypeService) DeleteByTypeId(ctx context.Context, typeId string) error {
@@ -120,5 +135,6 @@ func (svc ObjectTypeService) DeleteByTypeId(ctx context.Context, typeId string) 
 		return err
 	}
 
+	event.NewService(svc.Env()).TrackResourceDeleted(ctx, ResourceTypeObjectType, typeId, nil)
 	return nil
 }

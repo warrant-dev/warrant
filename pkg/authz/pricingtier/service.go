@@ -5,9 +5,12 @@ import (
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
+	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
+
+const ResourceTypePricingTier = "pricing-tier"
 
 type PricingTierService struct {
 	service.BaseService
@@ -47,6 +50,7 @@ func (svc PricingTierService) Create(ctx context.Context, pricingTierSpec Pricin
 			return err
 		}
 
+		event.NewService(svc.Env()).TrackResourceCreated(txCtx, ResourceTypePricingTier, newPricingTier.PricingTierId, newPricingTier.ToPricingTierSpec())
 		return nil
 	})
 
@@ -113,7 +117,9 @@ func (svc PricingTierService) UpdateByPricingTierId(ctx context.Context, pricing
 		return nil, err
 	}
 
-	return updatedPricingTier.ToPricingTierSpec(), nil
+	updatedPricingTierSpec := updatedPricingTier.ToPricingTierSpec()
+	event.NewService(svc.Env()).TrackResourceUpdated(ctx, ResourceTypePricingTier, updatedPricingTier.PricingTierId, updatedPricingTierSpec)
+	return updatedPricingTierSpec, nil
 }
 
 func (svc PricingTierService) DeleteByPricingTierId(ctx context.Context, pricingTierId string) error {
@@ -133,6 +139,7 @@ func (svc PricingTierService) DeleteByPricingTierId(ctx context.Context, pricing
 			return err
 		}
 
+		event.NewService(svc.Env()).TrackResourceDeleted(ctx, ResourceTypePricingTier, pricingTierId, nil)
 		return nil
 	})
 

@@ -1,0 +1,6 @@
+BEGIN;
+
+DROP TABLE IF EXISTS resource_event;
+DROP TABLE IF EXISTS access_event;
+
+COMMIT;
