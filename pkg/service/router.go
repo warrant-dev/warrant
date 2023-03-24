@@ -81,7 +81,7 @@ func NewRouter(config *config.Config, pathPrefix string, routes []Route, additio
 	// Setup routes
 	for _, route := range routes {
 		routePattern := fmt.Sprintf("%s%s", pathPrefix, route.Pattern)
-		if route.DisableAuth {
+		if route.DisableAuth || config.ApiKey == "" {
 			router.Handle(routePattern, route.Handler).Methods(route.Method)
 		} else {
 			router.Handle(routePattern, AuthMiddleware(route.Handler, config)).Methods(route.Method)
