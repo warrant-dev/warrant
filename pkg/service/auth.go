@@ -30,16 +30,9 @@ func AuthMiddleware(next http.Handler, config *config.Config) http.Handler {
 
 		switch tokenType {
 		case "ApiKey":
-			err := validateAPIKey(tokenString, config)
-			if err != nil {
-				switch err.(type) {
-				case *UnauthorizedError:
-					SendErrorResponse(w, err)
-					return
-				default:
-					SendErrorResponse(w, NewInternalError("Something went wrong"))
-					return
-				}
+			if tokenString != config.ApiKey {
+				SendErrorResponse(w, NewUnauthorizedError("Invalid API key"))
+				return
 			}
 		default:
 			SendErrorResponse(w, NewInvalidRequestError("Invalid Authorization header prefix. Must be ApiKey"))
@@ -48,12 +41,4 @@ func AuthMiddleware(next http.Handler, config *config.Config) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
-}
-
-func validateAPIKey(tokenString string, config *config.Config) error {
-	if tokenString != config.ApiKey {
-		return NewUnauthorizedError("Invalid API key")
-	}
-
-	return nil
 }
