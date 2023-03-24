@@ -92,7 +92,7 @@ func NewConfig() Config {
 	}
 
 	if config.ApiKey == "" {
-		log.Info().Msg("Running without an API key. We recommend providing an API key when running in production.")
+		log.Info().Msg("Warrant is running without an API key. We recommend providing an API key when running in production.")
 	}
 
 	return config
