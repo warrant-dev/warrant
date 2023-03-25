@@ -9,11 +9,10 @@ The following [Docker Compose](https://docs.docker.com/compose/) manifest will c
 ```yaml
 version: "3.9"
 services:
-  datastore:
+  database:
     image: postgres:14.7
     environment:
       POSTGRES_PASSWORD: replace_with_password
-      POSTGRES_DB: warrant
     ports:
       - 5432:5432
     healthcheck:
@@ -21,27 +20,13 @@ services:
       timeout: 5s
       retries: 10
 
-  migrate-datastore:
-    image: migrate/migrate
-    command:
-      [
-        "-source",
-        "github://warrant-dev/warrant/migrations/datastore/postgres",
-        "-database",
-        "postgres://postgres:replace_with_password@datastore/warrant?sslmode=disable",
-        "up",
-      ]
-    depends_on:
-      datastore:
-        condition: service_healthy
-
   web:
     image: warrantdev/warrant
     ports:
       - 8000:8000
     depends_on:
-      migrate-datastore:
-        condition: service_completed_successfully
+      database:
+        condition: service_healthy
     environment:
       WARRANT_PORT: 8000
       WARRANT_LOGLEVEL: 1
@@ -49,9 +34,15 @@ services:
       WARRANT_DATASTORE: postgres
       WARRANT_DATASTORE_POSTGRES_USERNAME: postgres
       WARRANT_DATASTORE_POSTGRES_PASSWORD: replace_with_password
-      WARRANT_DATASTORE_POSTGRES_HOSTNAME: datastore
+      WARRANT_DATASTORE_POSTGRES_HOSTNAME: database
       WARRANT_DATASTORE_POSTGRES_DATABASE: warrant
       WARRANT_DATASTORE_POSTGRES_SSLMODE: disable
+      WARRANT_EVENTSTORE: postgres
+      WARRANT_EVENTSTORE_POSTGRES_USERNAME: postgres
+      WARRANT_EVENTSTORE_POSTGRES_PASSWORD: replace_with_password
+      WARRANT_EVENTSTORE_POSTGRES_HOSTNAME: database
+      WARRANT_EVENTSTORE_POSTGRES_DATABASE: warrant_events
+      WARRANT_EVENTSTORE_POSTGRES_SSLMODE: disable
       WARRANT_API_KEY: replace_with_api_key
 ```
 
@@ -61,22 +52,47 @@ services:
 
 Install and run the [PostgreSQL Installer](https://www.postgresql.org/download/) for your OS to install and start PostgreSQL. For MacOS users, we recommend [installing PostgreSQL using homebrew](https://formulae.brew.sh/formula/postgresql@14).
 
-### Migrate the Database Schema
-
-Once you've setup and started your database, you can setup the database schema using [golang-migrate](https://github.com/golang-migrate/migrate).
-
-Migrate to the latest schema:
-
-```bash
-migrate -source github://warrant-dev/warrant/migrations/datastore/postgres -database postgres://postgres:replace_with_password@/warrant?sslmode=disable up
-```
-
-### Download and Run the Binary
+### Download the Binary
 
 Download the latest warrant binary for your architecture from [here](https://github.com/warrant-dev/warrant/releases/latest). Then unzip the tarball and run the `warrant` executable.
 
 ```bash
 tar -xvf <name_of_tarball>
+```
+
+### Create `warrant.yaml` Configuration
+
+Create a file called `warrant.yaml` in the directory containing the Warrant binary.
+
+```bash
 cd <path_to_untarred_directory>
+touch warrant.yaml
+```
+
+```yaml
+# warrant.yaml
+port: 8000
+logLevel: 0
+enableAccessLog: "true"
+apiKey: replace_with_api_key
+datastore:
+  postgres:
+    username: replace_with_username
+    password: replace_with_password
+    hostname: localhost
+    database: warrant
+    sslmode: disable
+eventstore:
+  postgres:
+    username: replace_with_username
+    password: replace_with_password
+    hostname: localhost
+    database: warrant_events
+    sslmode: disable
+```
+
+### Run the Binary
+
+```bash
 ./warrant
 ```
