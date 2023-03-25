@@ -10,6 +10,10 @@ import (
 	"github.com/rs/zerolog/log"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/mysql"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/golang-migrate/migrate/v4/source/github"
 	"github.com/warrant-dev/warrant/pkg/config"
 )
 
@@ -35,14 +39,14 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 	var db *sqlx.DB
 	var err error
 
-	db, err = sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.Database))
+	db, err = sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/?parseTime=true", ds.Config.Username, ds.Config.Password, ds.Config.Hostname))
 	if err != nil {
-		errors.Wrap(err, fmt.Sprintf("Unable to establish connection to mysql database %s. Shutting down server.", ds.Config.Database))
+		errors.Wrap(err, "Unable to establish connection to mysql. Shutting down server.")
 	}
 
 	err = db.PingContext(ctx)
 	if err != nil {
-		errors.Wrap(err, fmt.Sprintf("Unable to ping mysql database %s. Shutting down server.", ds.Config.Database))
+		errors.Wrap(err, "Unable to ping mysql. Shutting down server.")
 	}
 
 	if ds.Config.MaxIdleConnections != 0 {
@@ -53,11 +57,59 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 		db.SetMaxOpenConns(ds.Config.MaxOpenConnections)
 	}
 
+	// create database if it does not already exist
+	_, err = db.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", ds.Config.Database))
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("Unable to create mysql database %s", ds.Config.Database))
+	}
+
+	_, err = db.ExecContext(ctx, fmt.Sprintf("USE %s", ds.Config.Database))
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("Unable to use mysql database %s", ds.Config.Database))
+	}
+
 	// map struct attributes to db column names
 	db.Mapper = reflectx.NewMapperFunc("mysql", func(s string) string { return s })
 
 	ds.DB = db
 	log.Debug().Msgf("Connected to mysql database %s", ds.Config.Database)
+	return nil
+}
+
+func (ds MySQL) Migrate(ctx context.Context, toVersion uint) error {
+	log.Debug().Msgf("Migrating mysql database %s", ds.Config.Database)
+	// migrate database to latest schema
+	mig, err := migrate.New(
+		ds.Config.MigrationSource,
+		fmt.Sprintf("mysql://%s:%s@tcp(%s:3306)/%s?multiStatements=true", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.Database),
+	)
+	if err != nil {
+		return errors.Wrap(err, "Error migrating mysql database")
+	}
+
+	defer mig.Close()
+	currentVersion, _, err := mig.Version()
+	if err != nil {
+		if err == migrate.ErrNilVersion {
+			currentVersion = 0
+		} else {
+			return errors.Wrap(err, "Error migrating mysql database")
+		}
+	}
+
+	if currentVersion == toVersion {
+		log.Debug().Msg("Migrations already up-to-date")
+		return nil
+	}
+
+	numStepsToMigrate := toVersion - currentVersion
+	log.Debug().Msgf("Applying %d migration(s)", numStepsToMigrate)
+	err = mig.Steps(int(numStepsToMigrate))
+	if err != nil {
+		return errors.Wrap(err, "Error migrating mysql database")
+	}
+
+	log.Debug().Msgf("Migrations for database %s up-to-date.", ds.Config.Database)
 	return nil
 }
 

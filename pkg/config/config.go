@@ -13,7 +13,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-const PrefixWarrant = "warrant"
+const (
+	DefaultMySQLDatastoreMigrationSource     = "github://warrant-dev/warrant/migrations/datastore/mysql"
+	DefaultMySQLEventstoreMigrationSource    = "github://warrant-dev/warrant/migrations/eventstore/mysql"
+	DefaultPostgresDatastoreMigrationSource  = "github://warrant-dev/warrant/migrations/datastore/postgres"
+	DefaultPostgresEventstoreMigrationSource = "github://warrant-dev/warrant/migrations/eventstore/postgres"
+	PrefixWarrant                            = "warrant"
+)
 
 type Config struct {
 	Port            int              `mapstructure:"port"`
@@ -34,6 +40,7 @@ type MySQLConfig struct {
 	Password           string `mapstructure:"password"`
 	Hostname           string `mapstructure:"hostname"`
 	Database           string `mapstructure:"database"`
+	MigrationSource    string `mapstructure:"migrationSource"`
 	MaxIdleConnections int    `mapstructure:"maxIdleConnections"`
 	MaxOpenConnections int    `mapstructure:"maxOpenConncetions"`
 }
@@ -44,6 +51,7 @@ type PostgresConfig struct {
 	Hostname           string `mapstructure:"hostname"`
 	Database           string `mapstructure:"database"`
 	SSLMode            string `mapstructure:"sslmode"`
+	MigrationSource    string `mapstructure:"migrationSource"`
 	MaxIdleConnections int    `mapstructure:"maxIdleConnections"`
 	MaxOpenConnections int    `mapstructure:"maxOpenConncetions"`
 }
@@ -60,6 +68,10 @@ func NewConfig() Config {
 	viper.SetDefault("port", 8000)
 	viper.SetDefault("levelLevel", zerolog.DebugLevel)
 	viper.SetDefault("enableAccessLog", true)
+	viper.SetDefault("datastore.mysql.migrationSource", DefaultMySQLDatastoreMigrationSource)
+	viper.SetDefault("eventstore.mysql.migrationSource", DefaultMySQLEventstoreMigrationSource)
+	viper.SetDefault("datastore.postgres.migrationSource", DefaultPostgresDatastoreMigrationSource)
+	viper.SetDefault("eventstore.postgres.migrationSource", DefaultPostgresEventstoreMigrationSource)
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
@@ -92,7 +104,7 @@ func NewConfig() Config {
 	}
 
 	if config.ApiKey == "" {
-		log.Info().Msg("Warrant is running without an API key. We recommend providing an API key when running in production.")
+		log.Warn().Msg("Warrant is running without an API key. We recommend providing an API key when running in production.")
 	}
 
 	return config
