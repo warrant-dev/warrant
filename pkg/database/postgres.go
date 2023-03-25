@@ -9,7 +9,11 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 
-	_ "github.com/lib/pq"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/golang-migrate/migrate/v4/source/github"
+	"github.com/lib/pq"
 	"github.com/warrant-dev/warrant/pkg/config"
 )
 
@@ -35,6 +39,21 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 	var db *sqlx.DB
 	var err error
 
+	db, err = sqlx.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/?sslmode=%s", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.SSLMode))
+	if err != nil {
+		errors.Wrap(err, fmt.Sprintf("Unable to establish connection to postgres database %s. Shutting down server.", ds.Config.Database))
+	}
+
+	// create database if it does not already exist
+	_, err = db.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE %s", ds.Config.Database))
+	if err != nil {
+		pgErr, ok := err.(*pq.Error)
+		if ok && pgErr.Code.Name() != "duplicate_database" {
+			return errors.Wrap(err, fmt.Sprintf("Unable to create postgres database %s", ds.Config.Database))
+		}
+	}
+
+	db.Close()
 	db, err = sqlx.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=%s", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.Database, ds.Config.SSLMode))
 	if err != nil {
 		errors.Wrap(err, fmt.Sprintf("Unable to establish connection to postgres database %s. Shutting down server.", ds.Config.Database))
@@ -58,6 +77,43 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 
 	ds.DB = db
 	log.Debug().Msgf("Connected to postgres database %s", ds.Config.Database)
+	return nil
+}
+
+func (ds Postgres) Migrate(ctx context.Context, toVersion uint) error {
+	log.Debug().Msgf("Migrating postgres database %s", ds.Config.Database)
+	// migrate database to latest schema
+	mig, err := migrate.New(
+		ds.Config.MigrationSource,
+		fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=%s", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.Database, ds.Config.SSLMode),
+	)
+	if err != nil {
+		return errors.Wrap(err, "Error migrating postgres database")
+	}
+
+	defer mig.Close()
+	currentVersion, _, err := mig.Version()
+	if err != nil {
+		if err == migrate.ErrNilVersion {
+			currentVersion = 0
+		} else {
+			return errors.Wrap(err, "Error migrating postgres database")
+		}
+	}
+
+	if currentVersion == toVersion {
+		log.Debug().Msg("Migrations already up-to-date")
+		return nil
+	}
+
+	numStepsToMigrate := toVersion - currentVersion
+	log.Debug().Msgf("Applying %d migration(s)", numStepsToMigrate)
+	err = mig.Steps(int(numStepsToMigrate))
+	if err != nil {
+		return errors.Wrap(err, "Error migrating postgres database")
+	}
+
+	log.Debug().Msgf("Migrations for database %s up-to-date.", ds.Config.Database)
 	return nil
 }
 

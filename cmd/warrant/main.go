@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	check "github.com/warrant-dev/warrant/pkg/authz/check"
@@ -22,6 +23,13 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
+const (
+	MySQLDatastoreMigrationVersion     = 000002
+	MySQLEventstoreMigrationVersion    = 000001
+	PostgresDatastoreMigrationVersion  = 000002
+	PostgresEventstoreMigrationVersion = 000001
+)
+
 type ServiceEnv struct {
 	Datastore  database.Database
 	Eventstore database.Database
@@ -36,9 +44,17 @@ func (env ServiceEnv) EventDB() database.Database {
 }
 
 func (env *ServiceEnv) InitDB(config config.Config) error {
-	if config.Datastore.MySQL != nil {
+	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelFunc()
+
+	if config.Datastore.MySQL.Hostname != "" {
 		db := database.NewMySQL(*config.Datastore.MySQL)
-		err := db.Connect(context.Background())
+		err := db.Connect(ctx)
+		if err != nil {
+			return err
+		}
+
+		err = db.Migrate(ctx, MySQLDatastoreMigrationVersion)
 		if err != nil {
 			return err
 		}
@@ -47,9 +63,14 @@ func (env *ServiceEnv) InitDB(config config.Config) error {
 		return nil
 	}
 
-	if config.Datastore.Postgres != nil {
+	if config.Datastore.Postgres.Hostname != "" {
 		db := database.NewPostgres(*config.Datastore.Postgres)
-		err := db.Connect(context.Background())
+		err := db.Connect(ctx)
+		if err != nil {
+			return err
+		}
+
+		err = db.Migrate(ctx, PostgresDatastoreMigrationVersion)
 		if err != nil {
 			return err
 		}
@@ -62,9 +83,17 @@ func (env *ServiceEnv) InitDB(config config.Config) error {
 }
 
 func (env *ServiceEnv) InitEventDB(config config.Config) error {
-	if config.Eventstore.MySQL != nil {
+	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelFunc()
+
+	if config.Eventstore.MySQL.Hostname != "" {
 		db := database.NewMySQL(*config.Eventstore.MySQL)
-		err := db.Connect(context.Background())
+		err := db.Connect(ctx)
+		if err != nil {
+			return err
+		}
+
+		err = db.Migrate(ctx, MySQLEventstoreMigrationVersion)
 		if err != nil {
 			return err
 		}
@@ -73,9 +102,14 @@ func (env *ServiceEnv) InitEventDB(config config.Config) error {
 		return nil
 	}
 
-	if config.Eventstore.Postgres != nil {
+	if config.Eventstore.Postgres.Hostname != "" {
 		db := database.NewPostgres(*config.Eventstore.Postgres)
-		err := db.Connect(context.Background())
+		err := db.Connect(ctx)
+		if err != nil {
+			return err
+		}
+
+		err = db.Migrate(ctx, PostgresEventstoreMigrationVersion)
 		if err != nil {
 			return err
 		}
