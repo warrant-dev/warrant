@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	context "github.com/warrant-dev/warrant/pkg/context"
 	"github.com/warrant-dev/warrant/pkg/database"
 )
@@ -89,23 +88,12 @@ func StringToSubjectSpec(str string) (*SubjectSpec, error) {
 	}, nil
 }
 
-func UserIdToSubjectString(userId string) string {
-	return fmt.Sprintf("%s:%s", objecttype.ObjectTypeUser, userId)
-}
-
-func UserIdToSubjectSpec(userId string) *SubjectSpec {
-	return &SubjectSpec{
-		ObjectType: objecttype.ObjectTypeUser,
-		ObjectId:   userId,
-	}
-}
-
 // WarrantSpec type
 type WarrantSpec struct {
 	ObjectType string                 `json:"objectType" validate:"required,valid_object_type"`
 	ObjectId   string                 `json:"objectId" validate:"required,valid_object_id"`
 	Relation   string                 `json:"relation" validate:"required,valid_relation"`
-	Subject    *SubjectSpec           `json:"subject" validate:"required_without=User"`
+	Subject    *SubjectSpec           `json:"subject" validate:"required"`
 	Context    context.ContextSetSpec `json:"context,omitempty"`
 	IsImplicit *bool                  `json:"isImplicit,omitempty"`
 	CreatedAt  time.Time              `json:"createdAt"`
