@@ -48,17 +48,12 @@ func StringToObjectSpec(str string) (*ObjectSpec, error) {
 
 // SubjectSpec type
 type SubjectSpec struct {
-	UserId     string `json:"userId,omitempty" validate:"required_without_all=ObjectType ObjectId Relation"`
 	ObjectType string `json:"objectType,omitempty" validate:"required_with=ObjectId,valid_object_type"`
 	ObjectId   string `json:"objectId,omitempty" validate:"required_with=ObjectType,valid_object_id"`
 	Relation   string `json:"relation,omitempty" validate:"valid_relation"`
 }
 
 func (spec *SubjectSpec) String() string {
-	if spec.UserId != "" {
-		return fmt.Sprintf("%s:%s", objecttype.ObjectTypeUser, spec.UserId)
-	}
-
 	if spec.Relation == "" {
 		return fmt.Sprintf("%s:%s", spec.ObjectType, spec.ObjectId)
 	}
@@ -111,7 +106,6 @@ type WarrantSpec struct {
 	ObjectId   string                 `json:"objectId" validate:"required,valid_object_id"`
 	Relation   string                 `json:"relation" validate:"required,valid_relation"`
 	Subject    *SubjectSpec           `json:"subject" validate:"required_without=User"`
-	User       *SubjectSpec           `json:"user,omitempty" validate:"required_without=Subject"`
 	Context    context.ContextSetSpec `json:"context,omitempty"`
 	IsImplicit *bool                  `json:"isImplicit,omitempty"`
 	CreatedAt  time.Time              `json:"createdAt"`
