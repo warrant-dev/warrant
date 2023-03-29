@@ -74,7 +74,7 @@ func NewConfig() Config {
 	viper.SetDefault("eventstore.postgres.migrationSource", DefaultPostgresEventstoreMigrationSource)
 
 	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			log.Info().Msg("Could not find warrant.yaml. Attempting to use environment variables.")
 		} else {
 			log.Fatal().Err(err).Msg("Error while reading warrant.yaml. Shutting down.")
