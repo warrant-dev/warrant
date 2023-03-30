@@ -28,6 +28,7 @@ type Config struct {
 	Datastore       DatastoreConfig  `mapstructure:"datastore"`
 	Eventstore      EventstoreConfig `mapstructure:"eventstore"`
 	ApiKey          string           `mapstructure:"apiKey"`
+	AuthProvider    AuthConfig       `mapstructure:"authentication"`
 }
 
 type DatastoreConfig struct {
@@ -59,6 +60,11 @@ type PostgresConfig struct {
 type EventstoreConfig struct {
 	MySQL    *MySQLConfig    `mapstructure:"mysql"`
 	Postgres *PostgresConfig `mapstructure:"postgres"`
+}
+
+type AuthConfig struct {
+	Provider  string `mapstructure:"provider"`
+	PublicKey string `mapstructure:"publicKey"`
 }
 
 func NewConfig() Config {
