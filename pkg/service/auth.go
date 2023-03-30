@@ -1,12 +1,31 @@
 package service
 
 import (
+	"context"
+	"crypto/rsa"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
+	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog/hlog"
 	"github.com/warrant-dev/warrant/pkg/config"
 )
+
+const FirebasePublicKeyUrl = "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com"
+
+type key int
+
+const (
+	authInfoKey key = iota
+)
+
+type AuthInfo struct {
+	UserId string
+}
 
 func AuthMiddleware(next http.Handler, config *config.Config) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -28,17 +47,98 @@ func AuthMiddleware(next http.Handler, config *config.Config) http.Handler {
 		tokenType := authHeaderParts[0]
 		tokenString := authHeaderParts[1]
 
+		var authInfo *AuthInfo
 		switch tokenType {
 		case "ApiKey":
 			if tokenString != config.ApiKey {
 				SendErrorResponse(w, NewUnauthorizedError("Invalid API key"))
 				return
 			}
+			authInfo = &AuthInfo{}
+		case "Bearer":
+			if config.AuthProvider.Provider == "" {
+				SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
+				logger.Warn().Msg("Authentication provider configuration is not setup to handle session token requests")
+				return
+			}
+
+			var publicKey *rsa.PublicKey
+			var publicKeys map[string]string
+			var err error
+			switch config.AuthProvider.Provider {
+			case "firebase":
+				// Retrieve Firebase public keys
+				response, err := http.Get(FirebasePublicKeyUrl)
+				if err != nil {
+					SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
+					return
+				}
+
+				defer response.Body.Close()
+
+				contents, err := io.ReadAll(response.Body)
+				if err != nil {
+					SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
+					return
+				}
+
+				json.Unmarshal(contents, &publicKeys)
+			default:
+				publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(config.AuthProvider.PublicKey))
+				if err != nil {
+					SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
+					return
+				}
+			}
+
+			checkedToken, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+				if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+					return nil, NewUnauthorizedError(fmt.Sprintf("Invalid %s token: unexpected signing method %v", tokenType, token.Header["alg"]))
+				}
+
+				if config.AuthProvider.Provider == "firebase" {
+					publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(publicKeys[token.Header["kid"].(string)]))
+					if err != nil {
+						return nil, NewUnauthorizedError("Invalid token")
+					}
+				}
+
+				return publicKey, nil
+			})
+
+			if err != nil {
+				if errors.Is(err, jwt.ErrTokenExpired) {
+					SendErrorResponse(w, NewTokenExpiredError())
+					return
+				}
+
+				SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
+				return
+			}
+
+			if !checkedToken.Valid {
+				SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
+				return
+			}
+
+			// Get claims
+			subject, err := checkedToken.Claims.GetSubject()
+			if err != nil {
+				SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
+				return
+			}
+
+			authInfo = &AuthInfo{
+				UserId: subject,
+			}
 		default:
-			SendErrorResponse(w, NewInvalidRequestError("Invalid Authorization header prefix. Must be ApiKey"))
+			SendErrorResponse(w, NewUnauthorizedError("Invalid Authorization header prefix. Must be ApiKey or Bearer"))
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		// Add authInfo to request context
+		newContext := context.WithValue(r.Context(), authInfoKey, *authInfo)
+
+		next.ServeHTTP(w, r.WithContext(newContext))
 	})
 }
