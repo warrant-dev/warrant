@@ -27,7 +27,7 @@ type AuthInfo struct {
 	UserId string
 }
 
-func AuthMiddleware(next http.Handler, config *config.Config) http.Handler {
+func AuthMiddleware(next http.Handler, config *config.Config, enableSessionAuth bool) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := hlog.FromRequest(r)
 
@@ -56,6 +56,12 @@ func AuthMiddleware(next http.Handler, config *config.Config) http.Handler {
 			}
 			authInfo = &AuthInfo{}
 		case "Bearer":
+			if !enableSessionAuth {
+				SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
+				logger.Warn().Msg("Session authentication not supported for this endpoint")
+				return
+			}
+
 			if config.AuthProvider.Provider == "" {
 				SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
 				logger.Warn().Msg("Authentication provider configuration is not setup to handle session token requests")

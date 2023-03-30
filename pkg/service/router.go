@@ -15,10 +15,11 @@ import (
 )
 
 type Route struct {
-	Pattern     string
-	Method      string
-	Handler     http.Handler
-	DisableAuth bool
+	Pattern           string
+	Method            string
+	Handler           http.Handler
+	DisableAuth       bool
+	EnableSessionAuth bool
 }
 
 type RouteHandler struct {
@@ -84,7 +85,7 @@ func NewRouter(config *config.Config, pathPrefix string, routes []Route, additio
 		if route.DisableAuth || config.ApiKey == "" {
 			router.Handle(routePattern, route.Handler).Methods(route.Method)
 		} else {
-			router.Handle(routePattern, AuthMiddleware(route.Handler, config)).Methods(route.Method)
+			router.Handle(routePattern, AuthMiddleware(route.Handler, config, route.EnableSessionAuth)).Methods(route.Method)
 		}
 	}
 

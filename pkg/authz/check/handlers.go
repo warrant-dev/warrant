@@ -18,6 +18,7 @@ func (svc CheckService) GetRoutes() []service.Route {
 			Handler: middleware.ChainMiddleware(
 				service.NewRouteHandler(svc.Env(), authorize),
 			),
+			EnableSessionAuth: true,
 		},
 	}
 }
