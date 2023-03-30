@@ -142,3 +142,8 @@ func AuthMiddleware(next http.Handler, config *config.Config) http.Handler {
 		next.ServeHTTP(w, r.WithContext(newContext))
 	})
 }
+
+// GetAuthInfoFromRequestContext returns the AuthInfo object from the given context
+func GetAuthInfoFromRequestContext(context context.Context) AuthInfo {
+	return context.Value(authInfoKey).(AuthInfo)
+}
