@@ -58,14 +58,14 @@ func AuthMiddleware(next http.Handler, config *config.Config, enableSessionAuth 
 			authInfo = &AuthInfo{}
 		case "Bearer":
 			if !enableSessionAuth {
-				SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
-				logger.Warn().Msg("Session authentication not supported for this endpoint")
+				SendErrorResponse(w, NewUnauthorizedError("Error validating token"))
+				logger.Err(fmt.Errorf("invalid authentication for the endpoint")).Msg("Session authentication not supported for this endpoint")
 				return
 			}
 
 			if config.Authentication.Provider == "" {
-				SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
-				logger.Warn().Msg("Authentication provider configuration is not setup to handle session token requests")
+				SendErrorResponse(w, NewInternalError("Error validating token"))
+				logger.Err(fmt.Errorf("invalid authentication provider configuration")).Msg("Must configure an authentication provider to allow requests that use third party auth tokens.")
 				return
 			}
 
@@ -77,7 +77,8 @@ func AuthMiddleware(next http.Handler, config *config.Config, enableSessionAuth 
 				// Retrieve Firebase public keys
 				response, err := http.Get(FirebasePublicKeyUrl)
 				if err != nil {
-					SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
+					SendErrorResponse(w, NewInternalError("Error validating token"))
+					logger.Err(err).Msg("Error fetching Firebase public keys")
 					return
 				}
 
@@ -85,7 +86,8 @@ func AuthMiddleware(next http.Handler, config *config.Config, enableSessionAuth 
 
 				contents, err := io.ReadAll(response.Body)
 				if err != nil {
-					SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
+					SendErrorResponse(w, NewInternalError("Error validating token"))
+					logger.Err(err).Msg("Error reading Firebase public keys")
 					return
 				}
 
@@ -93,7 +95,8 @@ func AuthMiddleware(next http.Handler, config *config.Config, enableSessionAuth 
 			default:
 				publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(config.Authentication.PublicKey))
 				if err != nil {
-					SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
+					SendErrorResponse(w, NewInternalError("Error validating token"))
+					logger.Err(fmt.Errorf("invalid authentication provider configuration")).Msg("Invalid public key for configured authentication provider")
 					return
 				}
 			}
