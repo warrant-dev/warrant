@@ -43,6 +43,10 @@ services:
       WARRANT_EVENTSTORE_MYSQL_HOSTNAME: database
       WARRANT_EVENTSTORE_MYSQL_DATABASE: warrantEvents
       WARRANT_API_KEY: replace_with_api_key
+      WARRANT_AUTHPROVIDER_PROVIDER: replace_with_auth_provider_name
+      WARRANT_AUTHPROVIDER_PUBLICKEY: replace_with_auth_provider_public_key
+      WARRANT_AUTHPROVIDER_USER_IDENTIFIER: replace_with_auth_provider_user_id_field
+      WARRANT_AUTHPROVIDER_TENANT_IDENTIFIER: replace_with_auth_provider_tenant_id_field
 ```
 
 ## Running the Binary
