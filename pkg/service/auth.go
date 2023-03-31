@@ -63,7 +63,7 @@ func AuthMiddleware(next http.Handler, config *config.Config, enableSessionAuth 
 				return
 			}
 
-			if config.AuthProvider.Provider == "" {
+			if config.Authentication.Provider == "" {
 				SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
 				logger.Warn().Msg("Authentication provider configuration is not setup to handle session token requests")
 				return
@@ -72,7 +72,7 @@ func AuthMiddleware(next http.Handler, config *config.Config, enableSessionAuth 
 			var publicKey *rsa.PublicKey
 			var publicKeys map[string]string
 			var err error
-			switch config.AuthProvider.Provider {
+			switch config.Authentication.Provider {
 			case "firebase":
 				// Retrieve Firebase public keys
 				response, err := http.Get(FirebasePublicKeyUrl)
@@ -91,7 +91,7 @@ func AuthMiddleware(next http.Handler, config *config.Config, enableSessionAuth 
 
 				json.Unmarshal(contents, &publicKeys)
 			default:
-				publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(config.AuthProvider.PublicKey))
+				publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(config.Authentication.PublicKey))
 				if err != nil {
 					SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
 					return
@@ -103,7 +103,7 @@ func AuthMiddleware(next http.Handler, config *config.Config, enableSessionAuth 
 					return nil, NewUnauthorizedError(fmt.Sprintf("Invalid %s token: unexpected signing method %v", tokenType, token.Header["alg"]))
 				}
 
-				if config.AuthProvider.Provider == "firebase" {
+				if config.Authentication.Provider == "firebase" {
 					publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(publicKeys[token.Header["kid"].(string)]))
 					if err != nil {
 						return nil, NewUnauthorizedError("Invalid token")
@@ -131,23 +131,23 @@ func AuthMiddleware(next http.Handler, config *config.Config, enableSessionAuth 
 			// Get claims
 			tokenClaims := checkedToken.Claims.(jwt.MapClaims)
 
-			if _, ok := tokenClaims[config.AuthProvider.UserIdClaim]; !ok {
+			if _, ok := tokenClaims[config.Authentication.UserIdClaim]; !ok {
 				SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
-				logger.Warn().Msgf("Unable to retrieve user id from token with given identifier: %s", config.AuthProvider.UserIdClaim)
+				logger.Warn().Msgf("Unable to retrieve user id from token with given identifier: %s", config.Authentication.UserIdClaim)
 				return
 			}
-			userId := tokenClaims[config.AuthProvider.UserIdClaim].(string)
+			userId := tokenClaims[config.Authentication.UserIdClaim].(string)
 
 			authInfo = &AuthInfo{
 				UserId: userId,
 			}
 
-			if config.AuthProvider.TenantIdClaim != "" {
-				if _, ok := tokenClaims[config.AuthProvider.TenantIdClaim]; !ok {
+			if config.Authentication.TenantIdClaim != "" {
+				if _, ok := tokenClaims[config.Authentication.TenantIdClaim]; !ok {
 					SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
-					logger.Warn().Msgf("Unable to retrieve tenant id from token with given identifier: %s", config.AuthProvider.TenantIdClaim)
+					logger.Warn().Msgf("Unable to retrieve tenant id from token with given identifier: %s", config.Authentication.TenantIdClaim)
 				}
-				authInfo.TenantId = tokenClaims[config.AuthProvider.TenantIdClaim].(string)
+				authInfo.TenantId = tokenClaims[config.Authentication.TenantIdClaim].(string)
 			}
 		default:
 			SendErrorResponse(w, NewUnauthorizedError("Invalid Authorization header prefix. Must be ApiKey or Bearer"))

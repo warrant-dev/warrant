@@ -28,7 +28,7 @@ type Config struct {
 	Datastore       DatastoreConfig  `mapstructure:"datastore"`
 	Eventstore      EventstoreConfig `mapstructure:"eventstore"`
 	ApiKey          string           `mapstructure:"apiKey"`
-	AuthProvider    AuthConfig       `mapstructure:"authentication"`
+	Authentication  AuthConfig       `mapstructure:"authentication"`
 }
 
 type DatastoreConfig struct {
@@ -116,8 +116,8 @@ func NewConfig() Config {
 	}
 
 	// Set default for user identifier
-	if config.AuthProvider.UserIdClaim == "" {
-		config.AuthProvider.UserIdClaim = "sub"
+	if config.Authentication.UserIdClaim == "" {
+		config.Authentication.UserIdClaim = "sub"
 	}
 
 	return config
