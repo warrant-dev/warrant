@@ -128,14 +128,17 @@ func AuthMiddleware(next http.Handler, config *config.Config, enableSessionAuth 
 			}
 
 			// Get claims
-			subject, err := checkedToken.Claims.GetSubject()
-			if err != nil {
+			tokenClaims := checkedToken.Claims.(jwt.MapClaims)
+
+			if _, ok := tokenClaims[config.AuthProvider.UserIdentifier]; !ok {
 				SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
+				logger.Warn().Msgf("Unable to retrieve user id from token with given identifier: %s", config.AuthProvider.UserIdentifier)
 				return
 			}
+			userId := tokenClaims[config.AuthProvider.UserIdentifier].(string)
 
 			authInfo = &AuthInfo{
-				UserId: subject,
+				UserId: userId,
 			}
 		default:
 			SendErrorResponse(w, NewUnauthorizedError("Invalid Authorization header prefix. Must be ApiKey or Bearer"))

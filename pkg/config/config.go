@@ -63,8 +63,9 @@ type EventstoreConfig struct {
 }
 
 type AuthConfig struct {
-	Provider  string `mapstructure:"provider"`
-	PublicKey string `mapstructure:"publicKey"`
+	Provider       string `mapstructure:"provider"`
+	PublicKey      string `mapstructure:"publicKey"`
+	UserIdentifier string `mapstructure:"userIdentifier"`
 }
 
 func NewConfig() Config {
@@ -111,6 +112,11 @@ func NewConfig() Config {
 
 	if config.ApiKey == "" {
 		log.Warn().Msg("Warrant is running without an API key. We recommend providing an API key when running in production.")
+	}
+
+	// Set default for user identifier
+	if config.AuthProvider.UserIdentifier == "" {
+		config.AuthProvider.UserIdentifier = "sub"
 	}
 
 	return config
