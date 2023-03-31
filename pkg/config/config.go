@@ -63,10 +63,10 @@ type EventstoreConfig struct {
 }
 
 type AuthConfig struct {
-	Provider         string `mapstructure:"provider"`
-	PublicKey        string `mapstructure:"publicKey"`
-	UserIdentifier   string `mapstructure:"userIdentifier"`
-	TenantIdentifier string `mapstructure:"tenantIdentifier"`
+	Provider      string `mapstructure:"provider"`
+	PublicKey     string `mapstructure:"publicKey"`
+	UserIdClaim   string `mapstructure:"userIdClaim"`
+	TenantIdClaim string `mapstructure:"teantIdClaim"`
 }
 
 func NewConfig() Config {
@@ -116,8 +116,8 @@ func NewConfig() Config {
 	}
 
 	// Set default for user identifier
-	if config.AuthProvider.UserIdentifier == "" {
-		config.AuthProvider.UserIdentifier = "sub"
+	if config.AuthProvider.UserIdClaim == "" {
+		config.AuthProvider.UserIdClaim = "sub"
 	}
 
 	return config

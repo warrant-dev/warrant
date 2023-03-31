@@ -131,23 +131,23 @@ func AuthMiddleware(next http.Handler, config *config.Config, enableSessionAuth 
 			// Get claims
 			tokenClaims := checkedToken.Claims.(jwt.MapClaims)
 
-			if _, ok := tokenClaims[config.AuthProvider.UserIdentifier]; !ok {
+			if _, ok := tokenClaims[config.AuthProvider.UserIdClaim]; !ok {
 				SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
-				logger.Warn().Msgf("Unable to retrieve user id from token with given identifier: %s", config.AuthProvider.UserIdentifier)
+				logger.Warn().Msgf("Unable to retrieve user id from token with given identifier: %s", config.AuthProvider.UserIdClaim)
 				return
 			}
-			userId := tokenClaims[config.AuthProvider.UserIdentifier].(string)
+			userId := tokenClaims[config.AuthProvider.UserIdClaim].(string)
 
 			authInfo = &AuthInfo{
 				UserId: userId,
 			}
 
-			if config.AuthProvider.TenantIdentifier != "" {
-				if _, ok := tokenClaims[config.AuthProvider.TenantIdentifier]; !ok {
+			if config.AuthProvider.TenantIdClaim != "" {
+				if _, ok := tokenClaims[config.AuthProvider.TenantIdClaim]; !ok {
 					SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
-					logger.Warn().Msgf("Unable to retrieve tenant id from token with given identifier: %s", config.AuthProvider.TenantIdentifier)
+					logger.Warn().Msgf("Unable to retrieve tenant id from token with given identifier: %s", config.AuthProvider.TenantIdClaim)
 				}
-				authInfo.TenantId = tokenClaims[config.AuthProvider.TenantIdentifier].(string)
+				authInfo.TenantId = tokenClaims[config.AuthProvider.TenantIdClaim].(string)
 			}
 		default:
 			SendErrorResponse(w, NewUnauthorizedError("Invalid Authorization header prefix. Must be ApiKey or Bearer"))
