@@ -142,7 +142,7 @@ func main() {
 	}
 
 	svcs := []service.Service{
-		check.NewService(&svcEnv),
+		check.NewService(&svcEnv, &service.AuthInfo{}),
 		event.NewService(&svcEnv),
 		feature.NewService(&svcEnv),
 		object.NewService(&svcEnv),

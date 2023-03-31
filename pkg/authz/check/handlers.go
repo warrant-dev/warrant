@@ -54,7 +54,7 @@ func authorize(env service.Env, w http.ResponseWriter, r *http.Request) error {
 			Debug:          sessionCheckManySpec.Debug,
 		}
 
-		checkResult, err := NewService(env).CheckMany(r.Context(), &checkManySpec)
+		checkResult, err := NewService(env, &authInfo).CheckMany(r.Context(), &checkManySpec)
 		if err != nil {
 			return err
 		}
@@ -69,7 +69,7 @@ func authorize(env service.Env, w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	checkResult, err := NewService(env).CheckMany(r.Context(), &checkManySpec)
+	checkResult, err := NewService(env, &authInfo).CheckMany(r.Context(), &checkManySpec)
 	if err != nil {
 		return err
 	}
