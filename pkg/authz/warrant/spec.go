@@ -191,6 +191,5 @@ type SessionWarrantSpec struct {
 	ObjectId   string                 `json:"objectId" validate:"required,valid_object_id"`
 	Relation   string                 `json:"relation" validate:"required,valid_relation"`
 	Context    context.ContextSetSpec `json:"context,omitempty"`
-	IsImplicit *bool                  `json:"isImplicit,omitempty"`
 	CreatedAt  time.Time              `json:"createdAt"`
 }
