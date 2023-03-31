@@ -43,7 +43,11 @@ services:
       WARRANT_EVENTSTORE_POSTGRES_HOSTNAME: database
       WARRANT_EVENTSTORE_POSTGRES_DATABASE: warrant_events
       WARRANT_EVENTSTORE_POSTGRES_SSLMODE: disable
-      WARRANT_API_KEY: replace_with_api_key
+      WARRANT_APIKEY: replace_with_api_key
+      WARRANT_AUTHENTICATION_PROVIDER: replace_with_authentication_name
+      WARRANT_AUTHENTICATION_PUBLICKEY: replace_with_authentication_public_key
+      WARRANT_AUTHENTICATION_USERIDCLAIM: replace_with_authentication_user_id_claim
+      WARRANT_AUTHENTICATION_TENANTIDCLAIM: replace_with_authentication_tenant_id_claim
 ```
 
 ## Running the Binary

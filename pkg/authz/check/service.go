@@ -14,12 +14,14 @@ import (
 
 type CheckService struct {
 	service.BaseService
+	authInfo      *service.AuthInfo
 	objectTypeMap map[string]*objecttype.ObjectTypeSpec
 }
 
-func NewService(env service.Env) CheckService {
+func NewService(env service.Env, authInfo *service.AuthInfo) CheckService {
 	return CheckService{
 		BaseService:   service.NewBaseService(env),
+		authInfo:      authInfo,
 		objectTypeMap: make(map[string]*objecttype.ObjectTypeSpec),
 	}
 }
@@ -323,6 +325,11 @@ func (svc CheckService) CheckMany(ctx context.Context, warrantCheck *CheckManySp
 func (svc CheckService) Check(ctx context.Context, warrantCheck CheckSpec) (match bool, decisionPath []warrant.WarrantSpec, err error) {
 	log.Debug().Msgf("Checking for warrant %s", warrantCheck.String())
 
+	// Used to automatically append tenant context for session token w/ tenantId checks
+	if svc.authInfo.TenantId != "" {
+		svc.appendTenantContext(&warrantCheck)
+	}
+
 	// Check for direct warrant match -> doc:readme#viewer@[10]
 	matchedWarrant, err := svc.getWithContextMatch(ctx, warrantCheck.WarrantSpec)
 	if err != nil {
@@ -401,4 +408,14 @@ func (svc CheckService) getObjectType(ctx context.Context, objectType string) (*
 
 	svc.objectTypeMap[objectType] = objectTypeSpec
 	return objectTypeSpec, nil
+}
+
+func (svc CheckService) appendTenantContext(warrantCheck *CheckSpec) {
+	if warrantCheck.WarrantSpec.Context == nil {
+		warrantCheck.WarrantSpec.Context = wntContext.ContextSetSpec{
+			"tenant": svc.authInfo.TenantId,
+		}
+	} else {
+		warrantCheck.WarrantSpec.Context["tenant"] = svc.authInfo.TenantId
+	}
 }

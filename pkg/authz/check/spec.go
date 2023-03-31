@@ -46,6 +46,14 @@ func (spec CheckManySpec) ToMap() map[string]interface{} {
 	return result
 }
 
+type SessionCheckManySpec struct {
+	Op             string                       `json:"op"`
+	Warrants       []warrant.SessionWarrantSpec `json:"warrants" validate:"min=1,dive"`
+	Context        context.ContextSetSpec       `json:"context"`
+	ConsistentRead bool                         `json:"consistentRead"`
+	Debug          bool                         `json:"debug"`
+}
+
 type CheckResultSpec struct {
 	Code           int64                 `json:"code,omitempty"`
 	Result         string                `json:"result"`

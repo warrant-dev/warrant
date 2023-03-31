@@ -28,6 +28,7 @@ type Config struct {
 	Datastore       DatastoreConfig  `mapstructure:"datastore"`
 	Eventstore      EventstoreConfig `mapstructure:"eventstore"`
 	ApiKey          string           `mapstructure:"apiKey"`
+	Authentication  AuthConfig       `mapstructure:"authentication"`
 }
 
 type DatastoreConfig struct {
@@ -59,6 +60,13 @@ type PostgresConfig struct {
 type EventstoreConfig struct {
 	MySQL    *MySQLConfig    `mapstructure:"mysql"`
 	Postgres *PostgresConfig `mapstructure:"postgres"`
+}
+
+type AuthConfig struct {
+	Provider      string `mapstructure:"provider"`
+	PublicKey     string `mapstructure:"publicKey"`
+	UserIdClaim   string `mapstructure:"userIdClaim"`
+	TenantIdClaim string `mapstructure:"teantIdClaim"`
 }
 
 func NewConfig() Config {
@@ -105,6 +113,11 @@ func NewConfig() Config {
 
 	if config.ApiKey == "" {
 		log.Warn().Msg("Warrant is running without an API key. We recommend providing an API key when running in production.")
+	}
+
+	// Set default for user identifier
+	if config.Authentication.UserIdClaim == "" {
+		config.Authentication.UserIdClaim = "sub"
 	}
 
 	return config
