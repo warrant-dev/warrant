@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	authz "github.com/warrant-dev/warrant/pkg/authz/warrant"
+	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -33,13 +33,13 @@ func authorize(env service.Env, w http.ResponseWriter, r *http.Request) error {
 			return err
 		}
 
-		warrantSpecs := make([]authz.WarrantSpec, 0)
+		warrantSpecs := make([]warrant.WarrantSpec, 0)
 		for _, warrantSpec := range sessionCheckManySpec.Warrants {
-			warrantSpecs = append(warrantSpecs, authz.WarrantSpec{
+			warrantSpecs = append(warrantSpecs, warrant.WarrantSpec{
 				ObjectType: warrantSpec.ObjectType,
 				ObjectId:   warrantSpec.ObjectId,
 				Relation:   warrantSpec.Relation,
-				Subject: &authz.SubjectSpec{
+				Subject: &warrant.SubjectSpec{
 					ObjectType: objecttype.ObjectTypeUser,
 					ObjectId:   authInfo.UserId,
 				},
