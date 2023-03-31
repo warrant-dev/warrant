@@ -63,9 +63,10 @@ type EventstoreConfig struct {
 }
 
 type AuthConfig struct {
-	Provider       string `mapstructure:"provider"`
-	PublicKey      string `mapstructure:"publicKey"`
-	UserIdentifier string `mapstructure:"userIdentifier"`
+	Provider         string `mapstructure:"provider"`
+	PublicKey        string `mapstructure:"publicKey"`
+	UserIdentifier   string `mapstructure:"userIdentifier"`
+	TenantIdentifier string `mapstructure:"tenantIdentifier"`
 }
 
 func NewConfig() Config {

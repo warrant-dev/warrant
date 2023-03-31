@@ -24,7 +24,8 @@ const (
 )
 
 type AuthInfo struct {
-	UserId string
+	UserId   string
+	TenantId string
 }
 
 func AuthMiddleware(next http.Handler, config *config.Config, enableSessionAuth bool) http.Handler {
@@ -139,6 +140,14 @@ func AuthMiddleware(next http.Handler, config *config.Config, enableSessionAuth 
 
 			authInfo = &AuthInfo{
 				UserId: userId,
+			}
+
+			if config.AuthProvider.TenantIdentifier != "" {
+				if _, ok := tokenClaims[config.AuthProvider.TenantIdentifier]; !ok {
+					SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
+					logger.Warn().Msgf("Unable to retrieve tenant id from token with given identifier: %s", config.AuthProvider.TenantIdentifier)
+				}
+				authInfo.TenantId = tokenClaims[config.AuthProvider.TenantIdentifier].(string)
 			}
 		default:
 			SendErrorResponse(w, NewUnauthorizedError("Invalid Authorization header prefix. Must be ApiKey or Bearer"))
