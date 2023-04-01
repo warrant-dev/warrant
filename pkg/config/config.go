@@ -66,7 +66,7 @@ type AuthConfig struct {
 	Provider      string `mapstructure:"provider"`
 	PublicKey     string `mapstructure:"publicKey"`
 	UserIdClaim   string `mapstructure:"userIdClaim"`
-	TenantIdClaim string `mapstructure:"teantIdClaim"`
+	TenantIdClaim string `mapstructure:"tenantIdClaim"`
 }
 
 func NewConfig() Config {
