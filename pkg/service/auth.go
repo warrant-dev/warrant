@@ -165,6 +165,12 @@ func AuthMiddleware(next http.Handler, config *config.Config, enableSessionAuth 
 }
 
 // GetAuthInfoFromRequestContext returns the AuthInfo object from the given context
-func GetAuthInfoFromRequestContext(context context.Context) AuthInfo {
-	return context.Value(authInfoKey).(AuthInfo)
+func GetAuthInfoFromRequestContext(context context.Context) *AuthInfo {
+	contextVal := context.Value(authInfoKey)
+	if contextVal != nil {
+		authInfo := context.Value(authInfoKey).(AuthInfo)
+		return &authInfo
+	}
+
+	return nil
 }
