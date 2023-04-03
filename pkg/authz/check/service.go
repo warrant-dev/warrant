@@ -9,6 +9,7 @@ import (
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	wntContext "github.com/warrant-dev/warrant/pkg/context"
+	event "github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -376,9 +377,11 @@ func (svc CheckService) Check(ctx context.Context, warrantCheck CheckSpec) (matc
 	}
 
 	if match {
+		event.NewService(svc.Env()).TrackAccessAllowedEvent(ctx, warrantCheck.ObjectType, warrantCheck.ObjectId, warrantCheck.Relation, warrantCheck.Subject.ObjectType, warrantCheck.Subject.ObjectId, warrantCheck.Subject.Relation, warrantCheck.Context)
 		return true, decisionPath, nil
 	}
 
+	event.NewService(svc.Env()).TrackAccessDeniedEvent(ctx, warrantCheck.ObjectType, warrantCheck.ObjectId, warrantCheck.Relation, warrantCheck.Subject.ObjectType, warrantCheck.Subject.ObjectId, warrantCheck.Subject.Relation, warrantCheck.Context)
 	return false, decisionPath, nil
 }
 
