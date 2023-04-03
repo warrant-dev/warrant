@@ -3,6 +3,7 @@ module github.com/warrant-dev/warrant
 go 1.19
 
 require (
+	github.com/alecthomas/participle/v2 v2.0.0
 	github.com/go-playground/validator/v10 v10.11.2
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/golang-jwt/jwt/v5 v5.0.0-rc.1
