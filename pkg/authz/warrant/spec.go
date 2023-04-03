@@ -95,7 +95,6 @@ type WarrantSpec struct {
 	Relation   string                 `json:"relation" validate:"required,valid_relation"`
 	Subject    *SubjectSpec           `json:"subject" validate:"required"`
 	Context    context.ContextSetSpec `json:"context,omitempty"`
-	IsImplicit *bool                  `json:"isImplicit,omitempty"`
 	CreatedAt  time.Time              `json:"createdAt"`
 }
 

@@ -77,7 +77,7 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType stri
 		wntCtx.ToHash(),
 	)
 	if err != nil {
-		log.Warn().Err(err).Msg("Error fetching warrants for object")
+		log.Err(err).Msg("Error fetching warrants for object")
 		return warrantSpecs, err
 	}
 
@@ -97,7 +97,7 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType stri
 		wntCtx.ToHash(),
 	)
 	if err != nil {
-		log.Warn().Err(err).Msg("Error fetching warrants matching wildcard")
+		log.Err(err).Msg("Error fetching warrants matching wildcard")
 		return warrantSpecs, err
 	}
 
@@ -326,7 +326,7 @@ func (svc CheckService) Check(ctx context.Context, warrantCheck CheckSpec) (matc
 	log.Debug().Msgf("Checking for warrant %s", warrantCheck.String())
 
 	// Used to automatically append tenant context for session token w/ tenantId checks
-	if svc.authInfo.TenantId != "" {
+	if svc.authInfo != nil && svc.authInfo.TenantId != "" {
 		svc.appendTenantContext(&warrantCheck)
 	}
 

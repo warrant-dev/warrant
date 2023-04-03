@@ -44,7 +44,7 @@ func (repo MySQLRepository) Create(ctx context.Context, object Object) (int64, e
 
 	newObjectId, err := result.LastInsertId()
 	if err != nil {
-		log.Warn().Err(err).Msg("Unable to create object")
+		log.Err(err).Msg("Unable to create object")
 		return 0, service.NewInternalError("Unable to create object")
 	}
 

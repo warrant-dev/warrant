@@ -25,8 +25,7 @@ func (svc CheckService) GetRoutes() []service.Route {
 
 func authorize(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	authInfo := service.GetAuthInfoFromRequestContext(r.Context())
-
-	if authInfo.UserId != "" {
+	if authInfo != nil && authInfo.UserId != "" {
 		var sessionCheckManySpec SessionCheckManySpec
 		err := service.ParseJSONBody(r.Body, &sessionCheckManySpec)
 		if err != nil {
@@ -54,7 +53,7 @@ func authorize(env service.Env, w http.ResponseWriter, r *http.Request) error {
 			Debug:          sessionCheckManySpec.Debug,
 		}
 
-		checkResult, err := NewService(env, &authInfo).CheckMany(r.Context(), &checkManySpec)
+		checkResult, err := NewService(env, authInfo).CheckMany(r.Context(), &checkManySpec)
 		if err != nil {
 			return err
 		}
@@ -69,7 +68,7 @@ func authorize(env service.Env, w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	checkResult, err := NewService(env, &authInfo).CheckMany(r.Context(), &checkManySpec)
+	checkResult, err := NewService(env, authInfo).CheckMany(r.Context(), &checkManySpec)
 	if err != nil {
 		return err
 	}
