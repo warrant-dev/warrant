@@ -55,8 +55,8 @@ type SessionCheckManySpec struct {
 }
 
 type CheckResultSpec struct {
-	Code           int64                 `json:"code,omitempty"`
-	Result         string                `json:"result"`
-	ProcessingTime int64                 `json:"processingTime,omitempty"`
-	DecisionPath   []warrant.WarrantSpec `json:"decisionPath,omitempty"`
+	Code           int64                   `json:"code,omitempty"`
+	Result         string                  `json:"result"`
+	ProcessingTime int64                   `json:"processingTime,omitempty"`
+	DecisionPath   [][]warrant.WarrantSpec `json:"decisionPath,omitempty"`
 }
