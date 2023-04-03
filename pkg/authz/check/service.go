@@ -326,7 +326,7 @@ func (svc CheckService) Check(ctx context.Context, warrantCheck CheckSpec) (matc
 	log.Debug().Msgf("Checking for warrant %s", warrantCheck.String())
 
 	// Used to automatically append tenant context for session token w/ tenantId checks
-	if svc.authInfo.TenantId != "" {
+	if svc.authInfo != nil && svc.authInfo.TenantId != "" {
 		svc.appendTenantContext(&warrantCheck)
 	}
 

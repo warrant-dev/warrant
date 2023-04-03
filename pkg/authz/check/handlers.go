@@ -25,8 +25,7 @@ func (svc CheckService) GetRoutes() []service.Route {
 
 func authorize(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	authInfo := service.GetAuthInfoFromRequestContext(r.Context())
-
-	if authInfo.UserId != "" {
+	if authInfo != nil && authInfo.UserId != "" {
 		var sessionCheckManySpec SessionCheckManySpec
 		err := service.ParseJSONBody(r.Body, &sessionCheckManySpec)
 		if err != nil {
