@@ -9,6 +9,7 @@ import (
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	wntContext "github.com/warrant-dev/warrant/pkg/context"
+	event "github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -109,9 +110,7 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType stri
 }
 
 func (svc CheckService) checkRule(ctx context.Context, warrantCheck CheckSpec, rule *objecttype.RelationRule) (match bool, decisionPath []warrant.WarrantSpec, err error) {
-	decisionPath = make([]warrant.WarrantSpec, 0)
 	warrantSpec := warrantCheck.WarrantSpec
-
 	if rule == nil {
 		return false, decisionPath, nil
 	}
@@ -214,9 +213,11 @@ func (svc CheckService) CheckMany(ctx context.Context, warrantCheck *CheckManySp
 	}
 
 	var checkResult CheckResultSpec
+	checkResult.DecisionPath = make(map[string][]warrant.WarrantSpec, 0)
 	if warrantCheck.Op == objecttype.InheritIfAllOf {
+		var processingTime int64
 		for _, warrantSpec := range warrantCheck.Warrants {
-			match, _, err := svc.Check(ctx, CheckSpec{
+			match, decisionPath, err := svc.Check(ctx, CheckSpec{
 				WarrantSpec:    warrantSpec,
 				ConsistentRead: warrantCheck.ConsistentRead,
 				Debug:          warrantCheck.Debug,
@@ -225,33 +226,29 @@ func (svc CheckService) CheckMany(ctx context.Context, warrantCheck *CheckManySp
 				return nil, err
 			}
 
+			if warrantCheck.Debug {
+				checkResult.ProcessingTime = processingTime + time.Since(start).Milliseconds()
+				if len(decisionPath) > 0 {
+					checkResult.DecisionPath[warrantSpec.String()] = decisionPath
+				}
+			}
+
 			if !match {
-				// eventsService.TrackAsync(events.AuthorizeFail, warrantCheck.ToMap())
 				checkResult.Code = http.StatusForbidden
 				checkResult.Result = NotAuthorized
-				if warrantCheck.Debug {
-					checkResult.ProcessingTime = time.Since(start).Milliseconds()
-					// checkResult.DecisionPath = warrantPath
-				}
-
 				return &checkResult, nil
 			}
 		}
 
-		// eventsService.TrackAsync(events.AuthorizeSuccess, warrantCheck.ToMap())
 		checkResult.Code = http.StatusOK
 		checkResult.Result = Authorized
-		if warrantCheck.Debug {
-			checkResult.ProcessingTime = time.Since(start).Milliseconds()
-			// checkResult.DecisionPath = warrantPath
-		}
-
 		return &checkResult, nil
 	}
 
 	if warrantCheck.Op == objecttype.InheritIfAnyOf {
+		var processingTime int64
 		for _, warrantSpec := range warrantCheck.Warrants {
-			match, _, err := svc.Check(ctx, CheckSpec{
+			match, decisionPath, err := svc.Check(ctx, CheckSpec{
 				WarrantSpec:    warrantSpec,
 				ConsistentRead: warrantCheck.ConsistentRead,
 				Debug:          warrantCheck.Debug,
@@ -260,27 +257,22 @@ func (svc CheckService) CheckMany(ctx context.Context, warrantCheck *CheckManySp
 				return nil, err
 			}
 
+			if warrantCheck.Debug {
+				checkResult.ProcessingTime = processingTime + time.Since(start).Milliseconds()
+				if len(decisionPath) > 0 {
+					checkResult.DecisionPath[warrantSpec.String()] = decisionPath
+				}
+			}
+
 			if match {
-				// eventsService.TrackAsync(events.AuthorizeSuccess, warrantCheck.ToMap())
 				checkResult.Code = http.StatusOK
 				checkResult.Result = Authorized
-				if warrantCheck.Debug {
-					checkResult.ProcessingTime = time.Since(start).Milliseconds()
-					// checkResult.DecisionPath = warrantPath
-				}
-
 				return &checkResult, nil
 			}
 		}
 
-		// eventsService.TrackAsync(events.AuthorizeFail, warrantCheck.ToMap())
 		checkResult.Code = http.StatusForbidden
 		checkResult.Result = NotAuthorized
-		if warrantCheck.Debug {
-			checkResult.ProcessingTime = time.Since(start).Milliseconds()
-			// checkResult.DecisionPath = warrantPath
-		}
-
 		return &checkResult, nil
 	}
 
@@ -289,7 +281,7 @@ func (svc CheckService) CheckMany(ctx context.Context, warrantCheck *CheckManySp
 	}
 
 	warrantSpec := warrantCheck.Warrants[0]
-	match, warrantPath, err := svc.Check(ctx, CheckSpec{
+	match, decisionPath, err := svc.Check(ctx, CheckSpec{
 		WarrantSpec:    warrantSpec,
 		ConsistentRead: warrantCheck.ConsistentRead,
 		Debug:          warrantCheck.Debug,
@@ -299,23 +291,18 @@ func (svc CheckService) CheckMany(ctx context.Context, warrantCheck *CheckManySp
 	}
 
 	if match {
-		// eventsService.TrackAsync(events.AuthorizeSuccess, warrantCheck.ToMap())
 		checkResult.Code = http.StatusOK
 		checkResult.Result = Authorized
-		if warrantCheck.Debug {
-			checkResult.ProcessingTime = time.Since(start).Milliseconds()
-			checkResult.DecisionPath = warrantPath
-		}
-
 		return &checkResult, nil
 	}
 
-	// eventsService.TrackAsync(events.AuthorizeFail, warrantSpec.ToMap())
 	checkResult.Code = http.StatusForbidden
 	checkResult.Result = NotAuthorized
 	if warrantCheck.Debug {
 		checkResult.ProcessingTime = time.Since(start).Milliseconds()
-		checkResult.DecisionPath = warrantPath
+		if len(decisionPath) > 0 {
+			checkResult.DecisionPath[warrantSpec.String()] = decisionPath
+		}
 	}
 
 	return &checkResult, nil
@@ -343,6 +330,7 @@ func (svc CheckService) Check(ctx context.Context, warrantCheck CheckSpec) (matc
 			Relation:   matchedWarrant.Relation,
 			Subject:    matchedWarrant.Subject,
 			Context:    matchedWarrant.Context,
+			CreatedAt:  matchedWarrant.CreatedAt,
 		}}, nil
 	}
 
@@ -390,9 +378,11 @@ func (svc CheckService) Check(ctx context.Context, warrantCheck CheckSpec) (matc
 	}
 
 	if match {
+		event.NewService(svc.Env()).TrackAccessAllowedEvent(ctx, warrantCheck.ObjectType, warrantCheck.ObjectId, warrantCheck.Relation, warrantCheck.Subject.ObjectType, warrantCheck.Subject.ObjectId, warrantCheck.Subject.Relation, warrantCheck.Context)
 		return true, decisionPath, nil
 	}
 
+	event.NewService(svc.Env()).TrackAccessDeniedEvent(ctx, warrantCheck.ObjectType, warrantCheck.ObjectId, warrantCheck.Relation, warrantCheck.Subject.ObjectType, warrantCheck.Subject.ObjectId, warrantCheck.Subject.Relation, warrantCheck.Context)
 	return false, decisionPath, nil
 }
 
