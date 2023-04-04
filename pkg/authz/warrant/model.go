@@ -4,9 +4,24 @@ import (
 	"fmt"
 	"time"
 
-	context "github.com/warrant-dev/warrant/pkg/context"
 	"github.com/warrant-dev/warrant/pkg/database"
 )
+
+type Model interface {
+	GetID() int64
+	GetObjectType() string
+	GetObjectId() string
+	GetRelation() string
+	GetSubjectType() string
+	GetSubjectId() string
+	GetSubjectRelation() database.NullString
+	GetContextHash() string
+	GetCreatedAt() time.Time
+	GetUpdatedAt() time.Time
+	GetDeletedAt() database.NullTime
+	ToWarrantSpec() *WarrantSpec
+	String() string
+}
 
 // Warrant model
 type Warrant struct {
@@ -18,10 +33,53 @@ type Warrant struct {
 	SubjectId       string              `mysql:"subjectId" postgres:"subject_id"`
 	SubjectRelation database.NullString `mysql:"subjectRelation" postgres:"subject_relation"`
 	ContextHash     string              `mysql:"contextHash" postgres:"context_hash"`
-	Context         []context.Context   `mysql:"context" postgres:"context"`
 	CreatedAt       time.Time           `mysql:"createdAt" postgres:"created_at"`
 	UpdatedAt       time.Time           `mysql:"updatedAt" postgres:"updated_at"`
 	DeletedAt       database.NullTime   `mysql:"deletedAt" postgres:"deleted_at"`
+}
+
+func (warrant Warrant) GetID() int64 {
+	return warrant.ID
+}
+
+func (warrant Warrant) GetObjectType() string {
+	return warrant.ObjectType
+}
+
+func (warrant Warrant) GetObjectId() string {
+	return warrant.ObjectId
+}
+
+func (warrant Warrant) GetRelation() string {
+	return warrant.Relation
+}
+
+func (warrant Warrant) GetSubjectType() string {
+	return warrant.SubjectType
+}
+
+func (warrant Warrant) GetSubjectId() string {
+	return warrant.SubjectId
+}
+
+func (warrant Warrant) GetSubjectRelation() database.NullString {
+	return warrant.SubjectRelation
+}
+
+func (warrant Warrant) GetContextHash() string {
+	return warrant.ContextHash
+}
+
+func (warrant Warrant) GetCreatedAt() time.Time {
+	return warrant.CreatedAt
+}
+
+func (warrant Warrant) GetUpdatedAt() time.Time {
+	return warrant.UpdatedAt
+}
+
+func (warrant Warrant) GetDeletedAt() database.NullTime {
+	return warrant.DeletedAt
 }
 
 func (warrant Warrant) ToWarrantSpec() *WarrantSpec {
@@ -35,15 +93,6 @@ func (warrant Warrant) ToWarrantSpec() *WarrantSpec {
 			Relation:   warrant.SubjectRelation.String,
 		},
 		CreatedAt: warrant.CreatedAt,
-	}
-
-	if len(warrant.Context) > 0 {
-		contextSetSpec := make(context.ContextSetSpec, len(warrant.Context))
-		for _, context := range warrant.Context {
-			contextSetSpec[context.Name] = context.Value
-		}
-
-		warrantSpec.Context = contextSetSpec
 	}
 
 	return &warrantSpec

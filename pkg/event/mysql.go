@@ -21,11 +21,16 @@ func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	}
 }
 
-func (repo MySQLRepository) TrackResourceEvent(ctx context.Context, resourceEvent ResourceEvent) error {
-	return repo.TrackResourceEvents(ctx, []ResourceEvent{resourceEvent})
+func (repo MySQLRepository) TrackResourceEvent(ctx context.Context, resourceEvent ResourceEventModel) error {
+	return repo.TrackResourceEvents(ctx, []ResourceEventModel{resourceEvent})
 }
 
-func (repo MySQLRepository) TrackResourceEvents(ctx context.Context, resourceEvents []ResourceEvent) error {
+func (repo MySQLRepository) TrackResourceEvents(ctx context.Context, models []ResourceEventModel) error {
+	resourceEvents := make([]ResourceEvent, 0)
+	for _, model := range models {
+		resourceEvents = append(resourceEvents, *NewResourceEventFromModel(model))
+	}
+
 	result, err := repo.DB.NamedExecContext(
 		ctx,
 		`
@@ -57,7 +62,8 @@ func (repo MySQLRepository) TrackResourceEvents(ctx context.Context, resourceEve
 	return nil
 }
 
-func (repo MySQLRepository) ListResourceEvents(ctx context.Context, listParams ListResourceEventParams) ([]ResourceEvent, string, error) {
+func (repo MySQLRepository) ListResourceEvents(ctx context.Context, listParams ListResourceEventParams) ([]ResourceEventModel, string, error) {
+	models := make([]ResourceEventModel, 0)
 	resourceEvents := make([]ResourceEvent, 0)
 	query := `
 		SELECT BIN_TO_UUID(id) id, type, source, resourceType, resourceId, meta, createdAt
@@ -90,7 +96,7 @@ func (repo MySQLRepository) ListResourceEvents(ctx context.Context, listParams L
 	if listParams.LastId != "" {
 		lastIdSpec, err := stringToLastIdSpec(listParams.LastId)
 		if err != nil {
-			return resourceEvents, "", service.NewInvalidParameterError("lastId", "")
+			return models, "", service.NewInvalidParameterError("lastId", "")
 		}
 
 		conditions = append(conditions, "(createdAt, BIN_TO_UUID(id)) < (?, ?)")
@@ -113,33 +119,42 @@ func (repo MySQLRepository) ListResourceEvents(ctx context.Context, listParams L
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return resourceEvents, "", nil
+			return models, "", nil
 		default:
-			return resourceEvents, "", err
+			return models, "", err
 		}
 	}
 
 	if len(resourceEvents) == 0 || len(resourceEvents) < int(listParams.Limit) {
-		return resourceEvents, "", nil
+		return models, "", nil
 	}
 
 	lastResourceEvent := resourceEvents[len(resourceEvents)-1]
 	lastIdStr, err := lastIdSpecToString(LastIdSpec{
-		ID:        lastResourceEvent.ID,
-		CreatedAt: lastResourceEvent.CreatedAt,
+		ID:        lastResourceEvent.GetID(),
+		CreatedAt: lastResourceEvent.GetCreatedAt(),
 	})
 	if err != nil {
-		return resourceEvents, "", err
+		return models, "", err
 	}
 
-	return resourceEvents, lastIdStr, nil
+	for i := range resourceEvents {
+		models = append(models, &resourceEvents[i])
+	}
+
+	return models, lastIdStr, nil
 }
 
-func (repo MySQLRepository) TrackAccessEvent(ctx context.Context, accessEvent AccessEvent) error {
-	return repo.TrackAccessEvents(ctx, []AccessEvent{accessEvent})
+func (repo MySQLRepository) TrackAccessEvent(ctx context.Context, accessEvent AccessEventModel) error {
+	return repo.TrackAccessEvents(ctx, []AccessEventModel{accessEvent})
 }
 
-func (repo MySQLRepository) TrackAccessEvents(ctx context.Context, accessEvents []AccessEvent) error {
+func (repo MySQLRepository) TrackAccessEvents(ctx context.Context, models []AccessEventModel) error {
+	accessEvents := make([]AccessEvent, 0)
+	for _, model := range models {
+		accessEvents = append(accessEvents, *NewAccessEventFromModel(model))
+	}
+
 	result, err := repo.DB.NamedExecContext(
 		ctx,
 		`
@@ -181,7 +196,8 @@ func (repo MySQLRepository) TrackAccessEvents(ctx context.Context, accessEvents 
 	return nil
 }
 
-func (repo MySQLRepository) ListAccessEvents(ctx context.Context, listParams ListAccessEventParams) ([]AccessEvent, string, error) {
+func (repo MySQLRepository) ListAccessEvents(ctx context.Context, listParams ListAccessEventParams) ([]AccessEventModel, string, error) {
+	models := make([]AccessEventModel, 0)
 	accessEvents := make([]AccessEvent, 0)
 	query := `
 		SELECT BIN_TO_UUID(id) id, type, source, objectType, objectId, relation, subjectType, subjectId, subjectRelation, context, meta, createdAt
@@ -234,7 +250,7 @@ func (repo MySQLRepository) ListAccessEvents(ctx context.Context, listParams Lis
 	if listParams.LastId != "" {
 		lastIdSpec, err := stringToLastIdSpec(listParams.LastId)
 		if err != nil {
-			return accessEvents, "", service.NewInvalidParameterError("lastId", "")
+			return models, "", service.NewInvalidParameterError("lastId", "")
 		}
 
 		conditions = append(conditions, "(createdAt, BIN_TO_UUID(id)) < (?, ?)")
@@ -257,24 +273,28 @@ func (repo MySQLRepository) ListAccessEvents(ctx context.Context, listParams Lis
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return accessEvents, "", nil
+			return models, "", nil
 		default:
-			return accessEvents, "", err
+			return models, "", err
 		}
 	}
 
 	if len(accessEvents) == 0 || len(accessEvents) < int(listParams.Limit) {
-		return accessEvents, "", nil
+		return models, "", nil
 	}
 
 	lastAccessEvent := accessEvents[len(accessEvents)-1]
 	lastIdStr, err := lastIdSpecToString(LastIdSpec{
-		ID:        lastAccessEvent.ID,
-		CreatedAt: lastAccessEvent.CreatedAt,
+		ID:        lastAccessEvent.GetID(),
+		CreatedAt: lastAccessEvent.GetCreatedAt(),
 	})
 	if err != nil {
-		return accessEvents, "", err
+		return models, "", err
 	}
 
-	return accessEvents, lastIdStr, nil
+	for i := range accessEvents {
+		models = append(models, &accessEvents[i])
+	}
+
+	return models, lastIdStr, nil
 }

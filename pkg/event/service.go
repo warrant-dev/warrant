@@ -21,11 +21,13 @@ const (
 
 type EventService struct {
 	service.BaseService
+	repo EventRepository
 }
 
-func NewService(env service.Env) EventService {
+func NewService(env service.Env, repo EventRepository) EventService {
 	return EventService{
 		BaseService: service.NewBaseService(env),
+		repo:        repo,
 	}
 }
 
@@ -76,17 +78,12 @@ func (svc EventService) TrackResourceEvent(ctx context.Context, resourceEventSpe
 }
 
 func (svc EventService) TrackResourceEventSync(ctx context.Context, resourceEventSpec CreateResourceEventSpec) error {
-	eventRepository, err := NewRepository(svc.Env().EventDB())
-	if err != nil {
-		return err
-	}
-
 	resourceEvent, err := resourceEventSpec.ToResourceEvent()
 	if err != nil {
 		return err
 	}
 
-	return eventRepository.TrackResourceEvent(ctx, *resourceEvent)
+	return svc.repo.TrackResourceEvent(ctx, *resourceEvent)
 }
 
 func (svc EventService) TrackResourceEvents(ctx context.Context, resourceEventSpecs []CreateResourceEventSpec) {
@@ -94,12 +91,7 @@ func (svc EventService) TrackResourceEvents(ctx context.Context, resourceEventSp
 }
 
 func (svc EventService) TrackResourceEventsSync(ctx context.Context, resourceEventSpecs []CreateResourceEventSpec) error {
-	eventRepository, err := NewRepository(svc.Env().EventDB())
-	if err != nil {
-		return err
-	}
-
-	resourceEvents := make([]ResourceEvent, 0)
+	resourceEvents := make([]ResourceEventModel, 0)
 	for _, resourceEventSpec := range resourceEventSpecs {
 		resourceEvent, err := resourceEventSpec.ToResourceEvent()
 		if err != nil {
@@ -109,17 +101,12 @@ func (svc EventService) TrackResourceEventsSync(ctx context.Context, resourceEve
 		resourceEvents = append(resourceEvents, *resourceEvent)
 	}
 
-	return eventRepository.TrackResourceEvents(ctx, resourceEvents)
+	return svc.repo.TrackResourceEvents(ctx, resourceEvents)
 }
 
 func (svc EventService) ListResourceEvents(ctx context.Context, listParams ListResourceEventParams) ([]ResourceEventSpec, string, error) {
 	resourceEventSpecs := make([]ResourceEventSpec, 0)
-	eventRepository, err := NewRepository(svc.Env().EventDB())
-	if err != nil {
-		return resourceEventSpecs, "", err
-	}
-
-	resourceEvents, lastId, err := eventRepository.ListResourceEvents(ctx, listParams)
+	resourceEvents, lastId, err := svc.repo.ListResourceEvents(ctx, listParams)
 	if err != nil {
 		return resourceEventSpecs, lastId, err
 	}
@@ -213,17 +200,12 @@ func (svc EventService) TrackAccessEvent(ctx context.Context, accessEventSpec Cr
 }
 
 func (svc EventService) TrackAccessEventSync(ctx context.Context, accessEventSpec CreateAccessEventSpec) error {
-	eventRepository, err := NewRepository(svc.Env().EventDB())
-	if err != nil {
-		return err
-	}
-
 	accessEvent, err := accessEventSpec.ToAccessEvent()
 	if err != nil {
 		return err
 	}
 
-	return eventRepository.TrackAccessEvent(ctx, *accessEvent)
+	return svc.repo.TrackAccessEvent(ctx, *accessEvent)
 }
 
 func (svc EventService) TrackAccessEvents(ctx context.Context, accessEventSpecs []CreateAccessEventSpec) {
@@ -231,12 +213,7 @@ func (svc EventService) TrackAccessEvents(ctx context.Context, accessEventSpecs 
 }
 
 func (svc EventService) TrackAccessEventsSync(ctx context.Context, accessEventSpecs []CreateAccessEventSpec) error {
-	eventRepository, err := NewRepository(svc.Env().EventDB())
-	if err != nil {
-		return err
-	}
-
-	accessEvents := make([]AccessEvent, 0)
+	accessEvents := make([]AccessEventModel, 0)
 	for _, accessEventSpec := range accessEventSpecs {
 		accessEvent, err := accessEventSpec.ToAccessEvent()
 		if err != nil {
@@ -246,17 +223,12 @@ func (svc EventService) TrackAccessEventsSync(ctx context.Context, accessEventSp
 		accessEvents = append(accessEvents, *accessEvent)
 	}
 
-	return eventRepository.TrackAccessEvents(ctx, accessEvents)
+	return svc.repo.TrackAccessEvents(ctx, accessEvents)
 }
 
 func (svc EventService) ListAccessEvents(ctx context.Context, listParams ListAccessEventParams) ([]AccessEventSpec, string, error) {
 	accessEventSpecs := make([]AccessEventSpec, 0)
-	eventRepository, err := NewRepository(svc.Env().EventDB())
-	if err != nil {
-		return accessEventSpecs, "", err
-	}
-
-	accessEvents, lastId, err := eventRepository.ListAccessEvents(ctx, listParams)
+	accessEvents, lastId, err := svc.repo.ListAccessEvents(ctx, listParams)
 	if err != nil {
 		return accessEventSpecs, lastId, err
 	}

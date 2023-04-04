@@ -10,13 +10,13 @@ import (
 )
 
 // GetRoutes registers all route handlers for this module
-func (svc PricingTierService) GetRoutes() []service.Route {
+func (svc PricingTierService) Routes() []service.Route {
 	return []service.Route{
 		// create
 		{
 			Pattern: "/v1/pricing-tiers",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc.Env(), create),
+			Handler: service.NewRouteHandler(svc, create),
 		},
 
 		// get
@@ -24,45 +24,45 @@ func (svc PricingTierService) GetRoutes() []service.Route {
 			Pattern: "/v1/pricing-tiers",
 			Method:  "GET",
 			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc.Env(), list),
+				service.NewRouteHandler(svc, list),
 				middleware.ListMiddleware[PricingTierListParamParser],
 			),
 		},
 		{
 			Pattern: "/v1/pricing-tiers/{pricingTierId}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc.Env(), get),
+			Handler: service.NewRouteHandler(svc, get),
 		},
 
 		// update
 		{
 			Pattern: "/v1/pricing-tiers/{pricingTierId}",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc.Env(), update),
+			Handler: service.NewRouteHandler(svc, update),
 		},
 		{
 			Pattern: "/v1/pricing-tiers/{pricingTierId}",
 			Method:  "PUT",
-			Handler: service.NewRouteHandler(svc.Env(), update),
+			Handler: service.NewRouteHandler(svc, update),
 		},
 
 		// delete
 		{
 			Pattern: "/v1/pricing-tiers/{pricingTierId}",
 			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc.Env(), delete),
+			Handler: service.NewRouteHandler(svc, delete),
 		},
 	}
 }
 
-func create(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func create(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
 	var newPricingTier PricingTierSpec
 	err := service.ParseJSONBody(r.Body, &newPricingTier)
 	if err != nil {
 		return err
 	}
 
-	createdPricingTier, err := NewService(env).Create(r.Context(), newPricingTier)
+	createdPricingTier, err := svc.Create(r.Context(), newPricingTier)
 	if err != nil {
 		return err
 	}
@@ -71,14 +71,14 @@ func create(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func get(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func get(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
 	pricingTierIdParam := mux.Vars(r)["pricingTierId"]
 	pricingTierId, err := url.QueryUnescape(pricingTierIdParam)
 	if err != nil {
 		return service.NewInvalidParameterError("pricingTierId", "")
 	}
 
-	pricingTier, err := NewService(env).GetByPricingTierId(r.Context(), pricingTierId)
+	pricingTier, err := svc.GetByPricingTierId(r.Context(), pricingTierId)
 	if err != nil {
 		return err
 	}
@@ -87,9 +87,9 @@ func get(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func list(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
 	listParams := middleware.GetListParamsFromContext(r.Context())
-	pricingTiers, err := NewService(env).List(r.Context(), listParams)
+	pricingTiers, err := svc.List(r.Context(), listParams)
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func update(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
 	var updatePricingTier UpdatePricingTierSpec
 	err := service.ParseJSONBody(r.Body, &updatePricingTier)
 	if err != nil {
@@ -111,7 +111,7 @@ func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
 		return service.NewInvalidParameterError("pricingTierId", "")
 	}
 
-	updatedPricingTier, err := NewService(env).UpdateByPricingTierId(r.Context(), pricingTierId, updatePricingTier)
+	updatedPricingTier, err := svc.UpdateByPricingTierId(r.Context(), pricingTierId, updatePricingTier)
 	if err != nil {
 		return err
 	}
@@ -120,13 +120,13 @@ func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func delete(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func delete(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
 	pricingTierId := mux.Vars(r)["pricingTierId"]
 	if pricingTierId == "" {
 		return service.NewMissingRequiredParameterError("pricingTierId")
 	}
 
-	err := NewService(env).DeleteByPricingTierId(r.Context(), pricingTierId)
+	err := svc.DeleteByPricingTierId(r.Context(), pricingTierId)
 	if err != nil {
 		return err
 	}

@@ -9,13 +9,13 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-func (svc ObjectService) GetRoutes() []service.Route {
+func (svc ObjectService) Routes() []service.Route {
 	return []service.Route{
 		// create
 		{
 			Pattern: "/v1/objects",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc.Env(), create),
+			Handler: service.NewRouteHandler(svc, create),
 		},
 
 		// get
@@ -23,33 +23,33 @@ func (svc ObjectService) GetRoutes() []service.Route {
 			Pattern: "/v1/objects",
 			Method:  "GET",
 			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc.Env(), list),
+				service.NewRouteHandler(svc, list),
 				middleware.ListMiddleware[ObjectListParamParser],
 			),
 		},
 		{
 			Pattern: "/v1/objects/{objectType}/{objectId}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc.Env(), get),
+			Handler: service.NewRouteHandler(svc, get),
 		},
 
 		// delete
 		{
 			Pattern: "/v1/objects/{objectType}/{objectId}",
 			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc.Env(), delete),
+			Handler: service.NewRouteHandler(svc, delete),
 		},
 	}
 }
 
-func create(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func create(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
 	var newObject ObjectSpec
 	err := service.ParseJSONBody(r.Body, &newObject)
 	if err != nil {
 		return err
 	}
 
-	createdObject, err := NewService(env).Create(r.Context(), newObject)
+	createdObject, err := svc.Create(r.Context(), newObject)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func create(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func list(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
 	listParams := middleware.GetListParamsFromContext(r.Context())
 	queryParams := r.URL.Query()
 	objectType, err := url.QueryUnescape(queryParams.Get("objectType"))
@@ -67,7 +67,7 @@ func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	filterOptions := FilterOptions{ObjectType: objectType}
-	objects, err := NewService(env).List(r.Context(), &filterOptions, listParams)
+	objects, err := svc.List(r.Context(), &filterOptions, listParams)
 	if err != nil {
 		return err
 	}
@@ -76,10 +76,10 @@ func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func get(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func get(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
 	objectType := mux.Vars(r)["objectType"]
 	objectIdParam := mux.Vars(r)["objectId"]
-	object, err := NewService(env).GetByObjectId(r.Context(), objectType, objectIdParam)
+	object, err := svc.GetByObjectId(r.Context(), objectType, objectIdParam)
 	if err != nil {
 		return err
 	}
@@ -88,10 +88,10 @@ func get(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func delete(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func delete(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
 	objectType := mux.Vars(r)["objectType"]
 	objectId := mux.Vars(r)["objectId"]
-	err := NewService(env).DeleteByObjectTypeAndId(r.Context(), objectType, objectId)
+	err := svc.DeleteByObjectTypeAndId(r.Context(), objectType, objectId)
 	if err != nil {
 		return err
 	}

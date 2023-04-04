@@ -8,7 +8,17 @@ import (
 	"github.com/warrant-dev/warrant/pkg/database"
 )
 
-// ObjectType model
+type Model interface {
+	GetID() int64
+	GetTypeId() string
+	GetDefinition() string
+	SetDefinition(string)
+	GetCreatedAt() time.Time
+	GetUpdatedAt() time.Time
+	GetDeletedAt() database.NullTime
+	ToObjectTypeSpec() (*ObjectTypeSpec, error)
+}
+
 type ObjectType struct {
 	ID         int64             `mysql:"id" postgres:"id"`
 	TypeId     string            `mysql:"typeId" postgres:"type_id"`
@@ -16,6 +26,34 @@ type ObjectType struct {
 	CreatedAt  time.Time         `mysql:"createdAt" postgres:"created_at"`
 	UpdatedAt  time.Time         `mysql:"updatedAt" postgres:"updated_at"`
 	DeletedAt  database.NullTime `mysql:"deletedAt" postgres:"deleted_at"`
+}
+
+func (objectType ObjectType) GetID() int64 {
+	return objectType.ID
+}
+
+func (objectType ObjectType) GetTypeId() string {
+	return objectType.TypeId
+}
+
+func (objectType ObjectType) GetDefinition() string {
+	return objectType.Definition
+}
+
+func (objectType *ObjectType) SetDefinition(newDefinition string) {
+	objectType.Definition = newDefinition
+}
+
+func (objectType ObjectType) GetCreatedAt() time.Time {
+	return objectType.CreatedAt
+}
+
+func (objectType ObjectType) GetUpdatedAt() time.Time {
+	return objectType.UpdatedAt
+}
+
+func (objectType ObjectType) GetDeletedAt() database.NullTime {
+	return objectType.DeletedAt
 }
 
 func (objectType ObjectType) ToObjectTypeSpec() (*ObjectTypeSpec, error) {

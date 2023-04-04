@@ -9,11 +9,11 @@ import (
 )
 
 type PermissionRepository interface {
-	Create(ctx context.Context, permission Permission) (int64, error)
-	GetById(ctx context.Context, id int64) (*Permission, error)
-	GetByPermissionId(ctx context.Context, permissionId string) (*Permission, error)
-	List(ctx context.Context, listParams middleware.ListParams) ([]Permission, error)
-	UpdateByPermissionId(ctx context.Context, permissionId string, permission Permission) error
+	Create(ctx context.Context, permission Model) (int64, error)
+	GetById(ctx context.Context, id int64) (Model, error)
+	GetByPermissionId(ctx context.Context, permissionId string) (Model, error)
+	List(ctx context.Context, listParams middleware.ListParams) ([]Model, error)
+	UpdateByPermissionId(ctx context.Context, permissionId string, permission Model) error
 	DeleteByPermissionId(ctx context.Context, permissionId string) error
 }
 

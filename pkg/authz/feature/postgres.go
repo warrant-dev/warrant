@@ -23,7 +23,7 @@ func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	}
 }
 
-func (repo PostgresRepository) Create(ctx context.Context, feature Feature) (int64, error) {
+func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newFeatureId int64
 	err := repo.DB.GetContext(
 		ctx,
@@ -44,14 +44,14 @@ func (repo PostgresRepository) Create(ctx context.Context, feature Feature) (int
 				deleted_at = NULL
 			RETURNING id
 		`,
-		feature.ObjectId,
-		feature.FeatureId,
-		feature.Name,
-		feature.Description,
-		feature.ObjectId,
-		feature.FeatureId,
-		feature.Name,
-		feature.Description,
+		model.GetObjectId(),
+		model.GetFeatureId(),
+		model.GetName(),
+		model.GetDescription(),
+		model.GetObjectId(),
+		model.GetFeatureId(),
+		model.GetName(),
+		model.GetDescription(),
 	)
 
 	if err != nil {
@@ -61,7 +61,7 @@ func (repo PostgresRepository) Create(ctx context.Context, feature Feature) (int
 	return newFeatureId, err
 }
 
-func (repo PostgresRepository) GetById(ctx context.Context, id int64) (*Feature, error) {
+func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var feature Feature
 	err := repo.DB.GetContext(
 		ctx,
@@ -87,7 +87,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (*Feature,
 	return &feature, nil
 }
 
-func (repo PostgresRepository) GetByFeatureId(ctx context.Context, featureId string) (*Feature, error) {
+func (repo PostgresRepository) GetByFeatureId(ctx context.Context, featureId string) (Model, error) {
 	var feature Feature
 	err := repo.DB.GetContext(
 		ctx,
@@ -113,7 +113,8 @@ func (repo PostgresRepository) GetByFeatureId(ctx context.Context, featureId str
 	return &feature, nil
 }
 
-func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Feature, error) {
+func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Model, error) {
+	models := make([]Model, 0)
 	features := make([]Feature, 0)
 	query := `
 		SELECT id, object_id, feature_id, name, description, created_at, updated_at, deleted_at
@@ -208,16 +209,20 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return features, nil
+			return models, nil
 		default:
-			return features, service.NewInternalError("Unable to list features")
+			return models, service.NewInternalError("Unable to list features")
 		}
 	}
 
-	return features, nil
+	for i := range features {
+		models = append(models, &features[i])
+	}
+
+	return models, nil
 }
 
-func (repo PostgresRepository) UpdateByFeatureId(ctx context.Context, featureId string, feature Feature) error {
+func (repo PostgresRepository) UpdateByFeatureId(ctx context.Context, featureId string, model Model) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -229,8 +234,8 @@ func (repo PostgresRepository) UpdateByFeatureId(ctx context.Context, featureId 
 				feature_id = ? AND
 				deleted_at IS NULL
 		`,
-		feature.Name,
-		feature.Description,
+		model.GetName(),
+		model.GetDescription(),
 		featureId,
 	)
 	if err != nil {

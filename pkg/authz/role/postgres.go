@@ -23,7 +23,7 @@ func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	}
 }
 
-func (repo PostgresRepository) Create(ctx context.Context, role Role) (int64, error) {
+func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newRoleId int64
 	err := repo.DB.GetContext(
 		ctx,
@@ -44,14 +44,14 @@ func (repo PostgresRepository) Create(ctx context.Context, role Role) (int64, er
 				deleted_at = NULL
 			RETURNING id
 		`,
-		role.ObjectId,
-		role.RoleId,
-		role.Name,
-		role.Description,
-		role.ObjectId,
-		role.RoleId,
-		role.Name,
-		role.Description,
+		model.GetObjectId(),
+		model.GetRoleId(),
+		model.GetName(),
+		model.GetDescription(),
+		model.GetObjectId(),
+		model.GetRoleId(),
+		model.GetName(),
+		model.GetDescription(),
 	)
 
 	if err != nil {
@@ -61,7 +61,7 @@ func (repo PostgresRepository) Create(ctx context.Context, role Role) (int64, er
 	return newRoleId, err
 }
 
-func (repo PostgresRepository) GetById(ctx context.Context, id int64) (*Role, error) {
+func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var role Role
 	err := repo.DB.GetContext(
 		ctx,
@@ -87,7 +87,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (*Role, er
 	return &role, nil
 }
 
-func (repo PostgresRepository) GetByRoleId(ctx context.Context, roleId string) (*Role, error) {
+func (repo PostgresRepository) GetByRoleId(ctx context.Context, roleId string) (Model, error) {
 	var role Role
 	err := repo.DB.GetContext(
 		ctx,
@@ -113,7 +113,8 @@ func (repo PostgresRepository) GetByRoleId(ctx context.Context, roleId string) (
 	return &role, nil
 }
 
-func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Role, error) {
+func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Model, error) {
+	models := make([]Model, 0)
 	roles := make([]Role, 0)
 	query := `
 		SELECT id, object_id, role_id, name, description, created_at, updated_at, deleted_at
@@ -208,16 +209,20 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return roles, nil
+			return models, nil
 		default:
-			return roles, service.NewInternalError("Unable to list roles")
+			return models, service.NewInternalError("Unable to list roles")
 		}
 	}
 
-	return roles, nil
+	for i := range roles {
+		models = append(models, &roles[i])
+	}
+
+	return models, nil
 }
 
-func (repo PostgresRepository) UpdateByRoleId(ctx context.Context, roleId string, role Role) error {
+func (repo PostgresRepository) UpdateByRoleId(ctx context.Context, roleId string, model Model) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -229,8 +234,8 @@ func (repo PostgresRepository) UpdateByRoleId(ctx context.Context, roleId string
 				role_id = ? AND
 				deleted_at IS NULL
 		`,
-		role.Name,
-		role.Description,
+		model.GetName(),
+		model.GetDescription(),
 		roleId,
 	)
 	if err != nil {

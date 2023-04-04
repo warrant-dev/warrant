@@ -9,11 +9,11 @@ import (
 )
 
 type FeatureRepository interface {
-	Create(ctx context.Context, feature Feature) (int64, error)
-	GetById(ctx context.Context, id int64) (*Feature, error)
-	GetByFeatureId(ctx context.Context, pricingTierId string) (*Feature, error)
-	List(ctx context.Context, listParams middleware.ListParams) ([]Feature, error)
-	UpdateByFeatureId(ctx context.Context, pricingTierId string, feature Feature) error
+	Create(ctx context.Context, feature Model) (int64, error)
+	GetById(ctx context.Context, id int64) (Model, error)
+	GetByFeatureId(ctx context.Context, pricingTierId string) (Model, error)
+	List(ctx context.Context, listParams middleware.ListParams) ([]Model, error)
+	UpdateByFeatureId(ctx context.Context, pricingTierId string, feature Model) error
 	DeleteByFeatureId(ctx context.Context, pricingTierId string) error
 }
 

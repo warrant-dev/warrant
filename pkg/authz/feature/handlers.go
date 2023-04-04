@@ -10,13 +10,13 @@ import (
 )
 
 // GetRoutes registers all route handlers for this module
-func (svc FeatureService) GetRoutes() []service.Route {
+func (svc FeatureService) Routes() []service.Route {
 	return []service.Route{
 		// create
 		{
 			Pattern: "/v1/features",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc.Env(), create),
+			Handler: service.NewRouteHandler(svc, create),
 		},
 
 		// get
@@ -24,45 +24,45 @@ func (svc FeatureService) GetRoutes() []service.Route {
 			Pattern: "/v1/features",
 			Method:  "GET",
 			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc.Env(), list),
+				service.NewRouteHandler(svc, list),
 				middleware.ListMiddleware[FeatureListParamParser],
 			),
 		},
 		{
 			Pattern: "/v1/features/{featureId}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc.Env(), get),
+			Handler: service.NewRouteHandler(svc, get),
 		},
 
 		// update
 		{
 			Pattern: "/v1/features/{featureId}",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc.Env(), update),
+			Handler: service.NewRouteHandler(svc, update),
 		},
 		{
 			Pattern: "/v1/features/{featureId}",
 			Method:  "PUT",
-			Handler: service.NewRouteHandler(svc.Env(), update),
+			Handler: service.NewRouteHandler(svc, update),
 		},
 
 		// delete
 		{
 			Pattern: "/v1/features/{featureId}",
 			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc.Env(), delete),
+			Handler: service.NewRouteHandler(svc, delete),
 		},
 	}
 }
 
-func create(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func create(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
 	var newFeature FeatureSpec
 	err := service.ParseJSONBody(r.Body, &newFeature)
 	if err != nil {
 		return err
 	}
 
-	createdFeature, err := NewService(env).Create(r.Context(), newFeature)
+	createdFeature, err := svc.Create(r.Context(), newFeature)
 	if err != nil {
 		return err
 	}
@@ -71,14 +71,14 @@ func create(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func get(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func get(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
 	featureIdParam := mux.Vars(r)["featureId"]
 	featureId, err := url.QueryUnescape(featureIdParam)
 	if err != nil {
 		return service.NewInvalidParameterError("featureId", "")
 	}
 
-	feature, err := NewService(env).GetByFeatureId(r.Context(), featureId)
+	feature, err := svc.GetByFeatureId(r.Context(), featureId)
 	if err != nil {
 		return err
 	}
@@ -87,9 +87,9 @@ func get(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func list(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
 	listParams := middleware.GetListParamsFromContext(r.Context())
-	features, err := NewService(env).List(r.Context(), listParams)
+	features, err := svc.List(r.Context(), listParams)
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func update(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
 	var updateFeature UpdateFeatureSpec
 	err := service.ParseJSONBody(r.Body, &updateFeature)
 	if err != nil {
@@ -111,7 +111,7 @@ func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
 		return service.NewInvalidParameterError("featureId", "")
 	}
 
-	updatedFeature, err := NewService(env).UpdateByFeatureId(r.Context(), featureId, updateFeature)
+	updatedFeature, err := svc.UpdateByFeatureId(r.Context(), featureId, updateFeature)
 	if err != nil {
 		return err
 	}
@@ -120,13 +120,13 @@ func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func delete(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func delete(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
 	featureId := mux.Vars(r)["featureId"]
 	if featureId == "" {
 		return service.NewMissingRequiredParameterError("featureId")
 	}
 
-	err := NewService(env).DeleteByFeatureId(r.Context(), featureId)
+	err := svc.DeleteByFeatureId(r.Context(), featureId)
 	if err != nil {
 		return err
 	}

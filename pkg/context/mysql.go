@@ -23,7 +23,12 @@ func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	}
 }
 
-func (repository MySQLRepository) CreateAll(ctx context.Context, contexts []Context) ([]Context, error) {
+func (repository MySQLRepository) CreateAll(ctx context.Context, models []Model) ([]Model, error) {
+	contexts := make([]Context, 0)
+	for _, model := range models {
+		contexts = append(contexts, *NewContextFromModel(model))
+	}
+
 	_, err := repository.DB.NamedExecContext(
 		ctx,
 		`
@@ -45,13 +50,14 @@ func (repository MySQLRepository) CreateAll(ctx context.Context, contexts []Cont
 		return nil, errors.Wrap(err, "Unable to create contexts")
 	}
 
-	return repository.ListByWarrantId(ctx, []int64{contexts[0].WarrantId})
+	return repository.ListByWarrantId(ctx, []int64{contexts[0].GetWarrantId()})
 }
 
-func (repository MySQLRepository) ListByWarrantId(ctx context.Context, warrantIds []int64) ([]Context, error) {
+func (repository MySQLRepository) ListByWarrantId(ctx context.Context, warrantIds []int64) ([]Model, error) {
+	models := make([]Model, 0)
 	contexts := make([]Context, 0)
 	if len(warrantIds) == 0 {
-		return contexts, nil
+		return models, nil
 	}
 
 	warrantIdStrings := make([]string, 0)
@@ -76,13 +82,17 @@ func (repository MySQLRepository) ListByWarrantId(ctx context.Context, warrantId
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return contexts, nil
+			return models, nil
 		default:
 			return nil, errors.Wrap(err, fmt.Sprintf("Unable to list contexts for warrant ids %s from mysql", strings.Join(warrantIdStrings, ", ")))
 		}
 	}
 
-	return contexts, nil
+	for i := range contexts {
+		models = append(models, &contexts[i])
+	}
+
+	return models, nil
 }
 
 func (repository MySQLRepository) DeleteAllByWarrantId(ctx context.Context, warrantId int64) error {

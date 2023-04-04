@@ -9,15 +9,15 @@ import (
 )
 
 type WarrantRepository interface {
-	Create(ctx context.Context, warrant Warrant) (int64, error)
-	Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (*Warrant, error)
-	GetByID(ctx context.Context, id int64) (*Warrant, error)
-	GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (*Warrant, error)
-	GetAllMatchingWildcard(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Warrant, error)
-	GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Warrant, error)
-	GetAllMatchingObjectAndSubject(ctx context.Context, objectType string, objectId string, subjectType string, subjectId string, subjectRelation string) ([]Warrant, error)
-	GetAllMatchingSubjectAndRelation(ctx context.Context, objectType string, relation string, subjectType string, subjectId string, subjectRelation string) ([]Warrant, error)
-	List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]Warrant, error)
+	Create(ctx context.Context, warrant Model) (int64, error)
+	Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error)
+	GetByID(ctx context.Context, id int64) (Model, error)
+	GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error)
+	GetAllMatchingWildcard(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Model, error)
+	GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Model, error)
+	GetAllMatchingObjectAndSubject(ctx context.Context, objectType string, objectId string, subjectType string, subjectId string, subjectRelation string) ([]Model, error)
+	GetAllMatchingSubjectAndRelation(ctx context.Context, objectType string, relation string, subjectType string, subjectId string, subjectRelation string) ([]Model, error)
+	List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]Model, error)
 	DeleteById(ctx context.Context, id int64) error
 	DeleteAllByObject(ctx context.Context, objectType string, objectId string) error
 	DeleteAllBySubject(ctx context.Context, subjectType string, subjectId string) error

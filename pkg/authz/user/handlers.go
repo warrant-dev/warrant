@@ -9,26 +9,26 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-func (svc UserService) GetRoutes() []service.Route {
+func (svc UserService) Routes() []service.Route {
 	return []service.Route{
 		// create
 		{
 			Pattern: "/v1/users",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc.Env(), create),
+			Handler: service.NewRouteHandler(svc, create),
 		},
 
 		// get
 		{
 			Pattern: "/v1/users/{userId}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc.Env(), get),
+			Handler: service.NewRouteHandler(svc, get),
 		},
 		{
 			Pattern: "/v1/users",
 			Method:  "GET",
 			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc.Env(), list),
+				service.NewRouteHandler(svc, list),
 				middleware.ListMiddleware[UserListParamParser],
 			),
 		},
@@ -37,31 +37,31 @@ func (svc UserService) GetRoutes() []service.Route {
 		{
 			Pattern: "/v1/users/{userId}",
 			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc.Env(), delete),
+			Handler: service.NewRouteHandler(svc, delete),
 		},
 
 		// update
 		{
 			Pattern: "/v1/users/{userId}",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc.Env(), update),
+			Handler: service.NewRouteHandler(svc, update),
 		},
 		{
 			Pattern: "/v1/users/{userId}",
 			Method:  "PUT",
-			Handler: service.NewRouteHandler(svc.Env(), update),
+			Handler: service.NewRouteHandler(svc, update),
 		},
 	}
 }
 
-func create(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func create(svc UserService, w http.ResponseWriter, r *http.Request) error {
 	var userSpec UserSpec
 	err := service.ParseJSONBody(r.Body, &userSpec)
 	if err != nil {
 		return err
 	}
 
-	createdUser, err := NewService(env).Create(r.Context(), userSpec)
+	createdUser, err := svc.Create(r.Context(), userSpec)
 	if err != nil {
 		return err
 	}
@@ -70,14 +70,14 @@ func create(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func get(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func get(svc UserService, w http.ResponseWriter, r *http.Request) error {
 	userIdParam := mux.Vars(r)["userId"]
 	userId, err := url.QueryUnescape(userIdParam)
 	if err != nil {
 		return service.NewInvalidParameterError("userId", "")
 	}
 
-	user, err := NewService(env).GetByUserId(r.Context(), userId)
+	user, err := svc.GetByUserId(r.Context(), userId)
 	if err != nil {
 		return err
 	}
@@ -86,9 +86,9 @@ func get(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func list(svc UserService, w http.ResponseWriter, r *http.Request) error {
 	listParams := middleware.GetListParamsFromContext(r.Context())
-	users, err := NewService(env).List(r.Context(), listParams)
+	users, err := svc.List(r.Context(), listParams)
 	if err != nil {
 		return err
 	}
@@ -97,7 +97,7 @@ func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func update(svc UserService, w http.ResponseWriter, r *http.Request) error {
 	var updateUser UpdateUserSpec
 	err := service.ParseJSONBody(r.Body, &updateUser)
 	if err != nil {
@@ -110,7 +110,7 @@ func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
 		return service.NewInvalidParameterError("userId", "")
 	}
 
-	updatedUser, err := NewService(env).UpdateByUserId(r.Context(), userId, updateUser)
+	updatedUser, err := svc.UpdateByUserId(r.Context(), userId, updateUser)
 	if err != nil {
 		return err
 	}
@@ -119,14 +119,14 @@ func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func delete(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func delete(svc UserService, w http.ResponseWriter, r *http.Request) error {
 	userIdParam := mux.Vars(r)["userId"]
 	userId, err := url.QueryUnescape(userIdParam)
 	if err != nil {
 		return service.NewInvalidParameterError("userId", "")
 	}
 
-	err = NewService(env).DeleteByUserId(r.Context(), userId)
+	err = svc.DeleteByUserId(r.Context(), userId)
 	if err != nil {
 		return err
 	}

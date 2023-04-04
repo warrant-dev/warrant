@@ -9,11 +9,11 @@ import (
 )
 
 type RoleRepository interface {
-	Create(ctx context.Context, role Role) (int64, error)
-	GetById(ctx context.Context, id int64) (*Role, error)
-	GetByRoleId(ctx context.Context, roleId string) (*Role, error)
-	List(ctx context.Context, listParams middleware.ListParams) ([]Role, error)
-	UpdateByRoleId(ctx context.Context, roleId string, role Role) error
+	Create(ctx context.Context, role Model) (int64, error)
+	GetById(ctx context.Context, id int64) (Model, error)
+	GetByRoleId(ctx context.Context, roleId string) (Model, error)
+	List(ctx context.Context, listParams middleware.ListParams) ([]Model, error)
+	UpdateByRoleId(ctx context.Context, roleId string, role Model) error
 	DeleteByRoleId(ctx context.Context, roleId string) error
 }
 

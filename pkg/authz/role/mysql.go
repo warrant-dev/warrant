@@ -22,7 +22,7 @@ func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	}
 }
 
-func (repo MySQLRepository) Create(ctx context.Context, role Role) (int64, error) {
+func (repo MySQLRepository) Create(ctx context.Context, role Model) (int64, error) {
 	result, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -40,14 +40,14 @@ func (repo MySQLRepository) Create(ctx context.Context, role Role) (int64, error
 				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
-		role.ObjectId,
-		role.RoleId,
-		role.Name,
-		role.Description,
-		role.ObjectId,
-		role.RoleId,
-		role.Name,
-		role.Description,
+		role.GetObjectId(),
+		role.GetRoleId(),
+		role.GetName(),
+		role.GetDescription(),
+		role.GetObjectId(),
+		role.GetRoleId(),
+		role.GetName(),
+		role.GetDescription(),
 	)
 
 	if err != nil {
@@ -62,7 +62,7 @@ func (repo MySQLRepository) Create(ctx context.Context, role Role) (int64, error
 	return newRoleId, err
 }
 
-func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*Role, error) {
+func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var role Role
 	err := repo.DB.GetContext(
 		ctx,
@@ -88,7 +88,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*Role, error
 	return &role, nil
 }
 
-func (repo MySQLRepository) GetByRoleId(ctx context.Context, roleId string) (*Role, error) {
+func (repo MySQLRepository) GetByRoleId(ctx context.Context, roleId string) (Model, error) {
 	var role Role
 	err := repo.DB.GetContext(
 		ctx,
@@ -114,7 +114,8 @@ func (repo MySQLRepository) GetByRoleId(ctx context.Context, roleId string) (*Ro
 	return &role, nil
 }
 
-func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Role, error) {
+func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Model, error) {
+	models := make([]Model, 0)
 	roles := make([]Role, 0)
 	query := `
 		SELECT id, objectId, roleId, name, description, createdAt, updatedAt, deletedAt
@@ -203,16 +204,20 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return roles, nil
+			return models, nil
 		default:
-			return roles, service.NewInternalError("Unable to list roles")
+			return models, service.NewInternalError("Unable to list roles")
 		}
 	}
 
-	return roles, nil
+	for i := range roles {
+		models = append(models, &roles[i])
+	}
+
+	return models, nil
 }
 
-func (repo MySQLRepository) UpdateByRoleId(ctx context.Context, roleId string, role Role) error {
+func (repo MySQLRepository) UpdateByRoleId(ctx context.Context, roleId string, model Model) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -224,8 +229,8 @@ func (repo MySQLRepository) UpdateByRoleId(ctx context.Context, roleId string, r
 				roleId = ? AND
 				deletedAt IS NULL
 		`,
-		role.Name,
-		role.Description,
+		model.GetName(),
+		model.GetDescription(),
 		roleId,
 	)
 	if err != nil {

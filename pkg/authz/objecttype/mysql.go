@@ -22,7 +22,7 @@ func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	}
 }
 
-func (repo MySQLRepository) Create(ctx context.Context, objectType ObjectType) (int64, error) {
+func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, error) {
 	result, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -35,9 +35,9 @@ func (repo MySQLRepository) Create(ctx context.Context, objectType ObjectType) (
 				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
-		objectType.TypeId,
-		objectType.Definition,
-		objectType.Definition,
+		model.GetTypeId(),
+		model.GetDefinition(),
+		model.GetDefinition(),
 	)
 	if err != nil {
 		return 0, errors.Wrap(err, "Unable to create object type")
@@ -51,7 +51,7 @@ func (repo MySQLRepository) Create(ctx context.Context, objectType ObjectType) (
 	return newObjectTypeId, nil
 }
 
-func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*ObjectType, error) {
+func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var objectType ObjectType
 	err := repo.DB.GetContext(
 		ctx,
@@ -77,7 +77,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*ObjectType,
 	return &objectType, nil
 }
 
-func (repo MySQLRepository) GetByTypeId(ctx context.Context, typeId string) (*ObjectType, error) {
+func (repo MySQLRepository) GetByTypeId(ctx context.Context, typeId string) (Model, error) {
 	var objectType ObjectType
 	err := repo.DB.GetContext(
 		ctx,
@@ -103,7 +103,8 @@ func (repo MySQLRepository) GetByTypeId(ctx context.Context, typeId string) (*Ob
 	return &objectType, nil
 }
 
-func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]ObjectType, error) {
+func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Model, error) {
+	models := make([]Model, 0)
 	objectTypes := make([]ObjectType, 0)
 	replacements := make([]interface{}, 0)
 	query := `
@@ -192,16 +193,20 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return objectTypes, nil
+			return models, nil
 		default:
-			return objectTypes, errors.Wrap(err, "Unable to get object types from mysql")
+			return models, errors.Wrap(err, "Unable to get object types from mysql")
 		}
 	}
 
-	return objectTypes, nil
+	for i := range objectTypes {
+		models = append(models, &objectTypes[i])
+	}
+
+	return models, nil
 }
 
-func (repo MySQLRepository) UpdateByTypeId(ctx context.Context, typeId string, objectType ObjectType) error {
+func (repo MySQLRepository) UpdateByTypeId(ctx context.Context, typeId string, model Model) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -212,7 +217,7 @@ func (repo MySQLRepository) UpdateByTypeId(ctx context.Context, typeId string, o
 				typeId = ? AND
 				deletedAt IS NULL
 		`,
-		objectType.Definition,
+		model.GetDefinition(),
 		typeId,
 	)
 	if err != nil {

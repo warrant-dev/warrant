@@ -22,7 +22,7 @@ func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	}
 }
 
-func (repo MySQLRepository) Create(ctx context.Context, pricingTier PricingTier) (int64, error) {
+func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, error) {
 	result, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -40,14 +40,14 @@ func (repo MySQLRepository) Create(ctx context.Context, pricingTier PricingTier)
 				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
-		pricingTier.ObjectId,
-		pricingTier.PricingTierId,
-		pricingTier.Name,
-		pricingTier.Description,
-		pricingTier.ObjectId,
-		pricingTier.PricingTierId,
-		pricingTier.Name,
-		pricingTier.Description,
+		model.GetObjectId(),
+		model.GetPricingTierId(),
+		model.GetName(),
+		model.GetDescription(),
+		model.GetObjectId(),
+		model.GetPricingTierId(),
+		model.GetName(),
+		model.GetDescription(),
 	)
 
 	if err != nil {
@@ -62,7 +62,7 @@ func (repo MySQLRepository) Create(ctx context.Context, pricingTier PricingTier)
 	return newPricingTierId, err
 }
 
-func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*PricingTier, error) {
+func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var pricingTier PricingTier
 	err := repo.DB.GetContext(
 		ctx,
@@ -88,7 +88,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*PricingTier
 	return &pricingTier, nil
 }
 
-func (repo MySQLRepository) GetByPricingTierId(ctx context.Context, pricingTierId string) (*PricingTier, error) {
+func (repo MySQLRepository) GetByPricingTierId(ctx context.Context, pricingTierId string) (Model, error) {
 	var pricingTier PricingTier
 	err := repo.DB.GetContext(
 		ctx,
@@ -114,7 +114,8 @@ func (repo MySQLRepository) GetByPricingTierId(ctx context.Context, pricingTierI
 	return &pricingTier, nil
 }
 
-func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]PricingTier, error) {
+func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Model, error) {
+	models := make([]Model, 0)
 	pricingTiers := make([]PricingTier, 0)
 	query := `
 		SELECT id, objectId, pricingTierId, name, description, createdAt, updatedAt, deletedAt
@@ -203,16 +204,20 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return pricingTiers, nil
+			return models, nil
 		default:
-			return pricingTiers, service.NewInternalError("Unable to list pricing tiers")
+			return models, service.NewInternalError("Unable to list pricing tiers")
 		}
 	}
 
-	return pricingTiers, nil
+	for i := range pricingTiers {
+		models = append(models, &pricingTiers[i])
+	}
+
+	return models, nil
 }
 
-func (repo MySQLRepository) UpdateByPricingTierId(ctx context.Context, pricingTierId string, pricingTier PricingTier) error {
+func (repo MySQLRepository) UpdateByPricingTierId(ctx context.Context, pricingTierId string, model Model) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -224,8 +229,8 @@ func (repo MySQLRepository) UpdateByPricingTierId(ctx context.Context, pricingTi
 				pricingTierId = ? AND
 				deletedAt IS NULL
 		`,
-		pricingTier.Name,
-		pricingTier.Description,
+		model.GetName(),
+		model.GetDescription(),
 		pricingTierId,
 	)
 	if err != nil {

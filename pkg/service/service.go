@@ -8,7 +8,8 @@ type Env interface {
 }
 
 type Service interface {
-	GetRoutes() []Route
+	Routes() []Route
+	Env() Env
 }
 
 type BaseService struct {
