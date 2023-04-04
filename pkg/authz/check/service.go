@@ -330,6 +330,7 @@ func (svc CheckService) Check(ctx context.Context, warrantCheck CheckSpec) (matc
 			Relation:   matchedWarrant.Relation,
 			Subject:    matchedWarrant.Subject,
 			Context:    matchedWarrant.Context,
+			CreatedAt:  matchedWarrant.CreatedAt,
 		}}, nil
 	}
 
