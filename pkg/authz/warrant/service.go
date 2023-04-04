@@ -12,19 +12,23 @@ import (
 
 type WarrantService struct {
 	service.BaseService
-	objectTypeMap map[string]*objecttype.ObjectTypeSpec
+	repo          WarrantRepository
+	eventSvc      event.EventService
+	objectTypeSvc objecttype.ObjectTypeService
 }
 
-func NewService(env service.Env) WarrantService {
+func NewService(env service.Env, repo WarrantRepository, eventSvc event.EventService, objectTypeSvc objecttype.ObjectTypeService) WarrantService {
 	return WarrantService{
 		BaseService:   service.NewBaseService(env),
-		objectTypeMap: make(map[string]*objecttype.ObjectTypeSpec),
+		repo:          repo,
+		eventSvc:      eventSvc,
+		objectTypeSvc: objectTypeSvc,
 	}
 }
 
 func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (*WarrantSpec, error) {
 	// Check that objectType is valid
-	objectTypeDef, err := objecttype.NewService(svc.Env()).GetByTypeId(ctx, warrantSpec.ObjectType)
+	objectTypeDef, err := svc.objectTypeSvc.GetByTypeId(ctx, warrantSpec.ObjectType)
 	if err != nil {
 		return nil, service.NewInvalidParameterError("objectType", "The given object type does not exist.")
 	}
@@ -35,25 +39,20 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 		return nil, service.NewInvalidParameterError("relation", "An object type with the given relation does not exist.")
 	}
 
-	warrantRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
-
 	// Check that warrant does not already exist
-	_, err = warrantRepository.Get(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Context.String())
+	_, err = svc.repo.Get(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Context.String())
 	if err == nil {
 		return nil, service.NewDuplicateRecordError("Warrant", warrantSpec, "A warrant with the given objectType, objectId, relation, subject, and context already exists")
 	}
 
 	var createdWarrant *Warrant
 	err = svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		createdWarrantId, err := warrantRepository.Create(txCtx, *warrantSpec.ToWarrant())
+		createdWarrantId, err := svc.repo.Create(txCtx, *warrantSpec.ToWarrant())
 		if err != nil {
 			return err
 		}
 
-		createdWarrant, err = warrantRepository.GetByID(txCtx, createdWarrantId)
+		createdWarrant, err = svc.repo.GetByID(txCtx, createdWarrantId)
 		if err != nil {
 			return err
 		}
@@ -76,7 +75,7 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 			}
 		}
 
-		event.NewService(svc.Env()).TrackAccessGrantedEvent(txCtx, createdWarrant.ObjectType, createdWarrant.ObjectId, createdWarrant.Relation, createdWarrant.SubjectType, createdWarrant.SubjectId, createdWarrant.SubjectRelation.String, warrantSpec.Context)
+		svc.eventSvc.TrackAccessGrantedEvent(txCtx, createdWarrant.ObjectType, createdWarrant.ObjectId, createdWarrant.Relation, createdWarrant.SubjectType, createdWarrant.SubjectId, createdWarrant.SubjectRelation.String, warrantSpec.Context)
 		return nil
 	})
 	if err != nil {
@@ -87,12 +86,7 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 }
 
 func (svc WarrantService) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, wntCtx wntContext.ContextSetSpec) (*WarrantSpec, error) {
-	warrantRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
-
-	warrant, err := warrantRepository.Get(ctx, objectType, objectId, relation, subjectType, subjectId, subjectRelation, wntCtx.ToHash())
+	warrant, err := svc.repo.Get(ctx, objectType, objectId, relation, subjectType, subjectId, subjectRelation, wntCtx.ToHash())
 	if err != nil {
 		return nil, err
 	}
@@ -112,12 +106,8 @@ func (svc WarrantService) Get(ctx context.Context, objectType string, objectId s
 
 func (svc WarrantService) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]*WarrantSpec, error) {
 	warrantSpecs := make([]*WarrantSpec, 0)
-	warrantRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
 
-	warrants, err := warrantRepository.List(ctx, filterOptions, listParams)
+	warrants, err := svc.repo.List(ctx, filterOptions, listParams)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +130,7 @@ func (svc WarrantService) List(ctx context.Context, filterOptions *FilterOptions
 	}
 
 	for _, context := range contexts {
-		warrantMap[context.WarrantId].Context = append(warrantMap[context.WarrantId].Context, context)
+		warrantMap[context.GetWarrantId()].Context = append(warrantMap[context.GetWarrantId()].Context, context)
 	}
 
 	for _, warrant := range warrants {
@@ -152,12 +142,7 @@ func (svc WarrantService) List(ctx context.Context, filterOptions *FilterOptions
 
 func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) error {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		warrantRepository, err := NewRepository(svc.Env().DB())
-		if err != nil {
-			return err
-		}
-
-		warrant, err := warrantRepository.Get(txCtx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Context.ToHash())
+		warrant, err := svc.repo.Get(txCtx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Context.ToHash())
 		if err != nil {
 			return err
 		}
@@ -172,12 +157,12 @@ func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) e
 			return err
 		}
 
-		err = warrantRepository.DeleteById(txCtx, warrant.ID)
+		err = svc.repo.DeleteById(txCtx, warrant.ID)
 		if err != nil {
 			return err
 		}
 
-		event.NewService(svc.Env()).TrackAccessRevokedEvent(txCtx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Context)
+		svc.eventSvc.TrackAccessRevokedEvent(txCtx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Context)
 		return nil
 	})
 	if err != nil {
@@ -189,17 +174,12 @@ func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) e
 
 func (svc WarrantService) DeleteRelatedWarrants(ctx context.Context, objectType string, objectId string) error {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		warrantRepository, err := NewRepository(svc.Env().DB())
+		err := svc.repo.DeleteAllByObject(txCtx, objectType, objectId)
 		if err != nil {
 			return err
 		}
 
-		err = warrantRepository.DeleteAllByObject(txCtx, objectType, objectId)
-		if err != nil {
-			return err
-		}
-
-		err = warrantRepository.DeleteAllBySubject(txCtx, objectType, objectId)
+		err = svc.repo.DeleteAllBySubject(txCtx, objectType, objectId)
 		if err != nil {
 			return err
 		}

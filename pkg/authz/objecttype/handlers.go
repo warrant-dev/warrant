@@ -9,13 +9,13 @@ import (
 )
 
 // GetRoutes registers all route handlers for this module
-func (svc ObjectTypeService) GetRoutes() []service.Route {
+func (svc ObjectTypeService) Routes() []service.Route {
 	return []service.Route{
 		// create
 		{
 			Pattern: "/v1/object-types",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc.Env(), create),
+			Handler: service.NewRouteHandler(svc, create),
 		},
 
 		// get
@@ -23,7 +23,7 @@ func (svc ObjectTypeService) GetRoutes() []service.Route {
 			Pattern: "/v1/object-types",
 			Method:  "GET",
 			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc.Env(), list),
+				service.NewRouteHandler(svc, list),
 				middleware.ListMiddleware[ObjectTypeListParamParser],
 			),
 		},
@@ -32,38 +32,38 @@ func (svc ObjectTypeService) GetRoutes() []service.Route {
 		{
 			Pattern: "/v1/object-types/{type}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc.Env(), get),
+			Handler: service.NewRouteHandler(svc, get),
 		},
 
 		// update
 		{
 			Pattern: "/v1/object-types/{type}",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc.Env(), update),
+			Handler: service.NewRouteHandler(svc, update),
 		},
 		{
 			Pattern: "/v1/object-types/{type}",
 			Method:  "PUT",
-			Handler: service.NewRouteHandler(svc.Env(), update),
+			Handler: service.NewRouteHandler(svc, update),
 		},
 
 		// delete
 		{
 			Pattern: "/v1/object-types/{type}",
 			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc.Env(), delete),
+			Handler: service.NewRouteHandler(svc, delete),
 		},
 	}
 }
 
-func create(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func create(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	var objectTypeSpec ObjectTypeSpec
 	err := service.ParseJSONBody(r.Body, &objectTypeSpec)
 	if err != nil {
 		return err
 	}
 
-	createdObjectTypeSpec, err := NewService(env).Create(r.Context(), objectTypeSpec)
+	createdObjectTypeSpec, err := svc.Create(r.Context(), objectTypeSpec)
 	if err != nil {
 		return err
 	}
@@ -72,9 +72,9 @@ func create(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func list(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	listParams := middleware.GetListParamsFromContext(r.Context())
-	objectTypeSpecs, err := NewService(env).List(r.Context(), listParams)
+	objectTypeSpecs, err := svc.List(r.Context(), listParams)
 	if err != nil {
 		return err
 	}
@@ -83,9 +83,9 @@ func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func get(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func get(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	typeParam := mux.Vars(r)["type"]
-	objectTypeSpec, err := NewService(env).GetByTypeId(r.Context(), typeParam)
+	objectTypeSpec, err := svc.GetByTypeId(r.Context(), typeParam)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func get(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func update(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	var objectTypeSpec ObjectTypeSpec
 	err := service.ParseJSONBody(r.Body, &objectTypeSpec)
 	if err != nil {
@@ -102,7 +102,7 @@ func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	}
 
 	typeParam := mux.Vars(r)["type"]
-	updatedObjectTypeSpec, err := NewService(env).UpdateByTypeId(r.Context(), typeParam, objectTypeSpec)
+	updatedObjectTypeSpec, err := svc.UpdateByTypeId(r.Context(), typeParam, objectTypeSpec)
 	if err != nil {
 		return err
 	}
@@ -111,9 +111,9 @@ func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func delete(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func delete(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	typeId := mux.Vars(r)["type"]
-	err := NewService(env).DeleteByTypeId(r.Context(), typeId)
+	err := svc.DeleteByTypeId(r.Context(), typeId)
 	if err != nil {
 		return err
 	}

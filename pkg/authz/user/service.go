@@ -16,11 +16,17 @@ const ResourceTypeUser = "user"
 
 type UserService struct {
 	service.BaseService
+	repo      UserRepository
+	eventSvc  event.EventService
+	objectSvc object.ObjectService
 }
 
-func NewService(env service.Env) UserService {
+func NewService(env service.Env, repo UserRepository, eventSvc event.EventService, objectSvc object.ObjectService) UserService {
 	return UserService{
 		BaseService: service.NewBaseService(env),
+		repo:        repo,
+		eventSvc:    eventSvc,
+		objectSvc:   objectSvc,
 	}
 }
 
@@ -30,9 +36,9 @@ func (svc UserService) Create(ctx context.Context, userSpec UserSpec) (*UserSpec
 		return nil, err
 	}
 
-	var newUser *User
+	var newUser UserModel
 	err = svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		createdObject, err := object.NewService(svc.Env()).Create(txCtx, *userSpec.ToObjectSpec())
+		createdObject, err := svc.objectSvc.Create(txCtx, *userSpec.ToObjectSpec())
 		if err != nil {
 			switch err.(type) {
 			case *service.DuplicateRecordError:
@@ -42,27 +48,22 @@ func (svc UserService) Create(ctx context.Context, userSpec UserSpec) (*UserSpec
 			}
 		}
 
-		userRepository, err := NewRepository(svc.Env().DB())
-		if err != nil {
-			return err
-		}
-
-		_, err = userRepository.GetByUserId(txCtx, userSpec.UserId)
+		_, err = svc.repo.GetByUserId(txCtx, userSpec.UserId)
 		if err == nil {
 			return service.NewDuplicateRecordError("User", userSpec.UserId, "A user with the given userId already exists")
 		}
 
-		newUserId, err := userRepository.Create(txCtx, *userSpec.ToUser(createdObject.ID))
+		newUserId, err := svc.repo.Create(txCtx, userSpec.ToUser(createdObject.ID))
 		if err != nil {
 			return err
 		}
 
-		newUser, err = userRepository.GetById(txCtx, newUserId)
+		newUser, err = svc.repo.GetById(txCtx, newUserId)
 		if err != nil {
 			return err
 		}
 
-		event.NewService(svc.Env()).TrackResourceCreated(txCtx, ResourceTypeUser, newUser.UserId, newUser.ToUserSpec())
+		svc.eventSvc.TrackResourceCreated(txCtx, ResourceTypeUser, newUser.GetUserId(), newUser.ToUserSpec())
 		return nil
 	})
 
@@ -107,29 +108,24 @@ func (svc UserService) List(ctx context.Context, listParams middleware.ListParam
 }
 
 func (svc UserService) UpdateByUserId(ctx context.Context, userId string, userSpec UpdateUserSpec) (*UserSpec, error) {
-	userRepository, err := NewRepository(svc.Env().DB())
+	currentUser, err := svc.repo.GetByUserId(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
 
-	currentUser, err := userRepository.GetByUserId(ctx, userId)
+	currentUser.SetEmail(userSpec.Email)
+	err = svc.repo.UpdateByUserId(ctx, userId, currentUser)
 	if err != nil {
 		return nil, err
 	}
 
-	currentUser.Email = userSpec.Email
-	err = userRepository.UpdateByUserId(ctx, userId, *currentUser)
-	if err != nil {
-		return nil, err
-	}
-
-	updatedUser, err := userRepository.GetByUserId(ctx, userId)
+	updatedUser, err := svc.repo.GetByUserId(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
 
 	updatedUserSpec := updatedUser.ToUserSpec()
-	event.NewService(svc.Env()).TrackResourceUpdated(ctx, ResourceTypeUser, updatedUser.UserId, updatedUserSpec)
+	svc.eventSvc.TrackResourceUpdated(ctx, ResourceTypeUser, updatedUser.GetUserId(), updatedUserSpec)
 	return updatedUserSpec, nil
 }
 
@@ -145,12 +141,12 @@ func (svc UserService) DeleteByUserId(ctx context.Context, userId string) error 
 			return err
 		}
 
-		err = object.NewService(svc.Env()).DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypeUser, userId)
+		err = svc.objectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypeUser, userId)
 		if err != nil {
 			return err
 		}
 
-		event.NewService(svc.Env()).TrackResourceDeleted(txCtx, ResourceTypeUser, userId, nil)
+		svc.eventSvc.TrackResourceDeleted(txCtx, ResourceTypeUser, userId, nil)
 		return nil
 	})
 

@@ -23,7 +23,7 @@ func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	}
 }
 
-func (repo PostgresRepository) Create(ctx context.Context, user User) (int64, error) {
+func (repo PostgresRepository) Create(ctx context.Context, user UserModel) (int64, error) {
 	var newUserId int64
 	err := repo.DB.GetContext(
 		ctx,
@@ -41,11 +41,11 @@ func (repo PostgresRepository) Create(ctx context.Context, user User) (int64, er
 				deleted_at = NULL
 			RETURNING id
 		`,
-		user.UserId,
-		user.ObjectId,
-		user.Email,
-		user.ObjectId,
-		user.Email,
+		user.GetUserId(),
+		user.GetObjectId(),
+		user.GetEmail(),
+		user.GetObjectId(),
+		user.GetEmail(),
 	)
 	if err != nil {
 		return 0, errors.Wrap(err, "Unable to create user")
@@ -54,7 +54,7 @@ func (repo PostgresRepository) Create(ctx context.Context, user User) (int64, er
 	return newUserId, nil
 }
 
-func (repo PostgresRepository) GetById(ctx context.Context, id int64) (*User, error) {
+func (repo PostgresRepository) GetById(ctx context.Context, id int64) (UserModel, error) {
 	var user User
 	err := repo.DB.GetContext(
 		ctx,
@@ -80,7 +80,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (*User, er
 	return &user, nil
 }
 
-func (repo PostgresRepository) GetByUserId(ctx context.Context, userId string) (*User, error) {
+func (repo PostgresRepository) GetByUserId(ctx context.Context, userId string) (UserModel, error) {
 	var user User
 	err := repo.DB.GetContext(
 		ctx,
@@ -106,8 +106,8 @@ func (repo PostgresRepository) GetByUserId(ctx context.Context, userId string) (
 	return &user, nil
 }
 
-func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]User, error) {
-	users := make([]User, 0)
+func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]UserModel, error) {
+	users := make([]UserModel, 0)
 	query := `
 		SELECT id, object_id, user_id, email, created_at, updated_at, deleted_at
 		FROM "user"
@@ -210,7 +210,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 	return users, nil
 }
 
-func (repo PostgresRepository) UpdateByUserId(ctx context.Context, userId string, user User) error {
+func (repo PostgresRepository) UpdateByUserId(ctx context.Context, userId string, user UserModel) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -221,11 +221,11 @@ func (repo PostgresRepository) UpdateByUserId(ctx context.Context, userId string
 				user_id = ? AND
 				deleted_at IS NULL
 		`,
-		user.Email,
-		user.UserId,
+		user.GetEmail(),
+		user.GetUserId(),
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating user %d", user.ID))
+		return errors.Wrap(err, fmt.Sprintf("Error updating user %d", user.GetID()))
 	}
 
 	return nil

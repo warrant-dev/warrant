@@ -30,8 +30,8 @@ func (spec ContextSetSpec) ToHash() string {
 	return hex.EncodeToString(hash[:])
 }
 
-func (spec ContextSetSpec) ToSlice(warrantId int64) []Context {
-	contexts := make([]Context, 0)
+func (spec ContextSetSpec) ToSlice(warrantId int64) []ContextModel {
+	contexts := make([]ContextModel, 0)
 	for name, value := range spec {
 		contexts = append(contexts, Context{
 			WarrantId: warrantId,

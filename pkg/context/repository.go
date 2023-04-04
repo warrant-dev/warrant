@@ -9,8 +9,8 @@ import (
 )
 
 type ContextRepository interface {
-	CreateAll(ctx context.Context, contexts []Context) ([]Context, error)
-	ListByWarrantId(ctx context.Context, warrantIds []int64) ([]Context, error)
+	CreateAll(ctx context.Context, contexts []ContextModel) ([]ContextModel, error)
+	ListByWarrantId(ctx context.Context, warrantIds []int64) ([]ContextModel, error)
 	DeleteAllByWarrantId(ctx context.Context, warrantId int64) error
 }
 

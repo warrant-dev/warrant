@@ -23,7 +23,7 @@ func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	}
 }
 
-func (repo PostgresRepository) Create(ctx context.Context, object Object) (int64, error) {
+func (repo PostgresRepository) Create(ctx context.Context, object ObjectModel) (int64, error) {
 	var newObjectId int64
 	err := repo.DB.GetContext(
 		ctx,
@@ -38,8 +38,8 @@ func (repo PostgresRepository) Create(ctx context.Context, object Object) (int64
 				deleted_at = NULL
 			RETURNING id
 		`,
-		object.ObjectType,
-		object.ObjectId,
+		object.GetObjectType(),
+		object.GetObjectId(),
 	)
 	if err != nil {
 		return 0, errors.Wrap(err, "Unable to create object")
@@ -48,7 +48,7 @@ func (repo PostgresRepository) Create(ctx context.Context, object Object) (int64
 	return newObjectId, nil
 }
 
-func (repo PostgresRepository) GetById(ctx context.Context, id int64) (*Object, error) {
+func (repo PostgresRepository) GetById(ctx context.Context, id int64) (ObjectModel, error) {
 	var object Object
 	err := repo.DB.GetContext(
 		ctx,
@@ -74,7 +74,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (*Object, 
 	return &object, nil
 }
 
-func (repo PostgresRepository) GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (*Object, error) {
+func (repo PostgresRepository) GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (ObjectModel, error) {
 	var object Object
 	err := repo.DB.GetContext(
 		ctx,
@@ -102,8 +102,8 @@ func (repo PostgresRepository) GetByObjectTypeAndId(ctx context.Context, objectT
 	return &object, nil
 }
 
-func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]Object, error) {
-	objects := make([]Object, 0)
+func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]ObjectModel, error) {
+	objects := make([]ObjectModel, 0)
 	query := `
 		SELECT id, object_type, object_id, created_at, updated_at, deleted_at
 		FROM object

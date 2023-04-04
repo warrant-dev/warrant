@@ -21,11 +21,11 @@ func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	}
 }
 
-func (repo PostgresRepository) TrackResourceEvent(ctx context.Context, resourceEvent ResourceEvent) error {
-	return repo.TrackResourceEvents(ctx, []ResourceEvent{resourceEvent})
+func (repo PostgresRepository) TrackResourceEvent(ctx context.Context, resourceEvent ResourceEventModel) error {
+	return repo.TrackResourceEvents(ctx, []ResourceEventModel{resourceEvent})
 }
 
-func (repo PostgresRepository) TrackResourceEvents(ctx context.Context, resourceEvents []ResourceEvent) error {
+func (repo PostgresRepository) TrackResourceEvents(ctx context.Context, resourceEvents []ResourceEventModel) error {
 	result, err := repo.DB.NamedExecContext(
 		ctx,
 		`
@@ -57,8 +57,8 @@ func (repo PostgresRepository) TrackResourceEvents(ctx context.Context, resource
 	return nil
 }
 
-func (repo PostgresRepository) ListResourceEvents(ctx context.Context, listParams ListResourceEventParams) ([]ResourceEvent, string, error) {
-	resourceEvents := make([]ResourceEvent, 0)
+func (repo PostgresRepository) ListResourceEvents(ctx context.Context, listParams ListResourceEventParams) ([]ResourceEventModel, string, error) {
+	resourceEvents := make([]ResourceEventModel, 0)
 	query := `
 		SELECT id, type, source, resource_type, resource_id, meta, created_at
 		FROM resource_event
@@ -125,8 +125,8 @@ func (repo PostgresRepository) ListResourceEvents(ctx context.Context, listParam
 
 	lastResourceEvent := resourceEvents[len(resourceEvents)-1]
 	lastIdStr, err := lastIdSpecToString(LastIdSpec{
-		ID:        lastResourceEvent.ID,
-		CreatedAt: lastResourceEvent.CreatedAt,
+		ID:        lastResourceEvent.GetID(),
+		CreatedAt: lastResourceEvent.GetCreatedAt(),
 	})
 	if err != nil {
 		return resourceEvents, "", err
@@ -135,11 +135,11 @@ func (repo PostgresRepository) ListResourceEvents(ctx context.Context, listParam
 	return resourceEvents, lastIdStr, nil
 }
 
-func (repo PostgresRepository) TrackAccessEvent(ctx context.Context, accessEvent AccessEvent) error {
-	return repo.TrackAccessEvents(ctx, []AccessEvent{accessEvent})
+func (repo PostgresRepository) TrackAccessEvent(ctx context.Context, accessEvent AccessEventModel) error {
+	return repo.TrackAccessEvents(ctx, []AccessEventModel{accessEvent})
 }
 
-func (repo PostgresRepository) TrackAccessEvents(ctx context.Context, accessEvents []AccessEvent) error {
+func (repo PostgresRepository) TrackAccessEvents(ctx context.Context, accessEvents []AccessEventModel) error {
 	result, err := repo.DB.NamedExecContext(
 		ctx,
 		`
@@ -181,8 +181,8 @@ func (repo PostgresRepository) TrackAccessEvents(ctx context.Context, accessEven
 	return nil
 }
 
-func (repo PostgresRepository) ListAccessEvents(ctx context.Context, listParams ListAccessEventParams) ([]AccessEvent, string, error) {
-	accessEvents := make([]AccessEvent, 0)
+func (repo PostgresRepository) ListAccessEvents(ctx context.Context, listParams ListAccessEventParams) ([]AccessEventModel, string, error) {
+	accessEvents := make([]AccessEventModel, 0)
 	query := `
 		SELECT id, type, source, object_type, object_id, relation, subject_type, subject_id, subject_relation, context, meta, created_at
 		FROM access_event
@@ -269,8 +269,8 @@ func (repo PostgresRepository) ListAccessEvents(ctx context.Context, listParams 
 
 	lastAccessEvent := accessEvents[len(accessEvents)-1]
 	lastIdStr, err := lastIdSpecToString(LastIdSpec{
-		ID:        lastAccessEvent.ID,
-		CreatedAt: lastAccessEvent.CreatedAt,
+		ID:        lastAccessEvent.GetID(),
+		CreatedAt: lastAccessEvent.GetCreatedAt(),
 	})
 	if err != nil {
 		return accessEvents, "", err

@@ -21,11 +21,11 @@ func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	}
 }
 
-func (repo MySQLRepository) TrackResourceEvent(ctx context.Context, resourceEvent ResourceEvent) error {
-	return repo.TrackResourceEvents(ctx, []ResourceEvent{resourceEvent})
+func (repo MySQLRepository) TrackResourceEvent(ctx context.Context, resourceEvent ResourceEventModel) error {
+	return repo.TrackResourceEvents(ctx, []ResourceEventModel{resourceEvent})
 }
 
-func (repo MySQLRepository) TrackResourceEvents(ctx context.Context, resourceEvents []ResourceEvent) error {
+func (repo MySQLRepository) TrackResourceEvents(ctx context.Context, resourceEvents []ResourceEventModel) error {
 	result, err := repo.DB.NamedExecContext(
 		ctx,
 		`
@@ -57,8 +57,8 @@ func (repo MySQLRepository) TrackResourceEvents(ctx context.Context, resourceEve
 	return nil
 }
 
-func (repo MySQLRepository) ListResourceEvents(ctx context.Context, listParams ListResourceEventParams) ([]ResourceEvent, string, error) {
-	resourceEvents := make([]ResourceEvent, 0)
+func (repo MySQLRepository) ListResourceEvents(ctx context.Context, listParams ListResourceEventParams) ([]ResourceEventModel, string, error) {
+	resourceEvents := make([]ResourceEventModel, 0)
 	query := `
 		SELECT BIN_TO_UUID(id) id, type, source, resourceType, resourceId, meta, createdAt
 		FROM resourceEvent
@@ -125,8 +125,8 @@ func (repo MySQLRepository) ListResourceEvents(ctx context.Context, listParams L
 
 	lastResourceEvent := resourceEvents[len(resourceEvents)-1]
 	lastIdStr, err := lastIdSpecToString(LastIdSpec{
-		ID:        lastResourceEvent.ID,
-		CreatedAt: lastResourceEvent.CreatedAt,
+		ID:        lastResourceEvent.GetID(),
+		CreatedAt: lastResourceEvent.GetCreatedAt(),
 	})
 	if err != nil {
 		return resourceEvents, "", err
@@ -135,11 +135,11 @@ func (repo MySQLRepository) ListResourceEvents(ctx context.Context, listParams L
 	return resourceEvents, lastIdStr, nil
 }
 
-func (repo MySQLRepository) TrackAccessEvent(ctx context.Context, accessEvent AccessEvent) error {
-	return repo.TrackAccessEvents(ctx, []AccessEvent{accessEvent})
+func (repo MySQLRepository) TrackAccessEvent(ctx context.Context, accessEvent AccessEventModel) error {
+	return repo.TrackAccessEvents(ctx, []AccessEventModel{accessEvent})
 }
 
-func (repo MySQLRepository) TrackAccessEvents(ctx context.Context, accessEvents []AccessEvent) error {
+func (repo MySQLRepository) TrackAccessEvents(ctx context.Context, accessEvents []AccessEventModel) error {
 	result, err := repo.DB.NamedExecContext(
 		ctx,
 		`
@@ -181,8 +181,8 @@ func (repo MySQLRepository) TrackAccessEvents(ctx context.Context, accessEvents 
 	return nil
 }
 
-func (repo MySQLRepository) ListAccessEvents(ctx context.Context, listParams ListAccessEventParams) ([]AccessEvent, string, error) {
-	accessEvents := make([]AccessEvent, 0)
+func (repo MySQLRepository) ListAccessEvents(ctx context.Context, listParams ListAccessEventParams) ([]AccessEventModel, string, error) {
+	accessEvents := make([]AccessEventModel, 0)
 	query := `
 		SELECT BIN_TO_UUID(id) id, type, source, objectType, objectId, relation, subjectType, subjectId, subjectRelation, context, meta, createdAt
 		FROM accessEvent
@@ -269,8 +269,8 @@ func (repo MySQLRepository) ListAccessEvents(ctx context.Context, listParams Lis
 
 	lastAccessEvent := accessEvents[len(accessEvents)-1]
 	lastIdStr, err := lastIdSpecToString(LastIdSpec{
-		ID:        lastAccessEvent.ID,
-		CreatedAt: lastAccessEvent.CreatedAt,
+		ID:        lastAccessEvent.GetID(),
+		CreatedAt: lastAccessEvent.GetCreatedAt(),
 	})
 	if err != nil {
 		return accessEvents, "", err

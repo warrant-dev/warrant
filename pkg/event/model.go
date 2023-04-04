@@ -9,6 +9,17 @@ import (
 	"github.com/warrant-dev/warrant/pkg/database"
 )
 
+type ResourceEventModel interface {
+	GetID() string
+	GetType() string
+	GetSource() string
+	GetResourceType() string
+	GetResourceId() string
+	GetMeta() database.NullString
+	GetCreatedAt() time.Time
+	ToResourceEventSpec() (*ResourceEventSpec, error)
+}
+
 type ResourceEvent struct {
 	ID           string              `mysql:"id" postgres:"id"`
 	Type         string              `mysql:"type" postgres:"type"`
@@ -17,6 +28,34 @@ type ResourceEvent struct {
 	ResourceId   string              `mysql:"resourceId" postgres:"resource_id"`
 	Meta         database.NullString `mysql:"meta" postgres:"meta"`
 	CreatedAt    time.Time           `mysql:"createdAt" postgres:"created_at"`
+}
+
+func (resourceEvent ResourceEvent) GetID() string {
+	return resourceEvent.ID
+}
+
+func (resourceEvent ResourceEvent) GetType() string {
+	return resourceEvent.Type
+}
+
+func (resourceEvent ResourceEvent) GetSource() string {
+	return resourceEvent.Source
+}
+
+func (resourceEvent ResourceEvent) GetResourceType() string {
+	return resourceEvent.ResourceType
+}
+
+func (resourceEvent ResourceEvent) GetResourceId() string {
+	return resourceEvent.ResourceId
+}
+
+func (resourceEvent ResourceEvent) GetMeta() database.NullString {
+	return resourceEvent.Meta
+}
+
+func (resourceEvent ResourceEvent) GetCreatedAt() time.Time {
+	return resourceEvent.CreatedAt
 }
 
 func (resourceEvent ResourceEvent) ToResourceEventSpec() (*ResourceEventSpec, error) {
@@ -39,6 +78,22 @@ func (resourceEvent ResourceEvent) ToResourceEventSpec() (*ResourceEventSpec, er
 	}, nil
 }
 
+type AccessEventModel interface {
+	GetID() string
+	GetType() string
+	GetSource() string
+	GetObjectType() string
+	GetObjectId() string
+	GetRelation() string
+	GetSubjectType() string
+	GetSubjectId() string
+	GetSubjectRelation() string
+	GetContext() database.NullString
+	GetMeta() database.NullString
+	GetCreatedAt() time.Time
+	ToAccessEventSpec() (*AccessEventSpec, error)
+}
+
 type AccessEvent struct {
 	ID              string              `mysql:"id" postgres:"id"`
 	Type            string              `mysql:"type" postgres:"type"`
@@ -52,6 +107,54 @@ type AccessEvent struct {
 	Context         database.NullString `mysql:"context" postgres:"context"`
 	Meta            database.NullString `mysql:"meta" postgres:"meta"`
 	CreatedAt       time.Time           `mysql:"createdAt" postgres:"created_at"`
+}
+
+func (accessEvent AccessEvent) GetID() string {
+	return accessEvent.ID
+}
+
+func (accessEvent AccessEvent) GetType() string {
+	return accessEvent.Type
+}
+
+func (accessEvent AccessEvent) GetSource() string {
+	return accessEvent.Source
+}
+
+func (accessEvent AccessEvent) GetObjectType() string {
+	return accessEvent.ObjectType
+}
+
+func (accessEvent AccessEvent) GetObjectId() string {
+	return accessEvent.ObjectId
+}
+
+func (accessEvent AccessEvent) GetRelation() string {
+	return accessEvent.Relation
+}
+
+func (accessEvent AccessEvent) GetSubjectType() string {
+	return accessEvent.SubjectType
+}
+
+func (accessEvent AccessEvent) GetSubjectId() string {
+	return accessEvent.SubjectId
+}
+
+func (accessEvent AccessEvent) GetSubjectRelation() string {
+	return accessEvent.SubjectRelation
+}
+
+func (accessEvent AccessEvent) GetContext() database.NullString {
+	return accessEvent.Context
+}
+
+func (accessEvent AccessEvent) GetMeta() database.NullString {
+	return accessEvent.Meta
+}
+
+func (accessEvent AccessEvent) GetCreatedAt() time.Time {
+	return accessEvent.CreatedAt
 }
 
 func (accessEvent AccessEvent) ToAccessEventSpec() (*AccessEventSpec, error) {

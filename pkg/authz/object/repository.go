@@ -9,10 +9,10 @@ import (
 )
 
 type ObjectRepository interface {
-	Create(ctx context.Context, object Object) (int64, error)
-	GetById(ctx context.Context, id int64) (*Object, error)
-	GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (*Object, error)
-	List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]Object, error)
+	Create(ctx context.Context, object ObjectModel) (int64, error)
+	GetById(ctx context.Context, id int64) (ObjectModel, error)
+	GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (ObjectModel, error)
+	List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]ObjectModel, error)
 	DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) error
 }
 

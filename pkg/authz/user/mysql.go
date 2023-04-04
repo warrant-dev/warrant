@@ -22,7 +22,7 @@ func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	}
 }
 
-func (repo MySQLRepository) Create(ctx context.Context, user User) (int64, error) {
+func (repo MySQLRepository) Create(ctx context.Context, user UserModel) (int64, error) {
 	result, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -37,11 +37,11 @@ func (repo MySQLRepository) Create(ctx context.Context, user User) (int64, error
 				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
-		user.UserId,
-		user.ObjectId,
-		user.Email,
-		user.ObjectId,
-		user.Email,
+		user.GetUserId(),
+		user.GetObjectId(),
+		user.GetEmail(),
+		user.GetObjectId(),
+		user.GetEmail(),
 	)
 	if err != nil {
 		return 0, errors.Wrap(err, "Unable to create user")
@@ -55,7 +55,7 @@ func (repo MySQLRepository) Create(ctx context.Context, user User) (int64, error
 	return newUserId, nil
 }
 
-func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*User, error) {
+func (repo MySQLRepository) GetById(ctx context.Context, id int64) (UserModel, error) {
 	var user User
 	err := repo.DB.GetContext(
 		ctx,
@@ -81,7 +81,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*User, error
 	return &user, nil
 }
 
-func (repo MySQLRepository) GetByUserId(ctx context.Context, userId string) (*User, error) {
+func (repo MySQLRepository) GetByUserId(ctx context.Context, userId string) (UserModel, error) {
 	var user User
 	err := repo.DB.GetContext(
 		ctx,
@@ -107,8 +107,8 @@ func (repo MySQLRepository) GetByUserId(ctx context.Context, userId string) (*Us
 	return &user, nil
 }
 
-func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]User, error) {
-	users := make([]User, 0)
+func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]UserModel, error) {
+	users := make([]UserModel, 0)
 	query := `
 		SELECT id, objectId, userId, email, createdAt, updatedAt, deletedAt
 		FROM user
@@ -205,7 +205,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 	return users, nil
 }
 
-func (repo MySQLRepository) UpdateByUserId(ctx context.Context, userId string, user User) error {
+func (repo MySQLRepository) UpdateByUserId(ctx context.Context, userId string, user UserModel) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -216,11 +216,11 @@ func (repo MySQLRepository) UpdateByUserId(ctx context.Context, userId string, u
 				userId = ? AND
 				deletedAt IS NULL
 		`,
-		user.Email,
-		user.UserId,
+		user.GetEmail(),
+		user.GetUserId(),
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating user %d", user.ID))
+		return errors.Wrap(err, fmt.Sprintf("Error updating user %d", user.GetID()))
 	}
 
 	return nil

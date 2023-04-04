@@ -10,13 +10,13 @@ import (
 )
 
 // GetRoutes registers all route handlers for this module
-func (svc PermissionService) GetRoutes() []service.Route {
+func (svc PermissionService) Routes() []service.Route {
 	return []service.Route{
 		// create
 		{
 			Pattern: "/v1/permissions",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc.Env(), create),
+			Handler: service.NewRouteHandler(svc, create),
 		},
 
 		// get
@@ -24,45 +24,45 @@ func (svc PermissionService) GetRoutes() []service.Route {
 			Pattern: "/v1/permissions",
 			Method:  "GET",
 			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc.Env(), list),
+				service.NewRouteHandler(svc, list),
 				middleware.ListMiddleware[PermissionListParamParser],
 			),
 		},
 		{
 			Pattern: "/v1/permissions/{permissionId}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc.Env(), get),
+			Handler: service.NewRouteHandler(svc, get),
 		},
 
 		// update
 		{
 			Pattern: "/v1/permissions/{permissionId}",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc.Env(), update),
+			Handler: service.NewRouteHandler(svc, update),
 		},
 		{
 			Pattern: "/v1/permissions/{permissionId}",
 			Method:  "PUT",
-			Handler: service.NewRouteHandler(svc.Env(), update),
+			Handler: service.NewRouteHandler(svc, update),
 		},
 
 		// delete
 		{
 			Pattern: "/v1/permissions/{permissionId}",
 			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc.Env(), delete),
+			Handler: service.NewRouteHandler(svc, delete),
 		},
 	}
 }
 
-func create(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func create(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	var newPermission PermissionSpec
 	err := service.ParseJSONBody(r.Body, &newPermission)
 	if err != nil {
 		return err
 	}
 
-	createdPermission, err := NewService(env).Create(r.Context(), newPermission)
+	createdPermission, err := svc.Create(r.Context(), newPermission)
 	if err != nil {
 		return err
 	}
@@ -71,14 +71,14 @@ func create(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func get(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func get(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	permissionIdParam := mux.Vars(r)["permissionId"]
 	permissionId, err := url.QueryUnescape(permissionIdParam)
 	if err != nil {
 		return service.NewInvalidParameterError("permissionId", "")
 	}
 
-	permission, err := NewService(env).GetByPermissionId(r.Context(), permissionId)
+	permission, err := svc.GetByPermissionId(r.Context(), permissionId)
 	if err != nil {
 		return err
 	}
@@ -87,9 +87,9 @@ func get(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func list(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	listParams := middleware.GetListParamsFromContext(r.Context())
-	permissions, err := NewService(env).List(r.Context(), listParams)
+	permissions, err := svc.List(r.Context(), listParams)
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func update(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	var updatePermission UpdatePermissionSpec
 	err := service.ParseJSONBody(r.Body, &updatePermission)
 	if err != nil {
@@ -111,7 +111,7 @@ func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
 		return service.NewInvalidParameterError("permissionId", "")
 	}
 
-	updatedPermission, err := NewService(env).UpdateByPermissionId(r.Context(), permissionId, updatePermission)
+	updatedPermission, err := svc.UpdateByPermissionId(r.Context(), permissionId, updatePermission)
 	if err != nil {
 		return err
 	}
@@ -120,13 +120,13 @@ func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func delete(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func delete(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	permissionId := mux.Vars(r)["permissionId"]
 	if permissionId == "" {
 		return service.NewMissingRequiredParameterError("permissionId")
 	}
 
-	err := NewService(env).DeleteByPermissionId(r.Context(), permissionId)
+	err := svc.DeleteByPermissionId(r.Context(), permissionId)
 	if err != nil {
 		return err
 	}

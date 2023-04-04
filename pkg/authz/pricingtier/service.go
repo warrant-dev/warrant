@@ -14,43 +14,44 @@ const ResourceTypePricingTier = "pricing-tier"
 
 type PricingTierService struct {
 	service.BaseService
+	repo      PricingTierRepository
+	eventSvc  event.EventService
+	objectSvc object.ObjectService
 }
 
-func NewService(env service.Env) PricingTierService {
+func NewService(env service.Env, repo PricingTierRepository, eventSvc event.EventService, objectSvc object.ObjectService) PricingTierService {
 	return PricingTierService{
 		BaseService: service.NewBaseService(env),
+		repo:        repo,
+		eventSvc:    eventSvc,
+		objectSvc:   objectSvc,
 	}
 }
 
 func (svc PricingTierService) Create(ctx context.Context, pricingTierSpec PricingTierSpec) (*PricingTierSpec, error) {
-	var newPricingTier *PricingTier
+	var newPricingTier PricingTierModel
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		pricingTierRepository, err := NewRepository(svc.Env().DB())
+		createdObject, err := svc.objectSvc.Create(txCtx, *pricingTierSpec.ToObjectSpec())
 		if err != nil {
 			return err
 		}
 
-		createdObject, err := object.NewService(svc.Env()).Create(txCtx, *pricingTierSpec.ToObjectSpec())
-		if err != nil {
-			return err
-		}
-
-		_, err = pricingTierRepository.GetByPricingTierId(txCtx, pricingTierSpec.PricingTierId)
+		_, err = svc.repo.GetByPricingTierId(txCtx, pricingTierSpec.PricingTierId)
 		if err == nil {
 			return service.NewDuplicateRecordError("PricingTier", pricingTierSpec.PricingTierId, "A pricing tier with the given pricingTierId already exists")
 		}
 
-		newPricingTierId, err := pricingTierRepository.Create(txCtx, *pricingTierSpec.ToPricingTier(createdObject.ID))
+		newPricingTierId, err := svc.repo.Create(txCtx, pricingTierSpec.ToPricingTier(createdObject.ID))
 		if err != nil {
 			return err
 		}
 
-		newPricingTier, err = pricingTierRepository.GetById(txCtx, newPricingTierId)
+		newPricingTier, err = svc.repo.GetById(txCtx, newPricingTierId)
 		if err != nil {
 			return err
 		}
 
-		event.NewService(svc.Env()).TrackResourceCreated(txCtx, ResourceTypePricingTier, newPricingTier.PricingTierId, newPricingTier.ToPricingTierSpec())
+		svc.eventSvc.TrackResourceCreated(txCtx, ResourceTypePricingTier, newPricingTier.GetPricingTierId(), newPricingTier.ToPricingTierSpec())
 		return nil
 	})
 
@@ -105,9 +106,9 @@ func (svc PricingTierService) UpdateByPricingTierId(ctx context.Context, pricing
 		return nil, err
 	}
 
-	currentPricingTier.Name = pricingTierSpec.Name
-	currentPricingTier.Description = pricingTierSpec.Description
-	err = pricingTierRepository.UpdateByPricingTierId(ctx, pricingTierId, *currentPricingTier)
+	currentPricingTier.SetName(pricingTierSpec.Name)
+	currentPricingTier.SetDescription(pricingTierSpec.Description)
+	err = pricingTierRepository.UpdateByPricingTierId(ctx, pricingTierId, currentPricingTier)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +119,7 @@ func (svc PricingTierService) UpdateByPricingTierId(ctx context.Context, pricing
 	}
 
 	updatedPricingTierSpec := updatedPricingTier.ToPricingTierSpec()
-	event.NewService(svc.Env()).TrackResourceUpdated(ctx, ResourceTypePricingTier, updatedPricingTier.PricingTierId, updatedPricingTierSpec)
+	svc.eventSvc.TrackResourceUpdated(ctx, ResourceTypePricingTier, updatedPricingTier.GetPricingTierId(), updatedPricingTierSpec)
 	return updatedPricingTierSpec, nil
 }
 
@@ -134,12 +135,12 @@ func (svc PricingTierService) DeleteByPricingTierId(ctx context.Context, pricing
 			return err
 		}
 
-		err = object.NewService(svc.Env()).DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypePricingTier, pricingTierId)
+		err = svc.objectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypePricingTier, pricingTierId)
 		if err != nil {
 			return err
 		}
 
-		event.NewService(svc.Env()).TrackResourceDeleted(ctx, ResourceTypePricingTier, pricingTierId, nil)
+		svc.eventSvc.TrackResourceDeleted(ctx, ResourceTypePricingTier, pricingTierId, nil)
 		return nil
 	})
 

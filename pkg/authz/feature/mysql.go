@@ -22,7 +22,7 @@ func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	}
 }
 
-func (repo MySQLRepository) Create(ctx context.Context, feature Feature) (int64, error) {
+func (repo MySQLRepository) Create(ctx context.Context, feature FeatureModel) (int64, error) {
 	result, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -40,14 +40,14 @@ func (repo MySQLRepository) Create(ctx context.Context, feature Feature) (int64,
 				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
-		feature.ObjectId,
-		feature.FeatureId,
-		feature.Name,
-		feature.Description,
-		feature.ObjectId,
-		feature.FeatureId,
-		feature.Name,
-		feature.Description,
+		feature.GetObjectId(),
+		feature.GetFeatureId(),
+		feature.GetName(),
+		feature.GetDescription(),
+		feature.GetObjectId(),
+		feature.GetFeatureId(),
+		feature.GetName(),
+		feature.GetDescription(),
 	)
 
 	if err != nil {
@@ -62,7 +62,7 @@ func (repo MySQLRepository) Create(ctx context.Context, feature Feature) (int64,
 	return newFeatureId, err
 }
 
-func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*Feature, error) {
+func (repo MySQLRepository) GetById(ctx context.Context, id int64) (FeatureModel, error) {
 	var feature Feature
 	err := repo.DB.GetContext(
 		ctx,
@@ -88,7 +88,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*Feature, er
 	return &feature, nil
 }
 
-func (repo MySQLRepository) GetByFeatureId(ctx context.Context, featureId string) (*Feature, error) {
+func (repo MySQLRepository) GetByFeatureId(ctx context.Context, featureId string) (FeatureModel, error) {
 	var feature Feature
 	err := repo.DB.GetContext(
 		ctx,
@@ -114,8 +114,8 @@ func (repo MySQLRepository) GetByFeatureId(ctx context.Context, featureId string
 	return &feature, nil
 }
 
-func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Feature, error) {
-	features := make([]Feature, 0)
+func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]FeatureModel, error) {
+	features := make([]FeatureModel, 0)
 	query := `
 		SELECT id, objectId, featureId, name, description, createdAt, updatedAt, deletedAt
 		FROM feature
@@ -212,7 +212,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 	return features, nil
 }
 
-func (repo MySQLRepository) UpdateByFeatureId(ctx context.Context, featureId string, feature Feature) error {
+func (repo MySQLRepository) UpdateByFeatureId(ctx context.Context, featureId string, feature FeatureModel) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -224,8 +224,8 @@ func (repo MySQLRepository) UpdateByFeatureId(ctx context.Context, featureId str
 				featureId = ? AND
 				deletedAt IS NULL
 		`,
-		feature.Name,
-		feature.Description,
+		feature.GetName(),
+		feature.GetDescription(),
 		featureId,
 	)
 	if err != nil {

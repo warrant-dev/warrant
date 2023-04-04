@@ -14,43 +14,44 @@ const ResourceTypePermission = "permission"
 
 type PermissionService struct {
 	service.BaseService
+	repo      PermissionRepository
+	eventSvc  event.EventService
+	objectSvc object.ObjectService
 }
 
-func NewService(env service.Env) PermissionService {
+func NewService(env service.Env, repo PermissionRepository, eventSvc event.EventService, objectSvc object.ObjectService) PermissionService {
 	return PermissionService{
 		BaseService: service.NewBaseService(env),
+		repo:        repo,
+		eventSvc:    eventSvc,
+		objectSvc:   objectSvc,
 	}
 }
 
 func (svc PermissionService) Create(ctx context.Context, permissionSpec PermissionSpec) (*PermissionSpec, error) {
-	var newPermission *Permission
+	var newPermission PermissionModel
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		permissionRepository, err := NewRepository(svc.Env().DB())
+		createdObject, err := svc.objectSvc.Create(txCtx, *permissionSpec.ToObjectSpec())
 		if err != nil {
 			return err
 		}
 
-		createdObject, err := object.NewService(svc.Env()).Create(txCtx, *permissionSpec.ToObjectSpec())
-		if err != nil {
-			return err
-		}
-
-		_, err = permissionRepository.GetByPermissionId(txCtx, permissionSpec.PermissionId)
+		_, err = svc.repo.GetByPermissionId(txCtx, permissionSpec.PermissionId)
 		if err == nil {
 			return service.NewDuplicateRecordError("Permission", permissionSpec.PermissionId, "A permission with the given permissionId already exists")
 		}
 
-		newPermissionId, err := permissionRepository.Create(txCtx, *permissionSpec.ToPermission(createdObject.ID))
+		newPermissionId, err := svc.repo.Create(txCtx, permissionSpec.ToPermission(createdObject.ID))
 		if err != nil {
 			return err
 		}
 
-		newPermission, err = permissionRepository.GetById(txCtx, newPermissionId)
+		newPermission, err = svc.repo.GetById(txCtx, newPermissionId)
 		if err != nil {
 			return err
 		}
 
-		event.NewService(svc.Env()).TrackResourceCreated(txCtx, ResourceTypePermission, newPermission.PermissionId, newPermission.ToPermissionSpec())
+		svc.eventSvc.TrackResourceCreated(txCtx, ResourceTypePermission, newPermission.GetPermissionId(), newPermission.ToPermissionSpec())
 		return nil
 	})
 
@@ -105,9 +106,9 @@ func (svc PermissionService) UpdateByPermissionId(ctx context.Context, permissio
 		return nil, err
 	}
 
-	currentPermission.Name = permissionSpec.Name
-	currentPermission.Description = permissionSpec.Description
-	err = permissionRepository.UpdateByPermissionId(ctx, permissionId, *currentPermission)
+	currentPermission.SetName(permissionSpec.Name)
+	currentPermission.SetDescription(permissionSpec.Description)
+	err = permissionRepository.UpdateByPermissionId(ctx, permissionId, currentPermission)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +119,7 @@ func (svc PermissionService) UpdateByPermissionId(ctx context.Context, permissio
 	}
 
 	updatedPermissionSpec := updatedPermission.ToPermissionSpec()
-	event.NewService(svc.Env()).TrackResourceUpdated(ctx, ResourceTypePermission, updatedPermission.PermissionId, updatedPermissionSpec)
+	svc.eventSvc.TrackResourceUpdated(ctx, ResourceTypePermission, updatedPermission.GetPermissionId(), updatedPermissionSpec)
 	return updatedPermissionSpec, nil
 }
 
@@ -134,12 +135,12 @@ func (svc PermissionService) DeleteByPermissionId(ctx context.Context, permissio
 			return err
 		}
 
-		err = object.NewService(svc.Env()).DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypePermission, permissionId)
+		err = svc.objectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypePermission, permissionId)
 		if err != nil {
 			return err
 		}
 
-		event.NewService(svc.Env()).TrackResourceDeleted(txCtx, ResourceTypePermission, permissionId, nil)
+		svc.eventSvc.TrackResourceDeleted(txCtx, ResourceTypePermission, permissionId, nil)
 		return nil
 	})
 

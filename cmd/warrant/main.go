@@ -18,6 +18,7 @@ import (
 	user "github.com/warrant-dev/warrant/pkg/authz/user"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	"github.com/warrant-dev/warrant/pkg/config"
+	wntContext "github.com/warrant-dev/warrant/pkg/context"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -141,23 +142,111 @@ func main() {
 		log.Fatal().Err(err).Msg("Could not initialize and connect to the configured eventstore. Shutting down.")
 	}
 
+	// Init event repo and service
+	eventRepository, err := event.NewRepository(svcEnv.EventDB())
+	if err != nil {
+		log.Fatal().Err(err).Msg("Could not initialize EventRepository")
+	}
+
+	eventSvc := event.NewService(svcEnv, eventRepository)
+
+	// Init object type repo and service
+	objectTypeRepository, err := objecttype.NewRepository(svcEnv.DB())
+	if err != nil {
+		log.Fatal().Err(err).Msg("Could not initialize ObjectTypeRepository")
+	}
+
+	objectTypeSvc := objecttype.NewService(svcEnv, objectTypeRepository, eventSvc)
+
+	// Init warrant repo and service
+	warrantRepository, err := warrant.NewRepository(svcEnv.DB())
+	if err != nil {
+		log.Fatal().Err(err).Msg("Could not initialize WarrantRepository")
+	}
+
+	warrantSvc := warrant.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc)
+
+	// Init context repo and check service
+	ctxRepository, err := wntContext.NewRepository(svcEnv.DB())
+	if err != nil {
+		log.Fatal().Err(err).Msg("Could not initialize ContextRepository")
+	}
+
+	checkSvc := check.NewService(svcEnv, warrantRepository, ctxRepository, eventSvc, objectTypeSvc)
+
+	// Init object repo and service
+	objectRepository, err := object.NewRepository(svcEnv.DB())
+	if err != nil {
+		log.Fatal().Err(err).Msg("Could not initialize ObjectRepository")
+	}
+
+	objectSvc := object.NewService(svcEnv, objectRepository, eventSvc, warrantSvc)
+
+	// Init feature repo and service
+	featureRepository, err := feature.NewRepository(svcEnv.DB())
+	if err != nil {
+		log.Fatal().Err(err).Msg("Could not initialize FeatureRepository")
+	}
+
+	featureSvc := feature.NewService(&svcEnv, featureRepository, eventSvc, objectSvc)
+
+	// Init permission repo and service
+	permissionRepository, err := permission.NewRepository(svcEnv.DB())
+	if err != nil {
+		log.Fatal().Err(err).Msg("Could not initialize RoleRepository")
+	}
+
+	permissionSvc := permission.NewService(&svcEnv, permissionRepository, eventSvc, objectSvc)
+
+	// Init pricing tier repo and service
+	pricingTierRepository, err := pricingtier.NewRepository(svcEnv.DB())
+	if err != nil {
+		log.Fatal().Err(err).Msg("Could not initialize PricingTierRepository")
+	}
+
+	pricingTierSvc := pricingtier.NewService(&svcEnv, pricingTierRepository, eventSvc, objectSvc)
+
+	// Init role repo and service
+	roleRepository, err := role.NewRepository(svcEnv.DB())
+	if err != nil {
+		log.Fatal().Err(err).Msg("Could not initialize RoleRepository")
+	}
+
+	roleSvc := role.NewService(&svcEnv, roleRepository, eventSvc, objectSvc)
+
+	// Init tenant repo and service
+	tenantRepository, err := tenant.NewRepository(svcEnv.DB())
+	if err != nil {
+		log.Fatal().Err(err).Msg("Could not initialize TenantRepository")
+	}
+
+	tenantSvc := tenant.NewService(&svcEnv, tenantRepository, eventSvc, objectSvc)
+
+	// Init user repo and service
+	userRepository, err := user.NewRepository(svcEnv.DB())
+	if err != nil {
+		log.Fatal().Err(err).Msg("Could not initialize UserRepository")
+	}
+
+	userSvc := user.NewService(&svcEnv, userRepository, eventSvc, objectSvc)
+
 	svcs := []service.Service{
-		check.NewService(&svcEnv, &service.AuthInfo{}),
-		event.NewService(&svcEnv),
-		feature.NewService(&svcEnv),
-		object.NewService(&svcEnv),
-		objecttype.NewService(&svcEnv),
-		permission.NewService(&svcEnv),
-		pricingtier.NewService(&svcEnv),
-		role.NewService(&svcEnv),
-		tenant.NewService(&svcEnv),
-		user.NewService(&svcEnv),
-		warrant.NewService(&svcEnv),
+		checkSvc,
+		eventSvc,
+		featureSvc,
+		objectSvc,
+		objectTypeSvc,
+		permissionSvc,
+		pricingTierSvc,
+		roleSvc,
+		tenantSvc,
+		userSvc,
+		warrantSvc,
 	}
 
 	routes := make([]service.Route, 0)
 	for _, svc := range svcs {
-		routes = append(routes, svc.GetRoutes()...)
+		routes = append(routes, svc.Routes()...)
 	}
 
 	log.Debug().Msgf("Listening on port %d", config.Port)

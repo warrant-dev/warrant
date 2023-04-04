@@ -22,20 +22,20 @@ type Route struct {
 	EnableSessionAuth bool
 }
 
-type RouteHandler struct {
-	env     Env
-	handler func(env Env, w http.ResponseWriter, r *http.Request) error
+type RouteHandler[T Service] struct {
+	svc     T
+	handler func(svc T, w http.ResponseWriter, r *http.Request) error
 }
 
-func NewRouteHandler(env Env, handler func(env Env, w http.ResponseWriter, r *http.Request) error) RouteHandler {
-	return RouteHandler{
-		env:     env,
+func NewRouteHandler[T Service](svc T, handler func(svc T, w http.ResponseWriter, r *http.Request) error) RouteHandler[T] {
+	return RouteHandler[T]{
+		svc:     svc,
 		handler: handler,
 	}
 }
 
-func (rh RouteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	err := rh.handler(rh.env, w, r)
+func (rh RouteHandler[T]) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	err := rh.handler(rh.svc, w, r)
 	if err != nil {
 		// Write err response to client
 		SendErrorResponse(w, err)

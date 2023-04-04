@@ -23,7 +23,7 @@ func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	}
 }
 
-func (repo MySQLRepository) Create(ctx context.Context, object Object) (int64, error) {
+func (repo MySQLRepository) Create(ctx context.Context, object ObjectModel) (int64, error) {
 	result, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -35,8 +35,8 @@ func (repo MySQLRepository) Create(ctx context.Context, object Object) (int64, e
 				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
-		object.ObjectType,
-		object.ObjectId,
+		object.GetObjectType(),
+		object.GetObjectId(),
 	)
 	if err != nil {
 		return 0, errors.Wrap(err, "Unable to create object")
@@ -51,7 +51,7 @@ func (repo MySQLRepository) Create(ctx context.Context, object Object) (int64, e
 	return newObjectId, nil
 }
 
-func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*Object, error) {
+func (repo MySQLRepository) GetById(ctx context.Context, id int64) (ObjectModel, error) {
 	var object Object
 	err := repo.DB.GetContext(
 		ctx,
@@ -77,7 +77,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*Object, err
 	return &object, nil
 }
 
-func (repo MySQLRepository) GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (*Object, error) {
+func (repo MySQLRepository) GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (ObjectModel, error) {
 	var object Object
 	err := repo.DB.GetContext(
 		ctx,
@@ -105,8 +105,8 @@ func (repo MySQLRepository) GetByObjectTypeAndId(ctx context.Context, objectType
 	return &object, nil
 }
 
-func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]Object, error) {
-	objects := make([]Object, 0)
+func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]ObjectModel, error) {
+	objects := make([]ObjectModel, 0)
 	query := `
 		SELECT id, objectType, objectId, createdAt, updatedAt, deletedAt
 		FROM object

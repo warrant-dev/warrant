@@ -9,11 +9,11 @@ import (
 )
 
 type ObjectTypeRepository interface {
-	Create(ctx context.Context, objectType ObjectType) (int64, error)
-	GetById(ctx context.Context, id int64) (*ObjectType, error)
-	GetByTypeId(ctx context.Context, typeId string) (*ObjectType, error)
-	List(ctx context.Context, listParams middleware.ListParams) ([]ObjectType, error)
-	UpdateByTypeId(ctx context.Context, typeId string, objectType ObjectType) error
+	Create(ctx context.Context, objectType ObjectTypeModel) (int64, error)
+	GetById(ctx context.Context, id int64) (ObjectTypeModel, error)
+	GetByTypeId(ctx context.Context, typeId string) (ObjectTypeModel, error)
+	List(ctx context.Context, listParams middleware.ListParams) ([]ObjectTypeModel, error)
+	UpdateByTypeId(ctx context.Context, typeId string, objectType ObjectTypeModel) error
 	DeleteByTypeId(ctx context.Context, typeId string) error
 }
 

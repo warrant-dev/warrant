@@ -8,20 +8,84 @@ import (
 	"github.com/warrant-dev/warrant/pkg/database"
 )
 
+type WarrantModel interface {
+	GetID() int64
+	GetObjectType() string
+	GetObjectId() string
+	GetRelation() string
+	GetSubjectType() string
+	GetSubjectId() string
+	GetSubjectRelation() database.NullString
+	GetContextHash() string
+	GetContext() []context.Context
+	GetCreatedAt() time.Time
+	GetUpdatedAt() time.Time
+	GetDeletedAt() database.NullTime
+	ToWarrantSpec() *WarrantSpec
+}
+
 // Warrant model
 type Warrant struct {
-	ID              int64               `mysql:"id" postgres:"id"`
-	ObjectType      string              `mysql:"objectType" postgres:"object_type"`
-	ObjectId        string              `mysql:"objectId" postgres:"object_id"`
-	Relation        string              `mysql:"relation" postgres:"relation"`
-	SubjectType     string              `mysql:"subjectType" postgres:"subject_type"`
-	SubjectId       string              `mysql:"subjectId" postgres:"subject_id"`
-	SubjectRelation database.NullString `mysql:"subjectRelation" postgres:"subject_relation"`
-	ContextHash     string              `mysql:"contextHash" postgres:"context_hash"`
-	Context         []context.Context   `mysql:"context" postgres:"context"`
-	CreatedAt       time.Time           `mysql:"createdAt" postgres:"created_at"`
-	UpdatedAt       time.Time           `mysql:"updatedAt" postgres:"updated_at"`
-	DeletedAt       database.NullTime   `mysql:"deletedAt" postgres:"deleted_at"`
+	ID              int64                  `mysql:"id" postgres:"id"`
+	ObjectType      string                 `mysql:"objectType" postgres:"object_type"`
+	ObjectId        string                 `mysql:"objectId" postgres:"object_id"`
+	Relation        string                 `mysql:"relation" postgres:"relation"`
+	SubjectType     string                 `mysql:"subjectType" postgres:"subject_type"`
+	SubjectId       string                 `mysql:"subjectId" postgres:"subject_id"`
+	SubjectRelation database.NullString    `mysql:"subjectRelation" postgres:"subject_relation"`
+	ContextHash     string                 `mysql:"contextHash" postgres:"context_hash"`
+	Context         []context.ContextModel `mysql:"context" postgres:"context"`
+	CreatedAt       time.Time              `mysql:"createdAt" postgres:"created_at"`
+	UpdatedAt       time.Time              `mysql:"updatedAt" postgres:"updated_at"`
+	DeletedAt       database.NullTime      `mysql:"deletedAt" postgres:"deleted_at"`
+}
+
+func (warrant Warrant) GetID() int64 {
+	return warrant.ID
+}
+
+func (warrant Warrant) GetObjectType() string {
+	return warrant.ObjectType
+}
+
+func (warrant Warrant) GetObjectId() string {
+	return warrant.ObjectId
+}
+
+func (warrant Warrant) GetRelation() string {
+	return warrant.Relation
+}
+
+func (warrant Warrant) GetSubjectType() string {
+	return warrant.SubjectType
+}
+
+func (warrant Warrant) GetSubjectId() string {
+	return warrant.SubjectId
+}
+
+func (warrant Warrant) GetSubjectRelation() database.NullString {
+	return warrant.SubjectRelation
+}
+
+func (warrant Warrant) GetContextHash() string {
+	return warrant.ContextHash
+}
+
+func (warrant Warrant) GetContext() []context.ContextModel {
+	return warrant.Context
+}
+
+func (warrant Warrant) GetCreatedAt() time.Time {
+	return warrant.CreatedAt
+}
+
+func (warrant Warrant) GetUpdatedAt() time.Time {
+	return warrant.UpdatedAt
+}
+
+func (warrant Warrant) GetDeletedAt() database.NullTime {
+	return warrant.DeletedAt
 }
 
 func (warrant Warrant) ToWarrantSpec() *WarrantSpec {
@@ -40,7 +104,7 @@ func (warrant Warrant) ToWarrantSpec() *WarrantSpec {
 	if len(warrant.Context) > 0 {
 		contextSetSpec := make(context.ContextSetSpec, len(warrant.Context))
 		for _, context := range warrant.Context {
-			contextSetSpec[context.Name] = context.Value
+			contextSetSpec[context.GetName()] = context.GetValue()
 		}
 
 		warrantSpec.Context = contextSetSpec

@@ -14,24 +14,24 @@ const (
 	limitErrorMessage = "Must be an integer between 1 and 1000"
 )
 
-func (svc EventService) GetRoutes() []service.Route {
+func (svc EventService) Routes() []service.Route {
 	return []service.Route{
 		// get
 		{
 			Pattern: "/v1/resource-events",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc.Env(), listResourceEvents),
+			Handler: service.NewRouteHandler(svc, listResourceEvents),
 		},
 
 		{
 			Pattern: "/v1/access-events",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc.Env(), listAccessEvents),
+			Handler: service.NewRouteHandler(svc, listAccessEvents),
 		},
 	}
 }
 
-func listResourceEvents(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func listResourceEvents(svc EventService, w http.ResponseWriter, r *http.Request) error {
 	queryParams := r.URL.Query()
 	listParams := ListResourceEventParams{
 		Type:         queryParams.Get(QueryParamType),
@@ -87,7 +87,7 @@ func listResourceEvents(env service.Env, w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	resourceEventSpecs, lastId, err := NewService(env).ListResourceEvents(r.Context(), listParams)
+	resourceEventSpecs, lastId, err := svc.ListResourceEvents(r.Context(), listParams)
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func listResourceEvents(env service.Env, w http.ResponseWriter, r *http.Request)
 	return nil
 }
 
-func listAccessEvents(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func listAccessEvents(svc EventService, w http.ResponseWriter, r *http.Request) error {
 	queryParams := r.URL.Query()
 	listParams := ListAccessEventParams{
 		Type:            queryParams.Get(QueryParamType),
@@ -159,7 +159,7 @@ func listAccessEvents(env service.Env, w http.ResponseWriter, r *http.Request) e
 		}
 	}
 
-	accessEventSpecs, lastId, err := NewService(env).ListAccessEvents(r.Context(), listParams)
+	accessEventSpecs, lastId, err := svc.ListAccessEvents(r.Context(), listParams)
 	if err != nil {
 		return err
 	}

@@ -12,21 +12,20 @@ const ResourceTypeObjectType = "object-type"
 
 type ObjectTypeService struct {
 	service.BaseService
+	repo     ObjectTypeRepository
+	eventSvc event.EventService
 }
 
-func NewService(env service.Env) ObjectTypeService {
+func NewService(env service.Env, repo ObjectTypeRepository, eventSvc event.EventService) ObjectTypeService {
 	return ObjectTypeService{
 		BaseService: service.NewBaseService(env),
+		repo:        repo,
+		eventSvc:    eventSvc,
 	}
 }
 
 func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error) {
-	objectTypeRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = objectTypeRepository.GetByTypeId(ctx, objectTypeSpec.Type)
+	_, err := svc.repo.GetByTypeId(ctx, objectTypeSpec.Type)
 	if err == nil {
 		return nil, service.NewDuplicateRecordError("ObjectType", objectTypeSpec.Type, "An objectType with the given type already exists")
 	}
@@ -36,12 +35,12 @@ func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTy
 		return nil, err
 	}
 
-	newObjectTypeId, err := objectTypeRepository.Create(ctx, *objectType)
+	newObjectTypeId, err := svc.repo.Create(ctx, objectType)
 	if err != nil {
 		return nil, err
 	}
 
-	newObjectType, err := objectTypeRepository.GetById(ctx, newObjectTypeId)
+	newObjectType, err := svc.repo.GetById(ctx, newObjectTypeId)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +50,7 @@ func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTy
 		return nil, err
 	}
 
-	event.NewService(svc.Env()).TrackResourceCreated(ctx, ResourceTypeObjectType, newObjectType.TypeId, newObjectTypeSpec)
+	svc.eventSvc.TrackResourceCreated(ctx, ResourceTypeObjectType, newObjectType.GetTypeId(), newObjectTypeSpec)
 	return newObjectTypeSpec, nil
 }
 
@@ -109,8 +108,8 @@ func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, 
 		return nil, err
 	}
 
-	currentObjectType.Definition = updateTo.Definition
-	err = objectTypeRepository.UpdateByTypeId(ctx, typeId, *currentObjectType)
+	currentObjectType.SetDefinition(updateTo.Definition)
+	err = objectTypeRepository.UpdateByTypeId(ctx, typeId, currentObjectType)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +119,7 @@ func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, 
 		return nil, err
 	}
 
-	event.NewService(svc.Env()).TrackResourceUpdated(ctx, ResourceTypeObjectType, typeId, updatedObjectTypeSpec)
+	svc.eventSvc.TrackResourceUpdated(ctx, ResourceTypeObjectType, typeId, updatedObjectTypeSpec)
 	return updatedObjectTypeSpec, nil
 }
 
@@ -135,6 +134,6 @@ func (svc ObjectTypeService) DeleteByTypeId(ctx context.Context, typeId string) 
 		return err
 	}
 
-	event.NewService(svc.Env()).TrackResourceDeleted(ctx, ResourceTypeObjectType, typeId, nil)
+	svc.eventSvc.TrackResourceDeleted(ctx, ResourceTypeObjectType, typeId, nil)
 	return nil
 }

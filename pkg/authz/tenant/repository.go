@@ -9,11 +9,11 @@ import (
 )
 
 type TenantRepository interface {
-	Create(ctx context.Context, tenant Tenant) (int64, error)
-	GetById(ctx context.Context, id int64) (*Tenant, error)
-	GetByTenantId(ctx context.Context, tenantId string) (*Tenant, error)
-	List(ctx context.Context, listParams middleware.ListParams) ([]Tenant, error)
-	UpdateByTenantId(ctx context.Context, tenantId string, tenant Tenant) error
+	Create(ctx context.Context, tenant TenantModel) (int64, error)
+	GetById(ctx context.Context, id int64) (TenantModel, error)
+	GetByTenantId(ctx context.Context, tenantId string) (TenantModel, error)
+	List(ctx context.Context, listParams middleware.ListParams) ([]TenantModel, error)
+	UpdateByTenantId(ctx context.Context, tenantId string, tenant TenantModel) error
 	DeleteByTenantId(ctx context.Context, tenantId string) error
 }
 

@@ -9,21 +9,21 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-func (svc CheckService) GetRoutes() []service.Route {
+func (svc CheckService) Routes() []service.Route {
 	return []service.Route{
 		// Standard Authorization
 		{
 			Pattern: "/v2/authorize",
 			Method:  "POST",
 			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc.Env(), authorize),
+				service.NewRouteHandler(svc, authorize),
 			),
 			EnableSessionAuth: true,
 		},
 	}
 }
 
-func authorize(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func authorize(svc CheckService, w http.ResponseWriter, r *http.Request) error {
 	authInfo := service.GetAuthInfoFromRequestContext(r.Context())
 	if authInfo != nil && authInfo.UserId != "" {
 		var sessionCheckManySpec SessionCheckManySpec
@@ -53,7 +53,7 @@ func authorize(env service.Env, w http.ResponseWriter, r *http.Request) error {
 			Debug:          sessionCheckManySpec.Debug,
 		}
 
-		checkResult, err := NewService(env, authInfo).CheckMany(r.Context(), &checkManySpec)
+		checkResult, err := svc.CheckMany(r.Context(), authInfo, &checkManySpec)
 		if err != nil {
 			return err
 		}
@@ -68,7 +68,7 @@ func authorize(env service.Env, w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	checkResult, err := NewService(env, authInfo).CheckMany(r.Context(), &checkManySpec)
+	checkResult, err := svc.CheckMany(r.Context(), authInfo, &checkManySpec)
 	if err != nil {
 		return err
 	}

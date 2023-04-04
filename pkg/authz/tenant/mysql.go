@@ -22,7 +22,7 @@ func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	}
 }
 
-func (repo MySQLRepository) Create(ctx context.Context, tenant Tenant) (int64, error) {
+func (repo MySQLRepository) Create(ctx context.Context, tenant TenantModel) (int64, error) {
 	result, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -37,11 +37,11 @@ func (repo MySQLRepository) Create(ctx context.Context, tenant Tenant) (int64, e
 				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
-		tenant.TenantId,
-		tenant.ObjectId,
-		tenant.Name,
-		tenant.ObjectId,
-		tenant.Name,
+		tenant.GetTenantId(),
+		tenant.GetObjectId(),
+		tenant.GetName(),
+		tenant.GetObjectId(),
+		tenant.GetName(),
 	)
 
 	if err != nil {
@@ -56,7 +56,7 @@ func (repo MySQLRepository) Create(ctx context.Context, tenant Tenant) (int64, e
 	return newTenantId, nil
 }
 
-func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*Tenant, error) {
+func (repo MySQLRepository) GetById(ctx context.Context, id int64) (TenantModel, error) {
 	var tenant Tenant
 	err := repo.DB.GetContext(
 		ctx,
@@ -82,7 +82,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (*Tenant, err
 	return &tenant, nil
 }
 
-func (repo MySQLRepository) GetByTenantId(ctx context.Context, tenantId string) (*Tenant, error) {
+func (repo MySQLRepository) GetByTenantId(ctx context.Context, tenantId string) (TenantModel, error) {
 	var tenant Tenant
 	err := repo.DB.GetContext(
 		ctx,
@@ -108,8 +108,8 @@ func (repo MySQLRepository) GetByTenantId(ctx context.Context, tenantId string) 
 	return &tenant, nil
 }
 
-func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Tenant, error) {
-	tenants := make([]Tenant, 0)
+func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]TenantModel, error) {
+	tenants := make([]TenantModel, 0)
 	query := `
 		SELECT id, objectId, tenantId, name, createdAt, updatedAt, deletedAt
 		FROM tenant
@@ -207,7 +207,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 	return tenants, nil
 }
 
-func (repo MySQLRepository) UpdateByTenantId(ctx context.Context, tenantId string, tenant Tenant) error {
+func (repo MySQLRepository) UpdateByTenantId(ctx context.Context, tenantId string, tenant TenantModel) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -218,11 +218,11 @@ func (repo MySQLRepository) UpdateByTenantId(ctx context.Context, tenantId strin
 				tenantId = ? AND
 				deletedAt IS NULL
 		`,
-		tenant.Name,
+		tenant.GetName(),
 		tenantId,
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating tenant %d", tenant.ID))
+		return errors.Wrap(err, fmt.Sprintf("Error updating tenant %d", tenant.GetID()))
 	}
 
 	return nil

@@ -23,7 +23,7 @@ func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	}
 }
 
-func (repo PostgresRepository) Create(ctx context.Context, objectType ObjectType) (int64, error) {
+func (repo PostgresRepository) Create(ctx context.Context, objectType ObjectTypeModel) (int64, error) {
 	var newObjectTypeId int64
 	err := repo.DB.GetContext(
 		ctx,
@@ -39,9 +39,9 @@ func (repo PostgresRepository) Create(ctx context.Context, objectType ObjectType
 				deleted_at = NULL
 			RETURNING id
 		`,
-		objectType.TypeId,
-		objectType.Definition,
-		objectType.Definition,
+		objectType.GetTypeId(),
+		objectType.GetDefinition(),
+		objectType.GetDefinition(),
 	)
 	if err != nil {
 		return 0, errors.Wrap(err, "Unable to create object type")
@@ -50,7 +50,7 @@ func (repo PostgresRepository) Create(ctx context.Context, objectType ObjectType
 	return newObjectTypeId, nil
 }
 
-func (repo PostgresRepository) GetById(ctx context.Context, id int64) (*ObjectType, error) {
+func (repo PostgresRepository) GetById(ctx context.Context, id int64) (ObjectTypeModel, error) {
 	var objectType ObjectType
 	err := repo.DB.GetContext(
 		ctx,
@@ -76,7 +76,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (*ObjectTy
 	return &objectType, nil
 }
 
-func (repo PostgresRepository) GetByTypeId(ctx context.Context, typeId string) (*ObjectType, error) {
+func (repo PostgresRepository) GetByTypeId(ctx context.Context, typeId string) (ObjectTypeModel, error) {
 	var objectType ObjectType
 	err := repo.DB.GetContext(
 		ctx,
@@ -102,8 +102,8 @@ func (repo PostgresRepository) GetByTypeId(ctx context.Context, typeId string) (
 	return &objectType, nil
 }
 
-func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]ObjectType, error) {
-	objectTypes := make([]ObjectType, 0)
+func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]ObjectTypeModel, error) {
+	objectTypes := make([]ObjectTypeModel, 0)
 	replacements := make([]interface{}, 0)
 	query := `
 		SELECT id, type_id, definition, created_at, updated_at, deleted_at
@@ -206,7 +206,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 	return objectTypes, nil
 }
 
-func (repo PostgresRepository) UpdateByTypeId(ctx context.Context, typeId string, objectType ObjectType) error {
+func (repo PostgresRepository) UpdateByTypeId(ctx context.Context, typeId string, objectType ObjectTypeModel) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -217,7 +217,7 @@ func (repo PostgresRepository) UpdateByTypeId(ctx context.Context, typeId string
 				type_id = ? AND
 				deleted_at IS NULL
 		`,
-		objectType.Definition,
+		objectType.GetDefinition(),
 		typeId,
 	)
 	if err != nil {

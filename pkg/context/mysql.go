@@ -23,7 +23,7 @@ func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	}
 }
 
-func (repository MySQLRepository) CreateAll(ctx context.Context, contexts []Context) ([]Context, error) {
+func (repository MySQLRepository) CreateAll(ctx context.Context, contexts []ContextModel) ([]ContextModel, error) {
 	_, err := repository.DB.NamedExecContext(
 		ctx,
 		`
@@ -45,11 +45,11 @@ func (repository MySQLRepository) CreateAll(ctx context.Context, contexts []Cont
 		return nil, errors.Wrap(err, "Unable to create contexts")
 	}
 
-	return repository.ListByWarrantId(ctx, []int64{contexts[0].WarrantId})
+	return repository.ListByWarrantId(ctx, []int64{contexts[0].GetWarrantId()})
 }
 
-func (repository MySQLRepository) ListByWarrantId(ctx context.Context, warrantIds []int64) ([]Context, error) {
-	contexts := make([]Context, 0)
+func (repository MySQLRepository) ListByWarrantId(ctx context.Context, warrantIds []int64) ([]ContextModel, error) {
+	contexts := make([]ContextModel, 0)
 	if len(warrantIds) == 0 {
 		return contexts, nil
 	}

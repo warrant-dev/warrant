@@ -23,7 +23,7 @@ func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	}
 }
 
-func (repo PostgresRepository) Create(ctx context.Context, tenant Tenant) (int64, error) {
+func (repo PostgresRepository) Create(ctx context.Context, tenant TenantModel) (int64, error) {
 	var newTenantId int64
 	err := repo.DB.GetContext(
 		ctx,
@@ -41,11 +41,11 @@ func (repo PostgresRepository) Create(ctx context.Context, tenant Tenant) (int64
 				deleted_at = NULL
 			RETURNING id
 		`,
-		tenant.TenantId,
-		tenant.ObjectId,
-		tenant.Name,
-		tenant.ObjectId,
-		tenant.Name,
+		tenant.GetTenantId(),
+		tenant.GetObjectId(),
+		tenant.GetName(),
+		tenant.GetObjectId(),
+		tenant.GetName(),
 	)
 
 	if err != nil {
@@ -55,7 +55,7 @@ func (repo PostgresRepository) Create(ctx context.Context, tenant Tenant) (int64
 	return newTenantId, nil
 }
 
-func (repo PostgresRepository) GetById(ctx context.Context, id int64) (*Tenant, error) {
+func (repo PostgresRepository) GetById(ctx context.Context, id int64) (TenantModel, error) {
 	var tenant Tenant
 	err := repo.DB.GetContext(
 		ctx,
@@ -81,7 +81,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (*Tenant, 
 	return &tenant, nil
 }
 
-func (repo PostgresRepository) GetByTenantId(ctx context.Context, tenantId string) (*Tenant, error) {
+func (repo PostgresRepository) GetByTenantId(ctx context.Context, tenantId string) (TenantModel, error) {
 	var tenant Tenant
 	err := repo.DB.GetContext(
 		ctx,
@@ -107,8 +107,8 @@ func (repo PostgresRepository) GetByTenantId(ctx context.Context, tenantId strin
 	return &tenant, nil
 }
 
-func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Tenant, error) {
-	tenants := make([]Tenant, 0)
+func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]TenantModel, error) {
+	tenants := make([]TenantModel, 0)
 	query := `
 		SELECT id, object_id, tenant_id, name, created_at, updated_at, deleted_at
 		FROM tenant
@@ -212,7 +212,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 	return tenants, nil
 }
 
-func (repo PostgresRepository) UpdateByTenantId(ctx context.Context, tenantId string, tenant Tenant) error {
+func (repo PostgresRepository) UpdateByTenantId(ctx context.Context, tenantId string, tenant TenantModel) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -223,11 +223,11 @@ func (repo PostgresRepository) UpdateByTenantId(ctx context.Context, tenantId st
 				tenant_id = ? AND
 				deleted_at IS NULL
 		`,
-		tenant.Name,
+		tenant.GetName(),
 		tenantId,
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating tenant %d", tenant.ID))
+		return errors.Wrap(err, fmt.Sprintf("Error updating tenant %d", tenant.GetID()))
 	}
 
 	return nil

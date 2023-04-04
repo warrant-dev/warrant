@@ -9,11 +9,11 @@ import (
 )
 
 type UserRepository interface {
-	Create(ctx context.Context, user User) (int64, error)
-	GetById(ctx context.Context, id int64) (*User, error)
-	GetByUserId(ctx context.Context, userId string) (*User, error)
-	List(ctx context.Context, listParams middleware.ListParams) ([]User, error)
-	UpdateByUserId(ctx context.Context, userId string, user User) error
+	Create(ctx context.Context, user UserModel) (int64, error)
+	GetById(ctx context.Context, id int64) (UserModel, error)
+	GetByUserId(ctx context.Context, userId string) (UserModel, error)
+	List(ctx context.Context, listParams middleware.ListParams) ([]UserModel, error)
+	UpdateByUserId(ctx context.Context, userId string, user UserModel) error
 	DeleteByUserId(ctx context.Context, userId string) error
 }
 

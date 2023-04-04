@@ -10,26 +10,26 @@ import (
 )
 
 // GetRoutes registers all route handlers for this module
-func (svc TenantService) GetRoutes() []service.Route {
+func (svc TenantService) Routes() []service.Route {
 	return []service.Route{
 		// create
 		{
 			Pattern: "/v1/tenants",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc.Env(), create),
+			Handler: service.NewRouteHandler(svc, create),
 		},
 
 		// get
 		{
 			Pattern: "/v1/tenants/{tenantId}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc.Env(), get),
+			Handler: service.NewRouteHandler(svc, get),
 		},
 		{
 			Pattern: "/v1/tenants",
 			Method:  "GET",
 			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc.Env(), list),
+				service.NewRouteHandler(svc, list),
 				middleware.ListMiddleware[TenantListParamParser],
 			),
 		},
@@ -38,31 +38,31 @@ func (svc TenantService) GetRoutes() []service.Route {
 		{
 			Pattern: "/v1/tenants/{tenantId}",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc.Env(), update),
+			Handler: service.NewRouteHandler(svc, update),
 		},
 		{
 			Pattern: "/v1/tenants/{tenantId}",
 			Method:  "PUT",
-			Handler: service.NewRouteHandler(svc.Env(), update),
+			Handler: service.NewRouteHandler(svc, update),
 		},
 
 		// delete
 		{
 			Pattern: "/v1/tenants/{tenantId}",
 			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc.Env(), delete),
+			Handler: service.NewRouteHandler(svc, delete),
 		},
 	}
 }
 
-func create(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func create(svc TenantService, w http.ResponseWriter, r *http.Request) error {
 	var newTenant TenantSpec
 	err := service.ParseJSONBody(r.Body, &newTenant)
 	if err != nil {
 		return err
 	}
 
-	createdTenant, err := NewService(env).Create(r.Context(), newTenant)
+	createdTenant, err := svc.Create(r.Context(), newTenant)
 	if err != nil {
 		return err
 	}
@@ -71,14 +71,14 @@ func create(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func get(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func get(svc TenantService, w http.ResponseWriter, r *http.Request) error {
 	tenantIdParam := mux.Vars(r)["tenantId"]
 	tenantId, err := url.QueryUnescape(tenantIdParam)
 	if err != nil {
 		return service.NewInvalidParameterError("tenantId", "")
 	}
 
-	tenant, err := NewService(env).GetByTenantId(r.Context(), tenantId)
+	tenant, err := svc.GetByTenantId(r.Context(), tenantId)
 	if err != nil {
 		return err
 	}
@@ -87,9 +87,9 @@ func get(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func list(svc TenantService, w http.ResponseWriter, r *http.Request) error {
 	listParams := middleware.GetListParamsFromContext(r.Context())
-	tenants, err := NewService(env).List(r.Context(), listParams)
+	tenants, err := svc.List(r.Context(), listParams)
 	if err != nil {
 		return err
 	}
@@ -98,7 +98,7 @@ func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func update(svc TenantService, w http.ResponseWriter, r *http.Request) error {
 	var updateTenant UpdateTenantSpec
 	err := service.ParseJSONBody(r.Body, &updateTenant)
 	if err != nil {
@@ -111,7 +111,7 @@ func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
 		return service.NewInvalidParameterError("tenantId", "")
 	}
 
-	updatedTenant, err := NewService(env).UpdateByTenantId(r.Context(), tenantId, updateTenant)
+	updatedTenant, err := svc.UpdateByTenantId(r.Context(), tenantId, updateTenant)
 	if err != nil {
 		return err
 	}
@@ -120,9 +120,9 @@ func update(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func delete(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func delete(svc TenantService, w http.ResponseWriter, r *http.Request) error {
 	tenantId := mux.Vars(r)["tenantId"]
-	err := NewService(env).DeleteByTenantId(r.Context(), tenantId)
+	err := svc.DeleteByTenantId(r.Context(), tenantId)
 	if err != nil {
 		return err
 	}

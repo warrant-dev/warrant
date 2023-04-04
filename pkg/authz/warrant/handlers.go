@@ -8,14 +8,14 @@ import (
 )
 
 // GetRoutes registers all route handlers for this module
-func (svc WarrantService) GetRoutes() []service.Route {
+func (svc WarrantService) Routes() []service.Route {
 	return []service.Route{
 		// create
 		{
 			Pattern: "/v1/warrants",
 			Method:  "POST",
 			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc.Env(), create),
+				service.NewRouteHandler(svc, create),
 			),
 		},
 
@@ -24,7 +24,7 @@ func (svc WarrantService) GetRoutes() []service.Route {
 			Pattern: "/v1/warrants",
 			Method:  "GET",
 			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc.Env(), list),
+				service.NewRouteHandler(svc, list),
 				middleware.ListMiddleware[WarrantListParamParser],
 			),
 		},
@@ -34,20 +34,20 @@ func (svc WarrantService) GetRoutes() []service.Route {
 			Pattern: "/v1/warrants",
 			Method:  "DELETE",
 			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc.Env(), delete),
+				service.NewRouteHandler(svc, delete),
 			),
 		},
 	}
 }
 
-func create(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func create(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
 	var warrantSpec WarrantSpec
 	err := service.ParseJSONBody(r.Body, &warrantSpec)
 	if err != nil {
 		return err
 	}
 
-	createdWarrant, err := NewService(env).Create(r.Context(), warrantSpec)
+	createdWarrant, err := svc.Create(r.Context(), warrantSpec)
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func create(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func list(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
 	listParams := middleware.GetListParamsFromContext(r.Context())
 	queryParams := r.URL.Query()
 	filters := FilterOptions{
@@ -70,7 +70,7 @@ func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
 		},
 	}
 
-	warrants, err := NewService(env).List(r.Context(), &filters, listParams)
+	warrants, err := svc.List(r.Context(), &filters, listParams)
 	if err != nil {
 		return err
 	}
@@ -79,14 +79,14 @@ func list(env service.Env, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func delete(env service.Env, w http.ResponseWriter, r *http.Request) error {
+func delete(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
 	var warrantSpec WarrantSpec
 	err := service.ParseJSONBody(r.Body, &warrantSpec)
 	if err != nil {
 		return err
 	}
 
-	err = NewService(env).Delete(r.Context(), warrantSpec)
+	err = svc.Delete(r.Context(), warrantSpec)
 	if err != nil {
 		return err
 	}
