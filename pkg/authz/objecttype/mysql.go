@@ -22,7 +22,7 @@ func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	}
 }
 
-func (repo MySQLRepository) Create(ctx context.Context, objectType ObjectTypeModel) (int64, error) {
+func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, error) {
 	result, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -35,9 +35,9 @@ func (repo MySQLRepository) Create(ctx context.Context, objectType ObjectTypeMod
 				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
-		objectType.GetTypeId(),
-		objectType.GetDefinition(),
-		objectType.GetDefinition(),
+		model.GetTypeId(),
+		model.GetDefinition(),
+		model.GetDefinition(),
 	)
 	if err != nil {
 		return 0, errors.Wrap(err, "Unable to create object type")
@@ -51,7 +51,7 @@ func (repo MySQLRepository) Create(ctx context.Context, objectType ObjectTypeMod
 	return newObjectTypeId, nil
 }
 
-func (repo MySQLRepository) GetById(ctx context.Context, id int64) (ObjectTypeModel, error) {
+func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var objectType ObjectType
 	err := repo.DB.GetContext(
 		ctx,
@@ -77,7 +77,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (ObjectTypeMo
 	return &objectType, nil
 }
 
-func (repo MySQLRepository) GetByTypeId(ctx context.Context, typeId string) (ObjectTypeModel, error) {
+func (repo MySQLRepository) GetByTypeId(ctx context.Context, typeId string) (Model, error) {
 	var objectType ObjectType
 	err := repo.DB.GetContext(
 		ctx,
@@ -103,8 +103,9 @@ func (repo MySQLRepository) GetByTypeId(ctx context.Context, typeId string) (Obj
 	return &objectType, nil
 }
 
-func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]ObjectTypeModel, error) {
-	objectTypes := make([]ObjectTypeModel, 0)
+func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Model, error) {
+	models := make([]Model, 0)
+	objectTypes := make([]ObjectType, 0)
 	replacements := make([]interface{}, 0)
 	query := `
 		SELECT id, typeId, definition, createdAt, updatedAt, deletedAt
@@ -192,16 +193,20 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return objectTypes, nil
+			return models, nil
 		default:
-			return objectTypes, errors.Wrap(err, "Unable to get object types from mysql")
+			return models, errors.Wrap(err, "Unable to get object types from mysql")
 		}
 	}
 
-	return objectTypes, nil
+	for i := range objectTypes {
+		models = append(models, &objectTypes[i])
+	}
+
+	return models, nil
 }
 
-func (repo MySQLRepository) UpdateByTypeId(ctx context.Context, typeId string, objectType ObjectTypeModel) error {
+func (repo MySQLRepository) UpdateByTypeId(ctx context.Context, typeId string, model Model) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -212,7 +217,7 @@ func (repo MySQLRepository) UpdateByTypeId(ctx context.Context, typeId string, o
 				typeId = ? AND
 				deletedAt IS NULL
 		`,
-		objectType.GetDefinition(),
+		model.GetDefinition(),
 		typeId,
 	)
 	if err != nil {

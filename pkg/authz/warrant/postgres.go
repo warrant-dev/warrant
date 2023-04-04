@@ -24,7 +24,7 @@ func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	}
 }
 
-func (repo PostgresRepository) Create(ctx context.Context, warrant Warrant) (int64, error) {
+func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newWarrantId int64
 	err := repo.DB.GetContext(
 		ctx,
@@ -44,18 +44,18 @@ func (repo PostgresRepository) Create(ctx context.Context, warrant Warrant) (int
 				deleted_at = NULL
 			RETURNING id
 		`,
-		warrant.ObjectType,
-		warrant.ObjectId,
-		warrant.Relation,
-		warrant.SubjectType,
-		warrant.SubjectId,
-		warrant.SubjectRelation,
-		warrant.ContextHash,
+		model.GetObjectType(),
+		model.GetObjectId(),
+		model.GetRelation(),
+		model.GetSubjectType(),
+		model.GetSubjectId(),
+		model.GetSubjectRelation(),
+		model.GetContextHash(),
 	)
 	if err != nil {
 		postgresErr, ok := err.(*pq.Error)
 		if ok && postgresErr.Code.Name() == "duplicate_object" {
-			return 0, service.NewDuplicateRecordError("Warrant", warrant, "Warrant for the given objectType, objectId, relation, and subject already exists")
+			return 0, service.NewDuplicateRecordError("Warrant", model, "Warrant for the given objectType, objectId, relation, and subject already exists")
 		}
 
 		return 0, errors.Wrap(err, "Unable to create warrant")
@@ -145,7 +145,7 @@ func (repo PostgresRepository) DeleteAllBySubject(ctx context.Context, subjectTy
 	return nil
 }
 
-func (repo PostgresRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (*Warrant, error) {
+func (repo PostgresRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
@@ -183,7 +183,7 @@ func (repo PostgresRepository) Get(ctx context.Context, objectType string, objec
 	return &warrant, nil
 }
 
-func (repo PostgresRepository) GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (*Warrant, error) {
+func (repo PostgresRepository) GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
@@ -221,7 +221,7 @@ func (repo PostgresRepository) GetWithContextMatch(ctx context.Context, objectTy
 	return &warrant, nil
 }
 
-func (repo PostgresRepository) GetByID(ctx context.Context, id int64) (*Warrant, error) {
+func (repo PostgresRepository) GetByID(ctx context.Context, id int64) (Model, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
@@ -247,8 +247,9 @@ func (repo PostgresRepository) GetByID(ctx context.Context, id int64) (*Warrant,
 	return &warrant, nil
 }
 
-func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]Warrant, error) {
+func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]Model, error) {
 	offset := (listParams.Page - 1) * listParams.Limit
+	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	query := `
 		SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, created_at, updated_at, deleted_at
@@ -302,10 +303,15 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 		}
 	}
 
-	return warrants, nil
+	for _, w := range warrants {
+		models = append(models, &w)
+	}
+
+	return models, nil
 }
 
-func (repo PostgresRepository) GetAllMatchingWildcard(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Warrant, error) {
+func (repo PostgresRepository) GetAllMatchingWildcard(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Model, error) {
+	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
@@ -346,16 +352,21 @@ func (repo PostgresRepository) GetAllMatchingWildcard(ctx context.Context, objec
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return warrants, nil
+			return models, nil
 		default:
 			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get warrants matching object type %s and relation %s from mysql", objectType, relation))
 		}
 	}
 
-	return warrants, nil
+	for _, w := range warrants {
+		models = append(models, &w)
+	}
+
+	return models, nil
 }
 
-func (repo PostgresRepository) GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Warrant, error) {
+func (repo PostgresRepository) GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Model, error) {
+	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
@@ -381,16 +392,21 @@ func (repo PostgresRepository) GetAllMatchingObjectAndRelation(ctx context.Conte
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return warrants, nil
+			return models, nil
 		default:
 			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get warrants with object type %s, object id %s, and relation %s from mysql", objectType, objectId, relation))
 		}
 	}
 
-	return warrants, nil
+	for _, w := range warrants {
+		models = append(models, &w)
+	}
+
+	return models, nil
 }
 
-func (repo PostgresRepository) GetAllMatchingObjectAndSubject(ctx context.Context, objectType string, objectId string, subjectType string, subjectId string, subjectRelation string) ([]Warrant, error) {
+func (repo PostgresRepository) GetAllMatchingObjectAndSubject(ctx context.Context, objectType string, objectId string, subjectType string, subjectId string, subjectRelation string) ([]Model, error) {
+	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
@@ -412,16 +428,21 @@ func (repo PostgresRepository) GetAllMatchingObjectAndSubject(ctx context.Contex
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return warrants, nil
+			return models, nil
 		default:
 			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get warrants for object type %s, object id %s, and subject %s:%s#%s from mysql", objectType, objectId, subjectType, subjectId, subjectRelation))
 		}
 	}
 
-	return warrants, nil
+	for i := range warrants {
+		models = append(models, &warrants[i])
+	}
+
+	return models, nil
 }
 
-func (repo PostgresRepository) GetAllMatchingSubjectAndRelation(ctx context.Context, objectType string, relation string, subjectType string, subjectId string, subjectRelation string) ([]Warrant, error) {
+func (repo PostgresRepository) GetAllMatchingSubjectAndRelation(ctx context.Context, objectType string, relation string, subjectType string, subjectId string, subjectRelation string) ([]Model, error) {
+	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
@@ -447,11 +468,15 @@ func (repo PostgresRepository) GetAllMatchingSubjectAndRelation(ctx context.Cont
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return warrants, nil
+			return models, nil
 		default:
 			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get warrants for object type %s, relation %s, and subject %s:%s#%s from mysql", objectType, relation, subjectType, subjectId, subjectRelation))
 		}
 	}
 
-	return warrants, nil
+	for _, w := range warrants {
+		models = append(models, &w)
+	}
+
+	return models, nil
 }

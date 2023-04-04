@@ -23,7 +23,7 @@ func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	}
 }
 
-func (repo PostgresRepository) Create(ctx context.Context, objectType ObjectTypeModel) (int64, error) {
+func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newObjectTypeId int64
 	err := repo.DB.GetContext(
 		ctx,
@@ -39,9 +39,9 @@ func (repo PostgresRepository) Create(ctx context.Context, objectType ObjectType
 				deleted_at = NULL
 			RETURNING id
 		`,
-		objectType.GetTypeId(),
-		objectType.GetDefinition(),
-		objectType.GetDefinition(),
+		model.GetTypeId(),
+		model.GetDefinition(),
+		model.GetDefinition(),
 	)
 	if err != nil {
 		return 0, errors.Wrap(err, "Unable to create object type")
@@ -50,7 +50,7 @@ func (repo PostgresRepository) Create(ctx context.Context, objectType ObjectType
 	return newObjectTypeId, nil
 }
 
-func (repo PostgresRepository) GetById(ctx context.Context, id int64) (ObjectTypeModel, error) {
+func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var objectType ObjectType
 	err := repo.DB.GetContext(
 		ctx,
@@ -76,7 +76,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (ObjectTyp
 	return &objectType, nil
 }
 
-func (repo PostgresRepository) GetByTypeId(ctx context.Context, typeId string) (ObjectTypeModel, error) {
+func (repo PostgresRepository) GetByTypeId(ctx context.Context, typeId string) (Model, error) {
 	var objectType ObjectType
 	err := repo.DB.GetContext(
 		ctx,
@@ -102,8 +102,9 @@ func (repo PostgresRepository) GetByTypeId(ctx context.Context, typeId string) (
 	return &objectType, nil
 }
 
-func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]ObjectTypeModel, error) {
-	objectTypes := make([]ObjectTypeModel, 0)
+func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Model, error) {
+	models := make([]Model, 0)
+	objectTypes := make([]ObjectType, 0)
 	replacements := make([]interface{}, 0)
 	query := `
 		SELECT id, type_id, definition, created_at, updated_at, deleted_at
@@ -197,16 +198,20 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return objectTypes, nil
+			return models, nil
 		default:
-			return objectTypes, errors.Wrap(err, "Unable to get object types from postgres")
+			return models, errors.Wrap(err, "Unable to get object types from postgres")
 		}
 	}
 
-	return objectTypes, nil
+	for i := range objectTypes {
+		models = append(models, &objectTypes[i])
+	}
+
+	return models, nil
 }
 
-func (repo PostgresRepository) UpdateByTypeId(ctx context.Context, typeId string, objectType ObjectTypeModel) error {
+func (repo PostgresRepository) UpdateByTypeId(ctx context.Context, typeId string, model Model) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -217,7 +222,7 @@ func (repo PostgresRepository) UpdateByTypeId(ctx context.Context, typeId string
 				type_id = ? AND
 				deleted_at IS NULL
 		`,
-		objectType.GetDefinition(),
+		model.GetDefinition(),
 		typeId,
 	)
 	if err != nil {

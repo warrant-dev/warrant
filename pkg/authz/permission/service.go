@@ -29,7 +29,7 @@ func NewService(env service.Env, repo PermissionRepository, eventSvc event.Event
 }
 
 func (svc PermissionService) Create(ctx context.Context, permissionSpec PermissionSpec) (*PermissionSpec, error) {
-	var newPermission PermissionModel
+	var newPermission Model
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		createdObject, err := svc.objectSvc.Create(txCtx, *permissionSpec.ToObjectSpec())
 		if err != nil {

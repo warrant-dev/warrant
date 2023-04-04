@@ -158,21 +158,24 @@ func main() {
 
 	objectTypeSvc := objecttype.NewService(svcEnv, objectTypeRepository, eventSvc)
 
+	// Init context repo and service
+	ctxRepository, err := wntContext.NewRepository(svcEnv.DB())
+	if err != nil {
+		log.Fatal().Err(err).Msg("Could not initialize ContextRepository")
+	}
+
+	ctxSvc := wntContext.NewService(svcEnv, ctxRepository)
+
 	// Init warrant repo and service
 	warrantRepository, err := warrant.NewRepository(svcEnv.DB())
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize WarrantRepository")
 	}
 
-	warrantSvc := warrant.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc)
+	warrantSvc := warrant.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, ctxSvc)
 
-	// Init context repo and check service
-	ctxRepository, err := wntContext.NewRepository(svcEnv.DB())
-	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize ContextRepository")
-	}
-
-	checkSvc := check.NewService(svcEnv, warrantRepository, ctxRepository, eventSvc, objectTypeSvc)
+	// Init check service
+	checkSvc := check.NewService(svcEnv, warrantRepository, ctxSvc, eventSvc, objectTypeSvc)
 
 	// Init object repo and service
 	objectRepository, err := object.NewRepository(svcEnv.DB())

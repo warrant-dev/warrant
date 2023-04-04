@@ -25,7 +25,12 @@ func (repo PostgresRepository) TrackResourceEvent(ctx context.Context, resourceE
 	return repo.TrackResourceEvents(ctx, []ResourceEventModel{resourceEvent})
 }
 
-func (repo PostgresRepository) TrackResourceEvents(ctx context.Context, resourceEvents []ResourceEventModel) error {
+func (repo PostgresRepository) TrackResourceEvents(ctx context.Context, models []ResourceEventModel) error {
+	resourceEvents := make([]ResourceEvent, 0)
+	for _, model := range models {
+		resourceEvents = append(resourceEvents, *NewResourceEventFromModel(model))
+	}
+
 	result, err := repo.DB.NamedExecContext(
 		ctx,
 		`
@@ -58,7 +63,8 @@ func (repo PostgresRepository) TrackResourceEvents(ctx context.Context, resource
 }
 
 func (repo PostgresRepository) ListResourceEvents(ctx context.Context, listParams ListResourceEventParams) ([]ResourceEventModel, string, error) {
-	resourceEvents := make([]ResourceEventModel, 0)
+	models := make([]ResourceEventModel, 0)
+	resourceEvents := make([]ResourceEvent, 0)
 	query := `
 		SELECT id, type, source, resource_type, resource_id, meta, created_at
 		FROM resource_event
@@ -90,7 +96,7 @@ func (repo PostgresRepository) ListResourceEvents(ctx context.Context, listParam
 	if listParams.LastId != "" {
 		lastIdSpec, err := stringToLastIdSpec(listParams.LastId)
 		if err != nil {
-			return resourceEvents, "", service.NewInvalidParameterError("lastId", "")
+			return models, "", service.NewInvalidParameterError("lastId", "")
 		}
 
 		conditions = append(conditions, "(created_at, id) < (?, ?)")
@@ -113,14 +119,14 @@ func (repo PostgresRepository) ListResourceEvents(ctx context.Context, listParam
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return resourceEvents, "", nil
+			return models, "", nil
 		default:
-			return resourceEvents, "", err
+			return models, "", err
 		}
 	}
 
 	if len(resourceEvents) == 0 || len(resourceEvents) < int(listParams.Limit) {
-		return resourceEvents, "", nil
+		return models, "", nil
 	}
 
 	lastResourceEvent := resourceEvents[len(resourceEvents)-1]
@@ -129,17 +135,26 @@ func (repo PostgresRepository) ListResourceEvents(ctx context.Context, listParam
 		CreatedAt: lastResourceEvent.GetCreatedAt(),
 	})
 	if err != nil {
-		return resourceEvents, "", err
+		return models, "", err
 	}
 
-	return resourceEvents, lastIdStr, nil
+	for i := range resourceEvents {
+		models = append(models, &resourceEvents[i])
+	}
+
+	return models, lastIdStr, nil
 }
 
 func (repo PostgresRepository) TrackAccessEvent(ctx context.Context, accessEvent AccessEventModel) error {
 	return repo.TrackAccessEvents(ctx, []AccessEventModel{accessEvent})
 }
 
-func (repo PostgresRepository) TrackAccessEvents(ctx context.Context, accessEvents []AccessEventModel) error {
+func (repo PostgresRepository) TrackAccessEvents(ctx context.Context, models []AccessEventModel) error {
+	accessEvents := make([]AccessEvent, 0)
+	for _, model := range models {
+		accessEvents = append(accessEvents, *NewAccessEventFromModel(model))
+	}
+
 	result, err := repo.DB.NamedExecContext(
 		ctx,
 		`
@@ -182,7 +197,8 @@ func (repo PostgresRepository) TrackAccessEvents(ctx context.Context, accessEven
 }
 
 func (repo PostgresRepository) ListAccessEvents(ctx context.Context, listParams ListAccessEventParams) ([]AccessEventModel, string, error) {
-	accessEvents := make([]AccessEventModel, 0)
+	models := make([]AccessEventModel, 0)
+	accessEvents := make([]AccessEvent, 0)
 	query := `
 		SELECT id, type, source, object_type, object_id, relation, subject_type, subject_id, subject_relation, context, meta, created_at
 		FROM access_event
@@ -234,7 +250,7 @@ func (repo PostgresRepository) ListAccessEvents(ctx context.Context, listParams 
 	if listParams.LastId != "" {
 		lastIdSpec, err := stringToLastIdSpec(listParams.LastId)
 		if err != nil {
-			return accessEvents, "", service.NewInvalidParameterError("lastId", "")
+			return models, "", service.NewInvalidParameterError("lastId", "")
 		}
 
 		conditions = append(conditions, "(created_at, id) < (?, ?)")
@@ -257,14 +273,14 @@ func (repo PostgresRepository) ListAccessEvents(ctx context.Context, listParams 
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return accessEvents, "", nil
+			return models, "", nil
 		default:
-			return accessEvents, "", err
+			return models, "", err
 		}
 	}
 
 	if len(accessEvents) == 0 || len(accessEvents) < int(listParams.Limit) {
-		return accessEvents, "", nil
+		return models, "", nil
 	}
 
 	lastAccessEvent := accessEvents[len(accessEvents)-1]
@@ -273,8 +289,12 @@ func (repo PostgresRepository) ListAccessEvents(ctx context.Context, listParams 
 		CreatedAt: lastAccessEvent.GetCreatedAt(),
 	})
 	if err != nil {
-		return accessEvents, "", err
+		return models, "", err
 	}
 
-	return accessEvents, lastIdStr, nil
+	for i := range accessEvents {
+		models = append(models, &accessEvents[i])
+	}
+
+	return models, lastIdStr, nil
 }

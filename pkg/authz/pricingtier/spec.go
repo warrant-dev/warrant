@@ -17,7 +17,7 @@ type PricingTierSpec struct {
 	CreatedAt     time.Time              `json:"createdAt"`
 }
 
-func (spec PricingTierSpec) ToPricingTier(objectId int64) PricingTierModel {
+func (spec PricingTierSpec) ToPricingTier(objectId int64) Model {
 	return &PricingTier{
 		ObjectId:      objectId,
 		PricingTierId: spec.PricingTierId,

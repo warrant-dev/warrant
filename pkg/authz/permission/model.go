@@ -6,7 +6,7 @@ import (
 	"github.com/warrant-dev/warrant/pkg/database"
 )
 
-type PermissionModel interface {
+type Model interface {
 	GetID() int64
 	GetObjectId() int64
 	GetPermissionId() string

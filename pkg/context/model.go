@@ -7,7 +7,7 @@ import (
 	"github.com/warrant-dev/warrant/pkg/database"
 )
 
-type ContextModel interface {
+type Model interface {
 	GetID() int64
 	GetWarrantId() int64
 	GetName() string
@@ -26,6 +26,18 @@ type Context struct {
 	CreatedAt time.Time         `mysql:"createdAt" postgres:"created_at"`
 	UpdatedAt time.Time         `mysql:"updatedAt" postgres:"updated_at"`
 	DeletedAt database.NullTime `mysql:"deletedAt" postgres:"deleted_at"`
+}
+
+func NewContextFromModel(model Model) *Context {
+	return &Context{
+		ID:        model.GetID(),
+		WarrantId: model.GetWarrantId(),
+		Name:      model.GetName(),
+		Value:     model.GetValue(),
+		CreatedAt: model.GetCreatedAt(),
+		UpdatedAt: model.GetUpdatedAt(),
+		DeletedAt: model.GetDeletedAt(),
+	}
 }
 
 func (context Context) GetID() int64 {

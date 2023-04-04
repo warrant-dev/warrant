@@ -36,7 +36,7 @@ func (svc UserService) Create(ctx context.Context, userSpec UserSpec) (*UserSpec
 		return nil, err
 	}
 
-	var newUser UserModel
+	var newUser Model
 	err = svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		createdObject, err := svc.objectSvc.Create(txCtx, *userSpec.ToObjectSpec())
 		if err != nil {

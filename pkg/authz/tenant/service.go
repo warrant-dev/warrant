@@ -36,7 +36,7 @@ func (svc TenantService) Create(ctx context.Context, tenantSpec TenantSpec) (*Te
 		return nil, err
 	}
 
-	var newTenant TenantModel
+	var newTenant Model
 	err = svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		createdObject, err := svc.objectSvc.Create(txCtx, *tenantSpec.ToObjectSpec())
 		if err != nil {

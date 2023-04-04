@@ -23,7 +23,7 @@ func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	}
 }
 
-func (repo PostgresRepository) Create(ctx context.Context, permission PermissionModel) (int64, error) {
+func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newPermissionId int64
 	err := repo.DB.GetContext(
 		ctx,
@@ -44,14 +44,14 @@ func (repo PostgresRepository) Create(ctx context.Context, permission Permission
 				deleted_at = NULL
 			RETURNING id
 		`,
-		permission.GetObjectId(),
-		permission.GetPermissionId(),
-		permission.GetName(),
-		permission.GetDescription(),
-		permission.GetObjectId(),
-		permission.GetPermissionId(),
-		permission.GetName(),
-		permission.GetDescription(),
+		model.GetObjectId(),
+		model.GetPermissionId(),
+		model.GetName(),
+		model.GetDescription(),
+		model.GetObjectId(),
+		model.GetPermissionId(),
+		model.GetName(),
+		model.GetDescription(),
 	)
 
 	if err != nil {
@@ -61,7 +61,7 @@ func (repo PostgresRepository) Create(ctx context.Context, permission Permission
 	return newPermissionId, nil
 }
 
-func (repo PostgresRepository) GetById(ctx context.Context, id int64) (PermissionModel, error) {
+func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var permission Permission
 	err := repo.DB.GetContext(
 		ctx,
@@ -87,7 +87,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Permissio
 	return &permission, nil
 }
 
-func (repo PostgresRepository) GetByPermissionId(ctx context.Context, permissionId string) (PermissionModel, error) {
+func (repo PostgresRepository) GetByPermissionId(ctx context.Context, permissionId string) (Model, error) {
 	var permission Permission
 	err := repo.DB.GetContext(
 		ctx,
@@ -113,8 +113,9 @@ func (repo PostgresRepository) GetByPermissionId(ctx context.Context, permission
 	return &permission, nil
 }
 
-func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]PermissionModel, error) {
-	permissions := make([]PermissionModel, 0)
+func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Model, error) {
+	models := make([]Model, 0)
+	permissions := make([]Permission, 0)
 	query := `
 		SELECT id, object_id, permission_id, name, description, created_at, updated_at, deleted_at
 		FROM permission
@@ -208,16 +209,20 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return permissions, nil
+			return models, nil
 		default:
-			return permissions, service.NewInternalError("Unable to list permissions")
+			return models, service.NewInternalError("Unable to list permissions")
 		}
 	}
 
-	return permissions, nil
+	for i := range permissions {
+		models = append(models, &permissions[i])
+	}
+
+	return models, nil
 }
 
-func (repo PostgresRepository) UpdateByPermissionId(ctx context.Context, permissionId string, permission PermissionModel) error {
+func (repo PostgresRepository) UpdateByPermissionId(ctx context.Context, permissionId string, model Model) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -229,8 +234,8 @@ func (repo PostgresRepository) UpdateByPermissionId(ctx context.Context, permiss
 				permission_id = ? AND
 				deleted_at IS NULL
 		`,
-		permission.GetName(),
-		permission.GetDescription(),
+		model.GetName(),
+		model.GetDescription(),
 		permissionId,
 	)
 	if err != nil {

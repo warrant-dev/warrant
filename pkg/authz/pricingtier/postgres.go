@@ -23,7 +23,7 @@ func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	}
 }
 
-func (repo PostgresRepository) Create(ctx context.Context, pricingTier PricingTierModel) (int64, error) {
+func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newPricingTierId int64
 	err := repo.DB.GetContext(
 		ctx,
@@ -44,14 +44,14 @@ func (repo PostgresRepository) Create(ctx context.Context, pricingTier PricingTi
 				deleted_at = NULL
 			RETURNING id
 		`,
-		pricingTier.GetObjectId(),
-		pricingTier.GetPricingTierId(),
-		pricingTier.GetName(),
-		pricingTier.GetDescription(),
-		pricingTier.GetObjectId(),
-		pricingTier.GetPricingTierId(),
-		pricingTier.GetName(),
-		pricingTier.GetDescription(),
+		model.GetObjectId(),
+		model.GetPricingTierId(),
+		model.GetName(),
+		model.GetDescription(),
+		model.GetObjectId(),
+		model.GetPricingTierId(),
+		model.GetName(),
+		model.GetDescription(),
 	)
 
 	if err != nil {
@@ -61,7 +61,7 @@ func (repo PostgresRepository) Create(ctx context.Context, pricingTier PricingTi
 	return newPricingTierId, err
 }
 
-func (repo PostgresRepository) GetById(ctx context.Context, id int64) (PricingTierModel, error) {
+func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var pricingTier PricingTier
 	err := repo.DB.GetContext(
 		ctx,
@@ -78,7 +78,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (PricingTi
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return nil, service.NewRecordNotFoundError("PricingTierModel", id)
+			return nil, service.NewRecordNotFoundError("Model", id)
 		default:
 			return nil, service.NewInternalError(fmt.Sprintf("Unable to get pricing tier id %d from postgres", id))
 		}
@@ -87,7 +87,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (PricingTi
 	return &pricingTier, nil
 }
 
-func (repo PostgresRepository) GetByPricingTierId(ctx context.Context, pricingTierId string) (PricingTierModel, error) {
+func (repo PostgresRepository) GetByPricingTierId(ctx context.Context, pricingTierId string) (Model, error) {
 	var pricingTier PricingTier
 	err := repo.DB.GetContext(
 		ctx,
@@ -104,7 +104,7 @@ func (repo PostgresRepository) GetByPricingTierId(ctx context.Context, pricingTi
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return nil, service.NewRecordNotFoundError("PricingTierModel", pricingTierId)
+			return nil, service.NewRecordNotFoundError("Model", pricingTierId)
 		default:
 			return nil, service.NewInternalError(fmt.Sprintf("Unable to get pricing tier %s from postgres", pricingTierId))
 		}
@@ -113,8 +113,9 @@ func (repo PostgresRepository) GetByPricingTierId(ctx context.Context, pricingTi
 	return &pricingTier, nil
 }
 
-func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]PricingTierModel, error) {
-	pricingTiers := make([]PricingTierModel, 0)
+func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Model, error) {
+	models := make([]Model, 0)
+	pricingTiers := make([]PricingTier, 0)
 	query := `
 		SELECT id, object_id, pricing_tier_id, name, description, created_at, updated_at, deleted_at
 		FROM pricing_tier
@@ -208,16 +209,20 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return pricingTiers, nil
+			return models, nil
 		default:
-			return pricingTiers, service.NewInternalError("Unable to list pricing tiers")
+			return models, service.NewInternalError("Unable to list pricing tiers")
 		}
 	}
 
-	return pricingTiers, nil
+	for i := range pricingTiers {
+		models = append(models, &pricingTiers[i])
+	}
+
+	return models, nil
 }
 
-func (repo PostgresRepository) UpdateByPricingTierId(ctx context.Context, pricingTierId string, pricingTier PricingTierModel) error {
+func (repo PostgresRepository) UpdateByPricingTierId(ctx context.Context, pricingTierId string, model Model) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -229,8 +234,8 @@ func (repo PostgresRepository) UpdateByPricingTierId(ctx context.Context, pricin
 				pricing_tier_id = ? AND
 				deleted_at IS NULL
 		`,
-		pricingTier.GetName(),
-		pricingTier.GetDescription(),
+		model.GetName(),
+		model.GetDescription(),
 		pricingTierId,
 	)
 	if err != nil {

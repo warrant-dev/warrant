@@ -22,7 +22,7 @@ func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	}
 }
 
-func (repo MySQLRepository) Create(ctx context.Context, permission PermissionModel) (int64, error) {
+func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, error) {
 	result, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -40,14 +40,14 @@ func (repo MySQLRepository) Create(ctx context.Context, permission PermissionMod
 				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
-		permission.GetObjectId(),
-		permission.GetPermissionId(),
-		permission.GetName(),
-		permission.GetDescription(),
-		permission.GetObjectId(),
-		permission.GetPermissionId(),
-		permission.GetName(),
-		permission.GetDescription(),
+		model.GetObjectId(),
+		model.GetPermissionId(),
+		model.GetName(),
+		model.GetDescription(),
+		model.GetObjectId(),
+		model.GetPermissionId(),
+		model.GetName(),
+		model.GetDescription(),
 	)
 
 	if err != nil {
@@ -62,7 +62,7 @@ func (repo MySQLRepository) Create(ctx context.Context, permission PermissionMod
 	return newPermissionId, nil
 }
 
-func (repo MySQLRepository) GetById(ctx context.Context, id int64) (PermissionModel, error) {
+func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var permission Permission
 	err := repo.DB.GetContext(
 		ctx,
@@ -88,7 +88,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (PermissionMo
 	return &permission, nil
 }
 
-func (repo MySQLRepository) GetByPermissionId(ctx context.Context, permissionId string) (PermissionModel, error) {
+func (repo MySQLRepository) GetByPermissionId(ctx context.Context, permissionId string) (Model, error) {
 	var permission Permission
 	err := repo.DB.GetContext(
 		ctx,
@@ -114,8 +114,9 @@ func (repo MySQLRepository) GetByPermissionId(ctx context.Context, permissionId 
 	return &permission, nil
 }
 
-func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]PermissionModel, error) {
-	permissions := make([]PermissionModel, 0)
+func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Model, error) {
+	models := make([]Model, 0)
+	permissions := make([]Permission, 0)
 	query := `
 		SELECT id, objectId, permissionId, name, description, createdAt, updatedAt, deletedAt
 		FROM permission
@@ -203,16 +204,20 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return permissions, nil
+			return models, nil
 		default:
-			return permissions, service.NewInternalError("Unable to list permissions")
+			return models, service.NewInternalError("Unable to list permissions")
 		}
 	}
 
-	return permissions, nil
+	for i := range permissions {
+		models = append(models, &permissions[i])
+	}
+
+	return models, nil
 }
 
-func (repo MySQLRepository) UpdateByPermissionId(ctx context.Context, permissionId string, permission PermissionModel) error {
+func (repo MySQLRepository) UpdateByPermissionId(ctx context.Context, permissionId string, model Model) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -224,8 +229,8 @@ func (repo MySQLRepository) UpdateByPermissionId(ctx context.Context, permission
 				permissionId = ? AND
 				deletedAt IS NULL
 		`,
-		permission.GetName(),
-		permission.GetDescription(),
+		model.GetName(),
+		model.GetDescription(),
 		permissionId,
 	)
 	if err != nil {

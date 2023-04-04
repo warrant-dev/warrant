@@ -23,7 +23,7 @@ func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	}
 }
 
-func (repo PostgresRepository) Create(ctx context.Context, object ObjectModel) (int64, error) {
+func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newObjectId int64
 	err := repo.DB.GetContext(
 		ctx,
@@ -38,8 +38,8 @@ func (repo PostgresRepository) Create(ctx context.Context, object ObjectModel) (
 				deleted_at = NULL
 			RETURNING id
 		`,
-		object.GetObjectType(),
-		object.GetObjectId(),
+		model.GetObjectType(),
+		model.GetObjectId(),
 	)
 	if err != nil {
 		return 0, errors.Wrap(err, "Unable to create object")
@@ -48,7 +48,7 @@ func (repo PostgresRepository) Create(ctx context.Context, object ObjectModel) (
 	return newObjectId, nil
 }
 
-func (repo PostgresRepository) GetById(ctx context.Context, id int64) (ObjectModel, error) {
+func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var object Object
 	err := repo.DB.GetContext(
 		ctx,
@@ -74,7 +74,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (ObjectMod
 	return &object, nil
 }
 
-func (repo PostgresRepository) GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (ObjectModel, error) {
+func (repo PostgresRepository) GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (Model, error) {
 	var object Object
 	err := repo.DB.GetContext(
 		ctx,
@@ -102,8 +102,9 @@ func (repo PostgresRepository) GetByObjectTypeAndId(ctx context.Context, objectT
 	return &object, nil
 }
 
-func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]ObjectModel, error) {
-	objects := make([]ObjectModel, 0)
+func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]Model, error) {
+	models := make([]Model, 0)
+	objects := make([]Object, 0)
 	query := `
 		SELECT id, object_type, object_id, created_at, updated_at, deleted_at
 		FROM object
@@ -202,13 +203,17 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return objects, nil
+			return models, nil
 		default:
 			return nil, err
 		}
 	}
 
-	return objects, nil
+	for i := range objects {
+		models = append(models, &objects[i])
+	}
+
+	return models, nil
 }
 
 func (repo PostgresRepository) DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) error {

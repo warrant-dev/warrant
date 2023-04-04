@@ -22,13 +22,14 @@ type FeatureService struct {
 func NewService(env service.Env, repo FeatureRepository, eventSvc event.EventService, objectSvc object.ObjectService) FeatureService {
 	return FeatureService{
 		BaseService: service.NewBaseService(env),
+		repo:        repo,
 		eventSvc:    eventSvc,
 		objectSvc:   objectSvc,
 	}
 }
 
 func (svc FeatureService) Create(ctx context.Context, featureSpec FeatureSpec) (*FeatureSpec, error) {
-	var newFeature FeatureModel
+	var newFeature Model
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		createdObject, err := svc.objectSvc.Create(txCtx, *featureSpec.ToObjectSpec())
 		if err != nil {
@@ -62,12 +63,7 @@ func (svc FeatureService) Create(ctx context.Context, featureSpec FeatureSpec) (
 }
 
 func (svc FeatureService) GetByFeatureId(ctx context.Context, featureId string) (*FeatureSpec, error) {
-	featureRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
-
-	feature, err := featureRepository.GetByFeatureId(ctx, featureId)
+	feature, err := svc.repo.GetByFeatureId(ctx, featureId)
 	if err != nil {
 		return nil, err
 	}
@@ -77,12 +73,7 @@ func (svc FeatureService) GetByFeatureId(ctx context.Context, featureId string) 
 
 func (svc FeatureService) List(ctx context.Context, listParams middleware.ListParams) ([]FeatureSpec, error) {
 	featureSpecs := make([]FeatureSpec, 0)
-	featureRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return featureSpecs, err
-	}
-
-	features, err := featureRepository.List(ctx, listParams)
+	features, err := svc.repo.List(ctx, listParams)
 	if err != nil {
 		return featureSpecs, nil
 	}
@@ -119,12 +110,7 @@ func (svc FeatureService) UpdateByFeatureId(ctx context.Context, featureId strin
 
 func (svc FeatureService) DeleteByFeatureId(ctx context.Context, featureId string) error {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		featureRepository, err := NewRepository(svc.Env().DB())
-		if err != nil {
-			return err
-		}
-
-		err = featureRepository.DeleteByFeatureId(txCtx, featureId)
+		err := svc.repo.DeleteByFeatureId(txCtx, featureId)
 		if err != nil {
 			return err
 		}

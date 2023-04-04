@@ -22,7 +22,7 @@ func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	}
 }
 
-func (repo MySQLRepository) Create(ctx context.Context, tenant TenantModel) (int64, error) {
+func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, error) {
 	result, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -37,11 +37,11 @@ func (repo MySQLRepository) Create(ctx context.Context, tenant TenantModel) (int
 				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
-		tenant.GetTenantId(),
-		tenant.GetObjectId(),
-		tenant.GetName(),
-		tenant.GetObjectId(),
-		tenant.GetName(),
+		model.GetTenantId(),
+		model.GetObjectId(),
+		model.GetName(),
+		model.GetObjectId(),
+		model.GetName(),
 	)
 
 	if err != nil {
@@ -56,7 +56,7 @@ func (repo MySQLRepository) Create(ctx context.Context, tenant TenantModel) (int
 	return newTenantId, nil
 }
 
-func (repo MySQLRepository) GetById(ctx context.Context, id int64) (TenantModel, error) {
+func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var tenant Tenant
 	err := repo.DB.GetContext(
 		ctx,
@@ -82,7 +82,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (TenantModel,
 	return &tenant, nil
 }
 
-func (repo MySQLRepository) GetByTenantId(ctx context.Context, tenantId string) (TenantModel, error) {
+func (repo MySQLRepository) GetByTenantId(ctx context.Context, tenantId string) (Model, error) {
 	var tenant Tenant
 	err := repo.DB.GetContext(
 		ctx,
@@ -108,8 +108,9 @@ func (repo MySQLRepository) GetByTenantId(ctx context.Context, tenantId string) 
 	return &tenant, nil
 }
 
-func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]TenantModel, error) {
-	tenants := make([]TenantModel, 0)
+func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Model, error) {
+	models := make([]Model, 0)
+	tenants := make([]Tenant, 0)
 	query := `
 		SELECT id, objectId, tenantId, name, createdAt, updatedAt, deletedAt
 		FROM tenant
@@ -198,16 +199,20 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return tenants, nil
+			return models, nil
 		default:
-			return tenants, service.NewInternalError("Unable to list tenants")
+			return models, service.NewInternalError("Unable to list tenants")
 		}
 	}
 
-	return tenants, nil
+	for i := range tenants {
+		models = append(models, &tenants[i])
+	}
+
+	return models, nil
 }
 
-func (repo MySQLRepository) UpdateByTenantId(ctx context.Context, tenantId string, tenant TenantModel) error {
+func (repo MySQLRepository) UpdateByTenantId(ctx context.Context, tenantId string, model Model) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -218,11 +223,11 @@ func (repo MySQLRepository) UpdateByTenantId(ctx context.Context, tenantId strin
 				tenantId = ? AND
 				deletedAt IS NULL
 		`,
-		tenant.GetName(),
+		model.GetName(),
 		tenantId,
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating tenant %d", tenant.GetID()))
+		return errors.Wrap(err, fmt.Sprintf("Error updating tenant %d", model.GetID()))
 	}
 
 	return nil

@@ -30,6 +30,18 @@ type ResourceEvent struct {
 	CreatedAt    time.Time           `mysql:"createdAt" postgres:"created_at"`
 }
 
+func NewResourceEventFromModel(model ResourceEventModel) *ResourceEvent {
+	return &ResourceEvent{
+		ID:           model.GetID(),
+		Type:         model.GetType(),
+		Source:       model.GetSource(),
+		ResourceType: model.GetResourceType(),
+		ResourceId:   model.GetResourceId(),
+		Meta:         model.GetMeta(),
+		CreatedAt:    model.GetCreatedAt(),
+	}
+}
+
 func (resourceEvent ResourceEvent) GetID() string {
 	return resourceEvent.ID
 }
@@ -107,6 +119,23 @@ type AccessEvent struct {
 	Context         database.NullString `mysql:"context" postgres:"context"`
 	Meta            database.NullString `mysql:"meta" postgres:"meta"`
 	CreatedAt       time.Time           `mysql:"createdAt" postgres:"created_at"`
+}
+
+func NewAccessEventFromModel(model AccessEventModel) *AccessEvent {
+	return &AccessEvent{
+		ID:              model.GetID(),
+		Type:            model.GetType(),
+		Source:          model.GetSource(),
+		ObjectType:      model.GetObjectType(),
+		ObjectId:        model.GetObjectId(),
+		Relation:        model.GetRelation(),
+		SubjectType:     model.GetSubjectType(),
+		SubjectId:       model.GetSubjectId(),
+		SubjectRelation: model.GetSubjectRelation(),
+		Context:         model.GetContext(),
+		Meta:            model.GetMeta(),
+		CreatedAt:       model.GetCreatedAt(),
+	}
 }
 
 func (accessEvent AccessEvent) GetID() string {

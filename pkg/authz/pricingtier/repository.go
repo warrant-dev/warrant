@@ -9,11 +9,11 @@ import (
 )
 
 type PricingTierRepository interface {
-	Create(ctx context.Context, pricingTier PricingTierModel) (int64, error)
-	GetById(ctx context.Context, id int64) (PricingTierModel, error)
-	GetByPricingTierId(ctx context.Context, pricingTierId string) (PricingTierModel, error)
-	List(ctx context.Context, listParams middleware.ListParams) ([]PricingTierModel, error)
-	UpdateByPricingTierId(ctx context.Context, pricingTierId string, pricingTier PricingTierModel) error
+	Create(ctx context.Context, pricingTier Model) (int64, error)
+	GetById(ctx context.Context, id int64) (Model, error)
+	GetByPricingTierId(ctx context.Context, pricingTierId string) (Model, error)
+	List(ctx context.Context, listParams middleware.ListParams) ([]Model, error)
+	UpdateByPricingTierId(ctx context.Context, pricingTierId string, pricingTier Model) error
 	DeleteByPricingTierId(ctx context.Context, pricingTierId string) error
 }
 

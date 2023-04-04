@@ -6,7 +6,7 @@ import (
 	"github.com/warrant-dev/warrant/pkg/database"
 )
 
-type ObjectModel interface {
+type Model interface {
 	GetID() int64
 	GetObjectType() string
 	GetObjectId() string

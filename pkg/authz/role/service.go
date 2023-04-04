@@ -29,7 +29,7 @@ func NewService(env service.Env, repo RoleRepository, eventSvc event.EventServic
 }
 
 func (svc RoleService) Create(ctx context.Context, roleSpec RoleSpec) (*RoleSpec, error) {
-	var newRole RoleModel
+	var newRole Model
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		createdObject, err := svc.objectSvc.Create(txCtx, *roleSpec.ToObjectSpec())
 		if err != nil {

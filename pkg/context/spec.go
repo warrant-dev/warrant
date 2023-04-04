@@ -8,6 +8,13 @@ import (
 	"strings"
 )
 
+type Spec interface {
+	ToHash() string
+	ToSlice(warrantId int64) []Model
+	String() string
+	Equals(compareTo ContextSetSpec) bool
+}
+
 type ContextSetSpec map[string]string
 
 func (spec ContextSetSpec) ToHash() string {
@@ -30,8 +37,8 @@ func (spec ContextSetSpec) ToHash() string {
 	return hex.EncodeToString(hash[:])
 }
 
-func (spec ContextSetSpec) ToSlice(warrantId int64) []ContextModel {
-	contexts := make([]ContextModel, 0)
+func (spec ContextSetSpec) ToSlice(warrantId int64) []Model {
+	contexts := make([]Model, 0)
 	for name, value := range spec {
 		contexts = append(contexts, Context{
 			WarrantId: warrantId,
@@ -66,10 +73,10 @@ func (spec ContextSetSpec) Equals(compareTo ContextSetSpec) bool {
 	return spec.ToHash() == compareTo.ToHash()
 }
 
-func NewContextSetSpecFromSlice(contexts []Context) ContextSetSpec {
+func NewContextSetSpecFromSlice(models []Model) ContextSetSpec {
 	contextSetSpec := make(ContextSetSpec)
-	for _, context := range contexts {
-		contextSetSpec[context.Name] = context.Value
+	for _, context := range models {
+		contextSetSpec[context.GetName()] = context.GetValue()
 	}
 
 	return contextSetSpec

@@ -15,19 +15,17 @@ import (
 
 type CheckService struct {
 	service.BaseService
-	objectTypeMap map[string]*objecttype.ObjectTypeSpec
 	warrantRepo   warrant.WarrantRepository
-	ctxRepo       wntContext.ContextRepository
 	eventSvc      event.EventService
+	ctxSvc        wntContext.ContextService
 	objectTypeSvc objecttype.ObjectTypeService
 }
 
-func NewService(env service.Env, warrantRepo warrant.WarrantRepository, ctxRepo wntContext.ContextRepository, eventSvc event.EventService, objectTypeSvc objecttype.ObjectTypeService) CheckService {
+func NewService(env service.Env, warrantRepo warrant.WarrantRepository, ctxSvc wntContext.ContextService, eventSvc event.EventService, objectTypeSvc objecttype.ObjectTypeService) CheckService {
 	return CheckService{
 		BaseService:   service.NewBaseService(env),
-		objectTypeMap: make(map[string]*objecttype.ObjectTypeSpec),
 		warrantRepo:   warrantRepo,
-		ctxRepo:       ctxRepo,
+		ctxSvc:        ctxSvc,
 		eventSvc:      eventSvc,
 		objectTypeSvc: objectTypeSvc,
 	}
@@ -39,19 +37,21 @@ func (svc CheckService) getWithContextMatch(ctx context.Context, spec warrant.Wa
 		return nil, err
 	}
 
-	warrant.Context, err = svc.ctxRepo.ListByWarrantId(ctx, []int64{warrant.ID})
+	contextSetSpec, err := svc.ctxSvc.ListByWarrantId(ctx, []int64{warrant.GetID()})
 	if err != nil {
 		return nil, err
 	}
 
-	return warrant.ToWarrantSpec(), nil
+	warrantSpec := warrant.ToWarrantSpec()
+	warrantSpec.Context = contextSetSpec[warrant.GetID()]
+	return warrantSpec, nil
 }
 
 func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType string, objectId string, relation string, subjectType string, wntCtx wntContext.ContextSetSpec) ([]warrant.WarrantSpec, error) {
 	log.Debug().Msgf("Getting matching subjects for %s:%s#%s@%s:___%s", objectType, objectId, relation, subjectType, wntCtx)
 
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
-	objectTypeSpec, err := svc.getObjectType(ctx, objectType)
+	objectTypeSpec, err := svc.objectTypeSvc.GetByTypeId(ctx, objectType)
 	if err != nil {
 		return warrantSpecs, err
 	}
@@ -357,7 +357,7 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 	}
 
 	// Attempt to match against defined rules for target relation
-	objectTypeSpec, err := svc.getObjectType(ctx, warrantCheck.ObjectType)
+	objectTypeSpec, err := svc.objectTypeSvc.GetByTypeId(ctx, warrantCheck.ObjectType)
 	if err != nil {
 		return false, decisionPath, err
 	}
@@ -375,20 +375,6 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 
 	svc.eventSvc.TrackAccessDeniedEvent(ctx, warrantCheck.ObjectType, warrantCheck.ObjectId, warrantCheck.Relation, warrantCheck.Subject.ObjectType, warrantCheck.Subject.ObjectId, warrantCheck.Subject.Relation, warrantCheck.Context)
 	return false, decisionPath, nil
-}
-
-func (svc CheckService) getObjectType(ctx context.Context, objectType string) (*objecttype.ObjectTypeSpec, error) {
-	if objectTypeSpec, ok := svc.objectTypeMap[objectType]; ok {
-		return objectTypeSpec, nil
-	}
-
-	objectTypeSpec, err := svc.objectTypeSvc.GetByTypeId(ctx, objectType)
-	if err != nil {
-		return nil, err
-	}
-
-	svc.objectTypeMap[objectType] = objectTypeSpec
-	return objectTypeSpec, nil
 }
 
 func (svc CheckService) appendTenantContext(warrantCheck *CheckSpec, tenantId string) {
