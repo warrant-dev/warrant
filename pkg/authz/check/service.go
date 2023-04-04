@@ -213,7 +213,7 @@ func (svc CheckService) CheckMany(ctx context.Context, warrantCheck *CheckManySp
 	}
 
 	var checkResult CheckResultSpec
-	checkResult.DecisionPath = make([][]warrant.WarrantSpec, 0)
+	checkResult.DecisionPath = make(map[string][]warrant.WarrantSpec, 0)
 	if warrantCheck.Op == objecttype.InheritIfAllOf {
 		var processingTime int64
 		for _, warrantSpec := range warrantCheck.Warrants {
@@ -229,7 +229,7 @@ func (svc CheckService) CheckMany(ctx context.Context, warrantCheck *CheckManySp
 			if warrantCheck.Debug {
 				checkResult.ProcessingTime = processingTime + time.Since(start).Milliseconds()
 				if len(decisionPath) > 0 {
-					checkResult.DecisionPath = append(checkResult.DecisionPath, decisionPath)
+					checkResult.DecisionPath[warrantSpec.String()] = decisionPath
 				}
 			}
 
@@ -260,7 +260,7 @@ func (svc CheckService) CheckMany(ctx context.Context, warrantCheck *CheckManySp
 			if warrantCheck.Debug {
 				checkResult.ProcessingTime = processingTime + time.Since(start).Milliseconds()
 				if len(decisionPath) > 0 {
-					checkResult.DecisionPath = append(checkResult.DecisionPath, decisionPath)
+					checkResult.DecisionPath[warrantSpec.String()] = decisionPath
 				}
 			}
 
@@ -301,7 +301,7 @@ func (svc CheckService) CheckMany(ctx context.Context, warrantCheck *CheckManySp
 	if warrantCheck.Debug {
 		checkResult.ProcessingTime = time.Since(start).Milliseconds()
 		if len(decisionPath) > 0 {
-			checkResult.DecisionPath = append(checkResult.DecisionPath, decisionPath)
+			checkResult.DecisionPath[warrantSpec.String()] = decisionPath
 		}
 	}
 
