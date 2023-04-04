@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	context "github.com/warrant-dev/warrant/pkg/context"
 	"github.com/warrant-dev/warrant/pkg/database"
 )
 
@@ -17,8 +16,6 @@ type Model interface {
 	GetSubjectId() string
 	GetSubjectRelation() database.NullString
 	GetContextHash() string
-	GetContext() []context.Model
-	SetContext([]context.Model)
 	GetCreatedAt() time.Time
 	GetUpdatedAt() time.Time
 	GetDeletedAt() database.NullTime
@@ -36,7 +33,6 @@ type Warrant struct {
 	SubjectId       string              `mysql:"subjectId" postgres:"subject_id"`
 	SubjectRelation database.NullString `mysql:"subjectRelation" postgres:"subject_relation"`
 	ContextHash     string              `mysql:"contextHash" postgres:"context_hash"`
-	Context         []context.Model     `mysql:"context" postgres:"context"`
 	CreatedAt       time.Time           `mysql:"createdAt" postgres:"created_at"`
 	UpdatedAt       time.Time           `mysql:"updatedAt" postgres:"updated_at"`
 	DeletedAt       database.NullTime   `mysql:"deletedAt" postgres:"deleted_at"`
@@ -74,14 +70,6 @@ func (warrant Warrant) GetContextHash() string {
 	return warrant.ContextHash
 }
 
-func (warrant Warrant) GetContext() []context.Model {
-	return warrant.Context
-}
-
-func (warrant *Warrant) SetContext(contexts []context.Model) {
-	warrant.Context = contexts
-}
-
 func (warrant Warrant) GetCreatedAt() time.Time {
 	return warrant.CreatedAt
 }
@@ -105,15 +93,6 @@ func (warrant Warrant) ToWarrantSpec() *WarrantSpec {
 			Relation:   warrant.SubjectRelation.String,
 		},
 		CreatedAt: warrant.CreatedAt,
-	}
-
-	if len(warrant.Context) > 0 {
-		contextSetSpec := make(context.ContextSetSpec, len(warrant.Context))
-		for _, context := range warrant.Context {
-			contextSetSpec[context.GetName()] = context.GetValue()
-		}
-
-		warrantSpec.Context = contextSetSpec
 	}
 
 	return &warrantSpec
