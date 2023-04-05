@@ -28,7 +28,9 @@ type AuthInfo struct {
 	TenantId string
 }
 
-func AuthMiddleware(next http.Handler, config *config.Config, enableSessionAuth bool) http.Handler {
+type AuthMiddlewareFunc func(next http.Handler, config *config.Config, enableSessionAuth bool) http.Handler
+
+func DefaultAuthMiddleware(next http.Handler, config *config.Config, enableSessionAuth bool) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := hlog.FromRequest(r)
 

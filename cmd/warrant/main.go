@@ -253,6 +253,6 @@ func main() {
 	}
 
 	log.Debug().Msgf("Listening on port %d", config.Port)
-	shutdownErr := http.ListenAndServe(fmt.Sprintf(":%d", config.Port), service.NewRouter(&config, "", routes))
+	shutdownErr := http.ListenAndServe(fmt.Sprintf(":%d", config.Port), service.NewRouter(&config, "", routes, nil))
 	log.Fatal().Err(shutdownErr).Msg("")
 }
