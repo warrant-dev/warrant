@@ -41,7 +41,7 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 
 	db, err = sqlx.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/?sslmode=%s", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.SSLMode))
 	if err != nil {
-		errors.Wrap(err, fmt.Sprintf("Unable to establish connection to postgres database %s. Shutting down server.", ds.Config.Database))
+		return errors.Wrap(err, fmt.Sprintf("Unable to establish connection to postgres database %s. Shutting down server.", ds.Config.Database))
 	}
 
 	// create database if it does not already exist
@@ -56,12 +56,12 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 	db.Close()
 	db, err = sqlx.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=%s", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.Database, ds.Config.SSLMode))
 	if err != nil {
-		errors.Wrap(err, fmt.Sprintf("Unable to establish connection to postgres database %s. Shutting down server.", ds.Config.Database))
+		return errors.Wrap(err, fmt.Sprintf("Unable to establish connection to postgres database %s. Shutting down server.", ds.Config.Database))
 	}
 
 	err = db.PingContext(ctx)
 	if err != nil {
-		errors.Wrap(err, fmt.Sprintf("Unable to ping postgres database %s. Shutting down server.", ds.Config.Database))
+		return errors.Wrap(err, fmt.Sprintf("Unable to ping postgres database %s. Shutting down server.", ds.Config.Database))
 	}
 
 	if ds.Config.MaxIdleConnections != 0 {
