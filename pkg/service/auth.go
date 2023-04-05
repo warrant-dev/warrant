@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"crypto/rsa"
+	"crypto/subtle"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -53,7 +54,7 @@ func DefaultAuthMiddleware(next http.Handler, config *config.Config, enableSessi
 		var authInfo *AuthInfo
 		switch tokenType {
 		case "ApiKey":
-			if tokenString != config.ApiKey {
+			if !secureCompareEqual(tokenString, config.ApiKey) {
 				SendErrorResponse(w, NewUnauthorizedError("Invalid API key"))
 				return
 			}
@@ -175,4 +176,12 @@ func GetAuthInfoFromRequestContext(context context.Context) *AuthInfo {
 	}
 
 	return nil
+}
+
+func secureCompareEqual(given string, actual string) bool {
+	if subtle.ConstantTimeEq(int32(len(given)), int32(len(actual))) == 1 {
+		return subtle.ConstantTimeCompare([]byte(given), []byte(actual)) == 1
+	} else {
+		return subtle.ConstantTimeCompare([]byte(actual), []byte(actual)) == 1 && false
+	}
 }
