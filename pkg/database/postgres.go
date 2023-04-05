@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
@@ -39,7 +40,8 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 	var db *sqlx.DB
 	var err error
 
-	db, err = sqlx.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/?sslmode=%s", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.SSLMode))
+	usernamePassword := url.UserPassword(ds.Config.Username, ds.Config.Password).String()
+	db, err = sqlx.Open("postgres", fmt.Sprintf("postgres://%s@%s/?sslmode=%s", usernamePassword, ds.Config.Hostname, ds.Config.SSLMode))
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Unable to establish connection to postgres database %s. Shutting down server.", ds.Config.Database))
 	}
@@ -54,7 +56,7 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 	}
 
 	db.Close()
-	db, err = sqlx.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=%s", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.Database, ds.Config.SSLMode))
+	db, err = sqlx.Open("postgres", fmt.Sprintf("postgres://%s@%s/%s?sslmode=%s", usernamePassword, ds.Config.Hostname, ds.Config.Database, ds.Config.SSLMode))
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Unable to establish connection to postgres database %s. Shutting down server.", ds.Config.Database))
 	}
@@ -83,9 +85,10 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 func (ds Postgres) Migrate(ctx context.Context, toVersion uint) error {
 	log.Debug().Msgf("Migrating postgres database %s", ds.Config.Database)
 	// migrate database to latest schema
+	usernamePassword := url.UserPassword(ds.Config.Username, ds.Config.Password).String()
 	mig, err := migrate.New(
 		ds.Config.MigrationSource,
-		fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=%s", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.Database, ds.Config.SSLMode),
+		fmt.Sprintf("postgres://%s@%s/%s?sslmode=%s", usernamePassword, ds.Config.Hostname, ds.Config.Database, ds.Config.SSLMode),
 	)
 	if err != nil {
 		return errors.Wrap(err, "Error migrating postgres database")
