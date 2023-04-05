@@ -53,7 +53,7 @@ func (rh RouteHandler[T]) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewRouter(config *config.Config, pathPrefix string, routes []Route, additionalMiddlewares ...mux.MiddlewareFunc) *mux.Router {
+func NewRouter(config *config.Config, pathPrefix string, routes []Route, authMiddleware AuthMiddlewareFunc, additionalMiddlewares ...mux.MiddlewareFunc) *mux.Router {
 	router := mux.NewRouter()
 
 	// Setup default middleware
@@ -74,6 +74,10 @@ func NewRouter(config *config.Config, pathPrefix string, routes []Route, additio
 
 	router.Use(hlog.URLHandler("uri"))
 
+	if authMiddleware == nil {
+		authMiddleware = DefaultAuthMiddleware
+	}
+
 	// Setup supplied middleware
 	for _, additionalMiddleware := range additionalMiddlewares {
 		router.Use(additionalMiddleware)
@@ -85,7 +89,7 @@ func NewRouter(config *config.Config, pathPrefix string, routes []Route, additio
 		if route.DisableAuth || config.ApiKey == "" {
 			router.Handle(routePattern, route.Handler).Methods(route.Method)
 		} else {
-			router.Handle(routePattern, AuthMiddleware(route.Handler, config, route.EnableSessionAuth)).Methods(route.Method)
+			router.Handle(routePattern, authMiddleware(route.Handler, config, route.EnableSessionAuth)).Methods(route.Method)
 		}
 	}
 
