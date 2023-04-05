@@ -18,6 +18,7 @@ type Route struct {
 	Pattern           string
 	Method            string
 	Handler           http.Handler
+	AuthMiddleware    AuthMiddlewareFunc
 	DisableAuth       bool
 	EnableSessionAuth bool
 }
@@ -85,11 +86,16 @@ func NewRouter(config *config.Config, pathPrefix string, routes []Route, authMid
 
 	// Setup routes
 	for _, route := range routes {
+		defaultArgs := map[string]interface{}{
+			EnableSessionAuthKey: route.EnableSessionAuth,
+		}
 		routePattern := fmt.Sprintf("%s%s", pathPrefix, route.Pattern)
 		if route.DisableAuth || config.ApiKey == "" {
 			router.Handle(routePattern, route.Handler).Methods(route.Method)
+		} else if route.AuthMiddleware != nil {
+			router.Handle(routePattern, route.AuthMiddleware(route.Handler, config, defaultArgs)).Methods(route.Method)
 		} else {
-			router.Handle(routePattern, authMiddleware(route.Handler, config, route.EnableSessionAuth)).Methods(route.Method)
+			router.Handle(routePattern, authMiddleware(route.Handler, config, defaultArgs)).Methods(route.Method)
 		}
 	}
 

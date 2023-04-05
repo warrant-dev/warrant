@@ -24,14 +24,18 @@ const (
 	authInfoKey key = iota
 )
 
+const (
+	EnableSessionAuthKey = "EnableSessionAuth"
+)
+
 type AuthInfo struct {
 	UserId   string
 	TenantId string
 }
 
-type AuthMiddlewareFunc func(next http.Handler, config *config.Config, enableSessionAuth bool) http.Handler
+type AuthMiddlewareFunc func(next http.Handler, config *config.Config, args map[string]interface{}) http.Handler
 
-func DefaultAuthMiddleware(next http.Handler, config *config.Config, enableSessionAuth bool) http.Handler {
+func DefaultAuthMiddleware(next http.Handler, config *config.Config, args map[string]interface{}) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := hlog.FromRequest(r)
 
@@ -60,9 +64,15 @@ func DefaultAuthMiddleware(next http.Handler, config *config.Config, enableSessi
 			}
 			authInfo = &AuthInfo{}
 		case "Bearer":
-			if !enableSessionAuth {
+			if enableSessionAuth, ok := args["enableSessionAuth"].(bool); ok {
+				if !enableSessionAuth {
+					SendErrorResponse(w, NewUnauthorizedError("Error validating token"))
+					logger.Err(fmt.Errorf("invalid authentication for the endpoint")).Msg("Session authentication not supported for this endpoint")
+					return
+				}
+			} else {
 				SendErrorResponse(w, NewUnauthorizedError("Error validating token"))
-				logger.Err(fmt.Errorf("invalid authentication for the endpoint")).Msg("Session authentication not supported for this endpoint")
+				logger.Err(fmt.Errorf("enableSessionAuth must be of type bool"))
 				return
 			}
 
