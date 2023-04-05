@@ -41,12 +41,12 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 
 	db, err = sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/?parseTime=true", ds.Config.Username, ds.Config.Password, ds.Config.Hostname))
 	if err != nil {
-		errors.Wrap(err, "Unable to establish connection to mysql. Shutting down server.")
+		return errors.Wrap(err, "Unable to establish connection to mysql. Shutting down server.")
 	}
 
 	err = db.PingContext(ctx)
 	if err != nil {
-		errors.Wrap(err, "Unable to ping mysql. Shutting down server.")
+		return errors.Wrap(err, "Unable to ping mysql. Shutting down server.")
 	}
 
 	if ds.Config.MaxIdleConnections != 0 {
