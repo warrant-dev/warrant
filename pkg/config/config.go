@@ -34,6 +34,7 @@ type Config struct {
 type DatastoreConfig struct {
 	MySQL    *MySQLConfig    `mapstructure:"mysql"`
 	Postgres *PostgresConfig `mapstructure:"postgres"`
+	SQLite   *SQLiteConfig   `mapstructure:"sqlite"`
 }
 
 type MySQLConfig struct {
@@ -57,9 +58,15 @@ type PostgresConfig struct {
 	MaxOpenConnections int    `mapstructure:"maxOpenConncetions"`
 }
 
+type SQLiteConfig struct {
+	Database        string `mapstructure:"database"`
+	MigrationSource string `mapstructure:"migrationSource"`
+}
+
 type EventstoreConfig struct {
 	MySQL    *MySQLConfig    `mapstructure:"mysql"`
 	Postgres *PostgresConfig `mapstructure:"postgres"`
+	SQLite   *SQLiteConfig   `mapstructure:"sqlite"`
 }
 
 type AuthConfig struct {

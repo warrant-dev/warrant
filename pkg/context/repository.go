@@ -30,6 +30,13 @@ func NewRepository(db database.Database) (ContextRepository, error) {
 		}
 
 		return NewPostgresRepository(postgres), nil
+	case database.TypeSQLite:
+		sqlite, ok := db.(*database.SQLite)
+		if !ok {
+			return nil, fmt.Errorf("invalid %s database config", database.TypeSQLite)
+		}
+
+		return NewSQLiteRepository(sqlite), nil
 	default:
 		return nil, service.NewInternalError(fmt.Sprintf("Invalid database type %s specified", db.Type()))
 	}

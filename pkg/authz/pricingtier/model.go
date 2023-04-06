@@ -21,14 +21,14 @@ type Model interface {
 }
 
 type PricingTier struct {
-	ID            int64               `mysql:"id" postgres:"id"`
-	ObjectId      int64               `mysql:"objectId" postgres:"object_id"`
-	PricingTierId string              `mysql:"pricingTierId" postgres:"pricing_tier_id"`
-	Name          database.NullString `mysql:"name" postgres:"name"`
-	Description   database.NullString `mysql:"description" postgres:"description"`
-	CreatedAt     time.Time           `mysql:"createdAt" postgres:"created_at"`
-	UpdatedAt     time.Time           `mysql:"updatedAt" postgres:"updated_at"`
-	DeletedAt     database.NullTime   `mysql:"deletedAt" postgres:"deleted_at"`
+	ID            int64               `mysql:"id" postgres:"id" sqlite:"id"`
+	ObjectId      int64               `mysql:"objectId" postgres:"object_id" sqlite:"objectId"`
+	PricingTierId string              `mysql:"pricingTierId" postgres:"pricing_tier_id" sqlite:"pricingTierId"`
+	Name          database.NullString `mysql:"name" postgres:"name" sqlite:"name"`
+	Description   database.NullString `mysql:"description" postgres:"description" sqlite:"description"`
+	CreatedAt     time.Time           `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
+	UpdatedAt     time.Time           `mysql:"updatedAt" postgres:"updated_at" sqlite:"updatedAt"`
+	DeletedAt     database.NullTime   `mysql:"deletedAt" postgres:"deleted_at" sqlite:"deletedAt"`
 }
 
 func (pricingTier PricingTier) GetID() int64 {

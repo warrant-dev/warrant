@@ -19,13 +19,13 @@ type Model interface {
 }
 
 type Context struct {
-	ID        int64             `mysql:"id" postgres:"id"`
-	WarrantId int64             `mysql:"warrantId" postgres:"warrant_id"`
-	Name      string            `mysql:"name" postgres:"name"`
-	Value     string            `mysql:"value" postgres:"value"`
-	CreatedAt time.Time         `mysql:"createdAt" postgres:"created_at"`
-	UpdatedAt time.Time         `mysql:"updatedAt" postgres:"updated_at"`
-	DeletedAt database.NullTime `mysql:"deletedAt" postgres:"deleted_at"`
+	ID        int64             `mysql:"id" postgres:"id" sqlite:"id"`
+	WarrantId int64             `mysql:"warrantId" postgres:"warrant_id" sqlite:"warrantId"`
+	Name      string            `mysql:"name" postgres:"name" sqlite:"name"`
+	Value     string            `mysql:"value" postgres:"value" sqlite:"value"`
+	CreatedAt time.Time         `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
+	UpdatedAt time.Time         `mysql:"updatedAt" postgres:"updated_at" sqlite:"updatedAt"`
+	DeletedAt database.NullTime `mysql:"deletedAt" postgres:"deleted_at" sqlite:"deletedAt"`
 }
 
 func NewContextFromModel(model Model) *Context {

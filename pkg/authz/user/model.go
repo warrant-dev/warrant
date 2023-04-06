@@ -19,13 +19,13 @@ type Model interface {
 }
 
 type User struct {
-	ID        int64               `mysql:"id" postgres:"id"`
-	ObjectId  int64               `mysql:"objectId" postgres:"object_id"`
-	UserId    string              `mysql:"userId" postgres:"user_id"`
-	Email     database.NullString `mysql:"email" postgres:"email"`
-	CreatedAt time.Time           `mysql:"createdAt" postgres:"created_at"`
-	UpdatedAt time.Time           `mysql:"updatedAt" postgres:"updated_at"`
-	DeletedAt database.NullTime   `mysql:"deletedAt" postgres:"deleted_at"`
+	ID        int64               `mysql:"id" postgres:"id" sqlite:"id"`
+	ObjectId  int64               `mysql:"objectId" postgres:"object_id" sqlite:"objectId"`
+	UserId    string              `mysql:"userId" postgres:"user_id" sqlite:"userId"`
+	Email     database.NullString `mysql:"email" postgres:"email" sqlite:"email"`
+	CreatedAt time.Time           `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
+	UpdatedAt time.Time           `mysql:"updatedAt" postgres:"updated_at" sqlite:"updatedAt"`
+	DeletedAt database.NullTime   `mysql:"deletedAt" postgres:"deleted_at" sqlite:"deletedAt"`
 }
 
 func (user User) GetID() int64 {

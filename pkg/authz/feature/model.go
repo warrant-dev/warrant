@@ -21,14 +21,14 @@ type Model interface {
 }
 
 type Feature struct {
-	ID          int64               `mysql:"id" postgres:"id"`
-	ObjectId    int64               `mysql:"objectId" postgres:"object_id"`
-	FeatureId   string              `mysql:"featureId" postgres:"feature_id"`
-	Name        database.NullString `mysql:"name" postgres:"name"`
-	Description database.NullString `mysql:"description" postgres:"description"`
-	CreatedAt   time.Time           `mysql:"createdAt" postgres:"created_at"`
-	UpdatedAt   time.Time           `mysql:"updatedAt" postgres:"updated_at"`
-	DeletedAt   database.NullTime   `mysql:"deletedAt" postgres:"deleted_at"`
+	ID          int64               `mysql:"id" postgres:"id" sqlite:"id"`
+	ObjectId    int64               `mysql:"objectId" postgres:"object_id" sqlite:"objectId"`
+	FeatureId   string              `mysql:"featureId" postgres:"feature_id" sqlite:"featureId"`
+	Name        database.NullString `mysql:"name" postgres:"name" sqlite:"name"`
+	Description database.NullString `mysql:"description" postgres:"description" sqlite:"description"`
+	CreatedAt   time.Time           `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
+	UpdatedAt   time.Time           `mysql:"updatedAt" postgres:"updated_at" sqlite:"updatedAt"`
+	DeletedAt   database.NullTime   `mysql:"deletedAt" postgres:"deleted_at" sqlite:"deletedAt"`
 }
 
 func (feature Feature) GetID() int64 {

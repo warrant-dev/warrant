@@ -20,12 +20,12 @@ type Model interface {
 }
 
 type ObjectType struct {
-	ID         int64             `mysql:"id" postgres:"id"`
-	TypeId     string            `mysql:"typeId" postgres:"type_id"`
-	Definition string            `mysql:"definition" postgres:"definition"`
-	CreatedAt  time.Time         `mysql:"createdAt" postgres:"created_at"`
-	UpdatedAt  time.Time         `mysql:"updatedAt" postgres:"updated_at"`
-	DeletedAt  database.NullTime `mysql:"deletedAt" postgres:"deleted_at"`
+	ID         int64             `mysql:"id" postgres:"id" sqlite:"id"`
+	TypeId     string            `mysql:"typeId" postgres:"type_id" sqlite:"typeId"`
+	Definition string            `mysql:"definition" postgres:"definition" sqlite:"definition"`
+	CreatedAt  time.Time         `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
+	UpdatedAt  time.Time         `mysql:"updatedAt" postgres:"updated_at" sqlite:"updatedAt"`
+	DeletedAt  database.NullTime `mysql:"deletedAt" postgres:"deleted_at" sqlite:"deletedAt"`
 }
 
 func (objectType ObjectType) GetID() int64 {

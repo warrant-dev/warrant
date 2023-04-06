@@ -5,7 +5,7 @@ import "context"
 const (
 	TypeMySQL    = "mysql"
 	TypePostgres = "postgres"
-	// TypeSQLite = "sqlite"
+	TypeSQLite   = "sqlite"
 )
 
 type Database interface {
