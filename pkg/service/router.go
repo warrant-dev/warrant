@@ -86,16 +86,16 @@ func NewRouter(config *config.Config, pathPrefix string, routes []Route, authMid
 
 	// Setup routes
 	for _, route := range routes {
-		defaultArgs := map[string]interface{}{
+		defaultOptions := map[string]interface{}{
 			EnableSessionAuthKey: route.EnableSessionAuth,
 		}
 		routePattern := fmt.Sprintf("%s%s", pathPrefix, route.Pattern)
 		if route.DisableAuth || config.ApiKey == "" {
 			router.Handle(routePattern, route.Handler).Methods(route.Method)
 		} else if route.AuthMiddleware != nil {
-			router.Handle(routePattern, route.AuthMiddleware(route.Handler, config, defaultArgs)).Methods(route.Method)
+			router.Handle(routePattern, route.AuthMiddleware(route.Handler, config, defaultOptions)).Methods(route.Method)
 		} else {
-			router.Handle(routePattern, authMiddleware(route.Handler, config, defaultArgs)).Methods(route.Method)
+			router.Handle(routePattern, authMiddleware(route.Handler, config, defaultOptions)).Methods(route.Method)
 		}
 	}
 

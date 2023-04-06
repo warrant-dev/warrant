@@ -33,9 +33,9 @@ type AuthInfo struct {
 	TenantId string
 }
 
-type AuthMiddlewareFunc func(next http.Handler, config *config.Config, args map[string]interface{}) http.Handler
+type AuthMiddlewareFunc func(next http.Handler, config *config.Config, options map[string]interface{}) http.Handler
 
-func DefaultAuthMiddleware(next http.Handler, config *config.Config, args map[string]interface{}) http.Handler {
+func DefaultAuthMiddleware(next http.Handler, config *config.Config, options map[string]interface{}) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := hlog.FromRequest(r)
 
@@ -64,7 +64,7 @@ func DefaultAuthMiddleware(next http.Handler, config *config.Config, args map[st
 			}
 			authInfo = &AuthInfo{}
 		case "Bearer":
-			if enableSessionAuth, ok := args["enableSessionAuth"].(bool); ok {
+			if enableSessionAuth, ok := options["enableSessionAuth"].(bool); ok {
 				if !enableSessionAuth {
 					SendErrorResponse(w, NewUnauthorizedError("Error validating token"))
 					logger.Err(fmt.Errorf("invalid authentication for the endpoint")).Msg("Session authentication not supported for this endpoint")
