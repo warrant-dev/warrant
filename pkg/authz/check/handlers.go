@@ -16,14 +16,14 @@ func (svc CheckService) Routes() []service.Route {
 			Pattern: "/v2/authorize",
 			Method:  "POST",
 			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc, authorize),
+				service.NewRouteHandler(svc, AuthorizeHandler),
 			),
 			EnableSessionAuth: true,
 		},
 	}
 }
 
-func authorize(svc CheckService, w http.ResponseWriter, r *http.Request) error {
+func AuthorizeHandler(svc CheckService, w http.ResponseWriter, r *http.Request) error {
 	authInfo := service.GetAuthInfoFromRequestContext(r.Context())
 	if authInfo != nil && authInfo.UserId != "" {
 		var sessionCheckManySpec SessionCheckManySpec

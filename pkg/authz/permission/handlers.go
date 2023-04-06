@@ -16,7 +16,7 @@ func (svc PermissionService) Routes() []service.Route {
 		{
 			Pattern: "/v1/permissions",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, create),
+			Handler: service.NewRouteHandler(svc, CreateHandler),
 		},
 
 		// get
@@ -24,38 +24,38 @@ func (svc PermissionService) Routes() []service.Route {
 			Pattern: "/v1/permissions",
 			Method:  "GET",
 			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc, list),
+				service.NewRouteHandler(svc, ListHandler),
 				middleware.ListMiddleware[PermissionListParamParser],
 			),
 		},
 		{
 			Pattern: "/v1/permissions/{permissionId}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, get),
+			Handler: service.NewRouteHandler(svc, GetHandler),
 		},
 
 		// update
 		{
 			Pattern: "/v1/permissions/{permissionId}",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, update),
+			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
 		{
 			Pattern: "/v1/permissions/{permissionId}",
 			Method:  "PUT",
-			Handler: service.NewRouteHandler(svc, update),
+			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
 
 		// delete
 		{
 			Pattern: "/v1/permissions/{permissionId}",
 			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc, delete),
+			Handler: service.NewRouteHandler(svc, DeleteHandler),
 		},
 	}
 }
 
-func create(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
+func CreateHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	var newPermission PermissionSpec
 	err := service.ParseJSONBody(r.Body, &newPermission)
 	if err != nil {
@@ -71,7 +71,7 @@ func create(svc PermissionService, w http.ResponseWriter, r *http.Request) error
 	return nil
 }
 
-func get(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
+func GetHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	permissionIdParam := mux.Vars(r)["permissionId"]
 	permissionId, err := url.QueryUnescape(permissionIdParam)
 	if err != nil {
@@ -87,7 +87,7 @@ func get(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func list(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
+func ListHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	listParams := middleware.GetListParamsFromContext(r.Context())
 	permissions, err := svc.List(r.Context(), listParams)
 	if err != nil {
@@ -98,7 +98,7 @@ func list(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func update(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
+func UpdateHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	var updatePermission UpdatePermissionSpec
 	err := service.ParseJSONBody(r.Body, &updatePermission)
 	if err != nil {
@@ -120,7 +120,7 @@ func update(svc PermissionService, w http.ResponseWriter, r *http.Request) error
 	return nil
 }
 
-func delete(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
+func DeleteHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	permissionId := mux.Vars(r)["permissionId"]
 	if permissionId == "" {
 		return service.NewMissingRequiredParameterError("permissionId")

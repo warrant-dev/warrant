@@ -15,7 +15,7 @@ func (svc WarrantService) Routes() []service.Route {
 			Pattern: "/v1/warrants",
 			Method:  "POST",
 			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc, create),
+				service.NewRouteHandler(svc, CreateHandler),
 			),
 		},
 
@@ -24,7 +24,7 @@ func (svc WarrantService) Routes() []service.Route {
 			Pattern: "/v1/warrants",
 			Method:  "GET",
 			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc, list),
+				service.NewRouteHandler(svc, ListHandler),
 				middleware.ListMiddleware[WarrantListParamParser],
 			),
 		},
@@ -34,13 +34,13 @@ func (svc WarrantService) Routes() []service.Route {
 			Pattern: "/v1/warrants",
 			Method:  "DELETE",
 			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc, delete),
+				service.NewRouteHandler(svc, DeleteHandler),
 			),
 		},
 	}
 }
 
-func create(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
+func CreateHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
 	var warrantSpec WarrantSpec
 	err := service.ParseJSONBody(r.Body, &warrantSpec)
 	if err != nil {
@@ -56,7 +56,7 @@ func create(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func list(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
+func ListHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
 	listParams := middleware.GetListParamsFromContext(r.Context())
 	queryParams := r.URL.Query()
 	filters := FilterOptions{
@@ -79,7 +79,7 @@ func list(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func delete(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
+func DeleteHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
 	var warrantSpec WarrantSpec
 	err := service.ParseJSONBody(r.Body, &warrantSpec)
 	if err != nil {

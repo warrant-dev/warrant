@@ -15,20 +15,20 @@ func (svc UserService) Routes() []service.Route {
 		{
 			Pattern: "/v1/users",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, create),
+			Handler: service.NewRouteHandler(svc, CreateHandler),
 		},
 
 		// get
 		{
 			Pattern: "/v1/users/{userId}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, get),
+			Handler: service.NewRouteHandler(svc, GetHandler),
 		},
 		{
 			Pattern: "/v1/users",
 			Method:  "GET",
 			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc, list),
+				service.NewRouteHandler(svc, ListHandler),
 				middleware.ListMiddleware[UserListParamParser],
 			),
 		},
@@ -37,24 +37,24 @@ func (svc UserService) Routes() []service.Route {
 		{
 			Pattern: "/v1/users/{userId}",
 			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc, delete),
+			Handler: service.NewRouteHandler(svc, DeleteHandler),
 		},
 
 		// update
 		{
 			Pattern: "/v1/users/{userId}",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, update),
+			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
 		{
 			Pattern: "/v1/users/{userId}",
 			Method:  "PUT",
-			Handler: service.NewRouteHandler(svc, update),
+			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
 	}
 }
 
-func create(svc UserService, w http.ResponseWriter, r *http.Request) error {
+func CreateHandler(svc UserService, w http.ResponseWriter, r *http.Request) error {
 	var userSpec UserSpec
 	err := service.ParseJSONBody(r.Body, &userSpec)
 	if err != nil {
@@ -70,7 +70,7 @@ func create(svc UserService, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func get(svc UserService, w http.ResponseWriter, r *http.Request) error {
+func GetHandler(svc UserService, w http.ResponseWriter, r *http.Request) error {
 	userIdParam := mux.Vars(r)["userId"]
 	userId, err := url.QueryUnescape(userIdParam)
 	if err != nil {
@@ -86,7 +86,7 @@ func get(svc UserService, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func list(svc UserService, w http.ResponseWriter, r *http.Request) error {
+func ListHandler(svc UserService, w http.ResponseWriter, r *http.Request) error {
 	listParams := middleware.GetListParamsFromContext(r.Context())
 	users, err := svc.List(r.Context(), listParams)
 	if err != nil {
@@ -97,7 +97,7 @@ func list(svc UserService, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func update(svc UserService, w http.ResponseWriter, r *http.Request) error {
+func UpdateHandler(svc UserService, w http.ResponseWriter, r *http.Request) error {
 	var updateUser UpdateUserSpec
 	err := service.ParseJSONBody(r.Body, &updateUser)
 	if err != nil {
@@ -119,7 +119,7 @@ func update(svc UserService, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func delete(svc UserService, w http.ResponseWriter, r *http.Request) error {
+func DeleteHandler(svc UserService, w http.ResponseWriter, r *http.Request) error {
 	userIdParam := mux.Vars(r)["userId"]
 	userId, err := url.QueryUnescape(userIdParam)
 	if err != nil {
