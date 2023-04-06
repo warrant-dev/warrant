@@ -64,15 +64,16 @@ func DefaultAuthMiddleware(next http.Handler, config *config.Config, options map
 			}
 			authInfo = &AuthInfo{}
 		case "Bearer":
-			if enableSessionAuth, ok := options["enableSessionAuth"].(bool); ok {
-				if !enableSessionAuth {
-					SendErrorResponse(w, NewUnauthorizedError("Error validating token"))
-					logger.Err(fmt.Errorf("invalid authentication for the endpoint")).Msg("Session authentication not supported for this endpoint")
-					return
-				}
-			} else {
+			enableSessionAuth, ok := options["enableSessionAuth"].(bool)
+			if !ok {
 				SendErrorResponse(w, NewUnauthorizedError("Error validating token"))
 				logger.Err(fmt.Errorf("enableSessionAuth must be of type bool"))
+				return
+			}
+
+			if !enableSessionAuth {
+				SendErrorResponse(w, NewUnauthorizedError("Error validating token"))
+				logger.Err(fmt.Errorf("invalid authentication for the endpoint")).Msg("Session authentication not supported for this endpoint")
 				return
 			}
 
