@@ -40,15 +40,13 @@ func (ds *SQLite) Connect(ctx context.Context) error {
 
 	db, err = sqlx.Open("sqlite3", fmt.Sprintf("file:%s?_foreign_keys=on", ds.Config.Database))
 	if err != nil {
-		errors.Wrap(err, "Unable to establish connection to sqlite. Shutting down server.")
+		return errors.Wrap(err, "Unable to establish connection to sqlite. Shutting down server.")
 	}
 
 	err = db.PingContext(ctx)
 	if err != nil {
-		errors.Wrap(err, "Unable to ping sqlite. Shutting down server.")
+		return errors.Wrap(err, "Unable to ping sqlite. Shutting down server.")
 	}
-
-	// TODO: Configurable max idle conn & max open conn for sqlite?
 
 	// map struct attributes to db column names
 	db.Mapper = reflectx.NewMapperFunc("sqlite", func(s string) string { return s })

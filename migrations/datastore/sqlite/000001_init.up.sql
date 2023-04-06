@@ -1,5 +1,3 @@
--- TODO: Any way to name foreign keys for easy reference?
-
 CREATE TABLE IF NOT EXISTS objectType (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   typeId TEXT NOT NULL,

@@ -57,12 +57,6 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 		now,
 	)
 	if err != nil {
-		// TODO: Cast to appropriate SQLite error
-		// sqliteErr, ok := err.(*sqlite.SQLiteError)
-		// if ok && sqliteErr.Number == 1062 {
-		// 	return 0, service.NewDuplicateRecordError("Warrant", warrant, "Warrant for the given objectType, objectId, relation, and subject already exists")
-		// }
-
 		return 0, errors.Wrap(err, "Unable to create warrant")
 	}
 
