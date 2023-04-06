@@ -16,20 +16,20 @@ func (svc TenantService) Routes() []service.Route {
 		{
 			Pattern: "/v1/tenants",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, create),
+			Handler: service.NewRouteHandler(svc, CreateHandler),
 		},
 
 		// get
 		{
 			Pattern: "/v1/tenants/{tenantId}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, get),
+			Handler: service.NewRouteHandler(svc, GetHandler),
 		},
 		{
 			Pattern: "/v1/tenants",
 			Method:  "GET",
 			Handler: middleware.ChainMiddleware(
-				service.NewRouteHandler(svc, list),
+				service.NewRouteHandler(svc, ListHandler),
 				middleware.ListMiddleware[TenantListParamParser],
 			),
 		},
@@ -38,24 +38,24 @@ func (svc TenantService) Routes() []service.Route {
 		{
 			Pattern: "/v1/tenants/{tenantId}",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, update),
+			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
 		{
 			Pattern: "/v1/tenants/{tenantId}",
 			Method:  "PUT",
-			Handler: service.NewRouteHandler(svc, update),
+			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
 
 		// delete
 		{
 			Pattern: "/v1/tenants/{tenantId}",
 			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc, delete),
+			Handler: service.NewRouteHandler(svc, DeleteHandler),
 		},
 	}
 }
 
-func create(svc TenantService, w http.ResponseWriter, r *http.Request) error {
+func CreateHandler(svc TenantService, w http.ResponseWriter, r *http.Request) error {
 	var newTenant TenantSpec
 	err := service.ParseJSONBody(r.Body, &newTenant)
 	if err != nil {
@@ -71,7 +71,7 @@ func create(svc TenantService, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func get(svc TenantService, w http.ResponseWriter, r *http.Request) error {
+func GetHandler(svc TenantService, w http.ResponseWriter, r *http.Request) error {
 	tenantIdParam := mux.Vars(r)["tenantId"]
 	tenantId, err := url.QueryUnescape(tenantIdParam)
 	if err != nil {
@@ -87,7 +87,7 @@ func get(svc TenantService, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func list(svc TenantService, w http.ResponseWriter, r *http.Request) error {
+func ListHandler(svc TenantService, w http.ResponseWriter, r *http.Request) error {
 	listParams := middleware.GetListParamsFromContext(r.Context())
 	tenants, err := svc.List(r.Context(), listParams)
 	if err != nil {
@@ -98,7 +98,7 @@ func list(svc TenantService, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func update(svc TenantService, w http.ResponseWriter, r *http.Request) error {
+func UpdateHandler(svc TenantService, w http.ResponseWriter, r *http.Request) error {
 	var updateTenant UpdateTenantSpec
 	err := service.ParseJSONBody(r.Body, &updateTenant)
 	if err != nil {
@@ -120,7 +120,7 @@ func update(svc TenantService, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func delete(svc TenantService, w http.ResponseWriter, r *http.Request) error {
+func DeleteHandler(svc TenantService, w http.ResponseWriter, r *http.Request) error {
 	tenantId := mux.Vars(r)["tenantId"]
 	err := svc.DeleteByTenantId(r.Context(), tenantId)
 	if err != nil {
