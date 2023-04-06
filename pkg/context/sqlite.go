@@ -23,11 +23,14 @@ func NewSQLiteRepository(db *database.SQLite) SQLiteRepository {
 	}
 }
 
-func (repository SQLiteRepository) CreateAll(ctx context.Context, contexts []Context) ([]Context, error) {
+func (repository SQLiteRepository) CreateAll(ctx context.Context, models []Model) ([]Model, error) {
 	now := time.Now().UTC()
-	for _, model := range contexts {
-		model.CreatedAt = now
-		model.UpdatedAt = now
+	contexts := make([]Context, 0)
+	for _, model := range models {
+		context := NewContextFromModel(model)
+		context.CreatedAt = now
+		context.UpdatedAt = now
+		contexts = append(contexts, *context)
 	}
 	_, err := repository.DB.NamedExecContext(
 		ctx,
@@ -57,10 +60,11 @@ func (repository SQLiteRepository) CreateAll(ctx context.Context, contexts []Con
 	return repository.ListByWarrantId(ctx, []int64{contexts[0].WarrantId})
 }
 
-func (repository SQLiteRepository) ListByWarrantId(ctx context.Context, warrantIds []int64) ([]Context, error) {
+func (repository SQLiteRepository) ListByWarrantId(ctx context.Context, warrantIds []int64) ([]Model, error) {
+	models := make([]Model, 0)
 	contexts := make([]Context, 0)
 	if len(warrantIds) == 0 {
-		return contexts, nil
+		return models, nil
 	}
 
 	warrantIdStrings := make([]string, 0)
@@ -85,13 +89,17 @@ func (repository SQLiteRepository) ListByWarrantId(ctx context.Context, warrantI
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return contexts, nil
+			return models, nil
 		default:
 			return nil, errors.Wrap(err, fmt.Sprintf("Unable to list contexts for warrant ids %s from sqlite", strings.Join(warrantIdStrings, ", ")))
 		}
 	}
 
-	return contexts, nil
+	for i := range contexts {
+		models = append(models, &contexts[i])
+	}
+
+	return models, nil
 }
 
 func (repository SQLiteRepository) DeleteAllByWarrantId(ctx context.Context, warrantId int64) error {

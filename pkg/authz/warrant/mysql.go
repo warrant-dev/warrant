@@ -303,8 +303,8 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 		}
 	}
 
-	for _, w := range warrants {
-		models = append(models, &w)
+	for i := range warrants {
+		models = append(models, &warrants[i])
 	}
 
 	return models, nil
@@ -358,8 +358,8 @@ func (repo MySQLRepository) GetAllMatchingWildcard(ctx context.Context, objectTy
 		}
 	}
 
-	for _, w := range warrants {
-		models = append(models, &w)
+	for i := range warrants {
+		models = append(models, &warrants[i])
 	}
 
 	return models, nil
@@ -398,8 +398,8 @@ func (repo MySQLRepository) GetAllMatchingObjectAndRelation(ctx context.Context,
 		}
 	}
 
-	for _, w := range warrants {
-		models = append(models, &w)
+	for i := range warrants {
+		models = append(models, &warrants[i])
 	}
 
 	return models, nil
@@ -474,8 +474,8 @@ func (repo MySQLRepository) GetAllMatchingSubjectAndRelation(ctx context.Context
 		}
 	}
 
-	for _, w := range warrants {
-		models = append(models, &w)
+	for i := range warrants {
+		models = append(models, &warrants[i])
 	}
 
 	return models, nil

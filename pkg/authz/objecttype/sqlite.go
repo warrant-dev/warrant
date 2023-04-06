@@ -22,7 +22,7 @@ func NewSQLiteRepository(db *database.SQLite) SQLiteRepository {
 	}
 }
 
-func (repo SQLiteRepository) Create(ctx context.Context, objectType ObjectType) (int64, error) {
+func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newObjectTypeId int64
 	now := time.Now().UTC()
 	err := repo.DB.GetContext(
@@ -41,11 +41,11 @@ func (repo SQLiteRepository) Create(ctx context.Context, objectType ObjectType) 
 				deletedAt = NULL
 			RETURNING id
 		`,
-		objectType.TypeId,
-		objectType.Definition,
+		model.GetTypeId(),
+		model.GetDefinition(),
 		now,
 		now,
-		objectType.Definition,
+		model.GetDefinition(),
 		now,
 	)
 	if err != nil {
@@ -55,7 +55,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, objectType ObjectType) 
 	return newObjectTypeId, nil
 }
 
-func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (*ObjectType, error) {
+func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var objectType ObjectType
 	err := repo.DB.GetContext(
 		ctx,
@@ -81,7 +81,7 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (*ObjectType
 	return &objectType, nil
 }
 
-func (repo SQLiteRepository) GetByTypeId(ctx context.Context, typeId string) (*ObjectType, error) {
+func (repo SQLiteRepository) GetByTypeId(ctx context.Context, typeId string) (Model, error) {
 	var objectType ObjectType
 	err := repo.DB.GetContext(
 		ctx,
@@ -107,7 +107,8 @@ func (repo SQLiteRepository) GetByTypeId(ctx context.Context, typeId string) (*O
 	return &objectType, nil
 }
 
-func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.ListParams) ([]ObjectType, error) {
+func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Model, error) {
+	models := make([]Model, 0)
 	objectTypes := make([]ObjectType, 0)
 	replacements := make([]interface{}, 0)
 	query := `
@@ -196,16 +197,20 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.Lis
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return objectTypes, nil
+			return models, nil
 		default:
-			return objectTypes, errors.Wrap(err, "Unable to get object types from sqlite")
+			return models, errors.Wrap(err, "Unable to get object types from sqlite")
 		}
 	}
 
-	return objectTypes, nil
+	for i := range objectTypes {
+		models = append(models, &objectTypes[i])
+	}
+
+	return models, nil
 }
 
-func (repo SQLiteRepository) UpdateByTypeId(ctx context.Context, typeId string, objectType ObjectType) error {
+func (repo SQLiteRepository) UpdateByTypeId(ctx context.Context, typeId string, model Model) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -217,7 +222,7 @@ func (repo SQLiteRepository) UpdateByTypeId(ctx context.Context, typeId string, 
 				typeId = ? AND
 				deletedAt IS NULL
 		`,
-		objectType.Definition,
+		model.GetDefinition(),
 		time.Now().UTC(),
 		typeId,
 	)

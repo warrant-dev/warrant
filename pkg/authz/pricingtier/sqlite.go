@@ -22,7 +22,7 @@ func NewSQLiteRepository(db *database.SQLite) SQLiteRepository {
 	}
 }
 
-func (repo SQLiteRepository) Create(ctx context.Context, pricingTier PricingTier) (int64, error) {
+func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newPricingTierId int64
 	now := time.Now().UTC()
 	err := repo.DB.GetContext(
@@ -46,16 +46,16 @@ func (repo SQLiteRepository) Create(ctx context.Context, pricingTier PricingTier
 				deletedAt = NULL
 			RETURNING id
 		`,
-		pricingTier.ObjectId,
-		pricingTier.PricingTierId,
-		pricingTier.Name,
-		pricingTier.Description,
+		model.GetObjectId(),
+		model.GetPricingTierId(),
+		model.GetName(),
+		model.GetDescription(),
 		now,
 		now,
-		pricingTier.ObjectId,
-		pricingTier.PricingTierId,
-		pricingTier.Name,
-		pricingTier.Description,
+		model.GetObjectId(),
+		model.GetPricingTierId(),
+		model.GetName(),
+		model.GetDescription(),
 		now,
 	)
 
@@ -66,7 +66,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, pricingTier PricingTier
 	return newPricingTierId, err
 }
 
-func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (*PricingTier, error) {
+func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var pricingTier PricingTier
 	err := repo.DB.GetContext(
 		ctx,
@@ -92,7 +92,7 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (*PricingTie
 	return &pricingTier, nil
 }
 
-func (repo SQLiteRepository) GetByPricingTierId(ctx context.Context, pricingTierId string) (*PricingTier, error) {
+func (repo SQLiteRepository) GetByPricingTierId(ctx context.Context, pricingTierId string) (Model, error) {
 	var pricingTier PricingTier
 	err := repo.DB.GetContext(
 		ctx,
@@ -118,7 +118,8 @@ func (repo SQLiteRepository) GetByPricingTierId(ctx context.Context, pricingTier
 	return &pricingTier, nil
 }
 
-func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.ListParams) ([]PricingTier, error) {
+func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Model, error) {
+	models := make([]Model, 0)
 	pricingTiers := make([]PricingTier, 0)
 	query := `
 		SELECT id, objectId, pricingTierId, name, description, createdAt, updatedAt, deletedAt
@@ -207,16 +208,20 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.Lis
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return pricingTiers, nil
+			return models, nil
 		default:
-			return pricingTiers, service.NewInternalError("Unable to list pricing tiers")
+			return models, service.NewInternalError("Unable to list pricing tiers")
 		}
 	}
 
-	return pricingTiers, nil
+	for i := range pricingTiers {
+		models = append(models, &pricingTiers[i])
+	}
+
+	return models, nil
 }
 
-func (repo SQLiteRepository) UpdateByPricingTierId(ctx context.Context, pricingTierId string, pricingTier PricingTier) error {
+func (repo SQLiteRepository) UpdateByPricingTierId(ctx context.Context, pricingTierId string, model Model) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -229,8 +234,8 @@ func (repo SQLiteRepository) UpdateByPricingTierId(ctx context.Context, pricingT
 				pricingTierId = ? AND
 				deletedAt IS NULL
 		`,
-		pricingTier.Name,
-		pricingTier.Description,
+		model.GetName(),
+		model.GetDescription(),
 		time.Now().UTC(),
 		pricingTierId,
 	)

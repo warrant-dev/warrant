@@ -22,7 +22,7 @@ func NewSQLiteRepository(db *database.SQLite) SQLiteRepository {
 	}
 }
 
-func (repo SQLiteRepository) Create(ctx context.Context, role Role) (int64, error) {
+func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newRoleId int64
 	now := time.Now().UTC()
 	err := repo.DB.GetContext(
@@ -46,16 +46,16 @@ func (repo SQLiteRepository) Create(ctx context.Context, role Role) (int64, erro
 				deletedAt = NULL
 			RETURNING id
 		`,
-		role.ObjectId,
-		role.RoleId,
-		role.Name,
-		role.Description,
+		model.GetObjectId(),
+		model.GetRoleId(),
+		model.GetName(),
+		model.GetDescription(),
 		now,
 		now,
-		role.ObjectId,
-		role.RoleId,
-		role.Name,
-		role.Description,
+		model.GetObjectId(),
+		model.GetRoleId(),
+		model.GetName(),
+		model.GetDescription(),
 		now,
 	)
 
@@ -66,7 +66,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, role Role) (int64, erro
 	return newRoleId, err
 }
 
-func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (*Role, error) {
+func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var role Role
 	err := repo.DB.GetContext(
 		ctx,
@@ -92,7 +92,7 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (*Role, erro
 	return &role, nil
 }
 
-func (repo SQLiteRepository) GetByRoleId(ctx context.Context, roleId string) (*Role, error) {
+func (repo SQLiteRepository) GetByRoleId(ctx context.Context, roleId string) (Model, error) {
 	var role Role
 	err := repo.DB.GetContext(
 		ctx,
@@ -118,7 +118,8 @@ func (repo SQLiteRepository) GetByRoleId(ctx context.Context, roleId string) (*R
 	return &role, nil
 }
 
-func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Role, error) {
+func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Model, error) {
+	models := make([]Model, 0)
 	roles := make([]Role, 0)
 	query := `
 		SELECT id, objectId, roleId, name, description, createdAt, updatedAt, deletedAt
@@ -207,16 +208,20 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.Lis
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return roles, nil
+			return models, nil
 		default:
-			return roles, service.NewInternalError("Unable to list roles")
+			return models, service.NewInternalError("Unable to list roles")
 		}
 	}
 
-	return roles, nil
+	for i := range roles {
+		models = append(models, &roles[i])
+	}
+
+	return models, nil
 }
 
-func (repo SQLiteRepository) UpdateByRoleId(ctx context.Context, roleId string, role Role) error {
+func (repo SQLiteRepository) UpdateByRoleId(ctx context.Context, roleId string, model Model) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -229,8 +234,8 @@ func (repo SQLiteRepository) UpdateByRoleId(ctx context.Context, roleId string, 
 				roleId = ? AND
 				deletedAt IS NULL
 		`,
-		role.Name,
-		role.Description,
+		model.GetName(),
+		model.GetDescription(),
 		time.Now().UTC(),
 		roleId,
 	)

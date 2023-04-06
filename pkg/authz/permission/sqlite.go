@@ -22,7 +22,7 @@ func NewSQLiteRepository(db *database.SQLite) SQLiteRepository {
 	}
 }
 
-func (repo SQLiteRepository) Create(ctx context.Context, permission Permission) (int64, error) {
+func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newPermissionId int64
 	now := time.Now().UTC()
 	err := repo.DB.GetContext(
@@ -46,16 +46,16 @@ func (repo SQLiteRepository) Create(ctx context.Context, permission Permission) 
 				deletedAt = NULL
 			RETURNING id
 		`,
-		permission.ObjectId,
-		permission.PermissionId,
-		permission.Name,
-		permission.Description,
+		model.GetObjectId(),
+		model.GetPermissionId(),
+		model.GetName(),
+		model.GetDescription(),
 		now,
 		now,
-		permission.ObjectId,
-		permission.PermissionId,
-		permission.Name,
-		permission.Description,
+		model.GetObjectId(),
+		model.GetPermissionId(),
+		model.GetName(),
+		model.GetDescription(),
 		now,
 	)
 
@@ -66,7 +66,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, permission Permission) 
 	return newPermissionId, nil
 }
 
-func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (*Permission, error) {
+func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var permission Permission
 	err := repo.DB.GetContext(
 		ctx,
@@ -92,7 +92,7 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (*Permission
 	return &permission, nil
 }
 
-func (repo SQLiteRepository) GetByPermissionId(ctx context.Context, permissionId string) (*Permission, error) {
+func (repo SQLiteRepository) GetByPermissionId(ctx context.Context, permissionId string) (Model, error) {
 	var permission Permission
 	err := repo.DB.GetContext(
 		ctx,
@@ -118,7 +118,8 @@ func (repo SQLiteRepository) GetByPermissionId(ctx context.Context, permissionId
 	return &permission, nil
 }
 
-func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Permission, error) {
+func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Model, error) {
+	models := make([]Model, 0)
 	permissions := make([]Permission, 0)
 	query := `
 		SELECT id, objectId, permissionId, name, description, createdAt, updatedAt, deletedAt
@@ -207,16 +208,20 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.Lis
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return permissions, nil
+			return models, nil
 		default:
-			return permissions, service.NewInternalError("Unable to list permissions")
+			return models, service.NewInternalError("Unable to list permissions")
 		}
 	}
 
-	return permissions, nil
+	for i := range permissions {
+		models = append(models, &permissions[i])
+	}
+
+	return models, nil
 }
 
-func (repo SQLiteRepository) UpdateByPermissionId(ctx context.Context, permissionId string, permission Permission) error {
+func (repo SQLiteRepository) UpdateByPermissionId(ctx context.Context, permissionId string, model Model) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -229,8 +234,8 @@ func (repo SQLiteRepository) UpdateByPermissionId(ctx context.Context, permissio
 				permissionId = ? AND
 				deletedAt IS NULL
 		`,
-		permission.Name,
-		permission.Description,
+		model.GetName(),
+		model.GetDescription(),
 		time.Now().UTC(),
 		permissionId,
 	)

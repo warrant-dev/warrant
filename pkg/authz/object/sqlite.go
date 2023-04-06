@@ -22,7 +22,7 @@ func NewSQLiteRepository(db *database.SQLite) SQLiteRepository {
 	}
 }
 
-func (repo SQLiteRepository) Create(ctx context.Context, object Object) (int64, error) {
+func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newObjectId int64
 	now := time.Now().UTC()
 	err := repo.DB.GetContext(
@@ -40,8 +40,8 @@ func (repo SQLiteRepository) Create(ctx context.Context, object Object) (int64, 
 				deletedAt = NULL
 			RETURNING id
 		`,
-		object.ObjectType,
-		object.ObjectId,
+		model.GetObjectType(),
+		model.GetObjectId(),
 		now,
 		now,
 		now,
@@ -53,7 +53,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, object Object) (int64, 
 	return newObjectId, nil
 }
 
-func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (*Object, error) {
+func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var object Object
 	err := repo.DB.GetContext(
 		ctx,
@@ -79,7 +79,7 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (*Object, er
 	return &object, nil
 }
 
-func (repo SQLiteRepository) GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (*Object, error) {
+func (repo SQLiteRepository) GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (Model, error) {
 	var object Object
 	err := repo.DB.GetContext(
 		ctx,
@@ -107,7 +107,8 @@ func (repo SQLiteRepository) GetByObjectTypeAndId(ctx context.Context, objectTyp
 	return &object, nil
 }
 
-func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]Object, error) {
+func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]Model, error) {
+	models := make([]Model, 0)
 	objects := make([]Object, 0)
 	query := `
 		SELECT id, objectType, objectId, createdAt, updatedAt, deletedAt
@@ -201,13 +202,17 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return objects, nil
+			return models, nil
 		default:
 			return nil, err
 		}
 	}
 
-	return objects, nil
+	for i := range objects {
+		models = append(models, &objects[i])
+	}
+
+	return models, nil
 }
 
 func (repo SQLiteRepository) DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) error {

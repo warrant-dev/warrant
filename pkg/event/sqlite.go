@@ -21,11 +21,16 @@ func NewSQLiteRepository(db *database.SQLite) SQLiteRepository {
 	}
 }
 
-func (repo SQLiteRepository) TrackResourceEvent(ctx context.Context, resourceEvent ResourceEvent) error {
-	return repo.TrackResourceEvents(ctx, []ResourceEvent{resourceEvent})
+func (repo SQLiteRepository) TrackResourceEvent(ctx context.Context, resourceEvent ResourceEventModel) error {
+	return repo.TrackResourceEvents(ctx, []ResourceEventModel{resourceEvent})
 }
 
-func (repo SQLiteRepository) TrackResourceEvents(ctx context.Context, resourceEvents []ResourceEvent) error {
+func (repo SQLiteRepository) TrackResourceEvents(ctx context.Context, models []ResourceEventModel) error {
+	resourceEvents := make([]ResourceEvent, 0)
+	for _, model := range models {
+		resourceEvents = append(resourceEvents, *NewResourceEventFromModel(model))
+	}
+
 	result, err := repo.DB.NamedExecContext(
 		ctx,
 		`
@@ -57,7 +62,8 @@ func (repo SQLiteRepository) TrackResourceEvents(ctx context.Context, resourceEv
 	return nil
 }
 
-func (repo SQLiteRepository) ListResourceEvents(ctx context.Context, listParams ListResourceEventParams) ([]ResourceEvent, string, error) {
+func (repo SQLiteRepository) ListResourceEvents(ctx context.Context, listParams ListResourceEventParams) ([]ResourceEventModel, string, error) {
+	models := make([]ResourceEventModel, 0)
 	resourceEvents := make([]ResourceEvent, 0)
 	query := `
 		SELECT id, type, source, resourceType, resourceId, meta, createdAt
@@ -90,7 +96,7 @@ func (repo SQLiteRepository) ListResourceEvents(ctx context.Context, listParams 
 	if listParams.LastId != "" {
 		lastIdSpec, err := stringToLastIdSpec(listParams.LastId)
 		if err != nil {
-			return resourceEvents, "", service.NewInvalidParameterError("lastId", "")
+			return models, "", service.NewInvalidParameterError("lastId", "")
 		}
 
 		conditions = append(conditions, "(createdAt, id) < (?, ?)")
@@ -113,14 +119,14 @@ func (repo SQLiteRepository) ListResourceEvents(ctx context.Context, listParams 
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return resourceEvents, "", nil
+			return models, "", nil
 		default:
-			return resourceEvents, "", err
+			return models, "", err
 		}
 	}
 
 	if len(resourceEvents) == 0 || len(resourceEvents) < int(listParams.Limit) {
-		return resourceEvents, "", nil
+		return models, "", nil
 	}
 
 	lastResourceEvent := resourceEvents[len(resourceEvents)-1]
@@ -129,17 +135,26 @@ func (repo SQLiteRepository) ListResourceEvents(ctx context.Context, listParams 
 		CreatedAt: lastResourceEvent.CreatedAt,
 	})
 	if err != nil {
-		return resourceEvents, "", err
+		return models, "", err
 	}
 
-	return resourceEvents, lastIdStr, nil
+	for i := range resourceEvents {
+		models = append(models, &resourceEvents[i])
+	}
+
+	return models, lastIdStr, nil
 }
 
-func (repo SQLiteRepository) TrackAccessEvent(ctx context.Context, accessEvent AccessEvent) error {
-	return repo.TrackAccessEvents(ctx, []AccessEvent{accessEvent})
+func (repo SQLiteRepository) TrackAccessEvent(ctx context.Context, accessEvent AccessEventModel) error {
+	return repo.TrackAccessEvents(ctx, []AccessEventModel{accessEvent})
 }
 
-func (repo SQLiteRepository) TrackAccessEvents(ctx context.Context, accessEvents []AccessEvent) error {
+func (repo SQLiteRepository) TrackAccessEvents(ctx context.Context, models []AccessEventModel) error {
+	accessEvents := make([]AccessEvent, 0)
+	for _, model := range models {
+		accessEvents = append(accessEvents, *NewAccessEventFromModel(model))
+	}
+
 	result, err := repo.DB.NamedExecContext(
 		ctx,
 		`
@@ -181,7 +196,8 @@ func (repo SQLiteRepository) TrackAccessEvents(ctx context.Context, accessEvents
 	return nil
 }
 
-func (repo SQLiteRepository) ListAccessEvents(ctx context.Context, listParams ListAccessEventParams) ([]AccessEvent, string, error) {
+func (repo SQLiteRepository) ListAccessEvents(ctx context.Context, listParams ListAccessEventParams) ([]AccessEventModel, string, error) {
+	models := make([]AccessEventModel, 0)
 	accessEvents := make([]AccessEvent, 0)
 	query := `
 		SELECT id id, type, source, objectType, objectId, relation, subjectType, subjectId, subjectRelation, context, meta, createdAt
@@ -234,7 +250,7 @@ func (repo SQLiteRepository) ListAccessEvents(ctx context.Context, listParams Li
 	if listParams.LastId != "" {
 		lastIdSpec, err := stringToLastIdSpec(listParams.LastId)
 		if err != nil {
-			return accessEvents, "", service.NewInvalidParameterError("lastId", "")
+			return models, "", service.NewInvalidParameterError("lastId", "")
 		}
 
 		conditions = append(conditions, "(createdAt, id) < (?, ?)")
@@ -257,14 +273,14 @@ func (repo SQLiteRepository) ListAccessEvents(ctx context.Context, listParams Li
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return accessEvents, "", nil
+			return models, "", nil
 		default:
-			return accessEvents, "", err
+			return models, "", err
 		}
 	}
 
 	if len(accessEvents) == 0 || len(accessEvents) < int(listParams.Limit) {
-		return accessEvents, "", nil
+		return models, "", nil
 	}
 
 	lastAccessEvent := accessEvents[len(accessEvents)-1]
@@ -273,8 +289,12 @@ func (repo SQLiteRepository) ListAccessEvents(ctx context.Context, listParams Li
 		CreatedAt: lastAccessEvent.CreatedAt,
 	})
 	if err != nil {
-		return accessEvents, "", err
+		return models, "", err
 	}
 
-	return accessEvents, lastIdStr, nil
+	for i := range accessEvents {
+		models = append(models, &accessEvents[i])
+	}
+
+	return models, lastIdStr, nil
 }

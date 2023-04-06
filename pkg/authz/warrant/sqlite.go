@@ -22,7 +22,7 @@ func NewSQLiteRepository(db *database.SQLite) SQLiteRepository {
 	}
 }
 
-func (repo SQLiteRepository) Create(ctx context.Context, warrant Warrant) (int64, error) {
+func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newWarrantId int64
 	now := time.Now().UTC()
 	err := repo.DB.GetContext(
@@ -45,13 +45,13 @@ func (repo SQLiteRepository) Create(ctx context.Context, warrant Warrant) (int64
 				deletedAt = NULL
 			RETURNING id
 		`,
-		warrant.ObjectType,
-		warrant.ObjectId,
-		warrant.Relation,
-		warrant.SubjectType,
-		warrant.SubjectId,
-		warrant.SubjectRelation,
-		warrant.ContextHash,
+		model.GetObjectType(),
+		model.GetObjectId(),
+		model.GetRelation(),
+		model.GetSubjectType(),
+		model.GetSubjectId(),
+		model.GetSubjectRelation(),
+		model.GetContextHash(),
 		now,
 		now,
 		now,
@@ -150,7 +150,7 @@ func (repo SQLiteRepository) DeleteAllBySubject(ctx context.Context, subjectType
 	return nil
 }
 
-func (repo SQLiteRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (*Warrant, error) {
+func (repo SQLiteRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
@@ -188,7 +188,7 @@ func (repo SQLiteRepository) Get(ctx context.Context, objectType string, objectI
 	return &warrant, nil
 }
 
-func (repo SQLiteRepository) GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (*Warrant, error) {
+func (repo SQLiteRepository) GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
@@ -226,7 +226,7 @@ func (repo SQLiteRepository) GetWithContextMatch(ctx context.Context, objectType
 	return &warrant, nil
 }
 
-func (repo SQLiteRepository) GetByID(ctx context.Context, id int64) (*Warrant, error) {
+func (repo SQLiteRepository) GetByID(ctx context.Context, id int64) (Model, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
@@ -252,8 +252,9 @@ func (repo SQLiteRepository) GetByID(ctx context.Context, id int64) (*Warrant, e
 	return &warrant, nil
 }
 
-func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]Warrant, error) {
+func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]Model, error) {
 	offset := (listParams.Page - 1) * listParams.Limit
+	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	query := `
 		SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
@@ -306,10 +307,15 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 		}
 	}
 
-	return warrants, nil
+	for i := range warrants {
+		models = append(models, &warrants[i])
+	}
+
+	return models, nil
 }
 
-func (repo SQLiteRepository) GetAllMatchingWildcard(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Warrant, error) {
+func (repo SQLiteRepository) GetAllMatchingWildcard(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Model, error) {
+	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
@@ -350,16 +356,21 @@ func (repo SQLiteRepository) GetAllMatchingWildcard(ctx context.Context, objectT
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return warrants, nil
+			return models, nil
 		default:
 			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get warrants matching object type %s and relation %s from sqlite", objectType, relation))
 		}
 	}
 
-	return warrants, nil
+	for i := range warrants {
+		models = append(models, &warrants[i])
+	}
+
+	return models, nil
 }
 
-func (repo SQLiteRepository) GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Warrant, error) {
+func (repo SQLiteRepository) GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Model, error) {
+	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
@@ -385,16 +396,21 @@ func (repo SQLiteRepository) GetAllMatchingObjectAndRelation(ctx context.Context
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return warrants, nil
+			return models, nil
 		default:
 			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get warrants with object type %s, object id %s, and relation %s from sqlite", objectType, objectId, relation))
 		}
 	}
 
-	return warrants, nil
+	for i := range warrants {
+		models = append(models, &warrants[i])
+	}
+
+	return models, nil
 }
 
-func (repo SQLiteRepository) GetAllMatchingObjectAndSubject(ctx context.Context, objectType string, objectId string, subjectType string, subjectId string, subjectRelation string) ([]Warrant, error) {
+func (repo SQLiteRepository) GetAllMatchingObjectAndSubject(ctx context.Context, objectType string, objectId string, subjectType string, subjectId string, subjectRelation string) ([]Model, error) {
+	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
@@ -416,22 +432,27 @@ func (repo SQLiteRepository) GetAllMatchingObjectAndSubject(ctx context.Context,
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return warrants, nil
+			return models, nil
 		default:
 			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get warrants for object type %s, object id %s, and subject %s:%s#%s from sqlite", objectType, objectId, subjectType, subjectId, subjectRelation))
 		}
 	}
 
-	return warrants, nil
+	for i := range warrants {
+		models = append(models, &warrants[i])
+	}
+
+	return models, nil
 }
 
-func (repo SQLiteRepository) GetAllMatchingSubjectAndRelation(ctx context.Context, objectType string, relation string, subjectType string, subjectId string, subjectRelation string) ([]Warrant, error) {
+func (repo SQLiteRepository) GetAllMatchingSubjectAndRelation(ctx context.Context, objectType string, relation string, subjectType string, subjectId string, subjectRelation string) ([]Model, error) {
+	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
 		&warrants,
 		`
-			SELECT rowd, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
 			FROM warrant
 			WHERE
 				objectType = ? AND
@@ -451,11 +472,15 @@ func (repo SQLiteRepository) GetAllMatchingSubjectAndRelation(ctx context.Contex
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return warrants, nil
+			return models, nil
 		default:
 			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get warrants for object type %s, relation %s, and subject %s:%s#%s from sqlite", objectType, relation, subjectType, subjectId, subjectRelation))
 		}
 	}
 
-	return warrants, nil
+	for i := range warrants {
+		models = append(models, &warrants[i])
+	}
+
+	return models, nil
 }

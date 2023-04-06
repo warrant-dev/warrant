@@ -303,8 +303,8 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 		}
 	}
 
-	for _, w := range warrants {
-		models = append(models, &w)
+	for i := range warrants {
+		models = append(models, &warrants[i])
 	}
 
 	return models, nil
@@ -358,8 +358,8 @@ func (repo PostgresRepository) GetAllMatchingWildcard(ctx context.Context, objec
 		}
 	}
 
-	for _, w := range warrants {
-		models = append(models, &w)
+	for i := range warrants {
+		models = append(models, &warrants[i])
 	}
 
 	return models, nil
@@ -398,8 +398,8 @@ func (repo PostgresRepository) GetAllMatchingObjectAndRelation(ctx context.Conte
 		}
 	}
 
-	for _, w := range warrants {
-		models = append(models, &w)
+	for i := range warrants {
+		models = append(models, &warrants[i])
 	}
 
 	return models, nil
@@ -474,8 +474,8 @@ func (repo PostgresRepository) GetAllMatchingSubjectAndRelation(ctx context.Cont
 		}
 	}
 
-	for _, w := range warrants {
-		models = append(models, &w)
+	for i := range warrants {
+		models = append(models, &warrants[i])
 	}
 
 	return models, nil
