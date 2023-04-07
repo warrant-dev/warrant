@@ -34,7 +34,6 @@ func (repo MySQLRepository) Create(ctx context.Context, role Model) (int64, erro
 			) VALUES (?, ?, ?, ?)
 			ON DUPLICATE KEY UPDATE
 				objectId = ?,
-				roleId = ?,
 				name = ?,
 				description = ?,
 				createdAt = CURRENT_TIMESTAMP(6),
@@ -45,7 +44,6 @@ func (repo MySQLRepository) Create(ctx context.Context, role Model) (int64, erro
 		role.GetName(),
 		role.GetDescription(),
 		role.GetObjectId(),
-		role.GetRoleId(),
 		role.GetName(),
 		role.GetDescription(),
 	)

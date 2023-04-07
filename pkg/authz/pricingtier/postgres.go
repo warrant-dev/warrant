@@ -37,7 +37,6 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 			) VALUES (?, ?, ?, ?)
 			ON CONFLICT (pricing_tier_id) DO UPDATE SET
 				object_id = ?,
-				pricing_tier_id = ?,
 				name = ?,
 				description = ?,
 				created_at = CURRENT_TIMESTAMP(6),
@@ -49,7 +48,6 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 		model.GetName(),
 		model.GetDescription(),
 		model.GetObjectId(),
-		model.GetPricingTierId(),
 		model.GetName(),
 		model.GetDescription(),
 	)

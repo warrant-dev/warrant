@@ -34,7 +34,6 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 			) VALUES (?, ?, ?, ?)
 			ON DUPLICATE KEY UPDATE
 				objectId = ?,
-				pricingTierId = ?,
 				name = ?,
 				description = ?,
 				createdAt = CURRENT_TIMESTAMP(6),
@@ -45,7 +44,6 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 		model.GetName(),
 		model.GetDescription(),
 		model.GetObjectId(),
-		model.GetPricingTierId(),
 		model.GetName(),
 		model.GetDescription(),
 	)
