@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
@@ -38,7 +39,7 @@ func (ds *SQLite) Connect(ctx context.Context) error {
 	var db *sqlx.DB
 	var err error
 
-	db, err = sqlx.Open("sqlite3", fmt.Sprintf("file:%s?_foreign_keys=on", ds.Config.Database))
+	db, err = sqlx.Open("sqlite3", fmt.Sprintf("file:%s?_foreign_keys=on", url.QueryEscape(ds.Config.Database)))
 	if err != nil {
 		return errors.Wrap(err, "Unable to establish connection to sqlite. Shutting down server.")
 	}
@@ -46,6 +47,14 @@ func (ds *SQLite) Connect(ctx context.Context) error {
 	err = db.PingContext(ctx)
 	if err != nil {
 		return errors.Wrap(err, "Unable to ping sqlite. Shutting down server.")
+	}
+
+	if ds.Config.MaxIdleConnections != 0 {
+		db.SetMaxIdleConns(ds.Config.MaxIdleConnections)
+	}
+
+	if ds.Config.MaxOpenConnections != 0 {
+		db.SetMaxOpenConns(ds.Config.MaxOpenConnections)
 	}
 
 	// map struct attributes to db column names

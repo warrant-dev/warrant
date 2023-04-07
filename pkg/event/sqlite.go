@@ -125,6 +125,10 @@ func (repo SQLiteRepository) ListResourceEvents(ctx context.Context, listParams 
 		}
 	}
 
+	for i := range resourceEvents {
+		models = append(models, &resourceEvents[i])
+	}
+
 	if len(resourceEvents) == 0 || len(resourceEvents) < int(listParams.Limit) {
 		return models, "", nil
 	}
@@ -136,10 +140,6 @@ func (repo SQLiteRepository) ListResourceEvents(ctx context.Context, listParams 
 	})
 	if err != nil {
 		return models, "", err
-	}
-
-	for i := range resourceEvents {
-		models = append(models, &resourceEvents[i])
 	}
 
 	return models, lastIdStr, nil
@@ -279,6 +279,10 @@ func (repo SQLiteRepository) ListAccessEvents(ctx context.Context, listParams Li
 		}
 	}
 
+	for i := range accessEvents {
+		models = append(models, &accessEvents[i])
+	}
+
 	if len(accessEvents) == 0 || len(accessEvents) < int(listParams.Limit) {
 		return models, "", nil
 	}
@@ -290,10 +294,6 @@ func (repo SQLiteRepository) ListAccessEvents(ctx context.Context, listParams Li
 	})
 	if err != nil {
 		return models, "", err
-	}
-
-	for i := range accessEvents {
-		models = append(models, &accessEvents[i])
 	}
 
 	return models, lastIdStr, nil

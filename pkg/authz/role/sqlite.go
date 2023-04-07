@@ -39,7 +39,6 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 			) VALUES (?, ?, ?, ?, ?, ?)
 			ON CONFLICT (roleId) DO UPDATE SET
 				objectId = ?,
-				roleId = ?,
 				name = ?,
 				description = ?,
 				createdAt = ?,
@@ -53,7 +52,6 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 		now,
 		now,
 		model.GetObjectId(),
-		model.GetRoleId(),
 		model.GetName(),
 		model.GetDescription(),
 		now,

@@ -44,7 +44,7 @@ type MySQLConfig struct {
 	Database           string `mapstructure:"database"`
 	MigrationSource    string `mapstructure:"migrationSource"`
 	MaxIdleConnections int    `mapstructure:"maxIdleConnections"`
-	MaxOpenConnections int    `mapstructure:"maxOpenConncetions"`
+	MaxOpenConnections int    `mapstructure:"maxOpenConnections"`
 }
 
 type PostgresConfig struct {
@@ -55,12 +55,14 @@ type PostgresConfig struct {
 	SSLMode            string `mapstructure:"sslmode"`
 	MigrationSource    string `mapstructure:"migrationSource"`
 	MaxIdleConnections int    `mapstructure:"maxIdleConnections"`
-	MaxOpenConnections int    `mapstructure:"maxOpenConncetions"`
+	MaxOpenConnections int    `mapstructure:"maxOpenConnections"`
 }
 
 type SQLiteConfig struct {
-	Database        string `mapstructure:"database"`
-	MigrationSource string `mapstructure:"migrationSource"`
+	Database           string `mapstructure:"database"`
+	MigrationSource    string `mapstructure:"migrationSource"`
+	MaxIdleConnections int    `mapstructure:"maxIdleConnections"`
+	MaxOpenConnections int    `mapstructure:"maxOpenConnections"`
 }
 
 type EventstoreConfig struct {
