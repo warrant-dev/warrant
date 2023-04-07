@@ -1,11 +1,33 @@
-FROM alpine:3.17.2
+# syntax=docker/dockerfile:1
 
-RUN addgroup -S warrant && adduser -S warrant -G warrant
-USER warrant
+##
+## Build
+##
+FROM golang:1.19-buster AS build
 
-WORKDIR ./
-COPY ./warrant ./
+WORKDIR /app
 
-ENTRYPOINT ["./warrant"]
+COPY . .
+
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
+
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    go build -o /warrant -v ./cmd/warrant/main.go
+
+##
+## Deploy
+##
+FROM gcr.io/distroless/base-debian10
+
+WORKDIR /
+
+COPY --from=build /warrant /app/warrant-exec
 
 EXPOSE 8000
+
+USER warrant
+
+WORKDIR /app
+
+ENTRYPOINT ["./warrant-exec"]
