@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS object_type (
   id bigserial PRIMARY KEY,
   type_id varchar(64) NOT NULL CONSTRAINT object_type_uk_type_id UNIQUE,
   definition jsonb DEFAULT NULL,
+  ALTER TABLE table_name MODIFY COLUMN definition JSON NOT NULL;
   created_at timestamp(6) NULL DEFAULT CURRENT_TIMESTAMP(6),
   updated_at timestamp(6) NULL DEFAULT CURRENT_TIMESTAMP(6),
   deleted_at timestamp(6) NULL DEFAULT NULL

@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS objectType (
   id int NOT NULL AUTO_INCREMENT,
   typeId varchar(64) NOT NULL,
   definition json DEFAULT NULL,
+  ALTER TABLE table_name MODIFY COLUMN definition JSON NOT NULL;
   createdAt timestamp(6) NULL DEFAULT CURRENT_TIMESTAMP(6),
   updatedAt timestamp(6) NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
   deletedAt timestamp(6) NULL DEFAULT NULL,
