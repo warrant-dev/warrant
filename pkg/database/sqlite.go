@@ -39,7 +39,16 @@ func (ds *SQLite) Connect(ctx context.Context) error {
 	var db *sqlx.DB
 	var err error
 
-	db, err = sqlx.Open("sqlite3", fmt.Sprintf("file:%s?_foreign_keys=on", url.QueryEscape(ds.Config.Database)))
+	if ds.Config.Database == ":memory:" {
+		return fmt.Errorf("invalid database \"%s\" provided for sqlite", ds.Config.Database)
+	}
+
+	connectionString := fmt.Sprintf("file:%s?_foreign_keys=on", url.QueryEscape(ds.Config.Database))
+	if ds.Config.InMemory {
+		connectionString = fmt.Sprintf("%s&cache=shared&mode=memory", connectionString)
+	}
+
+	db, err = sqlx.Open("sqlite3", connectionString)
 	if err != nil {
 		return errors.Wrap(err, "Unable to establish connection to sqlite. Shutting down server.")
 	}

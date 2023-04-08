@@ -60,6 +60,7 @@ type PostgresConfig struct {
 
 type SQLiteConfig struct {
 	Database           string `mapstructure:"database"`
+	InMemory           bool   `mapstructure:"inMemory"`
 	MigrationSource    string `mapstructure:"migrationSource"`
 	MaxIdleConnections int    `mapstructure:"maxIdleConnections"`
 	MaxOpenConnections int    `mapstructure:"maxOpenConnections"`
