@@ -35,12 +35,14 @@ func (repo SQLiteRepository) TrackResourceEvents(ctx context.Context, models []R
 		ctx,
 		`
 		   INSERT INTO resourceEvent (
+			  id,
 			  type,
 			  source,
 			  resourceType,
 			  resourceId,
 			  meta
 		   ) VALUES (
+			  :id,
 			  :type,
 			  :source,
 			  :resourceType,
@@ -159,6 +161,7 @@ func (repo SQLiteRepository) TrackAccessEvents(ctx context.Context, models []Acc
 		ctx,
 		`
 		   INSERT INTO accessEvent (
+			  id,
 			  type,
 			  source,
 			  objectType,
@@ -170,6 +173,7 @@ func (repo SQLiteRepository) TrackAccessEvents(ctx context.Context, models []Acc
 			  context,
 			  meta
 		   ) VALUES (
+			  :id,
 			  :type,
 			  :source,
 			  :objectType,
