@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS resourceEvent (
-  id BLOB DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-a' || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))),
+  id TEXT NOT NULL,
   type TEXT NOT NULL,
   source TEXT NOT NULL,
   resourceType TEXT NOT NULL,
@@ -13,7 +13,7 @@ CREATE INDEX resource_event_idx_created_at_id
     ON resourceEvent (createdAt, id);
 
 CREATE TABLE IF NOT EXISTS accessEvent (
-  id BLOB DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))),2) || '-a' || substr(lower(hex(randomblob(2))),2) || '-' || lower(hex(randomblob(6)))),
+  id TEXT NOT NULL,
   type TEXT NOT NULL,
   source TEXT NOT NULL,
   objectType TEXT NOT NULL,
