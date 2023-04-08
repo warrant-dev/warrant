@@ -35,12 +35,14 @@ func (repo MySQLRepository) TrackResourceEvents(ctx context.Context, models []Re
 		ctx,
 		`
 		   INSERT INTO resourceEvent (
+			  id,
 			  type,
 			  source,
 			  resourceType,
 			  resourceId,
 			  meta
 		   ) VALUES (
+			  UUID_TO_BIN(:id),
 			  :type,
 			  :source,
 			  :resourceType,
@@ -159,6 +161,7 @@ func (repo MySQLRepository) TrackAccessEvents(ctx context.Context, models []Acce
 		ctx,
 		`
 		   INSERT INTO accessEvent (
+			  id,
 			  type,
 			  source,
 			  objectType,
@@ -170,6 +173,7 @@ func (repo MySQLRepository) TrackAccessEvents(ctx context.Context, models []Acce
 			  context,
 			  meta
 		   ) VALUES (
+			  UUID_TO_BIN(:id),
 			  :type,
 			  :source,
 			  :objectType,
