@@ -108,7 +108,7 @@ func NewConfig() Config {
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	zerolog.SetGlobalLevel(zerolog.Level(config.LogLevel))
 	if zerolog.GlobalLevel() == zerolog.DebugLevel {
-		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+		log.Logger = log.With().Caller().Logger().Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
 	if config.ApiKey == "" {
