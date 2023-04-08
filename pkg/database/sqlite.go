@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/golang-migrate/migrate/v4/source/github"
@@ -77,15 +78,20 @@ func (ds *SQLite) Connect(ctx context.Context) error {
 func (ds SQLite) Migrate(ctx context.Context, toVersion uint) error {
 	log.Debug().Msgf("Migrating sqlite database %s", ds.Config.Database)
 	// migrate database to latest schema
-	mig, err := migrate.New(
+	instance, err := sqlite3.WithInstance(ds.DB.DB, &sqlite3.Config{})
+	if err != nil {
+		return errors.Wrap(err, "Error migrating sqlite database")
+	}
+
+	mig, err := migrate.NewWithDatabaseInstance(
 		ds.Config.MigrationSource,
-		fmt.Sprintf("sqlite3://%s", ds.Config.Database),
+		ds.Config.Database,
+		instance,
 	)
 	if err != nil {
 		return errors.Wrap(err, "Error migrating sqlite database")
 	}
 
-	defer mig.Close()
 	currentVersion, _, err := mig.Version()
 	if err != nil {
 		if err == migrate.ErrNilVersion {
