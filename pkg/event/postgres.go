@@ -35,12 +35,14 @@ func (repo PostgresRepository) TrackResourceEvents(ctx context.Context, models [
 		ctx,
 		`
 		   INSERT INTO resource_event (
+			  id,
 			  type,
 			  source,
 			  resource_type,
 			  resource_id,
 			  meta
 		   ) VALUES (
+			  :id,
 			  :type,
 			  :source,
 			  :resource_type,
@@ -159,6 +161,7 @@ func (repo PostgresRepository) TrackAccessEvents(ctx context.Context, models []A
 		ctx,
 		`
 		   INSERT INTO access_event (
+			  id,
 			  type,
 			  source,
 			  object_type,
@@ -170,6 +173,7 @@ func (repo PostgresRepository) TrackAccessEvents(ctx context.Context, models []A
 			  context,
 			  meta
 		   ) VALUES (
+			  :id,
 			  :type,
 			  :source,
 			  :object_type,

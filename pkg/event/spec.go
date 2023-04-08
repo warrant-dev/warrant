@@ -88,6 +88,7 @@ func (spec CreateAccessEventSpec) ToAccessEvent() (*AccessEvent, error) {
 	}
 
 	return &AccessEvent{
+		ID:              uuid.NewString(),
 		Type:            spec.Type,
 		Source:          spec.Source,
 		ObjectType:      spec.ObjectType,
