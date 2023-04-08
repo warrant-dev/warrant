@@ -21,13 +21,13 @@ type ResourceEventModel interface {
 }
 
 type ResourceEvent struct {
-	ID           string              `mysql:"id" postgres:"id"`
-	Type         string              `mysql:"type" postgres:"type"`
-	Source       string              `mysql:"source" postgres:"source"`
-	ResourceType string              `mysql:"resourceType" postgres:"resource_type"`
-	ResourceId   string              `mysql:"resourceId" postgres:"resource_id"`
-	Meta         database.NullString `mysql:"meta" postgres:"meta"`
-	CreatedAt    time.Time           `mysql:"createdAt" postgres:"created_at"`
+	ID           string              `mysql:"id" postgres:"id" sqlite:"id"`
+	Type         string              `mysql:"type" postgres:"type" sqlite:"type"`
+	Source       string              `mysql:"source" postgres:"source" sqlite:"source"`
+	ResourceType string              `mysql:"resourceType" postgres:"resource_type" sqlite:"resourceType"`
+	ResourceId   string              `mysql:"resourceId" postgres:"resource_id" sqlite:"resourceId"`
+	Meta         database.NullString `mysql:"meta" postgres:"meta" sqlite:"meta"`
+	CreatedAt    time.Time           `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
 }
 
 func NewResourceEventFromModel(model ResourceEventModel) *ResourceEvent {
@@ -107,18 +107,18 @@ type AccessEventModel interface {
 }
 
 type AccessEvent struct {
-	ID              string              `mysql:"id" postgres:"id"`
-	Type            string              `mysql:"type" postgres:"type"`
-	Source          string              `mysql:"source" postgres:"source"`
-	ObjectType      string              `mysql:"objectType" postgres:"object_type"`
-	ObjectId        string              `mysql:"objectId" postgres:"object_id"`
-	Relation        string              `mysql:"relation" postgres:"relation"`
-	SubjectType     string              `mysql:"subjectType" postgres:"subject_type"`
-	SubjectId       string              `mysql:"subjectId" postgres:"subject_id"`
-	SubjectRelation string              `mysql:"subjectRelation" postgres:"subject_relation"`
-	Context         database.NullString `mysql:"context" postgres:"context"`
-	Meta            database.NullString `mysql:"meta" postgres:"meta"`
-	CreatedAt       time.Time           `mysql:"createdAt" postgres:"created_at"`
+	ID              string              `mysql:"id" postgres:"id" sqlite:"id"`
+	Type            string              `mysql:"type" postgres:"type" sqlite:"type"`
+	Source          string              `mysql:"source" postgres:"source" sqlite:"source"`
+	ObjectType      string              `mysql:"objectType" postgres:"object_type" sqlite:"objectType"`
+	ObjectId        string              `mysql:"objectId" postgres:"object_id" sqlite:"objectId"`
+	Relation        string              `mysql:"relation" postgres:"relation" sqlite:"relation"`
+	SubjectType     string              `mysql:"subjectType" postgres:"subject_type" sqlite:"subjectType"`
+	SubjectId       string              `mysql:"subjectId" postgres:"subject_id" sqlite:"subjectId"`
+	SubjectRelation string              `mysql:"subjectRelation" postgres:"subject_relation" sqlite:"subjectRelation"`
+	Context         database.NullString `mysql:"context" postgres:"context" sqlite:"context"`
+	Meta            database.NullString `mysql:"meta" postgres:"meta" sqlite:"meta"`
+	CreatedAt       time.Time           `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
 }
 
 func NewAccessEventFromModel(model AccessEventModel) *AccessEvent {

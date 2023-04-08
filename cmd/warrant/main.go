@@ -29,6 +29,8 @@ const (
 	MySQLEventstoreMigrationVersion    = 000001
 	PostgresDatastoreMigrationVersion  = 000002
 	PostgresEventstoreMigrationVersion = 000001
+	SQLiteDatastoreMigrationVersion    = 000002
+	SQLiteEventstoreMigrationVersion   = 000001
 )
 
 type ServiceEnv struct {
@@ -80,6 +82,22 @@ func (env *ServiceEnv) InitDB(config config.Config) error {
 		return nil
 	}
 
+	if config.Datastore.SQLite.Database != "" {
+		db := database.NewSQLite(*config.Datastore.SQLite)
+		err := db.Connect(ctx)
+		if err != nil {
+			return err
+		}
+
+		err = db.Migrate(ctx, SQLiteDatastoreMigrationVersion)
+		if err != nil {
+			return err
+		}
+
+		env.Datastore = db
+		return nil
+	}
+
 	return fmt.Errorf("invalid database configuration provided")
 }
 
@@ -111,6 +129,22 @@ func (env *ServiceEnv) InitEventDB(config config.Config) error {
 		}
 
 		err = db.Migrate(ctx, PostgresEventstoreMigrationVersion)
+		if err != nil {
+			return err
+		}
+
+		env.Eventstore = db
+		return nil
+	}
+
+	if config.Eventstore.SQLite.Database != "" {
+		db := database.NewSQLite(*config.Eventstore.SQLite)
+		err := db.Connect(ctx)
+		if err != nil {
+			return err
+		}
+
+		err = db.Migrate(ctx, SQLiteEventstoreMigrationVersion)
 		if err != nil {
 			return err
 		}

@@ -19,13 +19,13 @@ type Model interface {
 }
 
 type Tenant struct {
-	ID        int64               `mysql:"id" postgres:"id"`
-	ObjectId  int64               `mysql:"objectId" postgres:"object_id"`
-	TenantId  string              `mysql:"tenantId" postgres:"tenant_id"`
-	Name      database.NullString `mysql:"name" postgres:"name"`
-	CreatedAt time.Time           `mysql:"createdAt" postgres:"created_at"`
-	UpdatedAt time.Time           `mysql:"updatedAt" postgres:"updated_at"`
-	DeletedAt database.NullTime   `mysql:"deletedAt" postgres:"deleted_at"`
+	ID        int64               `mysql:"id" postgres:"id" sqlite:"id"`
+	ObjectId  int64               `mysql:"objectId" postgres:"object_id" sqlite:"objectId"`
+	TenantId  string              `mysql:"tenantId" postgres:"tenant_id" sqlite:"tenantId"`
+	Name      database.NullString `mysql:"name" postgres:"name" sqlite:"name"`
+	CreatedAt time.Time           `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
+	UpdatedAt time.Time           `mysql:"updatedAt" postgres:"updated_at" sqlite:"updatedAt"`
+	DeletedAt database.NullTime   `mysql:"deletedAt" postgres:"deleted_at" sqlite:"deletedAt"`
 }
 
 func (tenant Tenant) GetID() int64 {
