@@ -127,6 +127,10 @@ func (repo MySQLRepository) ListResourceEvents(ctx context.Context, listParams L
 		}
 	}
 
+	for i := range resourceEvents {
+		models = append(models, &resourceEvents[i])
+	}
+
 	if len(resourceEvents) == 0 || len(resourceEvents) < int(listParams.Limit) {
 		return models, "", nil
 	}
@@ -138,10 +142,6 @@ func (repo MySQLRepository) ListResourceEvents(ctx context.Context, listParams L
 	})
 	if err != nil {
 		return models, "", err
-	}
-
-	for i := range resourceEvents {
-		models = append(models, &resourceEvents[i])
 	}
 
 	return models, lastIdStr, nil
@@ -283,6 +283,10 @@ func (repo MySQLRepository) ListAccessEvents(ctx context.Context, listParams Lis
 		}
 	}
 
+	for i := range accessEvents {
+		models = append(models, &accessEvents[i])
+	}
+
 	if len(accessEvents) == 0 || len(accessEvents) < int(listParams.Limit) {
 		return models, "", nil
 	}
@@ -294,10 +298,6 @@ func (repo MySQLRepository) ListAccessEvents(ctx context.Context, listParams Lis
 	})
 	if err != nil {
 		return models, "", err
-	}
-
-	for i := range accessEvents {
-		models = append(models, &accessEvents[i])
 	}
 
 	return models, lastIdStr, nil
