@@ -50,7 +50,7 @@ func (env *ServiceEnv) InitDB(config config.Config) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFunc()
 
-	if config.Datastore.MySQL.Hostname != "" {
+	if config.Datastore.MySQL != nil {
 		db := database.NewMySQL(*config.Datastore.MySQL)
 		err := db.Connect(ctx)
 		if err != nil {
@@ -66,7 +66,7 @@ func (env *ServiceEnv) InitDB(config config.Config) error {
 		return nil
 	}
 
-	if config.Datastore.Postgres.Hostname != "" {
+	if config.Datastore.Postgres != nil {
 		db := database.NewPostgres(*config.Datastore.Postgres)
 		err := db.Connect(ctx)
 		if err != nil {
@@ -82,7 +82,7 @@ func (env *ServiceEnv) InitDB(config config.Config) error {
 		return nil
 	}
 
-	if config.Datastore.SQLite.Database != "" {
+	if config.Datastore.SQLite != nil {
 		db := database.NewSQLite(*config.Datastore.SQLite)
 		err := db.Connect(ctx)
 		if err != nil {
@@ -105,7 +105,7 @@ func (env *ServiceEnv) InitEventDB(config config.Config) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFunc()
 
-	if config.Eventstore.MySQL.Hostname != "" {
+	if config.Eventstore.MySQL != nil {
 		db := database.NewMySQL(*config.Eventstore.MySQL)
 		err := db.Connect(ctx)
 		if err != nil {
@@ -121,7 +121,7 @@ func (env *ServiceEnv) InitEventDB(config config.Config) error {
 		return nil
 	}
 
-	if config.Eventstore.Postgres.Hostname != "" {
+	if config.Eventstore.Postgres != nil {
 		db := database.NewPostgres(*config.Eventstore.Postgres)
 		err := db.Connect(ctx)
 		if err != nil {
@@ -137,7 +137,7 @@ func (env *ServiceEnv) InitEventDB(config config.Config) error {
 		return nil
 	}
 
-	if config.Eventstore.SQLite.Database != "" {
+	if config.Eventstore.SQLite != nil {
 		db := database.NewSQLite(*config.Eventstore.SQLite)
 		err := db.Connect(ctx)
 		if err != nil {

@@ -20,6 +20,8 @@ const (
 	DefaultMySQLEventstoreMigrationSource    = "github://warrant-dev/warrant/migrations/eventstore/mysql"
 	DefaultPostgresDatastoreMigrationSource  = "github://warrant-dev/warrant/migrations/datastore/postgres"
 	DefaultPostgresEventstoreMigrationSource = "github://warrant-dev/warrant/migrations/eventstore/postgres"
+	DefaultSQLiteDatastoreMigrationSource    = "github://warrant-dev/warrant/migrations/datastore/sqlite"
+	DefaultSQLiteEventstoreMigrationSource   = "github://warrant-dev/warrant/migrations/eventstore/sqlite"
 	PrefixWarrant                            = "warrant"
 	ConfigFileName                           = "warrant.yaml"
 )
@@ -88,25 +90,6 @@ func NewConfig() Config {
 		Port:            8000,
 		LogLevel:        int8(zerolog.DebugLevel),
 		EnableAccessLog: true,
-		Datastore: DatastoreConfig{
-			MySQL: &MySQLConfig{
-				MigrationSource: DefaultMySQLDatastoreMigrationSource,
-			},
-			Postgres: &PostgresConfig{
-				MigrationSource: DefaultPostgresDatastoreMigrationSource,
-			},
-		},
-		Eventstore: EventstoreConfig{
-			MySQL: &MySQLConfig{
-				MigrationSource: DefaultMySQLEventstoreMigrationSource,
-			},
-			Postgres: &PostgresConfig{
-				MigrationSource: DefaultPostgresEventstoreMigrationSource,
-			},
-		},
-		Authentication: AuthConfig{
-			UserIdClaim: "sub",
-		},
 	}
 
 	// Attempt to read config from yaml file
@@ -125,6 +108,30 @@ func NewConfig() Config {
 		} else {
 			log.Fatal().Err(err).Msg("Error while reading warrant.yaml. Shutting down.")
 		}
+	}
+
+	if config.Datastore.MySQL != nil && config.Datastore.MySQL.MigrationSource == "" {
+		config.Datastore.MySQL.MigrationSource = DefaultMySQLDatastoreMigrationSource
+	}
+
+	if config.Datastore.MySQL != nil && config.Datastore.MySQL.MigrationSource == "" {
+		config.Datastore.MySQL.MigrationSource = DefaultMySQLDatastoreMigrationSource
+	}
+
+	if config.Datastore.MySQL != nil && config.Datastore.MySQL.MigrationSource == "" {
+		config.Datastore.MySQL.MigrationSource = DefaultMySQLDatastoreMigrationSource
+	}
+
+	if config.Eventstore.MySQL != nil && config.Eventstore.MySQL.MigrationSource == "" {
+		config.Eventstore.MySQL.MigrationSource = DefaultMySQLEventstoreMigrationSource
+	}
+
+	if config.Eventstore.Postgres != nil && config.Eventstore.Postgres.MigrationSource == "" {
+		config.Eventstore.Postgres.MigrationSource = DefaultPostgresEventstoreMigrationSource
+	}
+
+	if config.Eventstore.SQLite != nil && config.Eventstore.SQLite.MigrationSource == "" {
+		config.Eventstore.SQLite.MigrationSource = DefaultSQLiteEventstoreMigrationSource
 	}
 
 	// Configure logger
