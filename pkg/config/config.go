@@ -121,7 +121,7 @@ func NewConfig() Config {
 			log.Info().Msg("Could not find warrant.yaml. Attempting to use environment variables.")
 
 			// Populate config from env vars if yaml file not found
-			loadStructFieldsFromEnvVars(reflect.ValueOf(config))
+			loadConfigFieldsFromEnvVars(&config)
 		} else {
 			log.Fatal().Err(err).Msg("Error while reading warrant.yaml. Shutting down.")
 		}
@@ -143,16 +143,19 @@ func NewConfig() Config {
 	return config
 }
 
-func loadStructFieldsFromEnvVars(v reflect.Value) {
-	loadStructFieldsFromEnvVarsHelper(v, []string{})
+func loadConfigFieldsFromEnvVars(config *Config) {
+	loadConfigFieldsFromEnvVarsHelper(reflect.ValueOf(config), []string{})
 }
 
-func loadStructFieldsFromEnvVarsHelper(v reflect.Value, prefixes []string) []string {
+func loadConfigFieldsFromEnvVarsHelper(v reflect.Value, prefixes []string) []string {
 	t := v.Type()
 	unwrappedT := t
-	unwrappedV := v
 	if t.Kind() == reflect.Pointer {
 		unwrappedT = t.Elem()
+	}
+
+	unwrappedV := v
+	if v.Kind() == reflect.Pointer {
 		unwrappedV = v.Elem()
 	}
 
@@ -174,18 +177,16 @@ func loadStructFieldsFromEnvVarsHelper(v reflect.Value, prefixes []string) []str
 
 		switch field.Type.Kind() {
 		case reflect.Struct, reflect.Pointer:
-			flattenedFields = append(flattenedFields, loadStructFieldsFromEnvVarsHelper(fieldValue, append(prefixes, fieldName))...)
+			flattenedFields = append(flattenedFields, loadConfigFieldsFromEnvVarsHelper(fieldValue, append(prefixes, fieldName))...)
 		default:
 			envKey := strings.ToUpper(fmt.Sprintf("%s_%s", PrefixWarrant, strings.ReplaceAll(flattenedField, ".", "_")))
 			envVal := os.Getenv(envKey)
-			log.Debug().Msgf("envKey: %s, envVal: %v", envKey, os.Getenv(envKey))
 			if envVal != "" {
-				fieldVal, err := parseFieldValue(field, envVal)
+				parsedVal, err := parseFieldValue(field, envVal)
 				if err != nil {
 					log.Fatal().Err(err).Msgf("Error parsing Config field value from env var %s.", envKey)
 				}
-
-				fieldValue.Set(fieldVal)
+				fieldValue.Set(parsedVal)
 			}
 		}
 	}
@@ -194,34 +195,34 @@ func loadStructFieldsFromEnvVarsHelper(v reflect.Value, prefixes []string) []str
 }
 
 func parseFieldValue(field reflect.StructField, val string) (reflect.Value, error) {
-	var fieldVal reflect.Value
+	var parsedVal reflect.Value
 	switch field.Type.Kind() {
 	case reflect.String:
-		fieldVal = reflect.ValueOf(val)
+		parsedVal = reflect.ValueOf(val)
 	case reflect.Int8:
 		parsedInt, err := strconv.ParseInt(val, 10, 8)
 		if err != nil {
-			return fieldVal, errors.Wrap(err, "error parsing int8")
+			return parsedVal, errors.Wrap(err, "error parsing int8")
 		}
 
-		fieldVal = reflect.ValueOf(int8(parsedInt))
+		parsedVal = reflect.ValueOf(int8(parsedInt))
 	case reflect.Int:
 		parsedInt, err := strconv.ParseInt(val, 10, 64)
 		if err != nil {
-			return fieldVal, errors.Wrap(err, "error parsing int")
+			return parsedVal, errors.Wrap(err, "error parsing int")
 		}
 
-		fieldVal = reflect.ValueOf(parsedInt)
+		parsedVal = reflect.ValueOf(int(parsedInt))
 	case reflect.Bool:
 		parsedBool, err := strconv.ParseBool(val)
 		if err != nil {
-			return fieldVal, errors.Wrap(err, "error parsing bool")
+			return parsedVal, errors.Wrap(err, "error parsing bool")
 		}
 
-		fieldVal = reflect.ValueOf(parsedBool)
+		parsedVal = reflect.ValueOf(parsedBool)
 	default:
 		log.Fatal().Msgf("Unsupported Config field type %s", field.Type.Kind())
 	}
 
-	return fieldVal, nil
+	return parsedVal, nil
 }
