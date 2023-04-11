@@ -114,12 +114,12 @@ func NewConfig() Config {
 		config.Datastore.MySQL.MigrationSource = DefaultMySQLDatastoreMigrationSource
 	}
 
-	if config.Datastore.MySQL != nil && config.Datastore.MySQL.MigrationSource == "" {
-		config.Datastore.MySQL.MigrationSource = DefaultMySQLDatastoreMigrationSource
+	if config.Datastore.Postgres != nil && config.Datastore.Postgres.MigrationSource == "" {
+		config.Datastore.Postgres.MigrationSource = DefaultPostgresDatastoreMigrationSource
 	}
 
-	if config.Datastore.MySQL != nil && config.Datastore.MySQL.MigrationSource == "" {
-		config.Datastore.MySQL.MigrationSource = DefaultMySQLDatastoreMigrationSource
+	if config.Datastore.SQLite != nil && config.Datastore.SQLite.MigrationSource == "" {
+		config.Datastore.SQLite.MigrationSource = DefaultSQLiteDatastoreMigrationSource
 	}
 
 	if config.Eventstore.MySQL != nil && config.Eventstore.MySQL.MigrationSource == "" {
