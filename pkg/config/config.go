@@ -4,15 +4,13 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"strconv"
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/rs/zerolog/pkgerrors"
-	"gopkg.in/yaml.v3"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -20,111 +18,110 @@ const (
 	DefaultMySQLEventstoreMigrationSource    = "github://warrant-dev/warrant/migrations/eventstore/mysql"
 	DefaultPostgresDatastoreMigrationSource  = "github://warrant-dev/warrant/migrations/datastore/postgres"
 	DefaultPostgresEventstoreMigrationSource = "github://warrant-dev/warrant/migrations/eventstore/postgres"
+	DefaultSQLiteDatastoreMigrationSource    = "github://warrant-dev/warrant/migrations/datastore/sqlite"
+	DefaultSQLiteEventstoreMigrationSource   = "github://warrant-dev/warrant/migrations/eventstore/sqlite"
+	DefaultAuthenticationUserIdClaim         = "sub"
 	PrefixWarrant                            = "warrant"
 	ConfigFileName                           = "warrant.yaml"
 )
 
 type Config struct {
-	Port            int              `yaml:"port"`
-	LogLevel        int8             `yaml:"logLevel"`
-	EnableAccessLog bool             `yaml:"enableAccessLog"`
-	Datastore       DatastoreConfig  `yaml:"datastore"`
-	Eventstore      EventstoreConfig `yaml:"eventstore"`
-	ApiKey          string           `yaml:"apiKey"`
-	Authentication  AuthConfig       `yaml:"authentication"`
+	Port            int               `mapstructure:"port"`
+	LogLevel        int8              `mapstructure:"logLevel"`
+	EnableAccessLog bool              `mapstructure:"enableAccessLog"`
+	Datastore       *DatastoreConfig  `mapstructure:"datastore"`
+	Eventstore      *EventstoreConfig `mapstructure:"eventstore"`
+	ApiKey          string            `mapstructure:"apiKey"`
+	Authentication  *AuthConfig       `mapstructure:"authentication"`
 }
 
 type DatastoreConfig struct {
-	MySQL    *MySQLConfig    `yaml:"mysql"`
-	Postgres *PostgresConfig `yaml:"postgres"`
-	SQLite   *SQLiteConfig   `yaml:"sqlite"`
+	MySQL    *MySQLConfig    `mapstructure:"mysql"`
+	Postgres *PostgresConfig `mapstructure:"postgres"`
+	SQLite   *SQLiteConfig   `mapstructure:"sqlite"`
 }
 
 type MySQLConfig struct {
-	Username           string `yaml:"username"`
-	Password           string `yaml:"password"`
-	Hostname           string `yaml:"hostname"`
-	Database           string `yaml:"database"`
-	MigrationSource    string `yaml:"migrationSource"`
-	MaxIdleConnections int    `yaml:"maxIdleConnections"`
-	MaxOpenConnections int    `yaml:"maxOpenConnections"`
+	Username           string `mapstructure:"username"`
+	Password           string `mapstructure:"password"`
+	Hostname           string `mapstructure:"hostname"`
+	Database           string `mapstructure:"database"`
+	MigrationSource    string `mapstructure:"migrationSource"`
+	MaxIdleConnections int    `mapstructure:"maxIdleConnections"`
+	MaxOpenConnections int    `mapstructure:"maxOpenConnections"`
 }
 
 type PostgresConfig struct {
-	Username           string `yaml:"username"`
-	Password           string `yaml:"password"`
-	Hostname           string `yaml:"hostname"`
-	Database           string `yaml:"database"`
-	SSLMode            string `yaml:"sslmode"`
-	MigrationSource    string `yaml:"migrationSource"`
-	MaxIdleConnections int    `yaml:"maxIdleConnections"`
-	MaxOpenConnections int    `yaml:"maxOpenConnections"`
+	Username           string `mapstructure:"username"`
+	Password           string `mapstructure:"password"`
+	Hostname           string `mapstructure:"hostname"`
+	Database           string `mapstructure:"database"`
+	SSLMode            string `mapstructure:"sslmode"`
+	MigrationSource    string `mapstructure:"migrationSource"`
+	MaxIdleConnections int    `mapstructure:"maxIdleConnections"`
+	MaxOpenConnections int    `mapstructure:"maxOpenConnections"`
 }
 
 type SQLiteConfig struct {
-	Database           string `yaml:"database"`
-	InMemory           bool   `yaml:"inMemory"`
-	MigrationSource    string `yaml:"migrationSource"`
-	MaxIdleConnections int    `yaml:"maxIdleConnections"`
-	MaxOpenConnections int    `yaml:"maxOpenConnections"`
+	Database           string `mapstructure:"database"`
+	InMemory           bool   `mapstructure:"inMemory"`
+	MigrationSource    string `mapstructure:"migrationSource"`
+	MaxIdleConnections int    `mapstructure:"maxIdleConnections"`
+	MaxOpenConnections int    `mapstructure:"maxOpenConnections"`
 }
 
 type EventstoreConfig struct {
-	MySQL    *MySQLConfig    `yaml:"mysql"`
-	Postgres *PostgresConfig `yaml:"postgres"`
-	SQLite   *SQLiteConfig   `yaml:"sqlite"`
+	MySQL    *MySQLConfig    `mapstructure:"mysql"`
+	Postgres *PostgresConfig `mapstructure:"postgres"`
+	SQLite   *SQLiteConfig   `mapstructure:"sqlite"`
 }
 
 type AuthConfig struct {
-	Provider      string `yaml:"provider"`
-	PublicKey     string `yaml:"publicKey"`
-	UserIdClaim   string `yaml:"userIdClaim"`
-	TenantIdClaim string `yaml:"tenantIdClaim"`
+	Provider      string `mapstructure:"provider"`
+	PublicKey     string `mapstructure:"publicKey"`
+	UserIdClaim   string `mapstructure:"userIdClaim"`
+	TenantIdClaim string `mapstructure:"tenantIdClaim"`
 }
 
 func NewConfig() Config {
-	// Initialize config with defaults (can be overwritten by passed in config file/env vars below)
-	config := Config{
-		Port:            8000,
-		LogLevel:        int8(zerolog.DebugLevel),
-		EnableAccessLog: true,
-		Datastore: DatastoreConfig{
-			MySQL: &MySQLConfig{
-				MigrationSource: DefaultMySQLDatastoreMigrationSource,
-			},
-			Postgres: &PostgresConfig{
-				MigrationSource: DefaultPostgresDatastoreMigrationSource,
-			},
-		},
-		Eventstore: EventstoreConfig{
-			MySQL: &MySQLConfig{
-				MigrationSource: DefaultMySQLEventstoreMigrationSource,
-			},
-			Postgres: &PostgresConfig{
-				MigrationSource: DefaultPostgresEventstoreMigrationSource,
-			},
-		},
-		Authentication: AuthConfig{
-			UserIdClaim: "sub",
-		},
-	}
+	viper.SetConfigFile(ConfigFileName)
+	viper.SetDefault("port", 8000)
+	viper.SetDefault("levelLevel", zerolog.DebugLevel)
+	viper.SetDefault("enableAccessLog", true)
+	viper.SetDefault("datastore.mysql.migrationSource", DefaultMySQLDatastoreMigrationSource)
+	viper.SetDefault("eventstore.mysql.migrationSource", DefaultMySQLEventstoreMigrationSource)
+	viper.SetDefault("datastore.postgres.migrationSource", DefaultPostgresDatastoreMigrationSource)
+	viper.SetDefault("eventstore.postgres.migrationSource", DefaultPostgresEventstoreMigrationSource)
+	viper.SetDefault("datastore.sqlite.migrationSource", DefaultSQLiteDatastoreMigrationSource)
+	viper.SetDefault("eventstore.sqlite.migrationSource", DefaultSQLiteEventstoreMigrationSource)
+	viper.SetDefault("authentication.userIdClaim", DefaultAuthenticationUserIdClaim)
 
-	// Attempt to read config from yaml file
-	confYaml, err := os.ReadFile(ConfigFileName)
+	// If config file exists, use it
+	_, err := os.ReadFile(ConfigFileName)
 	if err == nil {
-		err = yaml.Unmarshal(confYaml, &config)
-		if err != nil {
-			log.Fatal().Err(err).Msg("Error unmarshaling warrant.yaml contents into Config. Shutting down.")
+		if err := viper.ReadInConfig(); err != nil {
+			log.Fatal().Err(err).Msg("Error while reading warrant.yaml. Shutting down.")
 		}
 	} else {
 		if os.IsNotExist(err) {
 			log.Info().Msg("Could not find warrant.yaml. Attempting to use environment variables.")
-
-			// Populate config from env vars if yaml file not found
-			loadConfigFieldsFromEnvVars(&config)
 		} else {
 			log.Fatal().Err(err).Msg("Error while reading warrant.yaml. Shutting down.")
 		}
+	}
+
+	var config Config
+	// If available, use env vars for config
+	for _, fieldName := range getFlattenedStructFields(reflect.TypeOf(config)) {
+		envKey := strings.ToUpper(fmt.Sprintf("%s_%s", PrefixWarrant, strings.ReplaceAll(fieldName, ".", "_")))
+		envVar := os.Getenv(envKey)
+		if envVar != "" {
+			viper.Set(fieldName, envVar)
+		}
+	}
+
+	if err := viper.Unmarshal(&config); err != nil {
+		log.Fatal().Err(err).Msg("Error while creating config. Shutting down.")
 	}
 
 	// Configure logger
@@ -143,86 +140,31 @@ func NewConfig() Config {
 	return config
 }
 
-func loadConfigFieldsFromEnvVars(config *Config) {
-	loadConfigFieldsFromEnvVarsHelper(reflect.ValueOf(config), []string{})
+func getFlattenedStructFields(t reflect.Type) []string {
+	return getFlattenedStructFieldsHelper(t, []string{})
 }
 
-func loadConfigFieldsFromEnvVarsHelper(v reflect.Value, prefixes []string) []string {
-	t := v.Type()
+func getFlattenedStructFieldsHelper(t reflect.Type, prefixes []string) []string {
 	unwrappedT := t
 	if t.Kind() == reflect.Pointer {
 		unwrappedT = t.Elem()
 	}
 
-	unwrappedV := v
-	if v.Kind() == reflect.Pointer {
-		unwrappedV = v.Elem()
-	}
-
 	flattenedFields := make([]string, 0)
-	if v.IsZero() {
-		return flattenedFields
-	}
-
 	for i := 0; i < unwrappedT.NumField(); i++ {
 		field := unwrappedT.Field(i)
-		fieldName := field.Tag.Get("yaml")
-		fieldValue := unwrappedV.FieldByName(field.Name)
-
-		flattenedField := fieldName
-		if len(prefixes) > 0 {
-			flattenedField = fmt.Sprintf("%s.%s", strings.Join(prefixes, "."), fieldName)
-		}
-		flattenedFields = append(flattenedFields, flattenedField)
-
+		fieldName := field.Tag.Get("mapstructure")
 		switch field.Type.Kind() {
 		case reflect.Struct, reflect.Pointer:
-			flattenedFields = append(flattenedFields, loadConfigFieldsFromEnvVarsHelper(fieldValue, append(prefixes, fieldName))...)
+			flattenedFields = append(flattenedFields, getFlattenedStructFieldsHelper(field.Type, append(prefixes, fieldName))...)
 		default:
-			envKey := strings.ToUpper(fmt.Sprintf("%s_%s", PrefixWarrant, strings.ReplaceAll(flattenedField, ".", "_")))
-			envVal := os.Getenv(envKey)
-			if envVal != "" {
-				parsedVal, err := parseFieldValue(field, envVal)
-				if err != nil {
-					log.Fatal().Err(err).Msgf("Error parsing Config field value from env var %s.", envKey)
-				}
-				fieldValue.Set(parsedVal)
+			flattenedField := fieldName
+			if len(prefixes) > 0 {
+				flattenedField = fmt.Sprintf("%s.%s", strings.Join(prefixes, "."), fieldName)
 			}
+			flattenedFields = append(flattenedFields, flattenedField)
 		}
 	}
 
 	return flattenedFields
-}
-
-func parseFieldValue(field reflect.StructField, val string) (reflect.Value, error) {
-	var parsedVal reflect.Value
-	switch field.Type.Kind() {
-	case reflect.String:
-		parsedVal = reflect.ValueOf(val)
-	case reflect.Int8:
-		parsedInt, err := strconv.ParseInt(val, 10, 8)
-		if err != nil {
-			return parsedVal, errors.Wrap(err, "error parsing int8")
-		}
-
-		parsedVal = reflect.ValueOf(int8(parsedInt))
-	case reflect.Int:
-		parsedInt, err := strconv.ParseInt(val, 10, 64)
-		if err != nil {
-			return parsedVal, errors.Wrap(err, "error parsing int")
-		}
-
-		parsedVal = reflect.ValueOf(int(parsedInt))
-	case reflect.Bool:
-		parsedBool, err := strconv.ParseBool(val)
-		if err != nil {
-			return parsedVal, errors.Wrap(err, "error parsing bool")
-		}
-
-		parsedVal = reflect.ValueOf(parsedBool)
-	default:
-		log.Fatal().Msgf("Unsupported Config field type %s", field.Type.Kind())
-	}
-
-	return parsedVal, nil
 }
