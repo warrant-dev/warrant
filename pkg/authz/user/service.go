@@ -63,7 +63,11 @@ func (svc UserService) Create(ctx context.Context, userSpec UserSpec) (*UserSpec
 			return err
 		}
 
-		svc.eventSvc.TrackResourceCreated(txCtx, ResourceTypeUser, newUser.GetUserId(), newUser.ToUserSpec())
+		err = svc.eventSvc.TrackResourceCreated(ctx, ResourceTypeUser, newUser.GetUserId(), newUser.ToUserSpec())
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 
@@ -125,7 +129,11 @@ func (svc UserService) UpdateByUserId(ctx context.Context, userId string, userSp
 	}
 
 	updatedUserSpec := updatedUser.ToUserSpec()
-	svc.eventSvc.TrackResourceUpdated(ctx, ResourceTypeUser, updatedUser.GetUserId(), updatedUserSpec)
+	err = svc.eventSvc.TrackResourceUpdated(ctx, ResourceTypeUser, updatedUser.GetUserId(), updatedUserSpec)
+	if err != nil {
+		return nil, err
+	}
+
 	return updatedUserSpec, nil
 }
 
@@ -146,7 +154,11 @@ func (svc UserService) DeleteByUserId(ctx context.Context, userId string) error 
 			return err
 		}
 
-		svc.eventSvc.TrackResourceDeleted(txCtx, ResourceTypeUser, userId, nil)
+		err = svc.eventSvc.TrackResourceDeleted(ctx, ResourceTypeUser, userId, nil)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 

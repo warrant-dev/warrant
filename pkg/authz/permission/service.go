@@ -51,7 +51,11 @@ func (svc PermissionService) Create(ctx context.Context, permissionSpec Permissi
 			return err
 		}
 
-		svc.eventSvc.TrackResourceCreated(txCtx, ResourceTypePermission, newPermission.GetPermissionId(), newPermission.ToPermissionSpec())
+		err = svc.eventSvc.TrackResourceCreated(ctx, ResourceTypePermission, newPermission.GetPermissionId(), newPermission.ToPermissionSpec())
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 
@@ -119,7 +123,11 @@ func (svc PermissionService) UpdateByPermissionId(ctx context.Context, permissio
 	}
 
 	updatedPermissionSpec := updatedPermission.ToPermissionSpec()
-	svc.eventSvc.TrackResourceUpdated(ctx, ResourceTypePermission, updatedPermission.GetPermissionId(), updatedPermissionSpec)
+	err = svc.eventSvc.TrackResourceUpdated(ctx, ResourceTypePermission, updatedPermission.GetPermissionId(), updatedPermissionSpec)
+	if err != nil {
+		return nil, err
+	}
+
 	return updatedPermissionSpec, nil
 }
 
@@ -140,7 +148,11 @@ func (svc PermissionService) DeleteByPermissionId(ctx context.Context, permissio
 			return err
 		}
 
-		svc.eventSvc.TrackResourceDeleted(txCtx, ResourceTypePermission, permissionId, nil)
+		err = svc.eventSvc.TrackResourceDeleted(ctx, ResourceTypePermission, permissionId, nil)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 
