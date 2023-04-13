@@ -1,0 +1,700 @@
+{
+    "ignoredFields": [
+        "createdAt",
+        "id"
+    ],
+    "tests": [
+        {
+            "name": "listLastThreeResourceEvents",
+            "request": {
+                "method": "GET",
+                "url": "/v1/resource-events?limit=3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "events": [
+                        {
+                            "type": "user.deleted",
+                            "source": "api",
+                            "resourceType": "user",
+                            "resourceId": "user-a"
+                        },
+                        {
+                            "type": "role.deleted",
+                            "source": "api",
+                            "resourceType": "role",
+                            "resourceId": "senior-accountant"
+                        },
+                        {
+                            "type": "permission.deleted",
+                            "source": "api",
+                            "resourceType": "permission",
+                            "resourceId": "view-balance-sheet"
+                        }
+                    ],
+                    "lastId": "{{ listLastThreeResourceEvents.lastId }}"
+                }
+            }
+        },
+        {
+            "name": "listNextTwoResourceEvents",
+            "request": {
+                "method": "GET",
+                "url": "/v1/resource-events?limit=2&lastId={{ listLastThreeResourceEvents.lastId }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "events": [
+                        {
+                            "type": "permission.deleted",
+                            "source": "api",
+                            "resourceType": "permission",
+                            "resourceId": "edit-balance-sheet"
+                        },
+                        {
+                            "type": "permission.created",
+                            "source": "api",
+                            "resourceType": "permission",
+                            "resourceId": "edit-balance-sheet",
+                            "meta": {
+                                "description": "Grants access to edit the balance sheet.",
+                                "name": "Edit Balance Sheet",
+                                "permissionId": "edit-balance-sheet"
+                            }
+                        }
+                    ],
+                    "lastId": "{{ listNextTwoResourceEvents.lastId }}"
+                }
+            }
+        },
+        {
+            "name": "listResourceEventsFilterBySource",
+            "request": {
+                "method": "GET",
+                "url": "/v1/resource-events?limit=5&source=ui"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "events": []
+                }
+            }
+        },
+        {
+            "name": "listResourceEventsFilterByType",
+            "request": {
+                "method": "GET",
+                "url": "/v1/resource-events?limit=5&type=user.deleted"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "events": [
+                        {
+                            "type": "user.deleted",
+                            "source": "api",
+                            "resourceType": "user",
+                            "resourceId": "user-a"
+                        },
+                        {
+                            "type": "user.deleted",
+                            "source": "api",
+                            "resourceType": "user",
+                            "resourceId": "user-5"
+                        },
+                        {
+                            "type": "user.deleted",
+                            "source": "api",
+                            "resourceType": "user",
+                            "resourceId": "user-4"
+                        },
+                        {
+                            "type": "user.deleted",
+                            "source": "api",
+                            "resourceType": "user",
+                            "resourceId": "user-3"
+                        },
+                        {
+                            "type": "user.deleted",
+                            "source": "api",
+                            "resourceType": "user",
+                            "resourceId": "user-2"
+                        }
+                    ],
+                    "lastId": "{{ listResourceEventsFilterByType.lastId }}"
+                }
+            }
+        },
+        {
+            "name": "listResourceEventsFilterByResourceType",
+            "request": {
+                "method": "GET",
+                "url": "/v1/resource-events?limit=5&resourceType=user"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "events": [
+                        {
+                            "type": "user.deleted",
+                            "source": "api",
+                            "resourceType": "user",
+                            "resourceId": "user-a"
+                        },
+                        {
+                            "type": "user.created",
+                            "source": "api",
+                            "resourceType": "user",
+                            "resourceId": "user-a",
+                            "meta": {
+                                "email": "user-a@warrant.dev",
+                                "userId": "user-a"
+                            }
+                        },
+                        {
+                            "type": "user.deleted",
+                            "source": "api",
+                            "resourceType": "user",
+                            "resourceId": "user-5"
+                        },
+                        {
+                            "type": "user.deleted",
+                            "source": "api",
+                            "resourceType": "user",
+                            "resourceId": "user-4"
+                        },
+                        {
+                            "type": "user.deleted",
+                            "source": "api",
+                            "resourceType": "user",
+                            "resourceId": "user-3"
+                        }
+                    ],
+                    "lastId": "{{ listResourceEventsFilterByResourceType.lastId }}"
+                }
+            }
+        },
+        {
+            "name": "listResourceEventsFilterByResourceTypeAndResourceId",
+            "request": {
+                "method": "GET",
+                "url": "/v1/resource-events?limit=5&resourceType=user&resourceId=user-a"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "events": [
+                        {
+                            "type": "user.deleted",
+                            "source": "api",
+                            "resourceType": "user",
+                            "resourceId": "user-a"
+                        },
+                        {
+                            "type": "user.created",
+                            "source": "api",
+                            "resourceType": "user",
+                            "resourceId": "user-a",
+                            "meta": {
+                                "email": "user-a@warrant.dev",
+                                "userId": "user-a"
+                            }
+                        },
+                        {
+                            "type": "user.deleted",
+                            "source": "api",
+                            "resourceType": "user",
+                            "resourceId": "user-a"
+                        },
+                        {
+                            "type": "user.created",
+                            "source": "api",
+                            "resourceType": "user",
+                            "resourceId": "user-a",
+                            "meta": {
+                                "email": "user-a@warrant.dev",
+                                "userId": "user-a"
+                            }
+                        },
+                        {
+                            "type": "user.deleted",
+                            "source": "api",
+                            "resourceType": "user",
+                            "resourceId": "user-a"
+                        }
+                    ],
+                    "lastId": "{{ listResourceEventsFilterByResourceTypeAndResourceId.lastId }}"
+                }
+            }
+        },
+        {
+            "name": "listLastThreeAccessEvents",
+            "request": {
+                "method": "GET",
+                "url": "/v1/access-events?limit=3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "events": [
+                        {
+                            "type": "permission.access_revoked",
+                            "source": "api",
+                            "objectType": "permission",
+                            "objectId": "view-balance-sheet",
+                            "relation": "member",
+                            "subjectType": "role",
+                            "subjectId": "senior-accountant"
+                        },
+                        {
+                            "type": "permission.access_revoked",
+                            "source": "api",
+                            "objectType": "permission",
+                            "objectId": "edit-balance-sheet",
+                            "relation": "member",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "role.access_revoked",
+                            "source": "api",
+                            "objectType": "role",
+                            "objectId": "senior-accountant",
+                            "relation": "member",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        }
+                    ],
+                    "lastId": "{{ listLastThreeAccessEvents.lastId }}"
+                }
+            }
+        },
+        {
+            "name": "listNextTwoAccessEvents",
+            "request": {
+                "method": "GET",
+                "url": "/v1/access-events?limit=2&lastId={{ listLastThreeAccessEvents.lastId }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "events": [
+                        {
+                            "type": "role.access_granted",
+                            "source": "api",
+                            "objectType": "role",
+                            "objectId": "senior-accountant",
+                            "relation": "member",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "permission.access_granted",
+                            "source": "api",
+                            "objectType": "permission",
+                            "objectId": "edit-balance-sheet",
+                            "relation": "member",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        }
+                    ],
+                    "lastId": "{{ listNextTwoAccessEvents.lastId }}"
+                }
+            }
+        },
+        {
+            "name": "listAccessEventsFilterBySource",
+            "request": {
+                "method": "GET",
+                "url": "/v1/access-events?limit=5&source=ui"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "events": []
+                }
+            }
+        },
+        {
+            "name": "listAccessEventsFilterByType",
+            "request": {
+                "method": "GET",
+                "url": "/v1/access-events?limit=4&type=permission.access_granted"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "events": [
+                        {
+                            "type": "permission.access_granted",
+                            "source": "api",
+                            "objectType": "permission",
+                            "objectId": "edit-balance-sheet",
+                            "relation": "member",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "permission.access_granted",
+                            "source": "api",
+                            "objectType": "permission",
+                            "objectId": "view-balance-sheet",
+                            "relation": "member",
+                            "subjectType": "role",
+                            "subjectId": "senior-accountant"
+                        },
+                        {
+                            "type": "permission.access_granted",
+                            "source": "api",
+                            "objectType": "permission",
+                            "objectId": "edit-balance-sheet",
+                            "relation": "member",
+                            "subjectType": "role",
+                            "subjectId": "senior-accountant"
+                        },
+                        {
+                            "type": "permission.access_granted",
+                            "source": "api",
+                            "objectType": "permission",
+                            "objectId": "view-balance-sheet",
+                            "relation": "member",
+                            "subjectType": "role",
+                            "subjectId": "senior-accountant"
+                        }
+                    ],
+                    "lastId": "{{ listAccessEventsFilterByType.lastId }}"
+                }
+            }
+        },
+        {
+            "name": "listAccessEventsFilterByObjectType",
+            "request": {
+                "method": "GET",
+                "url": "/v1/access-events?limit=5&objectType=report"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "events": [
+                        {
+                            "type": "report.access_revoked",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "editor",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "report.access_allowed",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "non-owner",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "report.access_denied",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "report.access_allowed",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "editor-viewer",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "report.access_allowed",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "viewer",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        }
+                    ],
+                    "lastId": "{{ listAccessEventsFilterByObjectType.lastId }}"
+                }
+            }
+        },
+        {
+            "name": "listAccessEventsFilterByObjectTypeAndObjectId",
+            "request": {
+                "method": "GET",
+                "url": "/v1/access-events?limit=5&objectType=report&objectId=report-a"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "events": [
+                        {
+                            "type": "report.access_revoked",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "editor",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "report.access_allowed",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "non-owner",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "report.access_denied",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "report.access_allowed",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "editor-viewer",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "report.access_allowed",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "viewer",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        }
+                    ],
+                    "lastId": "{{ listAccessEventsFilterByObjectTypeAndObjectId.lastId }}"
+                }
+            }
+        },
+        {
+            "name": "listAccessEventsFilterByObjectTypeAndObjectIdAndRelation",
+            "request": {
+                "method": "GET",
+                "url": "/v1/access-events?limit=5&objectType=report&objectId=report-a&relation=owner"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "events": [
+                        {
+                            "type": "report.access_denied",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "report.access_revoked",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "report.access_denied",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subjectType": "user",
+                            "subjectId": "user-f"
+                        },
+                        {
+                            "type": "report.access_allowed",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subjectType": "user",
+                            "subjectId": "user-e"
+                        },
+                        {
+                            "type": "report.access_denied",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subjectType": "user",
+                            "subjectId": "user-d"
+                        }
+                    ],
+                    "lastId": "{{ listAccessEventsFilterByObjectTypeAndObjectIdAndRelation.lastId }}"
+                }
+            }
+        },
+        {
+            "name": "listAccessEventsFilterBySubjectType",
+            "request": {
+                "method": "GET",
+                "url": "/v1/access-events?limit=5&subjectType=user"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "events": [
+                        {
+                            "type": "permission.access_revoked",
+                            "source": "api",
+                            "objectType": "permission",
+                            "objectId": "edit-balance-sheet",
+                            "relation": "member",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "role.access_revoked",
+                            "source": "api",
+                            "objectType": "role",
+                            "objectId": "senior-accountant",
+                            "relation": "member",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "role.access_granted",
+                            "source": "api",
+                            "objectType": "role",
+                            "objectId": "senior-accountant",
+                            "relation": "member",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "permission.access_granted",
+                            "source": "api",
+                            "objectType": "permission",
+                            "objectId": "edit-balance-sheet",
+                            "relation": "member",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "report.access_revoked",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "editor",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        }
+                    ],
+                    "lastId": "{{ listAccessEventsFilterBySubjectType.lastId }}"
+                }
+            }
+        },
+        {
+            "name": "listAccessEventsFilterBySubjectTypeAndSubjectId",
+            "request": {
+                "method": "GET",
+                "url": "/v1/access-events?limit=2&subjectType=user&subjectId=user-c"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "events": [
+                        {
+                            "type": "role.access_revoked",
+                            "source": "api",
+                            "objectType": "role",
+                            "objectId": "admin-a",
+                            "relation": "member",
+                            "subjectType": "user",
+                            "subjectId": "user-c"
+                        },
+                        {
+                            "type": "report.access_denied",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-b",
+                            "relation": "owner",
+                            "subjectType": "user",
+                            "subjectId": "user-c"
+                        }
+                    ],
+                    "lastId": "{{ listAccessEventsFilterBySubjectTypeAndSubjectId.lastId }}"
+                }
+            }
+        },
+        {
+            "name": "listAccessEventsFilterBySubjectTypeAndSubjectRelation",
+            "request": {
+                "method": "GET",
+                "url": "/v1/access-events?limit=4&subjectType=role&subjectRelation=member"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "events": [
+                        {
+                            "type": "report.access_revoked",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "*",
+                            "relation": "owner",
+                            "subjectType": "role",
+                            "subjectId": "admin-a",
+                            "subjectRelation": "member"
+                        },
+                        {
+                            "type": "report.access_revoked",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "*",
+                            "relation": "owner",
+                            "subjectType": "role",
+                            "subjectId": "admin-b",
+                            "subjectRelation": "member"
+                        },
+                        {
+                            "type": "report.access_granted",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "*",
+                            "relation": "owner",
+                            "subjectType": "role",
+                            "subjectId": "admin-b",
+                            "subjectRelation": "member"
+                        },
+                        {
+                            "type": "report.access_granted",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "*",
+                            "relation": "owner",
+                            "subjectType": "role",
+                            "subjectId": "admin-a",
+                            "subjectRelation": "member"
+                        }
+                    ],
+                    "lastId": "{{ listAccessEventsFilterBySubjectTypeAndSubjectRelation.lastId }}"
+                }
+            }
+        }
+    ]
+}
