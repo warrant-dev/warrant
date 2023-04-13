@@ -9,7 +9,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -39,7 +38,22 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 	var db *sqlx.DB
 	var err error
 
+	// open new database connection without specifying the database name
 	db, err = sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/?parseTime=true", ds.Config.Username, ds.Config.Password, ds.Config.Hostname))
+	if err != nil {
+		return errors.Wrap(err, "Unable to establish connection to mysql. Shutting down server.")
+	}
+
+	// create database if it does not already exist
+	_, err = db.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", ds.Config.Database))
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("Unable to create database %s in mysql", ds.Config.Database))
+	}
+
+	db.Close()
+
+	// open new database connection, this time specifying the database name
+	db, err = sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.Database))
 	if err != nil {
 		return errors.Wrap(err, "Unable to establish connection to mysql. Shutting down server.")
 	}
@@ -55,17 +69,6 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 
 	if ds.Config.MaxOpenConnections != 0 {
 		db.SetMaxOpenConns(ds.Config.MaxOpenConnections)
-	}
-
-	// create database if it does not already exist
-	_, err = db.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", ds.Config.Database))
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create mysql database %s", ds.Config.Database))
-	}
-
-	_, err = db.ExecContext(ctx, fmt.Sprintf("USE %s", ds.Config.Database))
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to use mysql database %s", ds.Config.Database))
 	}
 
 	// map struct attributes to db column names
