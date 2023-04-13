@@ -71,9 +71,10 @@ type SQLiteConfig struct {
 }
 
 type EventstoreConfig struct {
-	MySQL    *MySQLConfig    `mapstructure:"mysql"`
-	Postgres *PostgresConfig `mapstructure:"postgres"`
-	SQLite   *SQLiteConfig   `mapstructure:"sqlite"`
+	MySQL             *MySQLConfig    `mapstructure:"mysql"`
+	Postgres          *PostgresConfig `mapstructure:"postgres"`
+	SQLite            *SQLiteConfig   `mapstructure:"sqlite"`
+	SynchronizeEvents bool            `mapstructure:"synchronizeEvents"`
 }
 
 type AuthConfig struct {
@@ -94,6 +95,7 @@ func NewConfig() Config {
 	viper.SetDefault("eventstore.mysql.migrationSource", DefaultMySQLEventstoreMigrationSource)
 	viper.SetDefault("eventstore.postgres.migrationSource", DefaultPostgresEventstoreMigrationSource)
 	viper.SetDefault("eventstore.sqlite.migrationSource", DefaultSQLiteEventstoreMigrationSource)
+	viper.SetDefault("eventstore.synchronizeEvents", false)
 	viper.SetDefault("authentication.userIdClaim", DefaultAuthenticationUserIdClaim)
 
 	// If config file exists, use it

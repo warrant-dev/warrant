@@ -182,7 +182,7 @@ func main() {
 		log.Fatal().Err(err).Msg("Could not initialize EventRepository")
 	}
 
-	eventSvc := event.NewService(svcEnv, eventRepository)
+	eventSvc := event.NewService(svcEnv, eventRepository, config.Eventstore.SynchronizeEvents)
 
 	// Init object type repo and service
 	objectTypeRepository, err := objecttype.NewRepository(svcEnv.DB())

@@ -63,7 +63,11 @@ func (svc TenantService) Create(ctx context.Context, tenantSpec TenantSpec) (*Te
 			return err
 		}
 
-		svc.eventSvc.TrackResourceCreated(txCtx, ResourceTypeTenant, newTenant.GetTenantId(), newTenant.ToTenantSpec())
+		err = svc.eventSvc.TrackResourceCreated(ctx, ResourceTypeTenant, newTenant.GetTenantId(), newTenant.ToTenantSpec())
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 
@@ -130,7 +134,11 @@ func (svc TenantService) UpdateByTenantId(ctx context.Context, tenantId string, 
 	}
 
 	updatedTenantSpec := updatedTenant.ToTenantSpec()
-	svc.eventSvc.TrackResourceUpdated(ctx, ResourceTypeTenant, updatedTenant.GetTenantId(), updatedTenantSpec)
+	err = svc.eventSvc.TrackResourceUpdated(ctx, ResourceTypeTenant, updatedTenant.GetTenantId(), updatedTenantSpec)
+	if err != nil {
+		return nil, err
+	}
+
 	return updatedTenantSpec, nil
 }
 
@@ -151,7 +159,11 @@ func (svc TenantService) DeleteByTenantId(ctx context.Context, tenantId string) 
 			return err
 		}
 
-		svc.eventSvc.TrackResourceDeleted(ctx, ResourceTypeTenant, tenantId, nil)
+		err = svc.eventSvc.TrackResourceDeleted(ctx, ResourceTypeTenant, tenantId, nil)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 

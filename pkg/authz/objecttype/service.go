@@ -50,7 +50,11 @@ func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTy
 		return nil, err
 	}
 
-	svc.eventSvc.TrackResourceCreated(ctx, ResourceTypeObjectType, newObjectType.GetTypeId(), newObjectTypeSpec)
+	err = svc.eventSvc.TrackResourceCreated(ctx, ResourceTypeObjectType, newObjectType.GetTypeId(), newObjectTypeSpec)
+	if err != nil {
+		return nil, err
+	}
+
 	return newObjectTypeSpec, nil
 }
 
@@ -119,7 +123,11 @@ func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, 
 		return nil, err
 	}
 
-	svc.eventSvc.TrackResourceUpdated(ctx, ResourceTypeObjectType, typeId, updatedObjectTypeSpec)
+	err = svc.eventSvc.TrackResourceUpdated(ctx, ResourceTypeObjectType, typeId, updatedObjectTypeSpec)
+	if err != nil {
+		return nil, err
+	}
+
 	return updatedObjectTypeSpec, nil
 }
 
@@ -134,6 +142,10 @@ func (svc ObjectTypeService) DeleteByTypeId(ctx context.Context, typeId string) 
 		return err
 	}
 
-	svc.eventSvc.TrackResourceDeleted(ctx, ResourceTypeObjectType, typeId, nil)
+	err = svc.eventSvc.TrackResourceDeleted(ctx, ResourceTypeObjectType, typeId, nil)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
