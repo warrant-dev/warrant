@@ -77,7 +77,7 @@ touch warrant.yaml
 # warrant.yaml
 port: 8000
 logLevel: 0
-enableAccessLog: "true"
+enableAccessLog: true
 apiKey: replace_with_api_key
 datastore:
   postgres:
