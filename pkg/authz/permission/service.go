@@ -67,12 +67,7 @@ func (svc PermissionService) Create(ctx context.Context, permissionSpec Permissi
 }
 
 func (svc PermissionService) GetByPermissionId(ctx context.Context, permissionId string) (*PermissionSpec, error) {
-	permissionRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
-
-	permission, err := permissionRepository.GetByPermissionId(ctx, permissionId)
+	permission, err := svc.repo.GetByPermissionId(ctx, permissionId)
 	if err != nil {
 		return nil, err
 	}
@@ -82,12 +77,8 @@ func (svc PermissionService) GetByPermissionId(ctx context.Context, permissionId
 
 func (svc PermissionService) List(ctx context.Context, listParams middleware.ListParams) ([]PermissionSpec, error) {
 	permissionSpecs := make([]PermissionSpec, 0)
-	permissionRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return permissionSpecs, err
-	}
 
-	permissions, err := permissionRepository.List(ctx, listParams)
+	permissions, err := svc.repo.List(ctx, listParams)
 	if err != nil {
 		return permissionSpecs, nil
 	}
@@ -100,24 +91,19 @@ func (svc PermissionService) List(ctx context.Context, listParams middleware.Lis
 }
 
 func (svc PermissionService) UpdateByPermissionId(ctx context.Context, permissionId string, permissionSpec UpdatePermissionSpec) (*PermissionSpec, error) {
-	permissionRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
-
-	currentPermission, err := permissionRepository.GetByPermissionId(ctx, permissionId)
+	currentPermission, err := svc.repo.GetByPermissionId(ctx, permissionId)
 	if err != nil {
 		return nil, err
 	}
 
 	currentPermission.SetName(permissionSpec.Name)
 	currentPermission.SetDescription(permissionSpec.Description)
-	err = permissionRepository.UpdateByPermissionId(ctx, permissionId, currentPermission)
+	err = svc.repo.UpdateByPermissionId(ctx, permissionId, currentPermission)
 	if err != nil {
 		return nil, err
 	}
 
-	updatedPermission, err := permissionRepository.GetByPermissionId(ctx, permissionId)
+	updatedPermission, err := svc.repo.GetByPermissionId(ctx, permissionId)
 	if err != nil {
 		return nil, err
 	}
@@ -133,12 +119,7 @@ func (svc PermissionService) UpdateByPermissionId(ctx context.Context, permissio
 
 func (svc PermissionService) DeleteByPermissionId(ctx context.Context, permissionId string) error {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		permissionRepository, err := NewRepository(svc.Env().DB())
-		if err != nil {
-			return err
-		}
-
-		err = permissionRepository.DeleteByPermissionId(txCtx, permissionId)
+		err := svc.repo.DeleteByPermissionId(txCtx, permissionId)
 		if err != nil {
 			return err
 		}

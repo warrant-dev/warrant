@@ -79,12 +79,7 @@ func (svc UserService) Create(ctx context.Context, userSpec UserSpec) (*UserSpec
 }
 
 func (svc UserService) GetByUserId(ctx context.Context, userId string) (*UserSpec, error) {
-	userRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
-
-	user, err := userRepository.GetByUserId(ctx, userId)
+	user, err := svc.repo.GetByUserId(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -94,12 +89,8 @@ func (svc UserService) GetByUserId(ctx context.Context, userId string) (*UserSpe
 
 func (svc UserService) List(ctx context.Context, listParams middleware.ListParams) ([]UserSpec, error) {
 	userSpecs := make([]UserSpec, 0)
-	userRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
 
-	users, err := userRepository.List(ctx, listParams)
+	users, err := svc.repo.List(ctx, listParams)
 	if err != nil {
 		return userSpecs, err
 	}
@@ -139,12 +130,7 @@ func (svc UserService) UpdateByUserId(ctx context.Context, userId string, userSp
 
 func (svc UserService) DeleteByUserId(ctx context.Context, userId string) error {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		userRepository, err := NewRepository(svc.Env().DB())
-		if err != nil {
-			return err
-		}
-
-		err = userRepository.DeleteByUserId(txCtx, userId)
+		err := svc.repo.DeleteByUserId(txCtx, userId)
 		if err != nil {
 			return err
 		}

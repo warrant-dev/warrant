@@ -67,12 +67,7 @@ func (svc RoleService) Create(ctx context.Context, roleSpec RoleSpec) (*RoleSpec
 }
 
 func (svc RoleService) GetByRoleId(ctx context.Context, roleId string) (*RoleSpec, error) {
-	roleRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
-
-	role, err := roleRepository.GetByRoleId(ctx, roleId)
+	role, err := svc.repo.GetByRoleId(ctx, roleId)
 	if err != nil {
 		return nil, err
 	}
@@ -82,12 +77,8 @@ func (svc RoleService) GetByRoleId(ctx context.Context, roleId string) (*RoleSpe
 
 func (svc RoleService) List(ctx context.Context, listParams middleware.ListParams) ([]RoleSpec, error) {
 	roleSpecs := make([]RoleSpec, 0)
-	roleRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return roleSpecs, err
-	}
 
-	roles, err := roleRepository.List(ctx, listParams)
+	roles, err := svc.repo.List(ctx, listParams)
 	if err != nil {
 		return roleSpecs, nil
 	}
@@ -100,24 +91,19 @@ func (svc RoleService) List(ctx context.Context, listParams middleware.ListParam
 }
 
 func (svc RoleService) UpdateByRoleId(ctx context.Context, roleId string, roleSpec UpdateRoleSpec) (*RoleSpec, error) {
-	roleRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
-
-	currentRole, err := roleRepository.GetByRoleId(ctx, roleId)
+	currentRole, err := svc.repo.GetByRoleId(ctx, roleId)
 	if err != nil {
 		return nil, err
 	}
 
 	currentRole.SetName(roleSpec.Name)
 	currentRole.SetDescription(roleSpec.Description)
-	err = roleRepository.UpdateByRoleId(ctx, roleId, currentRole)
+	err = svc.repo.UpdateByRoleId(ctx, roleId, currentRole)
 	if err != nil {
 		return nil, err
 	}
 
-	updatedRole, err := roleRepository.GetByRoleId(ctx, roleId)
+	updatedRole, err := svc.repo.GetByRoleId(ctx, roleId)
 	if err != nil {
 		return nil, err
 	}
@@ -133,12 +119,7 @@ func (svc RoleService) UpdateByRoleId(ctx context.Context, roleId string, roleSp
 
 func (svc RoleService) DeleteByRoleId(ctx context.Context, roleId string) error {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		roleRepository, err := NewRepository(svc.Env().DB())
-		if err != nil {
-			return err
-		}
-
-		err = roleRepository.DeleteByRoleId(txCtx, roleId)
+		err := svc.repo.DeleteByRoleId(txCtx, roleId)
 		if err != nil {
 			return err
 		}

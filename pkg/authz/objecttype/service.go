@@ -59,12 +59,7 @@ func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTy
 }
 
 func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*ObjectTypeSpec, error) {
-	objectTypeRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
-
-	objectType, err := objectTypeRepository.GetByTypeId(ctx, typeId)
+	objectType, err := svc.repo.GetByTypeId(ctx, typeId)
 	if err != nil {
 		return nil, err
 	}
@@ -73,12 +68,7 @@ func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*O
 }
 
 func (svc ObjectTypeService) List(ctx context.Context, listParams middleware.ListParams) ([]ObjectTypeSpec, error) {
-	objectTypeRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
-
-	objectTypes, err := objectTypeRepository.List(ctx, listParams)
+	objectTypes, err := svc.repo.List(ctx, listParams)
 	if err != nil {
 		return nil, err
 	}
@@ -97,12 +87,7 @@ func (svc ObjectTypeService) List(ctx context.Context, listParams middleware.Lis
 }
 
 func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error) {
-	objectTypeRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
-
-	currentObjectType, err := objectTypeRepository.GetByTypeId(ctx, typeId)
+	currentObjectType, err := svc.repo.GetByTypeId(ctx, typeId)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +98,7 @@ func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, 
 	}
 
 	currentObjectType.SetDefinition(updateTo.Definition)
-	err = objectTypeRepository.UpdateByTypeId(ctx, typeId, currentObjectType)
+	err = svc.repo.UpdateByTypeId(ctx, typeId, currentObjectType)
 	if err != nil {
 		return nil, err
 	}
@@ -132,12 +117,7 @@ func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, 
 }
 
 func (svc ObjectTypeService) DeleteByTypeId(ctx context.Context, typeId string) error {
-	objectTypeRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return err
-	}
-
-	err = objectTypeRepository.DeleteByTypeId(ctx, typeId)
+	err := svc.repo.DeleteByTypeId(ctx, typeId)
 	if err != nil {
 		return err
 	}

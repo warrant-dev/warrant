@@ -142,12 +142,7 @@ func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) e
 			return err
 		}
 
-		contextRepository, err := wntContext.NewRepository(svc.Env().DB())
-		if err != nil {
-			return err
-		}
-
-		err = contextRepository.DeleteAllByWarrantId(txCtx, warrant.GetID())
+		err = svc.ctxSvc.DeleteAllByWarrantId(txCtx, warrant.GetID())
 		if err != nil {
 			return err
 		}
