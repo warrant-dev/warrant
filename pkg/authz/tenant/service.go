@@ -79,12 +79,7 @@ func (svc TenantService) Create(ctx context.Context, tenantSpec TenantSpec) (*Te
 }
 
 func (svc TenantService) GetByTenantId(ctx context.Context, tenantId string) (*TenantSpec, error) {
-	tenantRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
-
-	tenant, err := tenantRepository.GetByTenantId(ctx, tenantId)
+	tenant, err := svc.repo.GetByTenantId(ctx, tenantId)
 	if err != nil {
 		return nil, err
 	}
@@ -94,12 +89,8 @@ func (svc TenantService) GetByTenantId(ctx context.Context, tenantId string) (*T
 
 func (svc TenantService) List(ctx context.Context, listParams middleware.ListParams) ([]TenantSpec, error) {
 	tenantSpecs := make([]TenantSpec, 0)
-	tenantRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return tenantSpecs, err
-	}
 
-	tenants, err := tenantRepository.List(ctx, listParams)
+	tenants, err := svc.repo.List(ctx, listParams)
 	if err != nil {
 		return tenantSpecs, nil
 	}
@@ -112,23 +103,18 @@ func (svc TenantService) List(ctx context.Context, listParams middleware.ListPar
 }
 
 func (svc TenantService) UpdateByTenantId(ctx context.Context, tenantId string, tenantSpec UpdateTenantSpec) (*TenantSpec, error) {
-	tenantRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
-
-	currentTenant, err := tenantRepository.GetByTenantId(ctx, tenantId)
+	currentTenant, err := svc.repo.GetByTenantId(ctx, tenantId)
 	if err != nil {
 		return nil, err
 	}
 
 	currentTenant.SetName(tenantSpec.Name)
-	err = tenantRepository.UpdateByTenantId(ctx, tenantId, currentTenant)
+	err = svc.repo.UpdateByTenantId(ctx, tenantId, currentTenant)
 	if err != nil {
 		return nil, err
 	}
 
-	updatedTenant, err := tenantRepository.GetByTenantId(ctx, tenantId)
+	updatedTenant, err := svc.repo.GetByTenantId(ctx, tenantId)
 	if err != nil {
 		return nil, err
 	}
@@ -144,12 +130,7 @@ func (svc TenantService) UpdateByTenantId(ctx context.Context, tenantId string, 
 
 func (svc TenantService) DeleteByTenantId(ctx context.Context, tenantId string) error {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		tenantRepository, err := NewRepository(svc.Env().DB())
-		if err != nil {
-			return err
-		}
-
-		err = tenantRepository.DeleteByTenantId(txCtx, tenantId)
+		err := svc.repo.DeleteByTenantId(txCtx, tenantId)
 		if err != nil {
 			return err
 		}

@@ -67,12 +67,7 @@ func (svc PricingTierService) Create(ctx context.Context, pricingTierSpec Pricin
 }
 
 func (svc PricingTierService) GetByPricingTierId(ctx context.Context, pricingTierId string) (*PricingTierSpec, error) {
-	pricingTierRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
-
-	pricingTier, err := pricingTierRepository.GetByPricingTierId(ctx, pricingTierId)
+	pricingTier, err := svc.repo.GetByPricingTierId(ctx, pricingTierId)
 	if err != nil {
 		return nil, err
 	}
@@ -82,12 +77,8 @@ func (svc PricingTierService) GetByPricingTierId(ctx context.Context, pricingTie
 
 func (svc PricingTierService) List(ctx context.Context, listParams middleware.ListParams) ([]PricingTierSpec, error) {
 	pricingTierSpecs := make([]PricingTierSpec, 0)
-	pricingTierRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return pricingTierSpecs, err
-	}
 
-	pricingTiers, err := pricingTierRepository.List(ctx, listParams)
+	pricingTiers, err := svc.repo.List(ctx, listParams)
 	if err != nil {
 		return pricingTierSpecs, nil
 	}
@@ -100,24 +91,19 @@ func (svc PricingTierService) List(ctx context.Context, listParams middleware.Li
 }
 
 func (svc PricingTierService) UpdateByPricingTierId(ctx context.Context, pricingTierId string, pricingTierSpec UpdatePricingTierSpec) (*PricingTierSpec, error) {
-	pricingTierRepository, err := NewRepository(svc.Env().DB())
-	if err != nil {
-		return nil, err
-	}
-
-	currentPricingTier, err := pricingTierRepository.GetByPricingTierId(ctx, pricingTierId)
+	currentPricingTier, err := svc.repo.GetByPricingTierId(ctx, pricingTierId)
 	if err != nil {
 		return nil, err
 	}
 
 	currentPricingTier.SetName(pricingTierSpec.Name)
 	currentPricingTier.SetDescription(pricingTierSpec.Description)
-	err = pricingTierRepository.UpdateByPricingTierId(ctx, pricingTierId, currentPricingTier)
+	err = svc.repo.UpdateByPricingTierId(ctx, pricingTierId, currentPricingTier)
 	if err != nil {
 		return nil, err
 	}
 
-	updatedPricingTier, err := pricingTierRepository.GetByPricingTierId(ctx, pricingTierId)
+	updatedPricingTier, err := svc.repo.GetByPricingTierId(ctx, pricingTierId)
 	if err != nil {
 		return nil, err
 	}
@@ -133,12 +119,7 @@ func (svc PricingTierService) UpdateByPricingTierId(ctx context.Context, pricing
 
 func (svc PricingTierService) DeleteByPricingTierId(ctx context.Context, pricingTierId string) error {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		pricingTierRepository, err := NewRepository(svc.Env().DB())
-		if err != nil {
-			return err
-		}
-
-		err = pricingTierRepository.DeleteByPricingTierId(txCtx, pricingTierId)
+		err := svc.repo.DeleteByPricingTierId(txCtx, pricingTierId)
 		if err != nil {
 			return err
 		}
