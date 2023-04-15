@@ -79,7 +79,7 @@ func (svc UserService) Create(ctx context.Context, userSpec UserSpec) (*UserSpec
 }
 
 func (svc UserService) GetByUserId(ctx context.Context, userId string) (*UserSpec, error) {
-	user, err := svc.repo.GetByUserId(ctx, userId)
+	user, err := svc.Repository.GetByUserId(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ func (svc UserService) GetByUserId(ctx context.Context, userId string) (*UserSpe
 func (svc UserService) List(ctx context.Context, listParams middleware.ListParams) ([]UserSpec, error) {
 	userSpecs := make([]UserSpec, 0)
 
-	users, err := svc.repo.List(ctx, listParams)
+	users, err := svc.Repository.List(ctx, listParams)
 	if err != nil {
 		return userSpecs, err
 	}
@@ -130,7 +130,7 @@ func (svc UserService) UpdateByUserId(ctx context.Context, userId string, userSp
 
 func (svc UserService) DeleteByUserId(ctx context.Context, userId string) error {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		err := svc.repo.DeleteByUserId(txCtx, userId)
+		err := svc.Repository.DeleteByUserId(txCtx, userId)
 		if err != nil {
 			return err
 		}
