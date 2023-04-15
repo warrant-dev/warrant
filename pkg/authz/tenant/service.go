@@ -16,17 +16,17 @@ const ResourceTypeTenant = "tenant"
 
 type TenantService struct {
 	service.BaseService
-	repo      TenantRepository
-	eventSvc  event.EventService
-	objectSvc object.ObjectService
+	Repository TenantRepository
+	EventSvc   event.EventService
+	ObjectSvc  object.ObjectService
 }
 
-func NewService(env service.Env, repo TenantRepository, eventSvc event.EventService, objectSvc object.ObjectService) TenantService {
+func NewService(env service.Env, repository TenantRepository, eventSvc event.EventService, objectSvc object.ObjectService) TenantService {
 	return TenantService{
 		BaseService: service.NewBaseService(env),
-		repo:        repo,
-		eventSvc:    eventSvc,
-		objectSvc:   objectSvc,
+		Repository:  repository,
+		EventSvc:    eventSvc,
+		ObjectSvc:   objectSvc,
 	}
 }
 
@@ -38,7 +38,7 @@ func (svc TenantService) Create(ctx context.Context, tenantSpec TenantSpec) (*Te
 
 	var newTenant Model
 	err = svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		createdObject, err := svc.objectSvc.Create(txCtx, *tenantSpec.ToObjectSpec())
+		createdObject, err := svc.ObjectSvc.Create(txCtx, *tenantSpec.ToObjectSpec())
 		if err != nil {
 			switch err.(type) {
 			case *service.DuplicateRecordError:
@@ -48,22 +48,22 @@ func (svc TenantService) Create(ctx context.Context, tenantSpec TenantSpec) (*Te
 			}
 		}
 
-		_, err = svc.repo.GetByTenantId(txCtx, tenantSpec.TenantId)
+		_, err = svc.Repository.GetByTenantId(txCtx, tenantSpec.TenantId)
 		if err == nil {
 			return service.NewDuplicateRecordError("Tenant", tenantSpec.TenantId, "A tenant with the given tenantId already exists")
 		}
 
-		newTenantId, err := svc.repo.Create(txCtx, tenantSpec.ToTenant(createdObject.ID))
+		newTenantId, err := svc.Repository.Create(txCtx, tenantSpec.ToTenant(createdObject.ID))
 		if err != nil {
 			return err
 		}
 
-		newTenant, err = svc.repo.GetById(txCtx, newTenantId)
+		newTenant, err = svc.Repository.GetById(txCtx, newTenantId)
 		if err != nil {
 			return err
 		}
 
-		err = svc.eventSvc.TrackResourceCreated(ctx, ResourceTypeTenant, newTenant.GetTenantId(), newTenant.ToTenantSpec())
+		err = svc.EventSvc.TrackResourceCreated(ctx, ResourceTypeTenant, newTenant.GetTenantId(), newTenant.ToTenantSpec())
 		if err != nil {
 			return err
 		}
@@ -79,7 +79,7 @@ func (svc TenantService) Create(ctx context.Context, tenantSpec TenantSpec) (*Te
 }
 
 func (svc TenantService) GetByTenantId(ctx context.Context, tenantId string) (*TenantSpec, error) {
-	tenant, err := svc.repo.GetByTenantId(ctx, tenantId)
+	tenant, err := svc.Repository.GetByTenantId(ctx, tenantId)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ func (svc TenantService) GetByTenantId(ctx context.Context, tenantId string) (*T
 func (svc TenantService) List(ctx context.Context, listParams middleware.ListParams) ([]TenantSpec, error) {
 	tenantSpecs := make([]TenantSpec, 0)
 
-	tenants, err := svc.repo.List(ctx, listParams)
+	tenants, err := svc.Repository.List(ctx, listParams)
 	if err != nil {
 		return tenantSpecs, nil
 	}
@@ -103,24 +103,24 @@ func (svc TenantService) List(ctx context.Context, listParams middleware.ListPar
 }
 
 func (svc TenantService) UpdateByTenantId(ctx context.Context, tenantId string, tenantSpec UpdateTenantSpec) (*TenantSpec, error) {
-	currentTenant, err := svc.repo.GetByTenantId(ctx, tenantId)
+	currentTenant, err := svc.Repository.GetByTenantId(ctx, tenantId)
 	if err != nil {
 		return nil, err
 	}
 
 	currentTenant.SetName(tenantSpec.Name)
-	err = svc.repo.UpdateByTenantId(ctx, tenantId, currentTenant)
+	err = svc.Repository.UpdateByTenantId(ctx, tenantId, currentTenant)
 	if err != nil {
 		return nil, err
 	}
 
-	updatedTenant, err := svc.repo.GetByTenantId(ctx, tenantId)
+	updatedTenant, err := svc.Repository.GetByTenantId(ctx, tenantId)
 	if err != nil {
 		return nil, err
 	}
 
 	updatedTenantSpec := updatedTenant.ToTenantSpec()
-	err = svc.eventSvc.TrackResourceUpdated(ctx, ResourceTypeTenant, updatedTenant.GetTenantId(), updatedTenantSpec)
+	err = svc.EventSvc.TrackResourceUpdated(ctx, ResourceTypeTenant, updatedTenant.GetTenantId(), updatedTenantSpec)
 	if err != nil {
 		return nil, err
 	}
@@ -130,17 +130,17 @@ func (svc TenantService) UpdateByTenantId(ctx context.Context, tenantId string, 
 
 func (svc TenantService) DeleteByTenantId(ctx context.Context, tenantId string) error {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		err := svc.repo.DeleteByTenantId(txCtx, tenantId)
+		err := svc.Repository.DeleteByTenantId(txCtx, tenantId)
 		if err != nil {
 			return err
 		}
 
-		err = svc.objectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypeTenant, tenantId)
+		err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypeTenant, tenantId)
 		if err != nil {
 			return err
 		}
 
-		err = svc.eventSvc.TrackResourceDeleted(ctx, ResourceTypeTenant, tenantId, nil)
+		err = svc.EventSvc.TrackResourceDeleted(ctx, ResourceTypeTenant, tenantId, nil)
 		if err != nil {
 			return err
 		}

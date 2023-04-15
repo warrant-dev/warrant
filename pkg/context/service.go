@@ -8,18 +8,18 @@ import (
 
 type ContextService struct {
 	service.BaseService
-	repo ContextRepository
+	Repository ContextRepository
 }
 
-func NewService(env service.Env, repo ContextRepository) ContextService {
+func NewService(env service.Env, repository ContextRepository) ContextService {
 	return ContextService{
 		BaseService: service.NewBaseService(env),
-		repo:        repo,
+		Repository:  repository,
 	}
 }
 
 func (svc ContextService) CreateAll(ctx context.Context, warrantId int64, spec ContextSetSpec) (ContextSetSpec, error) {
-	contexts, err := svc.repo.CreateAll(ctx, spec.ToSlice(warrantId))
+	contexts, err := svc.Repository.CreateAll(ctx, spec.ToSlice(warrantId))
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (svc ContextService) CreateAll(ctx context.Context, warrantId int64, spec C
 }
 
 func (svc ContextService) ListByWarrantId(ctx context.Context, warrantIds []int64) (map[int64]ContextSetSpec, error) {
-	contexts, err := svc.repo.ListByWarrantId(ctx, warrantIds)
+	contexts, err := svc.Repository.ListByWarrantId(ctx, warrantIds)
 	if err != nil {
 		return nil, err
 	}
@@ -47,5 +47,5 @@ func (svc ContextService) ListByWarrantId(ctx context.Context, warrantIds []int6
 }
 
 func (svc ContextService) DeleteAllByWarrantId(ctx context.Context, warrantId int64) error {
-	return svc.repo.DeleteAllByWarrantId(ctx, warrantId)
+	return svc.Repository.DeleteAllByWarrantId(ctx, warrantId)
 }

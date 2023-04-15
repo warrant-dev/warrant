@@ -12,20 +12,20 @@ const ResourceTypeObjectType = "object-type"
 
 type ObjectTypeService struct {
 	service.BaseService
-	repo     ObjectTypeRepository
-	eventSvc event.EventService
+	Repository ObjectTypeRepository
+	EventSvc   event.EventService
 }
 
-func NewService(env service.Env, repo ObjectTypeRepository, eventSvc event.EventService) ObjectTypeService {
+func NewService(env service.Env, repository ObjectTypeRepository, eventSvc event.EventService) ObjectTypeService {
 	return ObjectTypeService{
 		BaseService: service.NewBaseService(env),
-		repo:        repo,
-		eventSvc:    eventSvc,
+		Repository:  repository,
+		EventSvc:    eventSvc,
 	}
 }
 
 func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error) {
-	_, err := svc.repo.GetByTypeId(ctx, objectTypeSpec.Type)
+	_, err := svc.Repository.GetByTypeId(ctx, objectTypeSpec.Type)
 	if err == nil {
 		return nil, service.NewDuplicateRecordError("ObjectType", objectTypeSpec.Type, "An objectType with the given type already exists")
 	}
@@ -35,12 +35,12 @@ func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTy
 		return nil, err
 	}
 
-	newObjectTypeId, err := svc.repo.Create(ctx, objectType)
+	newObjectTypeId, err := svc.Repository.Create(ctx, objectType)
 	if err != nil {
 		return nil, err
 	}
 
-	newObjectType, err := svc.repo.GetById(ctx, newObjectTypeId)
+	newObjectType, err := svc.Repository.GetById(ctx, newObjectTypeId)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTy
 		return nil, err
 	}
 
-	err = svc.eventSvc.TrackResourceCreated(ctx, ResourceTypeObjectType, newObjectType.GetTypeId(), newObjectTypeSpec)
+	err = svc.EventSvc.TrackResourceCreated(ctx, ResourceTypeObjectType, newObjectType.GetTypeId(), newObjectTypeSpec)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTy
 }
 
 func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*ObjectTypeSpec, error) {
-	objectType, err := svc.repo.GetByTypeId(ctx, typeId)
+	objectType, err := svc.Repository.GetByTypeId(ctx, typeId)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +68,7 @@ func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*O
 }
 
 func (svc ObjectTypeService) List(ctx context.Context, listParams middleware.ListParams) ([]ObjectTypeSpec, error) {
-	objectTypes, err := svc.repo.List(ctx, listParams)
+	objectTypes, err := svc.Repository.List(ctx, listParams)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (svc ObjectTypeService) List(ctx context.Context, listParams middleware.Lis
 }
 
 func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error) {
-	currentObjectType, err := svc.repo.GetByTypeId(ctx, typeId)
+	currentObjectType, err := svc.Repository.GetByTypeId(ctx, typeId)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, 
 	}
 
 	currentObjectType.SetDefinition(updateTo.Definition)
-	err = svc.repo.UpdateByTypeId(ctx, typeId, currentObjectType)
+	err = svc.Repository.UpdateByTypeId(ctx, typeId, currentObjectType)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, 
 		return nil, err
 	}
 
-	err = svc.eventSvc.TrackResourceUpdated(ctx, ResourceTypeObjectType, typeId, updatedObjectTypeSpec)
+	err = svc.EventSvc.TrackResourceUpdated(ctx, ResourceTypeObjectType, typeId, updatedObjectTypeSpec)
 	if err != nil {
 		return nil, err
 	}
@@ -117,12 +117,12 @@ func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, 
 }
 
 func (svc ObjectTypeService) DeleteByTypeId(ctx context.Context, typeId string) error {
-	err := svc.repo.DeleteByTypeId(ctx, typeId)
+	err := svc.Repository.DeleteByTypeId(ctx, typeId)
 	if err != nil {
 		return err
 	}
 
-	err = svc.eventSvc.TrackResourceDeleted(ctx, ResourceTypeObjectType, typeId, nil)
+	err = svc.EventSvc.TrackResourceDeleted(ctx, ResourceTypeObjectType, typeId, nil)
 	if err != nil {
 		return err
 	}
