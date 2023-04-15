@@ -63,7 +63,7 @@ func (svc ObjectService) DeleteByObjectTypeAndId(ctx context.Context, objectType
 	return err
 }
 
-func (svc ObjectService) GetByObjectId(ctx context.Context, objectType string, objectId string) (*ObjectSpec, error) {
+func (svc ObjectService) GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (*ObjectSpec, error) {
 	object, err := svc.Repository.GetByObjectTypeAndId(ctx, objectType, objectId)
 	if err != nil {
 		return nil, err
