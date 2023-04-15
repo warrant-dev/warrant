@@ -15,29 +15,29 @@ import (
 
 type CheckService struct {
 	service.BaseService
-	warrantRepo   warrant.WarrantRepository
-	eventSvc      event.EventService
-	ctxSvc        wntContext.ContextService
-	objectTypeSvc objecttype.ObjectTypeService
+	WarrantRepository warrant.WarrantRepository
+	EventSvc          event.EventService
+	CtxSvc            wntContext.ContextService
+	ObjectTypeSvc     objecttype.ObjectTypeService
 }
 
 func NewService(env service.Env, warrantRepo warrant.WarrantRepository, ctxSvc wntContext.ContextService, eventSvc event.EventService, objectTypeSvc objecttype.ObjectTypeService) CheckService {
 	return CheckService{
-		BaseService:   service.NewBaseService(env),
-		warrantRepo:   warrantRepo,
-		ctxSvc:        ctxSvc,
-		eventSvc:      eventSvc,
-		objectTypeSvc: objectTypeSvc,
+		BaseService:       service.NewBaseService(env),
+		WarrantRepository: warrantRepo,
+		CtxSvc:            ctxSvc,
+		EventSvc:          eventSvc,
+		ObjectTypeSvc:     objectTypeSvc,
 	}
 }
 
 func (svc CheckService) getWithContextMatch(ctx context.Context, spec warrant.WarrantSpec) (*warrant.WarrantSpec, error) {
-	warrant, err := svc.warrantRepo.GetWithContextMatch(ctx, spec.ObjectType, spec.ObjectId, spec.Relation, spec.Subject.ObjectType, spec.Subject.ObjectId, spec.Subject.Relation, spec.Context.ToHash())
+	warrant, err := svc.WarrantRepository.GetWithContextMatch(ctx, spec.ObjectType, spec.ObjectId, spec.Relation, spec.Subject.ObjectType, spec.Subject.ObjectId, spec.Subject.Relation, spec.Context.ToHash())
 	if err != nil || warrant == nil {
 		return nil, err
 	}
 
-	contextSetSpec, err := svc.ctxSvc.ListByWarrantId(ctx, []int64{warrant.GetID()})
+	contextSetSpec, err := svc.CtxSvc.ListByWarrantId(ctx, []int64{warrant.GetID()})
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType stri
 	log.Debug().Msgf("Getting matching subjects for %s:%s#%s@%s:___%s", objectType, objectId, relation, subjectType, wntCtx)
 
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
-	objectTypeSpec, err := svc.objectTypeSvc.GetByTypeId(ctx, objectType)
+	objectTypeSpec, err := svc.ObjectTypeSvc.GetByTypeId(ctx, objectType)
 	if err != nil {
 		return warrantSpecs, err
 	}
@@ -60,7 +60,7 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType stri
 		return warrantSpecs, nil
 	}
 
-	warrants, err := svc.warrantRepo.GetAllMatchingObjectAndRelation(
+	warrants, err := svc.WarrantRepository.GetAllMatchingObjectAndRelation(
 		ctx,
 		objectType,
 		objectId,
@@ -81,7 +81,7 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType stri
 		return warrantSpecs, err
 	}
 
-	warrants, err = svc.warrantRepo.GetAllMatchingWildcard(
+	warrants, err = svc.WarrantRepository.GetAllMatchingWildcard(
 		ctx,
 		objectType,
 		objectId,
@@ -357,7 +357,7 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 	}
 
 	// Attempt to match against defined rules for target relation
-	objectTypeSpec, err := svc.objectTypeSvc.GetByTypeId(ctx, warrantCheck.ObjectType)
+	objectTypeSpec, err := svc.ObjectTypeSvc.GetByTypeId(ctx, warrantCheck.ObjectType)
 	if err != nil {
 		return false, decisionPath, err
 	}
@@ -369,7 +369,7 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 	}
 
 	if match {
-		err := svc.eventSvc.TrackAccessAllowedEvent(ctx, warrantCheck.ObjectType, warrantCheck.ObjectId, warrantCheck.Relation, warrantCheck.Subject.ObjectType, warrantCheck.Subject.ObjectId, warrantCheck.Subject.Relation, warrantCheck.Context)
+		err := svc.EventSvc.TrackAccessAllowedEvent(ctx, warrantCheck.ObjectType, warrantCheck.ObjectId, warrantCheck.Relation, warrantCheck.Subject.ObjectType, warrantCheck.Subject.ObjectId, warrantCheck.Subject.Relation, warrantCheck.Context)
 		if err != nil {
 			return false, decisionPath, err
 		}
@@ -377,7 +377,7 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 		return true, decisionPath, nil
 	}
 
-	err = svc.eventSvc.TrackAccessDeniedEvent(ctx, warrantCheck.ObjectType, warrantCheck.ObjectId, warrantCheck.Relation, warrantCheck.Subject.ObjectType, warrantCheck.Subject.ObjectId, warrantCheck.Subject.Relation, warrantCheck.Context)
+	err = svc.EventSvc.TrackAccessDeniedEvent(ctx, warrantCheck.ObjectType, warrantCheck.ObjectId, warrantCheck.Relation, warrantCheck.Subject.ObjectType, warrantCheck.Subject.ObjectId, warrantCheck.Subject.Relation, warrantCheck.Context)
 	if err != nil {
 		return false, decisionPath, err
 	}

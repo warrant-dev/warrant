@@ -22,14 +22,14 @@ const (
 
 type EventService struct {
 	service.BaseService
-	repo              EventRepository
+	Repository        EventRepository
 	synchronizeEvents bool
 }
 
-func NewService(env service.Env, repo EventRepository, synchronizeEvents bool) EventService {
+func NewService(env service.Env, repository EventRepository, synchronizeEvents bool) EventService {
 	return EventService{
 		BaseService:       service.NewBaseService(env),
-		repo:              repo,
+		Repository:        repository,
 		synchronizeEvents: synchronizeEvents,
 	}
 }
@@ -72,7 +72,7 @@ func (svc EventService) TrackResourceEvent(ctx context.Context, resourceEventSpe
 				log.Err(err).Msgf("Error tracking resource event %s", resourceEventSpec.Type)
 			}
 
-			err = svc.repo.TrackResourceEvent(context.Background(), *resourceEvent)
+			err = svc.Repository.TrackResourceEvent(context.Background(), *resourceEvent)
 			if err != nil {
 				log.Err(err).Msgf("Error tracking resource event %s", resourceEvent.Type)
 			}
@@ -85,7 +85,7 @@ func (svc EventService) TrackResourceEvent(ctx context.Context, resourceEventSpe
 		return err
 	}
 
-	return svc.repo.TrackResourceEvent(ctx, *resourceEvent)
+	return svc.Repository.TrackResourceEvent(ctx, *resourceEvent)
 }
 
 func (svc EventService) TrackResourceEvents(ctx context.Context, resourceEventSpecs []CreateResourceEventSpec) error {
@@ -101,7 +101,7 @@ func (svc EventService) TrackResourceEvents(ctx context.Context, resourceEventSp
 				resourceEvents = append(resourceEvents, *resourceEvent)
 			}
 
-			err := svc.repo.TrackResourceEvents(context.Background(), resourceEvents)
+			err := svc.Repository.TrackResourceEvents(context.Background(), resourceEvents)
 			if err != nil {
 				log.Err(err).Msgf("Error tracking resource events")
 			}
@@ -119,12 +119,12 @@ func (svc EventService) TrackResourceEvents(ctx context.Context, resourceEventSp
 		resourceEvents = append(resourceEvents, *resourceEvent)
 	}
 
-	return svc.repo.TrackResourceEvents(ctx, resourceEvents)
+	return svc.Repository.TrackResourceEvents(ctx, resourceEvents)
 }
 
 func (svc EventService) ListResourceEvents(ctx context.Context, listParams ListResourceEventParams) ([]ResourceEventSpec, string, error) {
 	resourceEventSpecs := make([]ResourceEventSpec, 0)
-	resourceEvents, lastId, err := svc.repo.ListResourceEvents(ctx, listParams)
+	resourceEvents, lastId, err := svc.Repository.ListResourceEvents(ctx, listParams)
 	if err != nil {
 		return resourceEventSpecs, lastId, err
 	}
@@ -205,7 +205,7 @@ func (svc EventService) TrackAccessEvent(ctx context.Context, accessEventSpec Cr
 				log.Err(err).Msgf("Error tracking access event %s", accessEvent.Type)
 			}
 
-			err = svc.repo.TrackAccessEvent(context.Background(), *accessEvent)
+			err = svc.Repository.TrackAccessEvent(context.Background(), *accessEvent)
 			if err != nil {
 				log.Err(err).Msgf("Error tracking access event %s", accessEvent.Type)
 			}
@@ -218,7 +218,7 @@ func (svc EventService) TrackAccessEvent(ctx context.Context, accessEventSpec Cr
 		return err
 	}
 
-	return svc.repo.TrackAccessEvent(ctx, *accessEvent)
+	return svc.Repository.TrackAccessEvent(ctx, *accessEvent)
 }
 
 func (svc EventService) TrackAccessEvents(ctx context.Context, accessEventSpecs []CreateAccessEventSpec) error {
@@ -234,7 +234,7 @@ func (svc EventService) TrackAccessEvents(ctx context.Context, accessEventSpecs 
 				accessEvents = append(accessEvents, *accessEvent)
 			}
 
-			err := svc.repo.TrackAccessEvents(context.Background(), accessEvents)
+			err := svc.Repository.TrackAccessEvents(context.Background(), accessEvents)
 			if err != nil {
 				log.Err(err).Msg("Error tracking access events")
 			}
@@ -252,12 +252,12 @@ func (svc EventService) TrackAccessEvents(ctx context.Context, accessEventSpecs 
 		accessEvents = append(accessEvents, *accessEvent)
 	}
 
-	return svc.repo.TrackAccessEvents(ctx, accessEvents)
+	return svc.Repository.TrackAccessEvents(ctx, accessEvents)
 }
 
 func (svc EventService) ListAccessEvents(ctx context.Context, listParams ListAccessEventParams) ([]AccessEventSpec, string, error) {
 	accessEventSpecs := make([]AccessEventSpec, 0)
-	accessEvents, lastId, err := svc.repo.ListAccessEvents(ctx, listParams)
+	accessEvents, lastId, err := svc.Repository.ListAccessEvents(ctx, listParams)
 	if err != nil {
 		return accessEventSpecs, lastId, err
 	}
