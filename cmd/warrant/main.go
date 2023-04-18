@@ -57,9 +57,11 @@ func (env *ServiceEnv) InitDB(config config.Config) error {
 			return err
 		}
 
-		err = db.Migrate(ctx, MySQLDatastoreMigrationVersion)
-		if err != nil {
-			return err
+		if config.AutoMigrate {
+			err = db.Migrate(ctx, MySQLDatastoreMigrationVersion)
+			if err != nil {
+				return err
+			}
 		}
 
 		env.Datastore = db
@@ -73,9 +75,11 @@ func (env *ServiceEnv) InitDB(config config.Config) error {
 			return err
 		}
 
-		err = db.Migrate(ctx, PostgresDatastoreMigrationVersion)
-		if err != nil {
-			return err
+		if config.AutoMigrate {
+			err = db.Migrate(ctx, PostgresDatastoreMigrationVersion)
+			if err != nil {
+				return err
+			}
 		}
 
 		env.Datastore = db
@@ -89,9 +93,11 @@ func (env *ServiceEnv) InitDB(config config.Config) error {
 			return err
 		}
 
-		err = db.Migrate(ctx, SQLiteDatastoreMigrationVersion)
-		if err != nil {
-			return err
+		if config.AutoMigrate {
+			err = db.Migrate(ctx, SQLiteDatastoreMigrationVersion)
+			if err != nil {
+				return err
+			}
 		}
 
 		env.Datastore = db
@@ -112,9 +118,11 @@ func (env *ServiceEnv) InitEventDB(config config.Config) error {
 			return err
 		}
 
-		err = db.Migrate(ctx, MySQLEventstoreMigrationVersion)
-		if err != nil {
-			return err
+		if config.AutoMigrate {
+			err = db.Migrate(ctx, MySQLEventstoreMigrationVersion)
+			if err != nil {
+				return err
+			}
 		}
 
 		env.Eventstore = db
@@ -128,9 +136,11 @@ func (env *ServiceEnv) InitEventDB(config config.Config) error {
 			return err
 		}
 
-		err = db.Migrate(ctx, PostgresEventstoreMigrationVersion)
-		if err != nil {
-			return err
+		if config.AutoMigrate {
+			err = db.Migrate(ctx, PostgresEventstoreMigrationVersion)
+			if err != nil {
+				return err
+			}
 		}
 
 		env.Eventstore = db
@@ -144,9 +154,11 @@ func (env *ServiceEnv) InitEventDB(config config.Config) error {
 			return err
 		}
 
-		err = db.Migrate(ctx, SQLiteEventstoreMigrationVersion)
-		if err != nil {
-			return err
+		if config.AutoMigrate {
+			err = db.Migrate(ctx, SQLiteEventstoreMigrationVersion)
+			if err != nil {
+				return err
+			}
 		}
 
 		env.Eventstore = db

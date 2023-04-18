@@ -29,6 +29,7 @@ type Config struct {
 	Port            int               `mapstructure:"port"`
 	LogLevel        int8              `mapstructure:"logLevel"`
 	EnableAccessLog bool              `mapstructure:"enableAccessLog"`
+	AutoMigrate     bool              `mapstructure:"autoMigrate"`
 	Datastore       *DatastoreConfig  `mapstructure:"datastore"`
 	Eventstore      *EventstoreConfig `mapstructure:"eventstore"`
 	ApiKey          string            `mapstructure:"apiKey"`
@@ -89,6 +90,7 @@ func NewConfig() Config {
 	viper.SetDefault("port", 8000)
 	viper.SetDefault("levelLevel", zerolog.DebugLevel)
 	viper.SetDefault("enableAccessLog", true)
+	viper.SetDefault("autoMigrate", false)
 	viper.SetDefault("datastore.mysql.migrationSource", DefaultMySQLDatastoreMigrationSource)
 	viper.SetDefault("datastore.postgres.migrationSource", DefaultPostgresDatastoreMigrationSource)
 	viper.SetDefault("datastore.sqlite.migrationSource", DefaultSQLiteDatastoreMigrationSource)
