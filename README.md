@@ -2,6 +2,7 @@
     <a href="https://warrant.dev/"><img src="https://warrant.dev/images/logo-primary-wide.png" width="300px" alt="Warrant" /></a>
 </p>
 <p align="center">
+  <a href="https://app.warrant.dev/signup">Warrant Cloud</a> |
   <a href="https://warrant.dev/">Website</a> |
   <a href="https://docs.warrant.dev/">Docs</a> |
   <a href="https://docs.warrant.dev/objecttypes/get-all-object-types/">API Reference</a>
@@ -25,7 +26,6 @@ Warrant allows you to define, store, and manage your product's authorization mod
 ## Features
 
 - A real-time, low latency `check` API to perform access checks in your application at runtime (e.g. _is `user:A editor of tenant:X`?_)
-- A real-time `query` API to query and audit access rules for a given subject or object (e.g. _`which users in tenant:1 have access to object:A?`_)
 - Built-in support for roles & permissions (RBAC) + API endpoints to create and manage custom roles & permissions from your application
 - Built-in support for multi-tenant access control
   - Define roles, permissions, access rules, etc. _per tenant_
@@ -60,6 +60,7 @@ The quickest and easiest way to get started with Warrant is by using the managed
 Warrant Cloud is compatible with the same APIs as this open source version and provides additional functionality like:
 
 - An admin dashboard for quickly managing your authorization model and access rules via an intuitive, easy-to-use UI
+- A real-time `query` API to query and audit access rules for a given subject or object (e.g. _`which users in tenant:1 have access to object:A?`_)
 - Multi-region availability
 - Improved access check latency & throughput for large scale use cases.
 
@@ -102,7 +103,7 @@ To report a bug you found or request a feature that you'd like, open an issue. I
 
 Contributions from the community are welcome! Just be sure to follow some ground rules:
 
-- Never submit a PR without an issue.
+- Never submit a PR without an associated issue.
 - Issues should mention whether the issue is a bug or a feature.
 - Issues reporting a bug should describe (1) steps to reproduce the bug, (2) what the current behavior is, and (3) what the expected behavior should be.
 - Issues requesting a feature should (1) provide a description of the feature and (2) explain the intended use case for the feature.
