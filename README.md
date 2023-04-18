@@ -2,8 +2,8 @@
     <a href="https://warrant.dev/"><img src="https://warrant.dev/images/logo-primary-wide.png" width="300px" alt="Warrant" /></a>
 </p>
 <p align="center">
-  <a href="https://app.warrant.dev/signup">Warrant Cloud</a> |
   <a href="https://warrant.dev/">Website</a> |
+  <a href="https://app.warrant.dev/signup">Warrant Cloud</a> |
   <a href="https://docs.warrant.dev/">Docs</a> |
   <a href="https://docs.warrant.dev/objecttypes/get-all-object-types/">API Reference</a>
 </p>
