@@ -30,14 +30,13 @@ services:
     environment:
       WARRANT_PORT: 8000
       WARRANT_LOGLEVEL: 1
-      WARRANT_ENABLEACCESSLOG: "true"
-      WARRANT_DATASTORE: postgres
+      WARRANT_ENABLEACCESSLOG: true
+      WARRANT_AUTO_MIGRATE: true
       WARRANT_DATASTORE_POSTGRES_USERNAME: postgres
       WARRANT_DATASTORE_POSTGRES_PASSWORD: replace_with_password
       WARRANT_DATASTORE_POSTGRES_HOSTNAME: database
       WARRANT_DATASTORE_POSTGRES_DATABASE: warrant
       WARRANT_DATASTORE_POSTGRES_SSLMODE: disable
-      WARRANT_EVENTSTORE: postgres
       WARRANT_EVENTSTORE_POSTGRES_USERNAME: postgres
       WARRANT_EVENTSTORE_POSTGRES_PASSWORD: replace_with_password
       WARRANT_EVENTSTORE_POSTGRES_HOSTNAME: database
@@ -79,6 +78,7 @@ port: 8000
 logLevel: 0
 enableAccessLog: true
 apiKey: replace_with_api_key
+autoMigrate: true
 datastore:
   postgres:
     username: replace_with_username
