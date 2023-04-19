@@ -31,13 +31,12 @@ services:
     environment:
       WARRANT_PORT: 8000
       WARRANT_LOGLEVEL: 1
-      WARRANT_ENABLEACCESSLOG: "true"
-      WARRANT_DATASTORE: mysql
+      WARRANT_ENABLEACCESSLOG: true
+      WARRANT_AUTO_MIGRATE: true
       WARRANT_DATASTORE_MYSQL_USERNAME: replace_with_username
       WARRANT_DATASTORE_MYSQL_PASSWORD: replace_with_password
       WARRANT_DATASTORE_MYSQL_HOSTNAME: database
       WARRANT_DATASTORE_MYSQL_DATABASE: warrant
-      WARRANT_EVENTSTORE: mysql
       WARRANT_EVENTSTORE_MYSQL_USERNAME: replace_with_username
       WARRANT_EVENTSTORE_MYSQL_PASSWORD: replace_with_password
       WARRANT_EVENTSTORE_MYSQL_HOSTNAME: database
@@ -78,6 +77,7 @@ port: 8000
 logLevel: 0
 enableAccessLog: true
 apiKey: replace_with_api_key
+autoMigrate: true
 datastore:
   mysql:
     username: replace_with_username

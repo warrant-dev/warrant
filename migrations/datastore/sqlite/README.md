@@ -36,6 +36,7 @@ port: 8000
 logLevel: 0
 enableAccessLog: true
 apiKey: replace_with_api_key
+autoMigrate: true
 datastore:
   sqlite:
     database: warrant
