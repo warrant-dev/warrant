@@ -50,8 +50,8 @@ func (env *ServiceEnv) InitDB(config config.Config) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFunc()
 
-	if config.Datastore.MySQL.Hostname != "" {
-		db := database.NewMySQL(*config.Datastore.MySQL)
+	if config.GetDatastore().MySQL.Hostname != "" {
+		db := database.NewMySQL(*config.GetDatastore().MySQL)
 		err := db.Connect(ctx)
 		if err != nil {
 			return err
@@ -68,8 +68,8 @@ func (env *ServiceEnv) InitDB(config config.Config) error {
 		return nil
 	}
 
-	if config.Datastore.Postgres.Hostname != "" {
-		db := database.NewPostgres(*config.Datastore.Postgres)
+	if config.GetDatastore().Postgres.Hostname != "" {
+		db := database.NewPostgres(*config.GetDatastore().Postgres)
 		err := db.Connect(ctx)
 		if err != nil {
 			return err
@@ -86,8 +86,8 @@ func (env *ServiceEnv) InitDB(config config.Config) error {
 		return nil
 	}
 
-	if config.Datastore.SQLite.Database != "" {
-		db := database.NewSQLite(*config.Datastore.SQLite)
+	if config.GetDatastore().SQLite.Database != "" {
+		db := database.NewSQLite(*config.GetDatastore().SQLite)
 		err := db.Connect(ctx)
 		if err != nil {
 			return err
@@ -111,8 +111,8 @@ func (env *ServiceEnv) InitEventDB(config config.Config) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFunc()
 
-	if config.Eventstore.MySQL.Hostname != "" {
-		db := database.NewMySQL(*config.Eventstore.MySQL)
+	if config.GetEventstore().MySQL.Hostname != "" {
+		db := database.NewMySQL(*config.GetEventstore().MySQL)
 		err := db.Connect(ctx)
 		if err != nil {
 			return err
@@ -129,8 +129,8 @@ func (env *ServiceEnv) InitEventDB(config config.Config) error {
 		return nil
 	}
 
-	if config.Eventstore.Postgres.Hostname != "" {
-		db := database.NewPostgres(*config.Eventstore.Postgres)
+	if config.GetEventstore().Postgres.Hostname != "" {
+		db := database.NewPostgres(*config.GetEventstore().Postgres)
 		err := db.Connect(ctx)
 		if err != nil {
 			return err
@@ -147,8 +147,8 @@ func (env *ServiceEnv) InitEventDB(config config.Config) error {
 		return nil
 	}
 
-	if config.Eventstore.SQLite.Database != "" {
-		db := database.NewSQLite(*config.Eventstore.SQLite)
+	if config.GetEventstore().SQLite.Database != "" {
+		db := database.NewSQLite(*config.GetEventstore().SQLite)
 		err := db.Connect(ctx)
 		if err != nil {
 			return err
@@ -298,7 +298,7 @@ func main() {
 		routes = append(routes, svc.Routes()...)
 	}
 
-	log.Debug().Msgf("Listening on port %d", config.Port)
-	shutdownErr := http.ListenAndServe(fmt.Sprintf(":%d", config.Port), service.NewRouter(&config, "", routes, nil))
+	log.Debug().Msgf("Listening on port %d", config.GetPort())
+	shutdownErr := http.ListenAndServe(fmt.Sprintf(":%d", config.GetPort()), service.NewRouter(config, "", routes, nil))
 	log.Fatal().Err(shutdownErr).Msg("")
 }

@@ -33,9 +33,9 @@ type AuthInfo struct {
 	TenantId string
 }
 
-type AuthMiddlewareFunc func(next http.Handler, config *config.Config, options map[string]interface{}) http.Handler
+type AuthMiddlewareFunc func(next http.Handler, config config.Config, options map[string]interface{}) http.Handler
 
-func DefaultAuthMiddleware(next http.Handler, config *config.Config, options map[string]interface{}) http.Handler {
+func DefaultAuthMiddleware(next http.Handler, config config.Config, options map[string]interface{}) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := hlog.FromRequest(r)
 
@@ -58,7 +58,7 @@ func DefaultAuthMiddleware(next http.Handler, config *config.Config, options map
 		var authInfo *AuthInfo
 		switch tokenType {
 		case "ApiKey":
-			if !secureCompareEqual(tokenString, config.ApiKey) {
+			if !secureCompareEqual(tokenString, config.GetApiKey()) {
 				SendErrorResponse(w, NewUnauthorizedError("Invalid API key"))
 				return
 			}
@@ -77,7 +77,7 @@ func DefaultAuthMiddleware(next http.Handler, config *config.Config, options map
 				return
 			}
 
-			if config.Authentication.Provider == "" {
+			if config.GetAuthentication().Provider == "" {
 				SendErrorResponse(w, NewInternalError("Error validating token"))
 				logger.Err(fmt.Errorf("invalid authentication provider configuration")).Msg("Must configure an authentication provider to allow requests that use third party auth tokens.")
 				return
@@ -86,7 +86,7 @@ func DefaultAuthMiddleware(next http.Handler, config *config.Config, options map
 			var publicKey *rsa.PublicKey
 			var publicKeys map[string]string
 			var err error
-			switch config.Authentication.Provider {
+			switch config.GetAuthentication().Provider {
 			case "firebase":
 				// Retrieve Firebase public keys
 				response, err := http.Get(FirebasePublicKeyUrl)
@@ -107,7 +107,7 @@ func DefaultAuthMiddleware(next http.Handler, config *config.Config, options map
 
 				json.Unmarshal(contents, &publicKeys)
 			default:
-				publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(config.Authentication.PublicKey))
+				publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(config.GetAuthentication().PublicKey))
 				if err != nil {
 					SendErrorResponse(w, NewInternalError("Error validating token"))
 					logger.Err(fmt.Errorf("invalid authentication provider configuration")).Msg("Invalid public key for configured authentication provider")
@@ -120,7 +120,7 @@ func DefaultAuthMiddleware(next http.Handler, config *config.Config, options map
 					return nil, NewUnauthorizedError(fmt.Sprintf("Invalid %s token: unexpected signing method %v", tokenType, token.Header["alg"]))
 				}
 
-				if config.Authentication.Provider == "firebase" {
+				if config.GetAuthentication().Provider == "firebase" {
 					publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(publicKeys[token.Header["kid"].(string)]))
 					if err != nil {
 						return nil, NewUnauthorizedError("Invalid token")
@@ -148,23 +148,23 @@ func DefaultAuthMiddleware(next http.Handler, config *config.Config, options map
 			// Get claims
 			tokenClaims := checkedToken.Claims.(jwt.MapClaims)
 
-			if _, ok := tokenClaims[config.Authentication.UserIdClaim]; !ok {
+			if _, ok := tokenClaims[config.GetAuthentication().UserIdClaim]; !ok {
 				SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
-				logger.Warn().Msgf("Unable to retrieve user id from token with given identifier: %s", config.Authentication.UserIdClaim)
+				logger.Warn().Msgf("Unable to retrieve user id from token with given identifier: %s", config.GetAuthentication().UserIdClaim)
 				return
 			}
-			userId := tokenClaims[config.Authentication.UserIdClaim].(string)
+			userId := tokenClaims[config.GetAuthentication().UserIdClaim].(string)
 
 			authInfo = &AuthInfo{
 				UserId: userId,
 			}
 
-			if config.Authentication.TenantIdClaim != "" {
-				if _, ok := tokenClaims[config.Authentication.TenantIdClaim]; !ok {
+			if config.GetAuthentication().TenantIdClaim != "" {
+				if _, ok := tokenClaims[config.GetAuthentication().TenantIdClaim]; !ok {
 					SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
-					logger.Warn().Msgf("Unable to retrieve tenant id from token with given identifier: %s", config.Authentication.TenantIdClaim)
+					logger.Warn().Msgf("Unable to retrieve tenant id from token with given identifier: %s", config.GetAuthentication().TenantIdClaim)
 				}
-				authInfo.TenantId = tokenClaims[config.Authentication.TenantIdClaim].(string)
+				authInfo.TenantId = tokenClaims[config.GetAuthentication().TenantIdClaim].(string)
 			}
 		default:
 			SendErrorResponse(w, NewUnauthorizedError("Invalid Authorization header prefix. Must be ApiKey or Bearer"))

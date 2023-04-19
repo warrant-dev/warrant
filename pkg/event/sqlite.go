@@ -98,7 +98,7 @@ func (repo SQLiteRepository) ListResourceEvents(ctx context.Context, listParams 
 	}
 
 	if listParams.LastId != "" {
-		lastIdSpec, err := stringToLastIdSpec(listParams.LastId)
+		lastIdSpec, err := StringToLastIdSpec(listParams.LastId)
 		if err != nil {
 			return models, "", service.NewInvalidParameterError("lastId", "")
 		}
@@ -138,7 +138,7 @@ func (repo SQLiteRepository) ListResourceEvents(ctx context.Context, listParams 
 	}
 
 	lastResourceEvent := resourceEvents[len(resourceEvents)-1]
-	lastIdStr, err := lastIdSpecToString(LastIdSpec{
+	lastIdStr, err := LastIdSpecToString(LastIdSpec{
 		ID:        lastResourceEvent.ID,
 		CreatedAt: lastResourceEvent.CreatedAt,
 	})
@@ -256,7 +256,7 @@ func (repo SQLiteRepository) ListAccessEvents(ctx context.Context, listParams Li
 	}
 
 	if listParams.LastId != "" {
-		lastIdSpec, err := stringToLastIdSpec(listParams.LastId)
+		lastIdSpec, err := StringToLastIdSpec(listParams.LastId)
 		if err != nil {
 			return models, "", service.NewInvalidParameterError("lastId", "")
 		}
@@ -296,7 +296,7 @@ func (repo SQLiteRepository) ListAccessEvents(ctx context.Context, listParams Li
 	}
 
 	lastAccessEvent := accessEvents[len(accessEvents)-1]
-	lastIdStr, err := lastIdSpecToString(LastIdSpec{
+	lastIdStr, err := LastIdSpecToString(LastIdSpec{
 		ID:        lastAccessEvent.ID,
 		CreatedAt: lastAccessEvent.CreatedAt,
 	})

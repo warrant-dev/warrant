@@ -54,7 +54,7 @@ func (rh RouteHandler[T]) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewRouter(config *config.Config, pathPrefix string, routes []Route, authMiddleware AuthMiddlewareFunc, additionalMiddlewares ...mux.MiddlewareFunc) *mux.Router {
+func NewRouter(config config.Config, pathPrefix string, routes []Route, authMiddleware AuthMiddlewareFunc, additionalMiddlewares ...mux.MiddlewareFunc) *mux.Router {
 	router := mux.NewRouter()
 
 	// Setup default middleware
@@ -62,13 +62,13 @@ func NewRouter(config *config.Config, pathPrefix string, routes []Route, authMid
 		With().
 		Timestamp().
 		Logger().
-		Level(zerolog.Level(config.LogLevel))
+		Level(zerolog.Level(config.GetLogLevel()))
 	if logger.GetLevel() == zerolog.DebugLevel {
 		logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
 	router.Use(hlog.NewHandler(logger))
-	if config.EnableAccessLog {
+	if config.GetEnableAccessLog() {
 		router.Use(accessLogMiddleware)
 		router.Use(hlog.RequestIDHandler("requestId", "Warrant-Request-Id"))
 	}
@@ -86,11 +86,12 @@ func NewRouter(config *config.Config, pathPrefix string, routes []Route, authMid
 
 	// Setup routes
 	for _, route := range routes {
+		log.Debug().Msgf("Route: %+v Auth middleware? %+v", route.Pattern, route.AuthMiddleware)
 		defaultOptions := map[string]interface{}{
 			EnableSessionAuthKey: route.EnableSessionAuth,
 		}
 		routePattern := fmt.Sprintf("%s%s", pathPrefix, route.Pattern)
-		if route.DisableAuth || config.ApiKey == "" {
+		if route.DisableAuth || config.GetApiKey() == "" {
 			router.Handle(routePattern, route.Handler).Methods(route.Method)
 		} else if route.AuthMiddleware != nil {
 			router.Handle(routePattern, route.AuthMiddleware(route.Handler, config, defaultOptions)).Methods(route.Method)

@@ -129,7 +129,7 @@ type LastIdSpec struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-func lastIdSpecToString(lastIdSpec LastIdSpec) (string, error) {
+func LastIdSpecToString(lastIdSpec LastIdSpec) (string, error) {
 	jsonStr, err := json.Marshal(lastIdSpec)
 	if err != nil {
 		return "", errors.Wrapf(err, "error mashaling lastId %v", lastIdSpec)
@@ -138,7 +138,7 @@ func lastIdSpecToString(lastIdSpec LastIdSpec) (string, error) {
 	return base64.StdEncoding.EncodeToString(jsonStr), nil
 }
 
-func stringToLastIdSpec(base64Str string) (*LastIdSpec, error) {
+func StringToLastIdSpec(base64Str string) (*LastIdSpec, error) {
 	var lastIdSpec LastIdSpec
 	jsonStr, err := base64.StdEncoding.DecodeString(base64Str)
 	if err != nil {

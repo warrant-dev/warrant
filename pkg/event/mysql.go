@@ -96,7 +96,7 @@ func (repo MySQLRepository) ListResourceEvents(ctx context.Context, listParams L
 	}
 
 	if listParams.LastId != "" {
-		lastIdSpec, err := stringToLastIdSpec(listParams.LastId)
+		lastIdSpec, err := StringToLastIdSpec(listParams.LastId)
 		if err != nil {
 			return models, "", service.NewInvalidParameterError("lastId", "")
 		}
@@ -136,7 +136,7 @@ func (repo MySQLRepository) ListResourceEvents(ctx context.Context, listParams L
 	}
 
 	lastResourceEvent := resourceEvents[len(resourceEvents)-1]
-	lastIdStr, err := lastIdSpecToString(LastIdSpec{
+	lastIdStr, err := LastIdSpecToString(LastIdSpec{
 		ID:        lastResourceEvent.GetID(),
 		CreatedAt: lastResourceEvent.GetCreatedAt(),
 	})
@@ -252,7 +252,7 @@ func (repo MySQLRepository) ListAccessEvents(ctx context.Context, listParams Lis
 	}
 
 	if listParams.LastId != "" {
-		lastIdSpec, err := stringToLastIdSpec(listParams.LastId)
+		lastIdSpec, err := StringToLastIdSpec(listParams.LastId)
 		if err != nil {
 			return models, "", service.NewInvalidParameterError("lastId", "")
 		}
@@ -292,7 +292,7 @@ func (repo MySQLRepository) ListAccessEvents(ctx context.Context, listParams Lis
 	}
 
 	lastAccessEvent := accessEvents[len(accessEvents)-1]
-	lastIdStr, err := lastIdSpecToString(LastIdSpec{
+	lastIdStr, err := LastIdSpecToString(LastIdSpec{
 		ID:        lastAccessEvent.GetID(),
 		CreatedAt: lastAccessEvent.GetCreatedAt(),
 	})

@@ -315,6 +315,11 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 	}
 
 	if matchedWarrant != nil {
+		err := svc.EventSvc.TrackAccessAllowedEvent(ctx, warrantCheck.ObjectType, warrantCheck.ObjectId, warrantCheck.Relation, warrantCheck.Subject.ObjectType, warrantCheck.Subject.ObjectId, warrantCheck.Subject.Relation, warrantCheck.Context)
+		if err != nil {
+			return false, decisionPath, err
+		}
+
 		return true, []warrant.WarrantSpec{{
 			ObjectType: matchedWarrant.ObjectType,
 			ObjectId:   matchedWarrant.ObjectId,
@@ -352,6 +357,11 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 		}
 
 		if match {
+			err := svc.EventSvc.TrackAccessAllowedEvent(ctx, warrantCheck.ObjectType, warrantCheck.ObjectId, warrantCheck.Relation, warrantCheck.Subject.ObjectType, warrantCheck.Subject.ObjectId, warrantCheck.Subject.Relation, warrantCheck.Context)
+			if err != nil {
+				return false, decisionPath, err
+			}
+
 			return true, decisionPath, nil
 		}
 	}
