@@ -14,21 +14,21 @@ const (
 	limitErrorMessage = "Must be an integer between 1 and 1000"
 )
 
-func (svc EventService) Routes() []service.Route {
+func (svc EventService) Routes() ([]service.Route, error) {
 	return []service.Route{
 		// get
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/resource-events",
 			Method:  "GET",
 			Handler: service.NewRouteHandler(svc, listResourceEvents),
 		},
 
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/access-events",
 			Method:  "GET",
 			Handler: service.NewRouteHandler(svc, listAccessEvents),
 		},
-	}
+	}, nil
 }
 
 func listResourceEvents(svc EventService, w http.ResponseWriter, r *http.Request) error {

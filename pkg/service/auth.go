@@ -33,11 +33,25 @@ type AuthInfo struct {
 	TenantId string
 }
 
-type AuthMiddlewareFunc func(next http.Handler, config config.Config, options map[string]interface{}) http.Handler
+type AuthMiddlewareFunc func(config config.Config, route Route) (http.Handler, error)
 
-func DefaultAuthMiddleware(next http.Handler, config config.Config, options map[string]interface{}) http.Handler {
+func AuthMiddleware(cfg config.Config, route Route) (http.Handler, error) {
+	warrantCfg, ok := cfg.(config.WarrantConfig)
+	if !ok {
+		return nil, fmt.Errorf("cfg parameter on DefaultAuthMiddleware must be a WarrantConfig")
+	}
+
+	warrantRoute, ok := route.(WarrantRoute)
+	if !ok {
+		return nil, fmt.Errorf("route parameter on DefaultAuthMiddleware must be a WarrantRoute")
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := hlog.FromRequest(r)
+		if warrantRoute.GetDisableAuth() || warrantCfg.GetApiKey() == "" {
+			route.GetHandler().ServeHTTP(w, r)
+			return
+		}
 
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
@@ -58,26 +72,19 @@ func DefaultAuthMiddleware(next http.Handler, config config.Config, options map[
 		var authInfo *AuthInfo
 		switch tokenType {
 		case "ApiKey":
-			if !secureCompareEqual(tokenString, config.GetApiKey()) {
+			if !secureCompareEqual(tokenString, warrantCfg.GetApiKey()) {
 				SendErrorResponse(w, NewUnauthorizedError("Invalid API key"))
 				return
 			}
 			authInfo = &AuthInfo{}
 		case "Bearer":
-			enableSessionAuth, ok := options["enableSessionAuth"].(bool)
-			if !ok {
-				SendErrorResponse(w, NewUnauthorizedError("Error validating token"))
-				logger.Err(fmt.Errorf("enableSessionAuth must be of type bool"))
-				return
-			}
-
-			if !enableSessionAuth {
+			if !warrantRoute.GetEnableSessionAuth() {
 				SendErrorResponse(w, NewUnauthorizedError("Error validating token"))
 				logger.Err(fmt.Errorf("invalid authentication for the endpoint")).Msg("Session authentication not supported for this endpoint")
 				return
 			}
 
-			if config.GetAuthentication().Provider == "" {
+			if warrantCfg.GetAuthentication().Provider == "" {
 				SendErrorResponse(w, NewInternalError("Error validating token"))
 				logger.Err(fmt.Errorf("invalid authentication provider configuration")).Msg("Must configure an authentication provider to allow requests that use third party auth tokens.")
 				return
@@ -86,7 +93,7 @@ func DefaultAuthMiddleware(next http.Handler, config config.Config, options map[
 			var publicKey *rsa.PublicKey
 			var publicKeys map[string]string
 			var err error
-			switch config.GetAuthentication().Provider {
+			switch warrantCfg.GetAuthentication().Provider {
 			case "firebase":
 				// Retrieve Firebase public keys
 				response, err := http.Get(FirebasePublicKeyUrl)
@@ -107,7 +114,7 @@ func DefaultAuthMiddleware(next http.Handler, config config.Config, options map[
 
 				json.Unmarshal(contents, &publicKeys)
 			default:
-				publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(config.GetAuthentication().PublicKey))
+				publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(warrantCfg.GetAuthentication().PublicKey))
 				if err != nil {
 					SendErrorResponse(w, NewInternalError("Error validating token"))
 					logger.Err(fmt.Errorf("invalid authentication provider configuration")).Msg("Invalid public key for configured authentication provider")
@@ -120,7 +127,7 @@ func DefaultAuthMiddleware(next http.Handler, config config.Config, options map[
 					return nil, NewUnauthorizedError(fmt.Sprintf("Invalid %s token: unexpected signing method %v", tokenType, token.Header["alg"]))
 				}
 
-				if config.GetAuthentication().Provider == "firebase" {
+				if warrantCfg.GetAuthentication().Provider == "firebase" {
 					publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(publicKeys[token.Header["kid"].(string)]))
 					if err != nil {
 						return nil, NewUnauthorizedError("Invalid token")
@@ -148,23 +155,23 @@ func DefaultAuthMiddleware(next http.Handler, config config.Config, options map[
 			// Get claims
 			tokenClaims := checkedToken.Claims.(jwt.MapClaims)
 
-			if _, ok := tokenClaims[config.GetAuthentication().UserIdClaim]; !ok {
+			if _, ok := tokenClaims[warrantCfg.GetAuthentication().UserIdClaim]; !ok {
 				SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
-				logger.Warn().Msgf("Unable to retrieve user id from token with given identifier: %s", config.GetAuthentication().UserIdClaim)
+				logger.Warn().Msgf("Unable to retrieve user id from token with given identifier: %s", warrantCfg.GetAuthentication().UserIdClaim)
 				return
 			}
-			userId := tokenClaims[config.GetAuthentication().UserIdClaim].(string)
+			userId := tokenClaims[warrantCfg.GetAuthentication().UserIdClaim].(string)
 
 			authInfo = &AuthInfo{
 				UserId: userId,
 			}
 
-			if config.GetAuthentication().TenantIdClaim != "" {
-				if _, ok := tokenClaims[config.GetAuthentication().TenantIdClaim]; !ok {
+			if warrantCfg.GetAuthentication().TenantIdClaim != "" {
+				if _, ok := tokenClaims[warrantCfg.GetAuthentication().TenantIdClaim]; !ok {
 					SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
-					logger.Warn().Msgf("Unable to retrieve tenant id from token with given identifier: %s", config.GetAuthentication().TenantIdClaim)
+					logger.Warn().Msgf("Unable to retrieve tenant id from token with given identifier: %s", warrantCfg.GetAuthentication().TenantIdClaim)
 				}
-				authInfo.TenantId = tokenClaims[config.GetAuthentication().TenantIdClaim].(string)
+				authInfo.TenantId = tokenClaims[warrantCfg.GetAuthentication().TenantIdClaim].(string)
 			}
 		default:
 			SendErrorResponse(w, NewUnauthorizedError("Invalid Authorization header prefix. Must be ApiKey or Bearer"))
@@ -174,8 +181,8 @@ func DefaultAuthMiddleware(next http.Handler, config config.Config, options map[
 		// Add authInfo to request context
 		newContext := context.WithValue(r.Context(), authInfoKey, *authInfo)
 
-		next.ServeHTTP(w, r.WithContext(newContext))
-	})
+		route.GetHandler().ServeHTTP(w, r.WithContext(newContext))
+	}), nil
 }
 
 // GetAuthInfoFromRequestContext returns the AuthInfo object from the given context

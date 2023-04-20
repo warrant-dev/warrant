@@ -32,8 +32,6 @@ type Config interface {
 	GetAutoMigrate() bool
 	GetDatastore() *DatastoreConfig
 	GetEventstore() *EventstoreConfig
-	GetApiKey() string
-	GetAuthentication() AuthConfig
 }
 
 type WarrantConfig struct {

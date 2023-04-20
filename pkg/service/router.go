@@ -14,15 +14,6 @@ import (
 	"github.com/warrant-dev/warrant/pkg/config"
 )
 
-type Route struct {
-	Pattern           string
-	Method            string
-	Handler           http.Handler
-	AuthMiddleware    AuthMiddlewareFunc
-	DisableAuth       bool
-	EnableSessionAuth bool
-}
-
 type RouteHandler[T Service] struct {
 	svc     T
 	handler func(svc T, w http.ResponseWriter, r *http.Request) error
@@ -54,7 +45,7 @@ func (rh RouteHandler[T]) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewRouter(config config.Config, pathPrefix string, routes []Route, authMiddleware AuthMiddlewareFunc, additionalMiddlewares ...mux.MiddlewareFunc) *mux.Router {
+func NewRouter(config config.Config, pathPrefix string, routes []Route, authMiddleware AuthMiddlewareFunc, additionalMiddlewares ...mux.MiddlewareFunc) (*mux.Router, error) {
 	router := mux.NewRouter()
 
 	// Setup default middleware
@@ -75,10 +66,6 @@ func NewRouter(config config.Config, pathPrefix string, routes []Route, authMidd
 
 	router.Use(hlog.URLHandler("uri"))
 
-	if authMiddleware == nil {
-		authMiddleware = DefaultAuthMiddleware
-	}
-
 	// Setup supplied middleware
 	for _, additionalMiddleware := range additionalMiddlewares {
 		router.Use(additionalMiddleware)
@@ -86,18 +73,19 @@ func NewRouter(config config.Config, pathPrefix string, routes []Route, authMidd
 
 	// Setup routes
 	for _, route := range routes {
-		log.Debug().Msgf("Route: %+v Auth middleware? %+v", route.Pattern, route.AuthMiddleware)
-		defaultOptions := map[string]interface{}{
-			EnableSessionAuthKey: route.EnableSessionAuth,
-		}
-		routePattern := fmt.Sprintf("%s%s", pathPrefix, route.Pattern)
-		if route.DisableAuth || config.GetApiKey() == "" {
-			router.Handle(routePattern, route.Handler).Methods(route.Method)
-		} else if route.AuthMiddleware != nil {
-			router.Handle(routePattern, route.AuthMiddleware(route.Handler, config, defaultOptions)).Methods(route.Method)
+		var authProtectedHandler http.Handler
+		var err error
+		routePattern := fmt.Sprintf("%s%s", pathPrefix, route.GetPattern())
+		if route.GetOverrideAuthMiddlewareFunc() != nil {
+			authProtectedHandler, err = route.GetOverrideAuthMiddlewareFunc()(config, route)
 		} else {
-			router.Handle(routePattern, authMiddleware(route.Handler, config, defaultOptions)).Methods(route.Method)
+			authProtectedHandler, err = authMiddleware(config, route)
 		}
+		if err != nil {
+			return nil, err
+		}
+
+		router.Handle(routePattern, authProtectedHandler).Methods(route.GetMethod())
 	}
 
 	// Configure catch all handler for 404s
@@ -105,7 +93,7 @@ func NewRouter(config config.Config, pathPrefix string, routes []Route, authMidd
 		SendErrorResponse(w, NewRecordNotFoundError("Endpoint", r.URL.Path))
 	}))
 
-	return router
+	return router, nil
 }
 
 func accessLogMiddleware(next http.Handler) http.Handler {

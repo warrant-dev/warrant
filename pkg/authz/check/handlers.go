@@ -9,10 +9,10 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-func (svc CheckService) Routes() []service.Route {
+func (svc CheckService) Routes() ([]service.Route, error) {
 	return []service.Route{
 		// Standard Authorization
-		{
+		service.WarrantRoute{
 			Pattern: "/v2/authorize",
 			Method:  "POST",
 			Handler: middleware.Chain(
@@ -20,7 +20,7 @@ func (svc CheckService) Routes() []service.Route {
 			),
 			EnableSessionAuth: true,
 		},
-	}
+	}, nil
 }
 
 func AuthorizeHandler(svc CheckService, w http.ResponseWriter, r *http.Request) error {

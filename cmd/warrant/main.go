@@ -284,10 +284,20 @@ func main() {
 
 	routes := make([]service.Route, 0)
 	for _, svc := range svcs {
-		routes = append(routes, svc.Routes()...)
+		svcRoutes, err := svc.Routes()
+		if err != nil {
+			log.Fatal().Err(err).Msg("Could not setup routes for service")
+		}
+
+		routes = append(routes, svcRoutes...)
+	}
+
+	router, err := service.NewRouter(cfg, "", routes, service.AuthMiddleware)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Could not initialize service router")
 	}
 
 	log.Debug().Msgf("Listening on port %d", cfg.GetPort())
-	shutdownErr := http.ListenAndServe(fmt.Sprintf(":%d", cfg.GetPort()), service.NewRouter(cfg, "", routes, nil))
+	shutdownErr := http.ListenAndServe(fmt.Sprintf(":%d", cfg.GetPort()), router)
 	log.Fatal().Err(shutdownErr).Msg("")
 }

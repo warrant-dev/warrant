@@ -9,17 +9,17 @@ import (
 )
 
 // GetRoutes registers all route handlers for this module
-func (svc ObjectTypeService) Routes() []service.Route {
+func (svc ObjectTypeService) Routes() ([]service.Route, error) {
 	return []service.Route{
 		// create
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/object-types",
 			Method:  "POST",
 			Handler: service.NewRouteHandler(svc, CreateHandler),
 		},
 
 		// get
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/object-types",
 			Method:  "GET",
 			Handler: middleware.Chain(
@@ -29,31 +29,31 @@ func (svc ObjectTypeService) Routes() []service.Route {
 		},
 
 		// list
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/object-types/{type}",
 			Method:  "GET",
 			Handler: service.NewRouteHandler(svc, GetHandler),
 		},
 
 		// update
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/object-types/{type}",
 			Method:  "POST",
 			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/object-types/{type}",
 			Method:  "PUT",
 			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
 
 		// delete
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/object-types/{type}",
 			Method:  "DELETE",
 			Handler: service.NewRouteHandler(svc, DeleteHandler),
 		},
-	}
+	}, nil
 }
 
 func CreateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {

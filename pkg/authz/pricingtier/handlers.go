@@ -10,17 +10,17 @@ import (
 )
 
 // GetRoutes registers all route handlers for this module
-func (svc PricingTierService) Routes() []service.Route {
+func (svc PricingTierService) Routes() ([]service.Route, error) {
 	return []service.Route{
 		// create
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/pricing-tiers",
 			Method:  "POST",
 			Handler: service.NewRouteHandler(svc, CreateHandler),
 		},
 
 		// get
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/pricing-tiers",
 			Method:  "GET",
 			Handler: middleware.Chain(
@@ -28,31 +28,31 @@ func (svc PricingTierService) Routes() []service.Route {
 				middleware.ListMiddleware[PricingTierListParamParser],
 			),
 		},
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/pricing-tiers/{pricingTierId}",
 			Method:  "GET",
 			Handler: service.NewRouteHandler(svc, GetHandler),
 		},
 
 		// update
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/pricing-tiers/{pricingTierId}",
 			Method:  "POST",
 			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/pricing-tiers/{pricingTierId}",
 			Method:  "PUT",
 			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
 
 		// delete
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/pricing-tiers/{pricingTierId}",
 			Method:  "DELETE",
 			Handler: service.NewRouteHandler(svc, DeleteHandler),
 		},
-	}
+	}, nil
 }
 
 func CreateHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {

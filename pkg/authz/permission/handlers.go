@@ -10,17 +10,17 @@ import (
 )
 
 // GetRoutes registers all route handlers for this module
-func (svc PermissionService) Routes() []service.Route {
+func (svc PermissionService) Routes() ([]service.Route, error) {
 	return []service.Route{
 		// create
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/permissions",
 			Method:  "POST",
 			Handler: service.NewRouteHandler(svc, CreateHandler),
 		},
 
 		// get
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/permissions",
 			Method:  "GET",
 			Handler: middleware.Chain(
@@ -28,31 +28,31 @@ func (svc PermissionService) Routes() []service.Route {
 				middleware.ListMiddleware[PermissionListParamParser],
 			),
 		},
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/permissions/{permissionId}",
 			Method:  "GET",
 			Handler: service.NewRouteHandler(svc, GetHandler),
 		},
 
 		// update
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/permissions/{permissionId}",
 			Method:  "POST",
 			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/permissions/{permissionId}",
 			Method:  "PUT",
 			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
 
 		// delete
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/permissions/{permissionId}",
 			Method:  "DELETE",
 			Handler: service.NewRouteHandler(svc, DeleteHandler),
 		},
-	}
+	}, nil
 }
 
 func CreateHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {

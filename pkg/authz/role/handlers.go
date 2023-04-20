@@ -10,17 +10,17 @@ import (
 )
 
 // GetRoutes registers all route handlers for this module
-func (svc RoleService) Routes() []service.Route {
+func (svc RoleService) Routes() ([]service.Route, error) {
 	return []service.Route{
 		// create
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/roles",
 			Method:  "POST",
 			Handler: service.NewRouteHandler(svc, CreateHandler),
 		},
 
 		// get
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/roles",
 			Method:  "GET",
 			Handler: middleware.Chain(
@@ -28,31 +28,31 @@ func (svc RoleService) Routes() []service.Route {
 				middleware.ListMiddleware[RoleListParamParser],
 			),
 		},
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/roles/{roleId}",
 			Method:  "GET",
 			Handler: service.NewRouteHandler(svc, GetHandler),
 		},
 
 		// update
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/roles/{roleId}",
 			Method:  "POST",
 			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/roles/{roleId}",
 			Method:  "PUT",
 			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
 
 		// delete
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/roles/{roleId}",
 			Method:  "DELETE",
 			Handler: service.NewRouteHandler(svc, DeleteHandler),
 		},
-	}
+	}, nil
 }
 
 func CreateHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error {

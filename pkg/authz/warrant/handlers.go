@@ -8,10 +8,10 @@ import (
 )
 
 // GetRoutes registers all route handlers for this module
-func (svc WarrantService) Routes() []service.Route {
+func (svc WarrantService) Routes() ([]service.Route, error) {
 	return []service.Route{
 		// create
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/warrants",
 			Method:  "POST",
 			Handler: middleware.Chain(
@@ -20,7 +20,7 @@ func (svc WarrantService) Routes() []service.Route {
 		},
 
 		// get
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/warrants",
 			Method:  "GET",
 			Handler: middleware.Chain(
@@ -30,14 +30,14 @@ func (svc WarrantService) Routes() []service.Route {
 		},
 
 		// delete
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/warrants",
 			Method:  "DELETE",
 			Handler: middleware.Chain(
 				service.NewRouteHandler(svc, DeleteHandler),
 			),
 		},
-	}
+	}, nil
 }
 
 func CreateHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {

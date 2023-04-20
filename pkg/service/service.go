@@ -8,7 +8,7 @@ type Env interface {
 }
 
 type Service interface {
-	Routes() []Route
+	Routes() ([]Route, error)
 	Env() Env
 }
 
