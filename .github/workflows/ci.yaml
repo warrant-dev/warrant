@@ -24,12 +24,30 @@ jobs:
         with:
           version: "2023.1.2"
           install-go: false
-      - name: Build Binary
-        run: make build
-        working-directory: cmd/warrant
       - name: GoReleaser Check
         uses: goreleaser/goreleaser-action@v2
         with:
           distribution: goreleaser
           version: latest
           args: check
+      - name: Build Binary
+        run: make dev
+        working-directory: cmd/warrant
+      - name: Install API Runner
+        run: go install github.com/warrant-dev/apirunner/cmd/apirunner@latest
+      - name: Run API Runner Tests
+        run: |
+          ./cmd/warrant/bin/warrant &
+          sleep 5
+          apirunner tests/
+          kill -9 `lsof -i:8000 -t`
+        env:
+          WARRANT_PORT: 8000
+          WARRANT_LOGLEVEL: 0
+          WARRANT_ENABLEACCESSLOG: true
+          WARRANT_DATASTORE: sqlite
+          WARRANT_DATASTORE_SQLITE_DATABASE: warrant
+          WARRANT_DATASTORE_SQLITE_INMEMORY: true
+          WARRANT_EVENTSTORE: sqlite
+          WARRANT_EVENTSTORE_SQLITE_DATABASE: warrantEvents
+          WARRANT_EVENTSTORE_SQLITE_INMEMORY: true
