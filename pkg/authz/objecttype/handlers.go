@@ -22,7 +22,7 @@ func (svc ObjectTypeService) Routes() []service.Route {
 		{
 			Pattern: "/v1/object-types",
 			Method:  "GET",
-			Handler: middleware.ChainMiddleware(
+			Handler: middleware.Chain(
 				service.NewRouteHandler(svc, ListHandler),
 				middleware.ListMiddleware[ObjectTypeListParamParser],
 			),

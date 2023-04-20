@@ -14,7 +14,7 @@ func (svc WarrantService) Routes() []service.Route {
 		{
 			Pattern: "/v1/warrants",
 			Method:  "POST",
-			Handler: middleware.ChainMiddleware(
+			Handler: middleware.Chain(
 				service.NewRouteHandler(svc, CreateHandler),
 			),
 		},
@@ -23,7 +23,7 @@ func (svc WarrantService) Routes() []service.Route {
 		{
 			Pattern: "/v1/warrants",
 			Method:  "GET",
-			Handler: middleware.ChainMiddleware(
+			Handler: middleware.Chain(
 				service.NewRouteHandler(svc, ListHandler),
 				middleware.ListMiddleware[WarrantListParamParser],
 			),
@@ -33,7 +33,7 @@ func (svc WarrantService) Routes() []service.Route {
 		{
 			Pattern: "/v1/warrants",
 			Method:  "DELETE",
-			Handler: middleware.ChainMiddleware(
+			Handler: middleware.Chain(
 				service.NewRouteHandler(svc, DeleteHandler),
 			),
 		},

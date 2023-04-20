@@ -15,7 +15,7 @@ func (svc CheckService) Routes() []service.Route {
 		{
 			Pattern: "/v2/authorize",
 			Method:  "POST",
-			Handler: middleware.ChainMiddleware(
+			Handler: middleware.Chain(
 				service.NewRouteHandler(svc, AuthorizeHandler),
 			),
 			EnableSessionAuth: true,

@@ -27,7 +27,7 @@ func (svc UserService) Routes() []service.Route {
 		{
 			Pattern: "/v1/users",
 			Method:  "GET",
-			Handler: middleware.ChainMiddleware(
+			Handler: middleware.Chain(
 				service.NewRouteHandler(svc, ListHandler),
 				middleware.ListMiddleware[UserListParamParser],
 			),

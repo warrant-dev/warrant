@@ -23,7 +23,7 @@ func (svc RoleService) Routes() []service.Route {
 		{
 			Pattern: "/v1/roles",
 			Method:  "GET",
-			Handler: middleware.ChainMiddleware(
+			Handler: middleware.Chain(
 				service.NewRouteHandler(svc, ListHandler),
 				middleware.ListMiddleware[RoleListParamParser],
 			),

@@ -28,7 +28,7 @@ func (svc TenantService) Routes() []service.Route {
 		{
 			Pattern: "/v1/tenants",
 			Method:  "GET",
-			Handler: middleware.ChainMiddleware(
+			Handler: middleware.Chain(
 				service.NewRouteHandler(svc, ListHandler),
 				middleware.ListMiddleware[TenantListParamParser],
 			),

@@ -23,7 +23,7 @@ func (svc PricingTierService) Routes() []service.Route {
 		{
 			Pattern: "/v1/pricing-tiers",
 			Method:  "GET",
-			Handler: middleware.ChainMiddleware(
+			Handler: middleware.Chain(
 				service.NewRouteHandler(svc, ListHandler),
 				middleware.ListMiddleware[PricingTierListParamParser],
 			),

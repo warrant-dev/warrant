@@ -23,7 +23,7 @@ func (svc FeatureService) Routes() []service.Route {
 		{
 			Pattern: "/v1/features",
 			Method:  "GET",
-			Handler: middleware.ChainMiddleware(
+			Handler: middleware.Chain(
 				service.NewRouteHandler(svc, ListHandler),
 				middleware.ListMiddleware[FeatureListParamParser],
 			),
