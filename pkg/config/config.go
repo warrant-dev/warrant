@@ -29,6 +29,7 @@ type Config interface {
 	GetPort() int
 	GetLogLevel() int8
 	GetEnableAccessLog() bool
+	GetAutoMigrate() bool
 	GetDatastore() *DatastoreConfig
 	GetEventstore() *EventstoreConfig
 	GetApiKey() string
@@ -56,6 +57,10 @@ func (warrantConfig WarrantConfig) GetLogLevel() int8 {
 
 func (warrantConfig WarrantConfig) GetEnableAccessLog() bool {
 	return warrantConfig.EnableAccessLog
+}
+
+func (warrantConfig WarrantConfig) GetAutoMigrate() bool {
+	return warrantConfig.AutoMigrate
 }
 
 func (warrantConfig WarrantConfig) GetDatastore() *DatastoreConfig {

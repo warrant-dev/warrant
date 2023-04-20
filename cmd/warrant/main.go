@@ -46,18 +46,18 @@ func (env ServiceEnv) EventDB() database.Database {
 	return env.Eventstore
 }
 
-func (env *ServiceEnv) InitDB(config config.Config) error {
+func (env *ServiceEnv) InitDB(cfg config.Config) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFunc()
 
-	if config.GetDatastore().MySQL.Hostname != "" {
-		db := database.NewMySQL(*config.GetDatastore().MySQL)
+	if cfg.GetDatastore().MySQL.Hostname != "" {
+		db := database.NewMySQL(*cfg.GetDatastore().MySQL)
 		err := db.Connect(ctx)
 		if err != nil {
 			return err
 		}
 
-		if config.AutoMigrate {
+		if cfg.GetAutoMigrate() {
 			err = db.Migrate(ctx, MySQLDatastoreMigrationVersion)
 			if err != nil {
 				return err
@@ -68,14 +68,14 @@ func (env *ServiceEnv) InitDB(config config.Config) error {
 		return nil
 	}
 
-	if config.GetDatastore().Postgres.Hostname != "" {
-		db := database.NewPostgres(*config.GetDatastore().Postgres)
+	if cfg.GetDatastore().Postgres.Hostname != "" {
+		db := database.NewPostgres(*cfg.GetDatastore().Postgres)
 		err := db.Connect(ctx)
 		if err != nil {
 			return err
 		}
 
-		if config.AutoMigrate {
+		if cfg.GetAutoMigrate() {
 			err = db.Migrate(ctx, PostgresDatastoreMigrationVersion)
 			if err != nil {
 				return err
@@ -86,14 +86,14 @@ func (env *ServiceEnv) InitDB(config config.Config) error {
 		return nil
 	}
 
-	if config.GetDatastore().SQLite.Database != "" {
-		db := database.NewSQLite(*config.GetDatastore().SQLite)
+	if cfg.GetDatastore().SQLite.Database != "" {
+		db := database.NewSQLite(*cfg.GetDatastore().SQLite)
 		err := db.Connect(ctx)
 		if err != nil {
 			return err
 		}
 
-		if config.AutoMigrate {
+		if cfg.GetAutoMigrate() {
 			err = db.Migrate(ctx, SQLiteDatastoreMigrationVersion)
 			if err != nil {
 				return err
@@ -118,7 +118,7 @@ func (env *ServiceEnv) InitEventDB(config config.Config) error {
 			return err
 		}
 
-		if config.AutoMigrate {
+		if config.GetAutoMigrate() {
 			err = db.Migrate(ctx, MySQLEventstoreMigrationVersion)
 			if err != nil {
 				return err
@@ -136,7 +136,7 @@ func (env *ServiceEnv) InitEventDB(config config.Config) error {
 			return err
 		}
 
-		if config.AutoMigrate {
+		if config.GetAutoMigrate() {
 			err = db.Migrate(ctx, PostgresEventstoreMigrationVersion)
 			if err != nil {
 				return err
@@ -154,7 +154,7 @@ func (env *ServiceEnv) InitEventDB(config config.Config) error {
 			return err
 		}
 
-		if config.AutoMigrate {
+		if config.GetAutoMigrate() {
 			err = db.Migrate(ctx, SQLiteEventstoreMigrationVersion)
 			if err != nil {
 				return err
@@ -176,14 +176,14 @@ func NewServiceEnv() ServiceEnv {
 }
 
 func main() {
-	config := config.NewConfig()
+	cfg := config.NewConfig()
 	svcEnv := NewServiceEnv()
-	err := svcEnv.InitDB(config)
+	err := svcEnv.InitDB(cfg)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize and connect to the configured datastore. Shutting down.")
 	}
 
-	err = svcEnv.InitEventDB(config)
+	err = svcEnv.InitEventDB(cfg)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize and connect to the configured eventstore. Shutting down.")
 	}
@@ -193,15 +193,13 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize EventRepository")
 	}
-
-	eventSvc := event.NewService(svcEnv, eventRepository, config.Eventstore.SynchronizeEvents)
+	eventSvc := event.NewService(svcEnv, eventRepository, cfg.Eventstore.SynchronizeEvents)
 
 	// Init object type repo and service
 	objectTypeRepository, err := objecttype.NewRepository(svcEnv.DB())
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize ObjectTypeRepository")
 	}
-
 	objectTypeSvc := objecttype.NewService(svcEnv, objectTypeRepository, eventSvc)
 
 	// Init context repo and service
@@ -209,7 +207,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize ContextRepository")
 	}
-
 	ctxSvc := wntContext.NewService(svcEnv, ctxRepository)
 
 	// Init warrant repo and service
@@ -217,7 +214,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize WarrantRepository")
 	}
-
 	warrantSvc := warrant.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, ctxSvc)
 
 	// Init check service
@@ -228,7 +224,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize ObjectRepository")
 	}
-
 	objectSvc := object.NewService(svcEnv, objectRepository, eventSvc, warrantSvc)
 
 	// Init feature repo and service
@@ -236,7 +231,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize FeatureRepository")
 	}
-
 	featureSvc := feature.NewService(&svcEnv, featureRepository, eventSvc, objectSvc)
 
 	// Init permission repo and service
@@ -244,7 +238,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize RoleRepository")
 	}
-
 	permissionSvc := permission.NewService(&svcEnv, permissionRepository, eventSvc, objectSvc)
 
 	// Init pricing tier repo and service
@@ -252,7 +245,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize PricingTierRepository")
 	}
-
 	pricingTierSvc := pricingtier.NewService(&svcEnv, pricingTierRepository, eventSvc, objectSvc)
 
 	// Init role repo and service
@@ -260,7 +252,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize RoleRepository")
 	}
-
 	roleSvc := role.NewService(&svcEnv, roleRepository, eventSvc, objectSvc)
 
 	// Init tenant repo and service
@@ -268,7 +259,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize TenantRepository")
 	}
-
 	tenantSvc := tenant.NewService(&svcEnv, tenantRepository, eventSvc, objectSvc)
 
 	// Init user repo and service
@@ -276,7 +266,6 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize UserRepository")
 	}
-
 	userSvc := user.NewService(&svcEnv, userRepository, eventSvc, objectSvc)
 
 	svcs := []service.Service{
@@ -298,7 +287,7 @@ func main() {
 		routes = append(routes, svc.Routes()...)
 	}
 
-	log.Debug().Msgf("Listening on port %d", config.GetPort())
-	shutdownErr := http.ListenAndServe(fmt.Sprintf(":%d", config.GetPort()), service.NewRouter(config, "", routes, nil))
+	log.Debug().Msgf("Listening on port %d", cfg.GetPort())
+	shutdownErr := http.ListenAndServe(fmt.Sprintf(":%d", cfg.GetPort()), service.NewRouter(cfg, "", routes, nil))
 	log.Fatal().Err(shutdownErr).Msg("")
 }
