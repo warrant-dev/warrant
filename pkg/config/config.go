@@ -41,8 +41,7 @@ type WarrantConfig struct {
 	AutoMigrate     bool              `mapstructure:"autoMigrate"`
 	Datastore       *DatastoreConfig  `mapstructure:"datastore"`
 	Eventstore      *EventstoreConfig `mapstructure:"eventstore"`
-	ApiKey          string            `mapstructure:"apiKey"`
-	Authentication  AuthConfig        `mapstructure:"authentication"`
+	Authentication  *AuthConfig       `mapstructure:"authentication"`
 }
 
 func (warrantConfig WarrantConfig) GetPort() int {
@@ -69,11 +68,7 @@ func (warrantConfig WarrantConfig) GetEventstore() *EventstoreConfig {
 	return warrantConfig.Eventstore
 }
 
-func (warrantConfig WarrantConfig) GetApiKey() string {
-	return warrantConfig.ApiKey
-}
-
-func (warrantConfig WarrantConfig) GetAuthentication() AuthConfig {
+func (warrantConfig WarrantConfig) GetAuthentication() *AuthConfig {
 	return warrantConfig.Authentication
 }
 
@@ -120,7 +115,13 @@ type EventstoreConfig struct {
 }
 
 type AuthConfig struct {
-	Provider      string `mapstructure:"provider"`
+	EnableAuth bool                `mapstructure:"enableAuth"`
+	ApiKey     string              `mapstructure:"apiKey"`
+	Provider   *AuthProviderConfig `mapstructure:"providers"`
+}
+
+type AuthProviderConfig struct {
+	Name          string `mapstructure:"name"`
 	PublicKey     string `mapstructure:"publicKey"`
 	UserIdClaim   string `mapstructure:"userIdClaim"`
 	TenantIdClaim string `mapstructure:"tenantIdClaim"`
@@ -139,7 +140,8 @@ func NewConfig() WarrantConfig {
 	viper.SetDefault("eventstore.postgres.migrationSource", DefaultPostgresEventstoreMigrationSource)
 	viper.SetDefault("eventstore.sqlite.migrationSource", DefaultSQLiteEventstoreMigrationSource)
 	viper.SetDefault("eventstore.synchronizeEvents", false)
-	viper.SetDefault("authentication.userIdClaim", DefaultAuthenticationUserIdClaim)
+	viper.SetDefault("authentication.enableAuth", false)
+	viper.SetDefault("authentication.provider.userIdClaim", DefaultAuthenticationUserIdClaim)
 
 	// If config file exists, use it
 	_, err := os.ReadFile(ConfigFileName)
@@ -178,8 +180,8 @@ func NewConfig() WarrantConfig {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
-	if config.GetApiKey() == "" {
-		log.Warn().Msg("Warrant is running without an API key. We recommend providing an API key when running in production.")
+	if config.GetAuthentication() == nil || config.GetAuthentication().ApiKey == "" {
+		log.Fatal().Msg("Must provide an API key to authenticate incoming requests to Warrant.")
 	}
 
 	return config
