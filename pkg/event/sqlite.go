@@ -40,14 +40,16 @@ func (repo SQLiteRepository) TrackResourceEvents(ctx context.Context, models []R
 			  source,
 			  resourceType,
 			  resourceId,
-			  meta
+			  meta,
+			  createdAt
 		   ) VALUES (
 			  :id,
 			  :type,
 			  :source,
 			  :resourceType,
 			  :resourceId,
-			  :meta
+			  :meta,
+			  :createdAt
 		   )
 		`,
 		resourceEvents,
@@ -171,7 +173,8 @@ func (repo SQLiteRepository) TrackAccessEvents(ctx context.Context, models []Acc
 			  subjectId,
 			  subjectRelation,
 			  context,
-			  meta
+			  meta,
+			  createdAt
 		   ) VALUES (
 			  :id,
 			  :type,
@@ -183,7 +186,8 @@ func (repo SQLiteRepository) TrackAccessEvents(ctx context.Context, models []Acc
 			  :subjectId,
 			  :subjectRelation,
 			  :context,
-			  :meta
+			  :meta,
+			  :createdAt
 		   )
 		`,
 		accessEvents,

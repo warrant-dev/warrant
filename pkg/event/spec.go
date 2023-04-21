@@ -38,6 +38,7 @@ func (spec CreateResourceEventSpec) ToResourceEvent() (*ResourceEvent, error) {
 		ResourceType: spec.ResourceType,
 		ResourceId:   spec.ResourceId,
 		Meta:         database.StringToNullString(meta),
+		CreatedAt:    time.Now().UTC(),
 	}, nil
 }
 
@@ -99,6 +100,7 @@ func (spec CreateAccessEventSpec) ToAccessEvent() (*AccessEvent, error) {
 		SubjectRelation: spec.SubjectRelation,
 		Meta:            database.StringToNullString(meta),
 		Context:         database.StringToNullString(ctx),
+		CreatedAt:       time.Now().UTC(),
 	}, nil
 }
 
