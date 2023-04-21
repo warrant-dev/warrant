@@ -187,6 +187,12 @@ func ApiKeyAndSessionAuthMiddleware(cfg config.Config, route Route) (http.Handle
 	}), nil
 }
 
+func PassthroughAuthMiddleware(cfg config.Config, route Route) (http.Handler, error) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		route.GetHandler().ServeHTTP(w, r)
+	}), nil
+}
+
 // GetAuthInfoFromRequestContext returns the AuthInfo object from the given context
 func GetAuthInfoFromRequestContext(context context.Context) *AuthInfo {
 	contextVal := context.Value(authInfoKey)
