@@ -58,9 +58,10 @@ jobs:
         if: success() || (failure() && steps.start-server.outcome == 'success')
         run: kill -9 `lsof -i:8000 -t`
       - name: Archive server log
-        if: failure() && steps.start-server.outcome == 'success'
+        if: failure()
         uses: actions/upload-artifact@v3
         with:
           name: server-log
           path: server.log
+          if-no-files-found: warn
           retention-days: 5
