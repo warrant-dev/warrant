@@ -9,7 +9,7 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Go Env
+      - name: Setup go env
         uses: actions/setup-go@v3
         with:
           go-version: "^1.19.3"
@@ -17,26 +17,27 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 2
-      - name: Verify Go Dependencies
+      - name: Verify go dependencies
         run: go mod verify
-      - name: Go Staticcheck
+      - name: Go staticcheck
         uses: dominikh/staticcheck-action@v1.3.0
         with:
           version: "2023.1.2"
           install-go: false
-      - name: GoReleaser Check
+      - name: Goreleaser check
         uses: goreleaser/goreleaser-action@v2
         with:
           distribution: goreleaser
           version: latest
           args: check
-      - name: Build Binary
+      - name: Build binary
         run: make dev
         working-directory: cmd/warrant
-      - name: Install API Runner
+      - name: Install apirunner
         run: go install github.com/warrant-dev/apirunner/cmd/apirunner@v1.3.0
-      - name: Start Test Server
-        run: ./cmd/warrant/bin/warrant &
+      - name: Start test server
+        id: start-server
+        run: ./cmd/warrant/bin/warrant > server.log 2>&1 &
         env:
           WARRANT_AUTOMIGRATE: true
           WARRANT_PORT: 8000
@@ -49,8 +50,17 @@ jobs:
           WARRANT_EVENTSTORE_SQLITE_DATABASE: warrantEvents
           WARRANT_EVENTSTORE_SQLITE_INMEMORY: true
           WARRANT_EVENTSTORE_SYNCHRONIZEEVENTS: true
-      - name: Run API Runner Tests
+      - name: Run apirunner tests
         run: |
           sleep 5
           apirunner tests/ tests/ci-apirunner.conf
-          kill -9 `lsof -i:8000 -t`
+      - name: Shutdown test server
+        needs: start-server
+        run: kill -9 `lsof -i:8000 -t`
+      - name: Archive server log
+        needs: start-server
+        uses: actions/upload-artifact@v3
+        with:
+          name: server-log
+          path: server.log
+          retention-days: 5
