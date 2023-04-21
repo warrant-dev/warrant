@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 2
       - name: Verify Go Dependencies
         run: go mod verify
-      - name: Go staticcheck
+      - name: Go Staticcheck
         uses: dominikh/staticcheck-action@v1.3.0
         with:
           version: "2023.1.2"
@@ -35,12 +35,8 @@ jobs:
         working-directory: cmd/warrant
       - name: Install API Runner
         run: go install github.com/warrant-dev/apirunner/cmd/apirunner@v1.3.0
-      - name: Run API Runner Tests
-        run: |
-          ./cmd/warrant/bin/warrant &
-          sleep 5
-          apirunner tests/ tests/ci-apirunner.conf
-          kill -9 `lsof -i:8000 -t`
+      - name: Start Test Server
+        run: ./cmd/warrant/bin/warrant &
         env:
           WARRANT_AUTOMIGRATE: true
           WARRANT_PORT: 8000
@@ -53,3 +49,8 @@ jobs:
           WARRANT_EVENTSTORE_SQLITE_DATABASE: warrantEvents
           WARRANT_EVENTSTORE_SQLITE_INMEMORY: true
           WARRANT_EVENTSTORE_SYNCHRONIZEEVENTS: true
+      - name: Run API Runner Tests
+        run: |
+          sleep 5
+          apirunner tests/ tests/ci-apirunner.conf
+          kill -9 `lsof -i:8000 -t`
