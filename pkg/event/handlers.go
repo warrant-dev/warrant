@@ -62,8 +62,7 @@ func listResourceEvents(svc EventService, w http.ResponseWriter, r *http.Request
 
 	untilString := queryParams.Get(QueryParamUntil)
 	if untilString == "" {
-		year, month, day := time.Now().Date()
-		listParams.Until = time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+		listParams.Until = time.Now().UTC()
 	} else {
 		until, err := time.Parse(DateFormat, untilString)
 		if err != nil {
@@ -134,8 +133,7 @@ func listAccessEvents(svc EventService, w http.ResponseWriter, r *http.Request) 
 
 	untilString := queryParams.Get(QueryParamUntil)
 	if untilString == "" {
-		year, month, day := time.Now().Date()
-		listParams.Until = time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+		listParams.Until = time.Now().UTC()
 	} else {
 		until, err := time.Parse(DateFormat, untilString)
 		if err != nil {

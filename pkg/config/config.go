@@ -75,7 +75,15 @@ type EventstoreConfig struct {
 	MySQL             *MySQLConfig    `mapstructure:"mysql"`
 	Postgres          *PostgresConfig `mapstructure:"postgres"`
 	SQLite            *SQLiteConfig   `mapstructure:"sqlite"`
+	Tigris            TigrisConfig    `mapstructure:"tigris"`
 	SynchronizeEvents bool            `mapstructure:"synchronizeEvents"`
+}
+
+type TigrisConfig struct {
+	URL          string `mapstructure:"url"`
+	Project      string `mapstructure:"project"`
+	ClientID     string `mapstructure:"clientId"`
+	ClientSecret string `mapstructure:"clientSecret"`
 }
 
 type AuthConfig struct {

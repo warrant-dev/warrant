@@ -4,6 +4,8 @@ GOENV      = GOARCH=amd64 GOOS=linux CGO_ENABLED=0
 GOCMD      = go
 GOBUILD    = $(GOCMD) build -v -o $(BUILD_PATH)
 
+all: build
+
 .PHONY: clean
 clean:
 	rm -f $(BUILD_PATH)

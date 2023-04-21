@@ -6,7 +6,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/context"
-	"github.com/warrant-dev/warrant/pkg/database"
 )
 
 type ResourceEventModel interface {
@@ -15,19 +14,19 @@ type ResourceEventModel interface {
 	GetSource() string
 	GetResourceType() string
 	GetResourceId() string
-	GetMeta() database.NullString
+	getMeta() *string
 	GetCreatedAt() time.Time
 	ToResourceEventSpec() (*ResourceEventSpec, error)
 }
 
 type ResourceEvent struct {
-	ID           string              `mysql:"id" postgres:"id" sqlite:"id"`
-	Type         string              `mysql:"type" postgres:"type" sqlite:"type"`
-	Source       string              `mysql:"source" postgres:"source" sqlite:"source"`
-	ResourceType string              `mysql:"resourceType" postgres:"resource_type" sqlite:"resourceType"`
-	ResourceId   string              `mysql:"resourceId" postgres:"resource_id" sqlite:"resourceId"`
-	Meta         database.NullString `mysql:"meta" postgres:"meta" sqlite:"meta"`
-	CreatedAt    time.Time           `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
+	ID           string    `mysql:"id" postgres:"id" sqlite:"id" json:"id" tigris:"primaryKey:2"`
+	Type         string    `mysql:"type" postgres:"type" sqlite:"type" json:"type"`
+	Source       string    `mysql:"source" postgres:"source" sqlite:"source" json:"source"`
+	ResourceType string    `mysql:"resourceType" postgres:"resource_type" sqlite:"resourceType" json:"resourceType"`
+	ResourceId   string    `mysql:"resourceId" postgres:"resource_id" sqlite:"resourceId" json:"resourceId"`
+	Meta         *string   `mysql:"meta" postgres:"meta" sqlite:"meta" json:"meta"`
+	CreatedAt    time.Time `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt" json:"createdAt" tigris:"primaryKey:1"`
 }
 
 func NewResourceEventFromModel(model ResourceEventModel) *ResourceEvent {
@@ -37,7 +36,7 @@ func NewResourceEventFromModel(model ResourceEventModel) *ResourceEvent {
 		Source:       model.GetSource(),
 		ResourceType: model.GetResourceType(),
 		ResourceId:   model.GetResourceId(),
-		Meta:         model.GetMeta(),
+		Meta:         model.getMeta(),
 		CreatedAt:    model.GetCreatedAt(),
 	}
 }
@@ -62,7 +61,7 @@ func (resourceEvent ResourceEvent) GetResourceId() string {
 	return resourceEvent.ResourceId
 }
 
-func (resourceEvent ResourceEvent) GetMeta() database.NullString {
+func (resourceEvent ResourceEvent) getMeta() *string {
 	return resourceEvent.Meta
 }
 
@@ -72,10 +71,10 @@ func (resourceEvent ResourceEvent) GetCreatedAt() time.Time {
 
 func (resourceEvent ResourceEvent) ToResourceEventSpec() (*ResourceEventSpec, error) {
 	var meta interface{}
-	if resourceEvent.Meta.Valid {
-		err := json.Unmarshal([]byte(resourceEvent.Meta.String), &meta)
+	if resourceEvent.Meta != nil {
+		err := json.Unmarshal([]byte(*resourceEvent.Meta), &meta)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error unmarshaling resource event meta %s", resourceEvent.Meta.String)
+			return nil, errors.Wrapf(err, "error unmarshaling resource event meta %s", *resourceEvent.Meta)
 		}
 	}
 
@@ -100,25 +99,25 @@ type AccessEventModel interface {
 	GetSubjectType() string
 	GetSubjectId() string
 	GetSubjectRelation() string
-	GetContext() database.NullString
-	GetMeta() database.NullString
+	getContext() *string
+	getMeta() *string
 	GetCreatedAt() time.Time
 	ToAccessEventSpec() (*AccessEventSpec, error)
 }
 
 type AccessEvent struct {
-	ID              string              `mysql:"id" postgres:"id" sqlite:"id"`
-	Type            string              `mysql:"type" postgres:"type" sqlite:"type"`
-	Source          string              `mysql:"source" postgres:"source" sqlite:"source"`
-	ObjectType      string              `mysql:"objectType" postgres:"object_type" sqlite:"objectType"`
-	ObjectId        string              `mysql:"objectId" postgres:"object_id" sqlite:"objectId"`
-	Relation        string              `mysql:"relation" postgres:"relation" sqlite:"relation"`
-	SubjectType     string              `mysql:"subjectType" postgres:"subject_type" sqlite:"subjectType"`
-	SubjectId       string              `mysql:"subjectId" postgres:"subject_id" sqlite:"subjectId"`
-	SubjectRelation string              `mysql:"subjectRelation" postgres:"subject_relation" sqlite:"subjectRelation"`
-	Context         database.NullString `mysql:"context" postgres:"context" sqlite:"context"`
-	Meta            database.NullString `mysql:"meta" postgres:"meta" sqlite:"meta"`
-	CreatedAt       time.Time           `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
+	ID              string    `mysql:"id" postgres:"id" sqlite:"id" json:"id" tigris:"primaryKey:2"`
+	Type            string    `mysql:"type" postgres:"type" sqlite:"type" json:"type"`
+	Source          string    `mysql:"source" postgres:"source" sqlite:"source" json:"source"`
+	ObjectType      string    `mysql:"objectType" postgres:"object_type" sqlite:"objectType" json:"objectType"`
+	ObjectId        string    `mysql:"objectId" postgres:"object_id" sqlite:"objectId" json:"objectId"`
+	Relation        string    `mysql:"relation" postgres:"relation" sqlite:"relation" json:"relation"`
+	SubjectType     string    `mysql:"subjectType" postgres:"subject_type" sqlite:"subjectType" json:"subjectType"`
+	SubjectId       string    `mysql:"subjectId" postgres:"subject_id" sqlite:"subjectId" json:"subjectId"`
+	SubjectRelation string    `mysql:"subjectRelation" postgres:"subject_relation" sqlite:"subjectRelation" json:"subjectRelation"`
+	Context         *string   `mysql:"context" postgres:"context" sqlite:"context" json:"context"`
+	Meta            *string   `mysql:"meta" postgres:"meta" sqlite:"meta" json:"meta"`
+	CreatedAt       time.Time `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt" json:"createdAt" tigris:"primaryKey:1"`
 }
 
 func NewAccessEventFromModel(model AccessEventModel) *AccessEvent {
@@ -132,8 +131,8 @@ func NewAccessEventFromModel(model AccessEventModel) *AccessEvent {
 		SubjectType:     model.GetSubjectType(),
 		SubjectId:       model.GetSubjectId(),
 		SubjectRelation: model.GetSubjectRelation(),
-		Context:         model.GetContext(),
-		Meta:            model.GetMeta(),
+		Context:         model.getContext(),
+		Meta:            model.getMeta(),
 		CreatedAt:       model.GetCreatedAt(),
 	}
 }
@@ -174,11 +173,11 @@ func (accessEvent AccessEvent) GetSubjectRelation() string {
 	return accessEvent.SubjectRelation
 }
 
-func (accessEvent AccessEvent) GetContext() database.NullString {
+func (accessEvent AccessEvent) getContext() *string {
 	return accessEvent.Context
 }
 
-func (accessEvent AccessEvent) GetMeta() database.NullString {
+func (accessEvent AccessEvent) getMeta() *string {
 	return accessEvent.Meta
 }
 
@@ -188,18 +187,18 @@ func (accessEvent AccessEvent) GetCreatedAt() time.Time {
 
 func (accessEvent AccessEvent) ToAccessEventSpec() (*AccessEventSpec, error) {
 	var meta interface{}
-	if accessEvent.Meta.Valid {
-		err := json.Unmarshal([]byte(accessEvent.Meta.String), &meta)
+	if accessEvent.Meta != nil {
+		err := json.Unmarshal([]byte(*accessEvent.Meta), &meta)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error unmarshaling access event meta %s", accessEvent.Meta.String)
+			return nil, errors.Wrapf(err, "error unmarshaling access event meta %s", *accessEvent.Meta)
 		}
 	}
 
 	var ctx context.ContextSetSpec
-	if accessEvent.Context.Valid {
-		err := json.Unmarshal([]byte(accessEvent.Context.String), &ctx)
+	if accessEvent.Context != nil {
+		err := json.Unmarshal([]byte(*accessEvent.Context), &ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error unmarshaling access event context %s", accessEvent.Context.String)
+			return nil, errors.Wrapf(err, "error unmarshaling access event context %s", *accessEvent.Context)
 		}
 	}
 

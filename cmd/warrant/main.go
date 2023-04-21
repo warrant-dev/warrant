@@ -31,6 +31,7 @@ const (
 	PostgresEventstoreMigrationVersion = 000002
 	SQLiteDatastoreMigrationVersion    = 000003
 	SQLiteEventstoreMigrationVersion   = 000002
+	TigrisEventstoreMigrationVersion   = 000001
 )
 
 type ServiceEnv struct {
@@ -104,7 +105,7 @@ func (env *ServiceEnv) InitDB(config config.Config) error {
 		return nil
 	}
 
-	return fmt.Errorf("invalid database configuration provided")
+	return fmt.Errorf("no database configured")
 }
 
 func (env *ServiceEnv) InitEventDB(config config.Config) error {
@@ -162,6 +163,21 @@ func (env *ServiceEnv) InitEventDB(config config.Config) error {
 		}
 
 		env.Eventstore = db
+		return nil
+	}
+
+	if config.Eventstore.Tigris.Project != "" {
+		db := database.NewTigris(&config.Eventstore.Tigris)
+		if err := db.Connect(ctx); err != nil {
+			return err
+		}
+
+		if err := db.Migrate(ctx, TigrisEventstoreMigrationVersion); err != nil {
+			return err
+		}
+
+		env.Eventstore = db
+
 		return nil
 	}
 

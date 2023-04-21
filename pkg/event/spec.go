@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	context "github.com/warrant-dev/warrant/pkg/context"
-	"github.com/warrant-dev/warrant/pkg/database"
 )
 
 type CreateResourceEventSpec struct {
@@ -37,7 +36,7 @@ func (spec CreateResourceEventSpec) ToResourceEvent() (*ResourceEvent, error) {
 		Source:       spec.Source,
 		ResourceType: spec.ResourceType,
 		ResourceId:   spec.ResourceId,
-		Meta:         database.StringToNullString(meta),
+		Meta:         meta,
 		CreatedAt:    time.Now().UTC(),
 	}, nil
 }
@@ -98,8 +97,8 @@ func (spec CreateAccessEventSpec) ToAccessEvent() (*AccessEvent, error) {
 		SubjectType:     spec.SubjectType,
 		SubjectId:       spec.SubjectId,
 		SubjectRelation: spec.SubjectRelation,
-		Meta:            database.StringToNullString(meta),
-		Context:         database.StringToNullString(ctx),
+		Meta:            meta,
+		Context:         ctx,
 		CreatedAt:       time.Now().UTC(),
 	}, nil
 }

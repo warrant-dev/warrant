@@ -6,6 +6,7 @@ const (
 	TypeMySQL    = "mysql"
 	TypePostgres = "postgres"
 	TypeSQLite   = "sqlite"
+	TypeTigris   = "tigris"
 )
 
 type Database interface {

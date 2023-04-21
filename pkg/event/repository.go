@@ -39,6 +39,13 @@ func NewRepository(db database.Database) (EventRepository, error) {
 		}
 
 		return NewSQLiteRepository(sqlite), nil
+	case database.TypeTigris:
+		tigris, ok := db.(*database.Tigris)
+		if !ok {
+			return nil, fmt.Errorf("invalid %s database config", database.TypeTigris)
+		}
+
+		return NewTigrisRepository(tigris)
 	default:
 		return nil, fmt.Errorf("unsupported database type %s specified", db.Type())
 	}
