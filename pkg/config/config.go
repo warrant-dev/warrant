@@ -115,9 +115,8 @@ type EventstoreConfig struct {
 }
 
 type AuthConfig struct {
-	EnableAuth bool                `mapstructure:"enableAuth"`
-	ApiKey     string              `mapstructure:"apiKey"`
-	Provider   *AuthProviderConfig `mapstructure:"providers"`
+	ApiKey   string              `mapstructure:"apiKey"`
+	Provider *AuthProviderConfig `mapstructure:"providers"`
 }
 
 type AuthProviderConfig struct {
@@ -140,7 +139,6 @@ func NewConfig() WarrantConfig {
 	viper.SetDefault("eventstore.postgres.migrationSource", DefaultPostgresEventstoreMigrationSource)
 	viper.SetDefault("eventstore.sqlite.migrationSource", DefaultSQLiteEventstoreMigrationSource)
 	viper.SetDefault("eventstore.synchronizeEvents", false)
-	viper.SetDefault("authentication.enableAuth", false)
 	viper.SetDefault("authentication.provider.userIdClaim", DefaultAuthenticationUserIdClaim)
 
 	// If config file exists, use it
