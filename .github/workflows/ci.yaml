@@ -1,4 +1,4 @@
-name: Warrant
+name: CI
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: Warrant
+name: Release
 
 on:
   push:
