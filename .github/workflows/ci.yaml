@@ -34,14 +34,15 @@ jobs:
         run: make dev
         working-directory: cmd/warrant
       - name: Install API Runner
-        run: go install github.com/warrant-dev/apirunner/cmd/apirunner@latest
+        run: go install github.com/warrant-dev/apirunner/cmd/apirunner@v1.3.0
       - name: Run API Runner Tests
         run: |
           ./cmd/warrant/bin/warrant &
           sleep 5
-          apirunner tests/
+          apirunner tests/ tests/ci-apirunner.conf
           kill -9 `lsof -i:8000 -t`
         env:
+          WARRANT_AUTOMIGRATE: true
           WARRANT_PORT: 8000
           WARRANT_LOGLEVEL: 0
           WARRANT_ENABLEACCESSLOG: true
@@ -51,3 +52,4 @@ jobs:
           WARRANT_EVENTSTORE: sqlite
           WARRANT_EVENTSTORE_SQLITE_DATABASE: warrantEvents
           WARRANT_EVENTSTORE_SQLITE_INMEMORY: true
+          WARRANT_EVENTSTORE_SYNCHRONIZEEVENTS: true
