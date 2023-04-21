@@ -1,4 +1,4 @@
-name: Warrant
+name: CI
 
 on:
   push:
@@ -9,7 +9,7 @@ jobs:
   ci:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Go Env
+      - name: Setup go env
         uses: actions/setup-go@v3
         with:
           go-version: "^1.19.3"
@@ -17,19 +17,51 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 2
-      - name: Verify Go Dependencies
+      - name: Verify go dependencies
         run: go mod verify
       - name: Go staticcheck
         uses: dominikh/staticcheck-action@v1.3.0
         with:
           version: "2023.1.2"
           install-go: false
-      - name: Build Binary
-        run: make build
-        working-directory: cmd/warrant
-      - name: GoReleaser Check
+      - name: Goreleaser check
         uses: goreleaser/goreleaser-action@v2
         with:
           distribution: goreleaser
           version: latest
           args: check
+      - name: Build binary
+        run: make dev
+        working-directory: cmd/warrant
+      - name: Install apirunner
+        run: go install github.com/warrant-dev/apirunner/cmd/apirunner@v1.3.0
+      - name: Start test server
+        id: start-server
+        run: ./cmd/warrant/bin/warrant > server.log 2>&1 &
+        env:
+          WARRANT_AUTOMIGRATE: true
+          WARRANT_PORT: 8000
+          WARRANT_LOGLEVEL: 0
+          WARRANT_ENABLEACCESSLOG: true
+          WARRANT_DATASTORE: sqlite
+          WARRANT_DATASTORE_SQLITE_DATABASE: warrant
+          WARRANT_DATASTORE_SQLITE_INMEMORY: true
+          WARRANT_EVENTSTORE: sqlite
+          WARRANT_EVENTSTORE_SQLITE_DATABASE: warrantEvents
+          WARRANT_EVENTSTORE_SQLITE_INMEMORY: true
+          WARRANT_EVENTSTORE_SYNCHRONIZEEVENTS: true
+      - name: Run apirunner tests
+        run: |
+          sleep 5
+          apirunner tests/ tests/ci-apirunner.conf
+      - name: Shutdown test server
+        if: success() || (failure() && steps.start-server.outcome == 'success')
+        run: kill -9 `lsof -i:8000 -t`
+      - name: Archive server log
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: server-log
+          path: server.log
+          if-no-files-found: warn
+          retention-days: 5
