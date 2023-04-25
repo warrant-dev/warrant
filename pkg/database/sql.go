@@ -80,7 +80,9 @@ type SqlQueryable interface {
 	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
 }
 
-type txKey struct{}
+type txKey struct {
+	Database string
+}
 
 type SqlTx struct {
 	Tx *sqlx.Tx
@@ -171,12 +173,20 @@ func (q SqlTx) SelectContext(ctx context.Context, dest interface{}, query string
 }
 
 type SQL struct {
-	DB *sqlx.DB
+	DB           *sqlx.DB
+	DatabaseName string
 }
 
-func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(ctx context.Context) error) error {
-	// If transaction already started, re-use it
-	if _, ok := ctx.Value(txKey{}).(*SqlTx); ok {
+func NewSQL(db *sqlx.DB, databaseName string) SQL {
+	return SQL{
+		DB:           db,
+		DatabaseName: databaseName,
+	}
+}
+
+func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.Context) error) error {
+	// If transaction already started for this database, re-use it
+	if _, ok := ctx.Value(txKey{Database: ds.DatabaseName}).(*SqlTx); ok {
 		err := txFunc(ctx)
 		return err
 	}
@@ -207,7 +217,8 @@ func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(ctx context.Con
 		}
 	}()
 
-	err = txFunc(context.WithValue(ctx, txKey{}, &SqlTx{
+	// Add the newly created transaction for this database to txCtx
+	err = txFunc(context.WithValue(ctx, txKey{Database: ds.DatabaseName}, &SqlTx{
 		Tx: tx,
 	}))
 	return err
