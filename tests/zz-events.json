@@ -15,19 +15,19 @@
                 "body": {
                     "events": [
                         {
-                            "type": "user.deleted",
+                            "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
                             "resourceId": "user-a"
                         },
                         {
-                            "type": "role.deleted",
+                            "type": "deleted",
                             "source": "api",
                             "resourceType": "role",
                             "resourceId": "senior-accountant"
                         },
                         {
-                            "type": "permission.deleted",
+                            "type": "deleted",
                             "source": "api",
                             "resourceType": "permission",
                             "resourceId": "view-balance-sheet"
@@ -48,13 +48,13 @@
                 "body": {
                     "events": [
                         {
-                            "type": "permission.deleted",
+                            "type": "deleted",
                             "source": "api",
                             "resourceType": "permission",
                             "resourceId": "edit-balance-sheet"
                         },
                         {
-                            "type": "permission.created",
+                            "type": "created",
                             "source": "api",
                             "resourceType": "permission",
                             "resourceId": "edit-balance-sheet",
@@ -86,41 +86,41 @@
             "name": "listResourceEventsFilterByType",
             "request": {
                 "method": "GET",
-                "url": "/v1/resource-events?limit=5&type=user.deleted"
+                "url": "/v1/resource-events?limit=5&type=deleted"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "events": [
                         {
-                            "type": "user.deleted",
+                            "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
                             "resourceId": "user-a"
                         },
                         {
-                            "type": "user.deleted",
+                            "type": "deleted",
+                            "source": "api",
+                            "resourceType": "role",
+                            "resourceId": "senior-accountant"
+                        },
+                        {
+                            "type": "deleted",
+                            "source": "api",
+                            "resourceType": "permission",
+                            "resourceId": "view-balance-sheet"
+                        },
+                        {
+                            "type": "deleted",
+                            "source": "api",
+                            "resourceType": "permission",
+                            "resourceId": "edit-balance-sheet"
+                        },
+                        {
+                            "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
                             "resourceId": "user-5"
-                        },
-                        {
-                            "type": "user.deleted",
-                            "source": "api",
-                            "resourceType": "user",
-                            "resourceId": "user-4"
-                        },
-                        {
-                            "type": "user.deleted",
-                            "source": "api",
-                            "resourceType": "user",
-                            "resourceId": "user-3"
-                        },
-                        {
-                            "type": "user.deleted",
-                            "source": "api",
-                            "resourceType": "user",
-                            "resourceId": "user-2"
                         }
                     ],
                     "lastId": "{{ listResourceEventsFilterByType.lastId }}"
@@ -138,13 +138,13 @@
                 "body": {
                     "events": [
                         {
-                            "type": "user.deleted",
+                            "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
                             "resourceId": "user-a"
                         },
                         {
-                            "type": "user.created",
+                            "type": "created",
                             "source": "api",
                             "resourceType": "user",
                             "resourceId": "user-a",
@@ -154,19 +154,19 @@
                             }
                         },
                         {
-                            "type": "user.deleted",
+                            "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
                             "resourceId": "user-5"
                         },
                         {
-                            "type": "user.deleted",
+                            "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
                             "resourceId": "user-4"
                         },
                         {
-                            "type": "user.deleted",
+                            "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
                             "resourceId": "user-3"
@@ -187,13 +187,13 @@
                 "body": {
                     "events": [
                         {
-                            "type": "user.deleted",
+                            "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
                             "resourceId": "user-a"
                         },
                         {
-                            "type": "user.created",
+                            "type": "created",
                             "source": "api",
                             "resourceType": "user",
                             "resourceId": "user-a",
@@ -203,13 +203,13 @@
                             }
                         },
                         {
-                            "type": "user.deleted",
+                            "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
                             "resourceId": "user-a"
                         },
                         {
-                            "type": "user.created",
+                            "type": "created",
                             "source": "api",
                             "resourceType": "user",
                             "resourceId": "user-a",
@@ -219,7 +219,7 @@
                             }
                         },
                         {
-                            "type": "user.deleted",
+                            "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
                             "resourceId": "user-a"
@@ -240,7 +240,7 @@
                 "body": {
                     "events": [
                         {
-                            "type": "permission.access_revoked",
+                            "type": "access_revoked",
                             "source": "api",
                             "objectType": "permission",
                             "objectId": "view-balance-sheet",
@@ -249,7 +249,7 @@
                             "subjectId": "senior-accountant"
                         },
                         {
-                            "type": "permission.access_revoked",
+                            "type": "access_revoked",
                             "source": "api",
                             "objectType": "permission",
                             "objectId": "edit-balance-sheet",
@@ -258,7 +258,7 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "role.access_revoked",
+                            "type": "access_revoked",
                             "source": "api",
                             "objectType": "role",
                             "objectId": "senior-accountant",
@@ -282,7 +282,7 @@
                 "body": {
                     "events": [
                         {
-                            "type": "role.access_granted",
+                            "type": "access_granted",
                             "source": "api",
                             "objectType": "role",
                             "objectId": "senior-accountant",
@@ -291,7 +291,7 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "permission.access_granted",
+                            "type": "access_granted",
                             "source": "api",
                             "objectType": "permission",
                             "objectId": "edit-balance-sheet",
@@ -321,14 +321,23 @@
             "name": "listAccessEventsFilterByType",
             "request": {
                 "method": "GET",
-                "url": "/v1/access-events?limit=4&type=permission.access_granted"
+                "url": "/v1/access-events?limit=4&type=access_granted"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "events": [
                         {
-                            "type": "permission.access_granted",
+                            "type": "access_granted",
+                            "source": "api",
+                            "objectType": "role",
+                            "objectId": "senior-accountant",
+                            "relation": "member",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "access_granted",
                             "source": "api",
                             "objectType": "permission",
                             "objectId": "edit-balance-sheet",
@@ -337,7 +346,7 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "permission.access_granted",
+                            "type": "access_granted",
                             "source": "api",
                             "objectType": "permission",
                             "objectId": "view-balance-sheet",
@@ -346,22 +355,13 @@
                             "subjectId": "senior-accountant"
                         },
                         {
-                            "type": "permission.access_granted",
+                            "type": "access_granted",
                             "source": "api",
-                            "objectType": "permission",
-                            "objectId": "edit-balance-sheet",
+                            "objectType": "pricing-tier",
+                            "objectId": "enterprise",
                             "relation": "member",
-                            "subjectType": "role",
-                            "subjectId": "senior-accountant"
-                        },
-                        {
-                            "type": "permission.access_granted",
-                            "source": "api",
-                            "objectType": "permission",
-                            "objectId": "view-balance-sheet",
-                            "relation": "member",
-                            "subjectType": "role",
-                            "subjectId": "senior-accountant"
+                            "subjectType": "tenant",
+                            "subjectId": "tenant2-enterprise"
                         }
                     ],
                     "lastId": "{{ listAccessEventsFilterByType.lastId }}"
@@ -379,7 +379,7 @@
                 "body": {
                     "events": [
                         {
-                            "type": "report.access_revoked",
+                            "type": "access_revoked",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-a",
@@ -388,7 +388,7 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "report.access_allowed",
+                            "type": "access_allowed",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-a",
@@ -397,7 +397,7 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "report.access_denied",
+                            "type": "access_denied",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-a",
@@ -406,7 +406,7 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "report.access_allowed",
+                            "type": "access_allowed",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-a",
@@ -415,7 +415,7 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "report.access_allowed",
+                            "type": "access_allowed",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-a",
@@ -439,7 +439,7 @@
                 "body": {
                     "events": [
                         {
-                            "type": "report.access_revoked",
+                            "type": "access_revoked",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-a",
@@ -448,7 +448,7 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "report.access_allowed",
+                            "type": "access_allowed",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-a",
@@ -457,7 +457,7 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "report.access_denied",
+                            "type": "access_denied",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-a",
@@ -466,7 +466,7 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "report.access_allowed",
+                            "type": "access_allowed",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-a",
@@ -475,7 +475,7 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "report.access_allowed",
+                            "type": "access_allowed",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-a",
@@ -499,7 +499,7 @@
                 "body": {
                     "events": [
                         {
-                            "type": "report.access_denied",
+                            "type": "access_denied",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-a",
@@ -508,7 +508,7 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "report.access_revoked",
+                            "type": "access_revoked",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-a",
@@ -517,7 +517,7 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "report.access_denied",
+                            "type": "access_denied",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-a",
@@ -526,7 +526,7 @@
                             "subjectId": "user-f"
                         },
                         {
-                            "type": "report.access_allowed",
+                            "type": "access_allowed",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-a",
@@ -535,7 +535,7 @@
                             "subjectId": "user-e"
                         },
                         {
-                            "type": "report.access_denied",
+                            "type": "access_denied",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-a",
@@ -559,7 +559,7 @@
                 "body": {
                     "events": [
                         {
-                            "type": "permission.access_revoked",
+                            "type": "access_revoked",
                             "source": "api",
                             "objectType": "permission",
                             "objectId": "edit-balance-sheet",
@@ -568,7 +568,7 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "role.access_revoked",
+                            "type": "access_revoked",
                             "source": "api",
                             "objectType": "role",
                             "objectId": "senior-accountant",
@@ -577,7 +577,7 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "role.access_granted",
+                            "type": "access_granted",
                             "source": "api",
                             "objectType": "role",
                             "objectId": "senior-accountant",
@@ -586,7 +586,7 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "permission.access_granted",
+                            "type": "access_granted",
                             "source": "api",
                             "objectType": "permission",
                             "objectId": "edit-balance-sheet",
@@ -595,7 +595,7 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "feature.access_allowed",
+                            "type": "access_allowed",
                             "source": "api",
                             "objectType": "feature",
                             "objectId": "analytics",
@@ -619,7 +619,7 @@
                 "body": {
                     "events": [
                         {
-                            "type": "role.access_revoked",
+                            "type": "access_revoked",
                             "source": "api",
                             "objectType": "role",
                             "objectId": "admin-a",
@@ -628,7 +628,7 @@
                             "subjectId": "user-c"
                         },
                         {
-                            "type": "report.access_denied",
+                            "type": "access_denied",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-b",
@@ -652,7 +652,7 @@
                 "body": {
                     "events": [
                         {
-                            "type": "report.access_revoked",
+                            "type": "access_revoked",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "*",
@@ -662,7 +662,7 @@
                             "subjectRelation": "member"
                         },
                         {
-                            "type": "report.access_revoked",
+                            "type": "access_revoked",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "*",
@@ -672,7 +672,7 @@
                             "subjectRelation": "member"
                         },
                         {
-                            "type": "report.access_granted",
+                            "type": "access_granted",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "*",
@@ -682,7 +682,7 @@
                             "subjectRelation": "member"
                         },
                         {
-                            "type": "report.access_granted",
+                            "type": "access_granted",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "*",
