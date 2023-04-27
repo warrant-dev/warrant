@@ -2,7 +2,6 @@ package event
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/rs/zerolog/log"
 	wntContext "github.com/warrant-dev/warrant/pkg/context"
@@ -36,7 +35,7 @@ func NewService(env service.Env, repository EventRepository, synchronizeEvents b
 
 func (svc EventService) TrackResourceCreated(ctx context.Context, resourceType string, resourceId string, meta interface{}) error {
 	return svc.TrackResourceEvent(ctx, CreateResourceEventSpec{
-		Type:         fmt.Sprintf("%s.%s", resourceType, EventTypeCreated),
+		Type:         EventTypeCreated,
 		Source:       EventSourceApi,
 		ResourceType: resourceType,
 		ResourceId:   resourceId,
@@ -46,7 +45,7 @@ func (svc EventService) TrackResourceCreated(ctx context.Context, resourceType s
 
 func (svc EventService) TrackResourceUpdated(ctx context.Context, resourceType string, resourceId string, meta interface{}) error {
 	return svc.TrackResourceEvent(ctx, CreateResourceEventSpec{
-		Type:         fmt.Sprintf("%s.%s", resourceType, EventTypeUpdated),
+		Type:         EventTypeUpdated,
 		Source:       EventSourceApi,
 		ResourceType: resourceType,
 		ResourceId:   resourceId,
@@ -56,7 +55,7 @@ func (svc EventService) TrackResourceUpdated(ctx context.Context, resourceType s
 
 func (svc EventService) TrackResourceDeleted(ctx context.Context, resourceType string, resourceId string, meta interface{}) error {
 	return svc.TrackResourceEvent(ctx, CreateResourceEventSpec{
-		Type:         fmt.Sprintf("%s.%s", resourceType, EventTypeDeleted),
+		Type:         EventTypeDeleted,
 		Source:       EventSourceApi,
 		ResourceType: resourceType,
 		ResourceId:   resourceId,
@@ -143,7 +142,7 @@ func (svc EventService) ListResourceEvents(ctx context.Context, listParams ListR
 
 func (svc EventService) TrackAccessGrantedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, wntCtx wntContext.ContextSetSpec) error {
 	return svc.TrackAccessEvent(ctx, CreateAccessEventSpec{
-		Type:            fmt.Sprintf("%s.%s", objectType, EventTypeAccessGranted),
+		Type:            EventTypeAccessGranted,
 		Source:          EventSourceApi,
 		ObjectType:      objectType,
 		ObjectId:        objectId,
@@ -157,7 +156,7 @@ func (svc EventService) TrackAccessGrantedEvent(ctx context.Context, objectType 
 
 func (svc EventService) TrackAccessRevokedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, wntCtx wntContext.ContextSetSpec) error {
 	return svc.TrackAccessEvent(ctx, CreateAccessEventSpec{
-		Type:            fmt.Sprintf("%s.%s", objectType, EventTypeAccessRevoked),
+		Type:            EventTypeAccessRevoked,
 		Source:          EventSourceApi,
 		ObjectType:      objectType,
 		ObjectId:        objectId,
@@ -171,7 +170,7 @@ func (svc EventService) TrackAccessRevokedEvent(ctx context.Context, objectType 
 
 func (svc EventService) TrackAccessAllowedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, wntCtx wntContext.ContextSetSpec) error {
 	return svc.TrackAccessEvent(ctx, CreateAccessEventSpec{
-		Type:            fmt.Sprintf("%s.%s", objectType, EventTypeAccessAllowed),
+		Type:            EventTypeAccessAllowed,
 		Source:          EventSourceApi,
 		ObjectType:      objectType,
 		ObjectId:        objectId,
@@ -185,7 +184,7 @@ func (svc EventService) TrackAccessAllowedEvent(ctx context.Context, objectType 
 
 func (svc EventService) TrackAccessDeniedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, wntCtx wntContext.ContextSetSpec) error {
 	return svc.TrackAccessEvent(ctx, CreateAccessEventSpec{
-		Type:            fmt.Sprintf("%s.%s", objectType, EventTypeAccessDenied),
+		Type:            EventTypeAccessDenied,
 		Source:          EventSourceApi,
 		ObjectType:      objectType,
 		ObjectId:        objectId,
