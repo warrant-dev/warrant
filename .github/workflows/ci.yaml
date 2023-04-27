@@ -43,6 +43,7 @@ jobs:
           WARRANT_PORT: 8000
           WARRANT_LOGLEVEL: 0
           WARRANT_ENABLEACCESSLOG: true
+          WARRANT_APIKEY: warrant_api_key
           WARRANT_DATASTORE: sqlite
           WARRANT_DATASTORE_SQLITE_DATABASE: warrant
           WARRANT_DATASTORE_SQLITE_INMEMORY: true
