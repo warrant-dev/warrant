@@ -47,9 +47,11 @@ jobs:
           WARRANT_DATASTORE: sqlite
           WARRANT_DATASTORE_SQLITE_DATABASE: warrant
           WARRANT_DATASTORE_SQLITE_INMEMORY: true
+          WARRANT_DATASTORE_SQLITE_MIGRATIONSOURCE: file://./migrations/datastore/sqlite
           WARRANT_EVENTSTORE: sqlite
           WARRANT_EVENTSTORE_SQLITE_DATABASE: warrantEvents
           WARRANT_EVENTSTORE_SQLITE_INMEMORY: true
+          WARRANT_EVENTSTORE_SQLITE_MIGRATIONSOURCE: file://./migrations/eventstore/sqlite
           WARRANT_EVENTSTORE_SYNCHRONIZEEVENTS: true
       - name: Run apirunner tests
         run: |
