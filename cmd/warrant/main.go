@@ -167,6 +167,10 @@ func (env *ServiceEnv) InitEventDB(config config.Config) error {
 	}
 
 	if config.Eventstore.Tigris.Project != "" {
+		if database.NewTigris == nil {
+			return fmt.Errorf("tigris backend is not compiled in")
+		}
+
 		db := database.NewTigris(&config.Eventstore.Tigris)
 		if err := db.Connect(ctx); err != nil {
 			return err

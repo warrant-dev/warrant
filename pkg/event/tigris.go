@@ -1,7 +1,10 @@
+//go:build tigris
+
 package event
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/tigrisdata/tigris-client-go/fields"
 	"github.com/tigrisdata/tigris-client-go/filter"
@@ -11,19 +14,26 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
+func init() {
+	NewTigrisRepository = newTigrisRepository
+}
+
 type TigrisRepository struct {
 	db *tigris.Database
 }
 
-func NewTigrisRepository(db *database.Tigris) (TigrisRepository, error) {
-	tdb, err := db.T.OpenDatabase(context.TODO(), &ResourceEvent{}, &AccessEvent{})
-	if err != nil {
-		return TigrisRepository{}, err
+func newTigrisRepository(gdb database.Database) (EventRepository, error) {
+	db, ok := gdb.(*database.Tigris)
+	if !ok {
+		return nil, fmt.Errorf("invalid %s database config", database.TypeTigris)
 	}
 
-	return TigrisRepository{
-		db: tdb,
-	}, nil
+	tdb, err := db.T.OpenDatabase(context.TODO(), &ResourceEvent{}, &AccessEvent{})
+	if err != nil {
+		return nil, err
+	}
+
+	return TigrisRepository{db: tdb}, nil
 }
 
 func (repo TigrisRepository) TrackResourceEvent(ctx context.Context, resourceEvent ResourceEventModel) error {

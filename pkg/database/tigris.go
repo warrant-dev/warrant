@@ -1,3 +1,5 @@
+//go:build tigris
+
 package database
 
 import (
@@ -13,12 +15,16 @@ import (
 	"github.com/warrant-dev/warrant/pkg/config"
 )
 
+func init() {
+	NewTigris = newTigris
+}
+
 type Tigris struct {
 	T      *tigris.Client
 	Config *config.TigrisConfig
 }
 
-func NewTigris(config *config.TigrisConfig) *Tigris {
+func newTigris(config *config.TigrisConfig) Database {
 	return &Tigris{
 		Config: config,
 	}

@@ -1,6 +1,9 @@
 package database
 
-import "context"
+import (
+	"context"
+	"github.com/warrant-dev/warrant/pkg/config"
+)
 
 const (
 	TypeMySQL    = "mysql"
@@ -16,3 +19,5 @@ type Database interface {
 	Ping(ctx context.Context) error
 	WithinTransaction(ctx context.Context, txCallback func(ctx context.Context) error) error
 }
+
+var NewTigris func(config *config.TigrisConfig) Database
