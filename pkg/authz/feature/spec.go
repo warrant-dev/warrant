@@ -5,16 +5,14 @@ import (
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	context "github.com/warrant-dev/warrant/pkg/context"
 	"github.com/warrant-dev/warrant/pkg/database"
 )
 
 type FeatureSpec struct {
-	FeatureId   string                 `json:"featureId" validate:"required"`
-	Name        database.NullString    `json:"name"`
-	Description database.NullString    `json:"description"`
-	Context     context.ContextSetSpec `json:"context,omitempty"`
-	CreatedAt   time.Time              `json:"createdAt"`
+	FeatureId   string              `json:"featureId" validate:"required"`
+	Name        database.NullString `json:"name"`
+	Description database.NullString `json:"description"`
+	CreatedAt   time.Time           `json:"createdAt"`
 }
 
 func (spec FeatureSpec) ToFeature(objectId int64) *Feature {
