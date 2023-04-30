@@ -84,6 +84,12 @@ type txKey struct {
 	Database string
 }
 
+func newTxKey(databaseName string) txKey {
+	return txKey{
+		Database: databaseName,
+	}
+}
+
 type SqlTx struct {
 	Tx *sqlx.Tx
 }
@@ -186,7 +192,7 @@ func NewSQL(db *sqlx.DB, databaseName string) SQL {
 
 func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.Context) error) error {
 	// If transaction already started for this database, re-use it
-	if _, ok := ctx.Value(txKey{Database: ds.DatabaseName}).(*SqlTx); ok {
+	if _, ok := ctx.Value(newTxKey(ds.DatabaseName)).(*SqlTx); ok {
 		err := txFunc(ctx)
 		return err
 	}
@@ -218,7 +224,7 @@ func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.C
 	}()
 
 	// Add the newly created transaction for this database to txCtx
-	err = txFunc(context.WithValue(ctx, txKey{Database: ds.DatabaseName}, &SqlTx{
+	err = txFunc(context.WithValue(ctx, newTxKey(ds.DatabaseName), &SqlTx{
 		Tx: tx,
 	}))
 	return err
@@ -316,7 +322,7 @@ func (ds SQL) SelectContext(ctx context.Context, dest interface{}, query string,
 }
 
 func (ds SQL) getQueryableFromContext(ctx context.Context) SqlQueryable {
-	if tx, ok := ctx.Value(txKey{}).(*SqlTx); ok {
+	if tx, ok := ctx.Value(newTxKey(ds.DatabaseName)).(*SqlTx); ok {
 		return tx
 	} else {
 		return ds.DB
