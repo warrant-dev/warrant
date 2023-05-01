@@ -59,7 +59,7 @@ func (objectType ObjectType) ToObjectTypeSpec() (*ObjectTypeSpec, error) {
 	var objectTypeSpec ObjectTypeSpec
 	err := json.Unmarshal([]byte(objectType.Definition), &objectTypeSpec)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error unmarshaling object type %s", objectTypeSpec)
+		return nil, errors.Wrapf(err, "error unmarshaling object type %s", objectType.TypeId)
 	}
 
 	return &objectTypeSpec, nil
