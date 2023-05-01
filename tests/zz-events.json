@@ -397,15 +397,6 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "access_denied",
-                            "source": "api",
-                            "objectType": "report",
-                            "objectId": "report-a",
-                            "relation": "owner",
-                            "subjectType": "user",
-                            "subjectId": "user-a"
-                        },
-                        {
                             "type": "access_allowed",
                             "source": "api",
                             "objectType": "report",
@@ -420,6 +411,15 @@
                             "objectType": "report",
                             "objectId": "report-a",
                             "relation": "viewer",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "access_allowed",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "editor",
                             "subjectType": "user",
                             "subjectId": "user-a"
                         }
@@ -457,15 +457,6 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "access_denied",
-                            "source": "api",
-                            "objectType": "report",
-                            "objectId": "report-a",
-                            "relation": "owner",
-                            "subjectType": "user",
-                            "subjectId": "user-a"
-                        },
-                        {
                             "type": "access_allowed",
                             "source": "api",
                             "objectType": "report",
@@ -480,6 +471,15 @@
                             "objectType": "report",
                             "objectId": "report-a",
                             "relation": "viewer",
+                            "subjectType": "user",
+                            "subjectId": "user-a"
+                        },
+                        {
+                            "type": "access_allowed",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "editor",
                             "subjectType": "user",
                             "subjectId": "user-a"
                         }
@@ -498,15 +498,6 @@
                 "statusCode": 200,
                 "body": {
                     "events": [
-                        {
-                            "type": "access_denied",
-                            "source": "api",
-                            "objectType": "report",
-                            "objectId": "report-a",
-                            "relation": "owner",
-                            "subjectType": "user",
-                            "subjectId": "user-a"
-                        },
                         {
                             "type": "access_revoked",
                             "source": "api",
@@ -542,6 +533,15 @@
                             "relation": "owner",
                             "subjectType": "user",
                             "subjectId": "user-d"
+                        },
+                        {
+                            "type": "access_allowed",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subjectType": "user",
+                            "subjectId": "user-c"
                         }
                     ],
                     "lastId": "{{ listAccessEventsFilterByObjectTypeAndObjectIdAndRelation.lastId }}"
