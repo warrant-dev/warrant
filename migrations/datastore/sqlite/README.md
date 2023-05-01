@@ -35,8 +35,9 @@ Create a file called `warrant.yaml` in the directory containing the Warrant bina
 port: 8000
 logLevel: 0
 enableAccessLog: true
-apiKey: replace_with_api_key
 autoMigrate: true
+authentication:
+  apiKey: replace_with_api_key
 datastore:
   sqlite:
     database: warrant
