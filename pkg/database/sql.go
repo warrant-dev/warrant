@@ -191,10 +191,10 @@ func NewSQL(db *sqlx.DB, databaseName string) SQL {
 }
 
 func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.Context) error) error {
-	// If transaction already started for this database, re-use it
+	// If transaction already started for this database, re-use it and
+	// let the top-level WithinTransaction call manage rollback/commit
 	if _, ok := ctx.Value(newTxKey(ds.DatabaseName)).(*SqlTx); ok {
-		err := txFunc(ctx)
-		return err
+		return txFunc(ctx)
 	}
 
 	tx, err := ds.DB.Beginx()
@@ -224,10 +224,8 @@ func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.C
 	}()
 
 	// Add the newly created transaction for this database to txCtx
-	err = txFunc(context.WithValue(ctx, newTxKey(ds.DatabaseName), &SqlTx{
-		Tx: tx,
-	}))
-	return err
+	ctxWithTx := context.WithValue(ctx, newTxKey(ds.DatabaseName), &SqlTx{Tx: tx})
+	return txFunc(ctxWithTx)
 }
 
 func (ds SQL) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
@@ -329,12 +327,10 @@ func (ds SQL) getQueryableFromContext(ctx context.Context) SqlQueryable {
 	}
 }
 
-// SQLRepository type
 type SQLRepository struct {
 	DB *SQL
 }
 
-// NewSQLRepository returns an instance of SQLRepository
 func NewSQLRepository(db *SQL) SQLRepository {
 	if db == nil {
 		log.Fatal().Msg("Cannot initialize SQLRepository with a nil db parameter")
