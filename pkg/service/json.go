@@ -58,7 +58,7 @@ func validObjectId(fl validator.FieldLevel) bool {
 		return true
 	}
 
-	regExp := regexp.MustCompile(`^[a-zA-Z0-9_\-\.@\|]+$`)
+	regExp := regexp.MustCompile(`^[a-zA-Z0-9_\-\.@\|:]+$`)
 	return regExp.Match([]byte(value))
 }
 
@@ -185,7 +185,7 @@ func ValidateStruct(obj interface{}) error {
 				case "valid_object_type", "valid_relation":
 					return NewInvalidParameterError(fieldName, "must be provided and can only contain lower-case alphanumeric characters and/or '-' and '_'")
 				case "valid_object_id":
-					return NewInvalidParameterError(fieldName, "must be provided and can only contain alphanumeric characters and/or '-', '_', '@', and '|'")
+					return NewInvalidParameterError(fieldName, "must be provided and can only contain alphanumeric characters and/or '-', '_', '@', ':', and '|'")
 				case "valid_inheritif":
 					return NewInvalidParameterError(fieldName, "must be provided and can only be 'anyOf', 'allOf', 'noneOf', or a valid relation name")
 				default:

@@ -67,7 +67,7 @@
                 "method": "POST",
                 "url": "/v1/permissions",
                 "body": {
-                    "permissionId": "edit-balance-sheet",
+                    "permissionId": "balance-sheet:edit",
                     "name": "Edit Balance Sheet",
                     "description": "Grants access to edit the balance sheet."
                 }
@@ -75,7 +75,7 @@
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "permissionId": "edit-balance-sheet",
+                    "permissionId": "balance-sheet:edit",
                     "name": "Edit Balance Sheet",
                     "description": "Grants access to edit the balance sheet."
                 }
@@ -116,7 +116,7 @@
                 "url": "/v1/warrants",
                 "body": {
                     "objectType": "permission",
-                    "objectId": "edit-balance-sheet",
+                    "objectId": "balance-sheet:edit",
                     "relation": "member",
                     "subject": {
                         "objectType": "user",
@@ -128,7 +128,7 @@
                 "statusCode": 200,
                 "body": {
                     "objectType": "permission",
-                    "objectId": "edit-balance-sheet",
+                    "objectId": "balance-sheet:edit",
                     "relation": "member",
                     "subject": {
                         "objectType": "user",
@@ -203,7 +203,7 @@
                 "url": "/v1/warrants",
                 "body": {
                     "objectType": "permission",
-                    "objectId": "edit-balance-sheet",
+                    "objectId": "balance-sheet:edit",
                     "relation": "member",
                     "subject": {
                         "objectType": "user",
@@ -238,9 +238,9 @@
             "name": "deletePermissionEditBalanceSheet",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/permissions/edit-balance-sheet",
+                "url": "/v1/permissions/balance-sheet:edit",
                 "body": {
-                    "permissionId": "edit-balance-sheet"
+                    "permissionId": "balance-sheet:edit"
                 }
             },
             "expectedResponse": {
