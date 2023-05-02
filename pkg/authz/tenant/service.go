@@ -154,11 +154,11 @@ func (svc TenantService) DeleteByTenantId(ctx context.Context, tenantId string) 
 }
 
 func validateOrGenerateTenantIdInSpec(tenantSpec *TenantSpec) error {
-	tenantIdRegExp := regexp.MustCompile(`^[a-zA-Z0-9_\-\.@\|]+$`)
+	tenantIdRegExp := regexp.MustCompile(`^[a-zA-Z0-9_\-\.@\|:]+$`)
 	if tenantSpec.TenantId != "" {
 		// Validate tenantId if provided
 		if !tenantIdRegExp.Match([]byte(tenantSpec.TenantId)) {
-			return service.NewInvalidParameterError("tenantId", "must be provided and can only contain alphanumeric characters and/or '-', '_', '@', and '|'")
+			return service.NewInvalidParameterError("tenantId", "must be provided and can only contain alphanumeric characters and/or '-', '_', '@', ':', and '|'")
 		}
 	} else {
 		// Generate a TenantId for the tenant if one isn't supplied

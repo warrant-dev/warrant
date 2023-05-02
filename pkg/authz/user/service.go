@@ -151,11 +151,11 @@ func (svc UserService) DeleteByUserId(ctx context.Context, userId string) error 
 }
 
 func validateOrGenerateUserIdInSpec(userSpec *UserSpec) error {
-	userIdRegExp := regexp.MustCompile(`^[a-zA-Z0-9_\-\.@\|]+$`)
+	userIdRegExp := regexp.MustCompile(`^[a-zA-Z0-9_\-\.@\|:]+$`)
 	if userSpec.UserId != "" {
 		// Validate userId if provided
 		if !userIdRegExp.Match([]byte(userSpec.UserId)) {
-			return service.NewInvalidParameterError("userId", "must be provided and can only contain alphanumeric characters and/or '-', '_', '@', and '|'")
+			return service.NewInvalidParameterError("userId", "must be provided and can only contain alphanumeric characters and/or '-', '_', '@', ':', and '|'")
 		}
 	} else {
 		// Generate a UserID for the user if one isn't supplied
