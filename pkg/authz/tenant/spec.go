@@ -5,13 +5,12 @@ import (
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	"github.com/warrant-dev/warrant/pkg/database"
 )
 
 type TenantSpec struct {
-	TenantId  string              `json:"tenantId"`
-	Name      database.NullString `json:"name"`
-	CreatedAt time.Time           `json:"createdAt"`
+	TenantId  string    `json:"tenantId"`
+	Name      *string   `json:"name"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 func (spec TenantSpec) ToTenant(objectId int64) *Tenant {
@@ -30,5 +29,5 @@ func (spec TenantSpec) ToObjectSpec() *object.ObjectSpec {
 }
 
 type UpdateTenantSpec struct {
-	Name database.NullString `json:"name"`
+	Name *string `json:"name"`
 }

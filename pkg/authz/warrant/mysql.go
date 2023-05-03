@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/middleware"
@@ -49,17 +48,12 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 		model.GetContextHash(),
 	)
 	if err != nil {
-		mysqlErr, ok := err.(*mysql.MySQLError)
-		if ok && mysqlErr.Number == 1062 {
-			return 0, service.NewDuplicateRecordError("Warrant", model, "Warrant for the given objectType, objectId, relation, and subject already exists")
-		}
-
-		return 0, errors.Wrap(err, "Unable to create warrant")
+		return -1, errors.Wrap(err, "error creating warrant")
 	}
 
 	newWarrantId, err := result.LastInsertId()
 	if err != nil {
-		return 0, err
+		return -1, errors.Wrap(err, "error creating warrant")
 	}
 
 	return newWarrantId, nil
@@ -83,7 +77,7 @@ func (repo MySQLRepository) DeleteById(ctx context.Context, id int64) error {
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("Warrant", id)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting warrant %d", id)
 		}
 	}
 
@@ -111,7 +105,7 @@ func (repo MySQLRepository) DeleteAllByObject(ctx context.Context, objectType st
 		case sql.ErrNoRows:
 			return nil
 		default:
-			return errors.Wrap(err, fmt.Sprintf("Unable to delete warrants with object %s:%s from mysql", objectType, objectId))
+			return errors.Wrapf(err, "error deleting warrants with object %s:%s", objectType, objectId)
 		}
 	}
 
@@ -139,83 +133,106 @@ func (repo MySQLRepository) DeleteAllBySubject(ctx context.Context, subjectType 
 		case sql.ErrNoRows:
 			return nil
 		default:
-			return errors.Wrap(err, fmt.Sprintf("Unable to delete warrants with subject %s:%s from mysql", subjectType, subjectId))
+			return errors.Wrapf(err, "error deleting warrants with subject %s:%s", subjectType, subjectId)
 		}
 	}
 
 	return nil
 }
 
-func (repo MySQLRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error) {
+func (repo MySQLRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation *string, contextHash string) (Model, error) {
 	var warrant Warrant
-	err := repo.DB.GetContext(
-		ctx,
-		&warrant,
-		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
-			FROM warrant
-			WHERE
-				objectType = ? AND
-				objectId = ? AND
-				relation = ? AND
-				subjectType = ? AND
-				subjectId = ? AND
-				subjectRelation = ? AND
-				contextHash = ? AND
-				deletedAt IS NULL
-		`,
+	query := `
+		SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
+		FROM warrant
+		WHERE
+			objectType = ? AND
+			objectId = ? AND
+			relation = ? AND
+			subjectType = ? AND
+			subjectId = ? AND
+			contextHash = ? AND
+			deletedAt IS NULL
+	`
+	replacements := []interface{}{
 		objectType,
 		objectId,
 		relation,
 		subjectType,
 		subjectId,
-		subjectRelation,
 		contextHash,
+	}
+	if subjectRelation != nil {
+		query = fmt.Sprintf("%s AND subjectRelation = ?", query)
+		replacements = append(replacements, subjectRelation)
+	} else {
+		query = fmt.Sprintf("%s AND subjectRelation IS NULL", query)
+	}
+
+	err := repo.DB.GetContext(
+		ctx,
+		&warrant,
+		query,
+		replacements...,
 	)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return nil, service.NewRecordNotFoundError("Warrant", fmt.Sprintf("%s, %s, %s, %s:%s#%s", objectType, objectId, relation, subjectType, subjectId, subjectRelation))
+			wntErrorId := fmt.Sprintf("%s:%s#%s@%s:%s", objectType, objectId, relation, subjectType, subjectId)
+			if subjectRelation != nil {
+				wntErrorId = fmt.Sprintf("%s#%s", wntErrorId, *subjectRelation)
+			}
+
+			return nil, service.NewRecordNotFoundError("Warrant", wntErrorId)
 		default:
-			return nil, err
+			return nil, errors.Wrap(err, "error getting warrant")
 		}
 	}
 
 	return &warrant, nil
 }
 
-func (repo MySQLRepository) GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error) {
+func (repo MySQLRepository) GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation *string, contextHash string) (Model, error) {
 	var warrant Warrant
-	err := repo.DB.GetContext(
-		ctx,
-		&warrant,
-		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
-			FROM warrant
-			WHERE
-				objectType = ? AND
-				(objectId = ? OR objectId = "*") AND
-				relation = ? AND
-				subjectType = ? AND
-				subjectId = ? AND
-				subjectRelation = ? AND
-				(contextHash = ? OR contextHash = "") AND
-				deletedAt IS NULL
-		`,
+	query := `
+		SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
+		FROM warrant
+		WHERE
+			objectType = ? AND
+			(objectId = ? OR objectId = "*") AND
+			relation = ? AND
+			subjectType = ? AND
+			subjectId = ? AND
+			(contextHash = ? OR contextHash = "") AND
+			deletedAt IS NULL
+	`
+	replacements := []interface{}{
 		objectType,
 		objectId,
 		relation,
 		subjectType,
 		subjectId,
-		subjectRelation,
 		contextHash,
+	}
+	if subjectRelation != nil {
+		query = fmt.Sprintf("%s AND subjectRelation = ?", query)
+		replacements = append(replacements, subjectRelation)
+	} else {
+		query = fmt.Sprintf("%s AND subjectRelation IS NULL", query)
+	}
+
+	err := repo.DB.GetContext(
+		ctx,
+		&warrant,
+		query,
+		replacements...,
 	)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
 			return nil, nil
 		default:
-			return nil, err
+			return nil, errors.Wrap(err, "error getting warrant with context match")
 		}
 	}
 
@@ -241,7 +258,7 @@ func (repo MySQLRepository) GetByID(ctx context.Context, id int64) (Model, error
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Warrant", id)
 		default:
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get warrant %d from mysql", id))
+			return nil, errors.Wrapf(err, "error getting warrant %d", id)
 		}
 	}
 
@@ -276,8 +293,13 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 	}
 
 	if filterOptions.Subject != nil {
-		query = fmt.Sprintf("%s AND subjectType = ? AND subjectId = ? AND subjectRelation = ?", query)
-		replacements = append(replacements, filterOptions.Subject.ObjectType, filterOptions.Subject.ObjectId, filterOptions.Subject.Relation)
+		query = fmt.Sprintf("%s AND subjectType = ? AND subjectId = ?", query)
+		replacements = append(replacements, filterOptions.Subject.ObjectType, filterOptions.Subject.ObjectId)
+
+		if filterOptions.Subject.Relation != nil {
+			query = fmt.Sprintf("%s AND subjectRelation = ?", query)
+			replacements = append(replacements, filterOptions.Subject.Relation)
+		}
 	}
 
 	if listParams.SortBy != "" {
@@ -299,7 +321,7 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 		case sql.ErrNoRows:
 			// Do nothing
 		default:
-			return nil, err
+			return nil, errors.Wrap(err, "error listing warrants")
 		}
 	}
 
@@ -354,7 +376,7 @@ func (repo MySQLRepository) GetAllMatchingWildcard(ctx context.Context, objectTy
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get warrants matching object type %s and relation %s from mysql", objectType, relation))
+			return nil, errors.Wrapf(err, "error getting warrants matching object type %s and relation %s", objectType, relation)
 		}
 	}
 
@@ -394,83 +416,7 @@ func (repo MySQLRepository) GetAllMatchingObjectAndRelation(ctx context.Context,
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get warrants with object type %s, object id %s, and relation %s from mysql", objectType, objectId, relation))
-		}
-	}
-
-	for i := range warrants {
-		models = append(models, &warrants[i])
-	}
-
-	return models, nil
-}
-
-func (repo MySQLRepository) GetAllMatchingObjectAndSubject(ctx context.Context, objectType string, objectId string, subjectType string, subjectId string, subjectRelation string) ([]Model, error) {
-	models := make([]Model, 0)
-	warrants := make([]Warrant, 0)
-	err := repo.DB.SelectContext(
-		ctx,
-		&warrants,
-		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
-			FROM warrant
-			WHERE
-				((objectType = ? AND objectId = ?) OR (subjectType = ? AND subjectId = ? AND subjectRelation = ?)) AND
-				deletedAt IS NULL
-			ORDER BY createdAt DESC, id DESC
-		`,
-		objectType,
-		objectId,
-		subjectType,
-		subjectId,
-		subjectRelation,
-	)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return models, nil
-		default:
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get warrants for object type %s, object id %s, and subject %s:%s#%s from mysql", objectType, objectId, subjectType, subjectId, subjectRelation))
-		}
-	}
-
-	for i := range warrants {
-		models = append(models, &warrants[i])
-	}
-
-	return models, nil
-}
-
-func (repo MySQLRepository) GetAllMatchingSubjectAndRelation(ctx context.Context, objectType string, relation string, subjectType string, subjectId string, subjectRelation string) ([]Model, error) {
-	models := make([]Model, 0)
-	warrants := make([]Warrant, 0)
-	err := repo.DB.SelectContext(
-		ctx,
-		&warrants,
-		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
-			FROM warrant
-			WHERE
-				objectType = ? AND
-				relation = ? AND
-				subjectType = ? AND
-				subjectId = ? AND
-				subjectRelation = ? AND
-				deletedAt IS NULL
-			ORDER BY createdAt DESC, id DESC
-		`,
-		objectType,
-		relation,
-		subjectType,
-		subjectId,
-		subjectRelation,
-	)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return models, nil
-		default:
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get warrants for object type %s, relation %s, and subject %s:%s#%s from mysql", objectType, relation, subjectType, subjectId, subjectRelation))
+			return nil, errors.Wrapf(err, "error getting warrants with object type %s, object id %s, and relation %s", objectType, objectId, relation)
 		}
 	}
 

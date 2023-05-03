@@ -88,7 +88,7 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 	return createdWarrantSpec, nil
 }
 
-func (svc WarrantService) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, wntCtx wntContext.ContextSetSpec) (*WarrantSpec, error) {
+func (svc WarrantService) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation *string, wntCtx wntContext.ContextSetSpec) (*WarrantSpec, error) {
 	warrant, err := svc.Repository.Get(ctx, objectType, objectId, relation, subjectType, subjectId, subjectRelation, wntCtx.ToHash())
 	if err != nil {
 		return nil, err

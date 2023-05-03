@@ -125,7 +125,7 @@ func (repo SQLiteRepository) ListResourceEvents(ctx context.Context, listParams 
 		case sql.ErrNoRows:
 			return models, "", nil
 		default:
-			return models, "", err
+			return models, "", errors.Wrap(err, "error listing resource events")
 		}
 	}
 
@@ -143,7 +143,7 @@ func (repo SQLiteRepository) ListResourceEvents(ctx context.Context, listParams 
 		CreatedAt: lastResourceEvent.CreatedAt,
 	})
 	if err != nil {
-		return models, "", err
+		return models, "", errors.Wrap(err, "error listing resource events")
 	}
 
 	return models, lastIdStr, nil
@@ -283,7 +283,7 @@ func (repo SQLiteRepository) ListAccessEvents(ctx context.Context, listParams Li
 		case sql.ErrNoRows:
 			return models, "", nil
 		default:
-			return models, "", err
+			return models, "", errors.Wrap(err, "error listing access events")
 		}
 	}
 
@@ -301,7 +301,7 @@ func (repo SQLiteRepository) ListAccessEvents(ctx context.Context, listParams Li
 		CreatedAt: lastAccessEvent.CreatedAt,
 	})
 	if err != nil {
-		return models, "", err
+		return models, "", errors.Wrap(err, "error listing access events")
 	}
 
 	return models, lastIdStr, nil

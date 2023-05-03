@@ -53,7 +53,7 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 	)
 
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create permission")
+		return -1, errors.Wrap(err, "error creating permission")
 	}
 
 	return newPermissionId, nil
@@ -78,7 +78,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, er
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Permission", id)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get permission id %d from postgres", id))
+			return nil, errors.Wrapf(err, "error getting permission id %d", id)
 		}
 	}
 
@@ -104,7 +104,7 @@ func (repo PostgresRepository) GetByPermissionId(ctx context.Context, permission
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Permission", permissionId)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get permission %s from postgres", permissionId))
+			return nil, errors.Wrapf(err, "error getting permission %s", permissionId)
 		}
 	}
 
@@ -209,7 +209,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return models, service.NewInternalError("Unable to list permissions")
+			return models, errors.Wrap(err, "error listing permissions")
 		}
 	}
 
@@ -237,7 +237,7 @@ func (repo PostgresRepository) UpdateByPermissionId(ctx context.Context, permiss
 		permissionId,
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating permission %s", permissionId))
+		return errors.Wrapf(err, "error updating permission %s", permissionId)
 	}
 
 	return nil
@@ -262,7 +262,7 @@ func (repo PostgresRepository) DeleteByPermissionId(ctx context.Context, permiss
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("Permission", permissionId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting permission %s", permissionId)
 		}
 	}
 

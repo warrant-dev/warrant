@@ -364,7 +364,7 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 	}
 
 	for _, matchingWarrant := range matchingWarrants {
-		if matchingWarrant.Subject.Relation == "" {
+		if matchingWarrant.Subject.Relation == nil {
 			continue
 		}
 
@@ -374,7 +374,7 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 			WarrantSpec: warrant.WarrantSpec{
 				ObjectType: matchingWarrant.Subject.ObjectType,
 				ObjectId:   matchingWarrant.Subject.ObjectId,
-				Relation:   matchingWarrant.Subject.Relation,
+				Relation:   *matchingWarrant.Subject.Relation,
 				Subject:    warrantCheck.Subject,
 				Context:    warrantCheck.Context,
 			},

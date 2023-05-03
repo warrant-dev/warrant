@@ -60,10 +60,10 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 	)
 
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create feature")
+		return -1, errors.Wrap(err, "error creating feature")
 	}
 
-	return newFeatureId, err
+	return newFeatureId, nil
 }
 
 func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, error) {
@@ -85,7 +85,7 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, erro
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Feature", id)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get feature id %d from sqlite", id))
+			return nil, errors.Wrapf(err, "error getting feature id %d", id)
 		}
 	}
 
@@ -111,7 +111,7 @@ func (repo SQLiteRepository) GetByFeatureId(ctx context.Context, featureId strin
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Feature", featureId)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get feature %s from sqlite", featureId))
+			return nil, errors.Wrapf(err, "error getting feature %s", featureId)
 		}
 	}
 
@@ -210,7 +210,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.Lis
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return models, service.NewInternalError("Unable to list features")
+			return models, errors.Wrap(err, "error listing features")
 		}
 	}
 
@@ -240,7 +240,7 @@ func (repo SQLiteRepository) UpdateByFeatureId(ctx context.Context, featureId st
 		featureId,
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating feature %s", featureId))
+		return errors.Wrapf(err, "error updating feature %s", featureId)
 	}
 
 	return nil
@@ -265,7 +265,7 @@ func (repo SQLiteRepository) DeleteByFeatureId(ctx context.Context, featureId st
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("Feature", featureId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting feature %d", featureId)
 		}
 	}
 

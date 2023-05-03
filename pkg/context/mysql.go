@@ -47,7 +47,7 @@ func (repository MySQLRepository) CreateAll(ctx context.Context, models []Model)
 		contexts,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "Unable to create contexts")
+		return nil, errors.Wrap(err, "error creating contexts")
 	}
 
 	return repository.ListByWarrantId(ctx, []int64{contexts[0].GetWarrantId()})
@@ -84,7 +84,7 @@ func (repository MySQLRepository) ListByWarrantId(ctx context.Context, warrantId
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to list contexts for warrant ids %s from mysql", strings.Join(warrantIdStrings, ", ")))
+			return nil, errors.Wrapf(err, "error listing contexts for warrant ids %s", strings.Join(warrantIdStrings, ", "))
 		}
 	}
 
@@ -114,7 +114,7 @@ func (repository MySQLRepository) DeleteAllByWarrantId(ctx context.Context, warr
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("Warrant", warrantId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting contexts for warrant %d", warrantId)
 		}
 	}
 

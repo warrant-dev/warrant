@@ -54,7 +54,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 	)
 
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create Tenant")
+		return -1, errors.Wrap(err, "error creating tenant")
 	}
 
 	return newTenantId, nil
@@ -79,7 +79,7 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, erro
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Tenant", id)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get Tenant %d from sqlite", id))
+			return nil, errors.Wrapf(err, "error getting tenant %d", id)
 		}
 	}
 
@@ -105,7 +105,7 @@ func (repo SQLiteRepository) GetByTenantId(ctx context.Context, tenantId string)
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Tenant", tenantId)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get Tenant %s from sqlite", tenantId))
+			return nil, errors.Wrapf(err, "error getting tenant %s", tenantId)
 		}
 	}
 
@@ -205,7 +205,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.Lis
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return models, service.NewInternalError("Unable to list tenants")
+			return models, errors.Wrap(err, "error listing tenants")
 		}
 	}
 
@@ -233,7 +233,7 @@ func (repo SQLiteRepository) UpdateByTenantId(ctx context.Context, tenantId stri
 		tenantId,
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating tenant %d", model.GetID()))
+		return errors.Wrapf(err, "error updating tenant %s", tenantId)
 	}
 
 	return nil
@@ -258,7 +258,7 @@ func (repo SQLiteRepository) DeleteByTenantId(ctx context.Context, tenantId stri
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("Tenant", tenantId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting tenant %s", tenantId)
 		}
 	}
 

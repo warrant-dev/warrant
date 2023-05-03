@@ -47,7 +47,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 		now,
 	)
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create object")
+		return -1, errors.Wrap(err, "error creating object")
 	}
 
 	return newObjectId, nil
@@ -72,7 +72,7 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, erro
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Object", id)
 		default:
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get Object %d from sqlite", id))
+			return nil, errors.Wrapf(err, "error getting object %d", id)
 		}
 	}
 
@@ -100,7 +100,7 @@ func (repo SQLiteRepository) GetByObjectTypeAndId(ctx context.Context, objectTyp
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError(objectType, objectId)
 		default:
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get object %s:%s from sqlite", objectType, objectId))
+			return nil, errors.Wrapf(err, "error getting object %s:%s", objectType, objectId)
 		}
 	}
 
@@ -204,7 +204,7 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return nil, err
+			return nil, errors.Wrap(err, "error listing objects")
 		}
 	}
 
@@ -236,7 +236,7 @@ func (repo SQLiteRepository) DeleteByObjectTypeAndId(ctx context.Context, object
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("Object", fmt.Sprintf("%s:%s", objectType, objectId))
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting object %s:%s", objectType, objectId)
 		}
 	}
 

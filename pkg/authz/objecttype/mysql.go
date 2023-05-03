@@ -40,12 +40,12 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 		model.GetDefinition(),
 	)
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create object type")
+		return -1, errors.Wrap(err, "error creating object type")
 	}
 
 	newObjectTypeId, err := result.LastInsertId()
 	if err != nil {
-		return 0, err
+		return -1, errors.Wrap(err, "error creating object type")
 	}
 
 	return newObjectTypeId, nil
@@ -70,7 +70,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error
 		case sql.ErrNoRows:
 			return &objectType, service.NewRecordNotFoundError("ObjectType", id)
 		default:
-			return &objectType, err
+			return &objectType, errors.Wrapf(err, "error getting object type %d", id)
 		}
 	}
 
@@ -96,7 +96,7 @@ func (repo MySQLRepository) GetByTypeId(ctx context.Context, typeId string) (Mod
 		case sql.ErrNoRows:
 			return &objectType, service.NewRecordNotFoundError("ObjectType", typeId)
 		default:
-			return &objectType, errors.Wrap(err, fmt.Sprintf("Unable to get ObjectType with typeId %s from mysql", typeId))
+			return &objectType, errors.Wrapf(err, "error getting object type %s", typeId)
 		}
 	}
 
@@ -195,7 +195,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return models, errors.Wrap(err, "Unable to get object types from mysql")
+			return models, errors.Wrap(err, "error listing object types")
 		}
 	}
 
@@ -221,7 +221,7 @@ func (repo MySQLRepository) UpdateByTypeId(ctx context.Context, typeId string, m
 		typeId,
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating object type %s", typeId))
+		return errors.Wrapf(err, "error updating object type %s", typeId)
 	}
 
 	return nil
@@ -246,7 +246,7 @@ func (repo MySQLRepository) DeleteByTypeId(ctx context.Context, typeId string) e
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("ObjectType", typeId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting object type %s", typeId)
 		}
 	}
 

@@ -53,7 +53,7 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 	)
 
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create pricing tier")
+		return -1, errors.Wrap(err, "error creating pricing tier")
 	}
 
 	return newPricingTierId, err
@@ -78,7 +78,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, er
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Model", id)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get pricing tier id %d from postgres", id))
+			return nil, errors.Wrapf(err, "error getting pricing tier id %d", id)
 		}
 	}
 
@@ -104,7 +104,7 @@ func (repo PostgresRepository) GetByPricingTierId(ctx context.Context, pricingTi
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Model", pricingTierId)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get pricing tier %s from postgres", pricingTierId))
+			return nil, errors.Wrapf(err, "error getting pricing tier %s", pricingTierId)
 		}
 	}
 
@@ -209,7 +209,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return models, service.NewInternalError("Unable to list pricing tiers")
+			return models, errors.Wrap(err, "error listing pricing tiers")
 		}
 	}
 
@@ -237,7 +237,7 @@ func (repo PostgresRepository) UpdateByPricingTierId(ctx context.Context, pricin
 		pricingTierId,
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating pricing tier %s", pricingTierId))
+		return errors.Wrapf(err, "error updating pricing tier %s", pricingTierId)
 	}
 
 	return nil
@@ -262,7 +262,7 @@ func (repo PostgresRepository) DeleteByPricingTierId(ctx context.Context, pricin
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("PricingTier", pricingTierId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting pricing tier %s", pricingTierId)
 		}
 	}
 

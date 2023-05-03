@@ -49,12 +49,12 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 	)
 
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create permission")
+		return -1, errors.Wrap(err, "error creating permission")
 	}
 
 	newPermissionId, err := result.LastInsertId()
 	if err != nil {
-		return 0, service.NewInternalError("Unable to create permission")
+		return -1, errors.Wrap(err, "error creating permission")
 	}
 
 	return newPermissionId, nil
@@ -79,7 +79,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Permission", id)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get permission id %d from mysql", id))
+			return nil, errors.Wrapf(err, "error getting permission id %d", id)
 		}
 	}
 
@@ -105,7 +105,7 @@ func (repo MySQLRepository) GetByPermissionId(ctx context.Context, permissionId 
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Permission", permissionId)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get permission %s from mysql", permissionId))
+			return nil, errors.Wrapf(err, "error getting permission %s", permissionId)
 		}
 	}
 
@@ -204,7 +204,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return models, service.NewInternalError("Unable to list permissions")
+			return models, errors.Wrap(err, "error listing permissions")
 		}
 	}
 
@@ -232,7 +232,7 @@ func (repo MySQLRepository) UpdateByPermissionId(ctx context.Context, permission
 		permissionId,
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating permission %s", permissionId))
+		return errors.Wrapf(err, "error updating permission %s", permissionId)
 	}
 
 	return nil
@@ -257,7 +257,7 @@ func (repo MySQLRepository) DeleteByPermissionId(ctx context.Context, permission
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("Permission", permissionId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting permission %s", permissionId)
 		}
 	}
 

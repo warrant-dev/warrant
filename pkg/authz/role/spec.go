@@ -5,14 +5,13 @@ import (
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	"github.com/warrant-dev/warrant/pkg/database"
 )
 
 type RoleSpec struct {
-	RoleId      string              `json:"roleId" validate:"required"`
-	Name        database.NullString `json:"name"`
-	Description database.NullString `json:"description"`
-	CreatedAt   time.Time           `json:"createdAt"`
+	RoleId      string    `json:"roleId" validate:"required"`
+	Name        *string   `json:"name"`
+	Description *string   `json:"description"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
 
 func (spec RoleSpec) ToRole(objectId int64) *Role {
@@ -32,6 +31,6 @@ func (spec RoleSpec) ToObjectSpec() *object.ObjectSpec {
 }
 
 type UpdateRoleSpec struct {
-	Name        database.NullString `json:"name"`
-	Description database.NullString `json:"description"`
+	Name        *string `json:"name"`
+	Description *string `json:"description"`
 }

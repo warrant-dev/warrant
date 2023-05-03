@@ -49,7 +49,7 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 	)
 
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create Tenant")
+		return -1, errors.Wrap(err, "error creating tenant")
 	}
 
 	return newTenantId, nil
@@ -74,7 +74,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, er
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Tenant", id)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get Tenant %d from mysql", id))
+			return nil, errors.Wrapf(err, "error getting tenant %d", id)
 		}
 	}
 
@@ -100,7 +100,7 @@ func (repo PostgresRepository) GetByTenantId(ctx context.Context, tenantId strin
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Tenant", tenantId)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get Tenant %s from mysql", tenantId))
+			return nil, errors.Wrapf(err, "error getting tenant %s", tenantId)
 		}
 	}
 
@@ -206,7 +206,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return models, service.NewInternalError("Unable to list tenants")
+			return models, errors.Wrap(err, "error listing tenants")
 		}
 	}
 
@@ -232,7 +232,7 @@ func (repo PostgresRepository) UpdateByTenantId(ctx context.Context, tenantId st
 		tenantId,
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating tenant %d", model.GetID()))
+		return errors.Wrapf(err, "error updating tenant %s", tenantId)
 	}
 
 	return nil
@@ -257,7 +257,7 @@ func (repo PostgresRepository) DeleteByTenantId(ctx context.Context, tenantId st
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("Tenant", tenantId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting tenant %s", tenantId)
 		}
 	}
 

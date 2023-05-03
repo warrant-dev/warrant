@@ -3,72 +3,11 @@ package database
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
-
-// NullString type representing a nullable string
-type NullString struct {
-	sql.NullString
-}
-
-// MarshalJSON returns the marshaled json string
-func (s NullString) MarshalJSON() ([]byte, error) {
-	if s.Valid {
-		return json.Marshal(s.String)
-	}
-
-	return []byte(`null`), nil
-}
-
-// UnmarshalJSON returns the unmarshaled struct
-func (s *NullString) UnmarshalJSON(data []byte) error {
-	var str *string
-	if err := json.Unmarshal(data, &str); err != nil {
-		return err
-	}
-
-	if str != nil {
-		s.Valid = true
-		s.String = *str
-	} else {
-		s.Valid = false
-	}
-
-	return nil
-}
-
-func StringToNullString(str *string) NullString {
-	if str == nil {
-		return NullString{
-			sql.NullString{},
-		}
-	}
-
-	return NullString{
-		sql.NullString{
-			Valid:  true,
-			String: *str,
-		},
-	}
-}
-
-// NullTime type representing a nullable string
-type NullTime struct {
-	sql.NullTime
-}
-
-// MarshalJSON returns the marshaled json string
-func (t NullTime) MarshalJSON() ([]byte, error) {
-	if t.Valid {
-		return json.Marshal(t.Time)
-	}
-
-	return []byte(`null`), nil
-}
 
 type SqlQueryable interface {
 	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)

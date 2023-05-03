@@ -66,8 +66,11 @@ func ListHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) err
 		Subject: &SubjectSpec{
 			ObjectType: queryParams.Get("subjectType"),
 			ObjectId:   queryParams.Get("subjectId"),
-			Relation:   queryParams.Get("subjectRelation"),
 		},
+	}
+	subjectRelation := queryParams.Get("subjectRelation")
+	if subjectRelation != "" {
+		filters.Subject.Relation = &subjectRelation
 	}
 
 	warrants, err := svc.List(r.Context(), &filters, listParams)

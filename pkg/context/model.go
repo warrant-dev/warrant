@@ -3,8 +3,6 @@ package context
 import (
 	"regexp"
 	"time"
-
-	"github.com/warrant-dev/warrant/pkg/database"
 )
 
 type Model interface {
@@ -14,18 +12,18 @@ type Model interface {
 	GetValue() string
 	GetCreatedAt() time.Time
 	GetUpdatedAt() time.Time
-	GetDeletedAt() database.NullTime
+	GetDeletedAt() *time.Time
 	IsValid() bool
 }
 
 type Context struct {
-	ID        int64             `mysql:"id" postgres:"id" sqlite:"id"`
-	WarrantId int64             `mysql:"warrantId" postgres:"warrant_id" sqlite:"warrantId"`
-	Name      string            `mysql:"name" postgres:"name" sqlite:"name"`
-	Value     string            `mysql:"value" postgres:"value" sqlite:"value"`
-	CreatedAt time.Time         `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
-	UpdatedAt time.Time         `mysql:"updatedAt" postgres:"updated_at" sqlite:"updatedAt"`
-	DeletedAt database.NullTime `mysql:"deletedAt" postgres:"deleted_at" sqlite:"deletedAt"`
+	ID        int64      `mysql:"id" postgres:"id" sqlite:"id"`
+	WarrantId int64      `mysql:"warrantId" postgres:"warrant_id" sqlite:"warrantId"`
+	Name      string     `mysql:"name" postgres:"name" sqlite:"name"`
+	Value     string     `mysql:"value" postgres:"value" sqlite:"value"`
+	CreatedAt time.Time  `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
+	UpdatedAt time.Time  `mysql:"updatedAt" postgres:"updated_at" sqlite:"updatedAt"`
+	DeletedAt *time.Time `mysql:"deletedAt" postgres:"deleted_at" sqlite:"deletedAt"`
 }
 
 func NewContextFromModel(model Model) *Context {
@@ -64,7 +62,7 @@ func (context Context) GetUpdatedAt() time.Time {
 	return context.UpdatedAt
 }
 
-func (context Context) GetDeletedAt() database.NullTime {
+func (context Context) GetDeletedAt() *time.Time {
 	return context.DeletedAt
 }
 

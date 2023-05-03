@@ -5,14 +5,13 @@ import (
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	"github.com/warrant-dev/warrant/pkg/database"
 )
 
 type PermissionSpec struct {
-	PermissionId string              `json:"permissionId" validate:"required"`
-	Name         database.NullString `json:"name"`
-	Description  database.NullString `json:"description"`
-	CreatedAt    time.Time           `json:"createdAt"`
+	PermissionId string    `json:"permissionId" validate:"required"`
+	Name         *string   `json:"name"`
+	Description  *string   `json:"description"`
+	CreatedAt    time.Time `json:"createdAt"`
 }
 
 func (spec PermissionSpec) ToPermission(objectId int64) *Permission {
@@ -32,6 +31,6 @@ func (spec PermissionSpec) ToObjectSpec() *object.ObjectSpec {
 }
 
 type UpdatePermissionSpec struct {
-	Name        database.NullString `json:"name"`
-	Description database.NullString `json:"description"`
+	Name        *string `json:"name"`
+	Description *string `json:"description"`
 }

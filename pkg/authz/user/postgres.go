@@ -48,7 +48,7 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 		model.GetEmail(),
 	)
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create user")
+		return -1, errors.Wrap(err, "error creating user")
 	}
 
 	return newUserId, nil
@@ -73,7 +73,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, er
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("User", id)
 		default:
-			return nil, err
+			return nil, errors.Wrapf(err, "error getting user %d", id)
 		}
 	}
 
@@ -99,7 +99,7 @@ func (repo PostgresRepository) GetByUserId(ctx context.Context, userId string) (
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("User", userId)
 		default:
-			return nil, err
+			return nil, errors.Wrapf(err, "error getting user %s", userId)
 		}
 	}
 
@@ -204,7 +204,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return nil, err
+			return nil, errors.Wrap(err, "error listing users")
 		}
 	}
 
@@ -230,7 +230,7 @@ func (repo PostgresRepository) UpdateByUserId(ctx context.Context, userId string
 		model.GetUserId(),
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating user %d", model.GetID()))
+		return errors.Wrapf(err, "error updating user %s", userId)
 	}
 
 	return nil
@@ -254,7 +254,7 @@ func (repo PostgresRepository) DeleteByUserId(ctx context.Context, userId string
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("User", userId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting user %s", userId)
 		}
 	}
 

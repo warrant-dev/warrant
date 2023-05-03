@@ -6,7 +6,6 @@ import (
 	"time"
 
 	context "github.com/warrant-dev/warrant/pkg/context"
-	"github.com/warrant-dev/warrant/pkg/database"
 )
 
 // FilterOptions type for the filter options available on the warrant table
@@ -26,7 +25,6 @@ type SortOptions struct {
 	IsAscending bool
 }
 
-// ObjectSpec type
 type ObjectSpec struct {
 	ObjectType string `json:"objectType" validate:"required,valid_object_type"`
 	ObjectId   string `json:"objectId" validate:"required,valid_object_id"`
@@ -45,19 +43,18 @@ func StringToObjectSpec(str string) (*ObjectSpec, error) {
 	}, nil
 }
 
-// SubjectSpec type
 type SubjectSpec struct {
-	ObjectType string `json:"objectType,omitempty" validate:"required_with=ObjectId,valid_object_type"`
-	ObjectId   string `json:"objectId,omitempty" validate:"required_with=ObjectType,valid_object_id"`
-	Relation   string `json:"relation,omitempty" validate:"valid_relation"`
+	ObjectType string  `json:"objectType,omitempty" validate:"required_with=ObjectId,valid_object_type"`
+	ObjectId   string  `json:"objectId,omitempty" validate:"required_with=ObjectType,valid_object_id"`
+	Relation   *string `json:"relation,omitempty" validate:"omitempty,valid_relation"`
 }
 
 func (spec *SubjectSpec) String() string {
-	if spec.Relation == "" {
-		return fmt.Sprintf("%s:%s", spec.ObjectType, spec.ObjectId)
+	if spec.Relation != nil {
+		return fmt.Sprintf("%s:%s#%s", spec.ObjectType, spec.ObjectId, *spec.Relation)
 	}
 
-	return fmt.Sprintf("%s:%s#%s", spec.ObjectType, spec.ObjectId, spec.Relation)
+	return fmt.Sprintf("%s:%s", spec.ObjectType, spec.ObjectId)
 }
 
 func StringToSubjectSpec(str string) (*SubjectSpec, error) {
@@ -81,14 +78,17 @@ func StringToSubjectSpec(str string) (*SubjectSpec, error) {
 	objectType := objectTypeId[0]
 	objectId := objectTypeId[1]
 
-	return &SubjectSpec{
+	subjectSpec := &SubjectSpec{
 		ObjectType: objectType,
 		ObjectId:   objectId,
-		Relation:   relation,
-	}, nil
+	}
+	if relation != "" {
+		subjectSpec.Relation = &relation
+	}
+
+	return subjectSpec, nil
 }
 
-// WarrantSpec type
 type WarrantSpec struct {
 	ObjectType string                 `json:"objectType" validate:"required,valid_object_type"`
 	ObjectId   string                 `json:"objectId" validate:"required,valid_object_id"`
@@ -105,7 +105,7 @@ func (spec *WarrantSpec) ToWarrant() *Warrant {
 		Relation:        spec.Relation,
 		SubjectType:     spec.Subject.ObjectType,
 		SubjectId:       spec.Subject.ObjectId,
-		SubjectRelation: database.StringToNullString(&spec.Subject.Relation),
+		SubjectRelation: spec.Subject.Relation,
 	}
 
 	if len(spec.Context) > 0 {
@@ -184,7 +184,6 @@ func StringToWarrantSpec(warrantString string) (*WarrantSpec, error) {
 	}, nil
 }
 
-// SessionWarrantSpec type
 type SessionWarrantSpec struct {
 	ObjectType string                 `json:"objectType" validate:"required,valid_object_type"`
 	ObjectId   string                 `json:"objectId" validate:"required,valid_object_id"`

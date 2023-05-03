@@ -123,7 +123,7 @@ func (repo MySQLRepository) ListResourceEvents(ctx context.Context, listParams L
 		case sql.ErrNoRows:
 			return models, "", nil
 		default:
-			return models, "", err
+			return models, "", errors.Wrap(err, "error listing resource events")
 		}
 	}
 
@@ -141,7 +141,7 @@ func (repo MySQLRepository) ListResourceEvents(ctx context.Context, listParams L
 		CreatedAt: lastResourceEvent.GetCreatedAt(),
 	})
 	if err != nil {
-		return models, "", err
+		return models, "", errors.Wrap(err, "error listing resource events")
 	}
 
 	return models, lastIdStr, nil
@@ -279,7 +279,7 @@ func (repo MySQLRepository) ListAccessEvents(ctx context.Context, listParams Lis
 		case sql.ErrNoRows:
 			return models, "", nil
 		default:
-			return models, "", err
+			return models, "", errors.Wrap(err, "error listing access events")
 		}
 	}
 
@@ -297,7 +297,7 @@ func (repo MySQLRepository) ListAccessEvents(ctx context.Context, listParams Lis
 		CreatedAt: lastAccessEvent.GetCreatedAt(),
 	})
 	if err != nil {
-		return models, "", err
+		return models, "", errors.Wrap(err, "error listing access events")
 	}
 
 	return models, lastIdStr, nil

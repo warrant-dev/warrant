@@ -44,7 +44,7 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 		model.GetDefinition(),
 	)
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create object type")
+		return -1, errors.Wrap(err, "error creating object type")
 	}
 
 	return newObjectTypeId, nil
@@ -69,7 +69,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, er
 		case sql.ErrNoRows:
 			return &objectType, service.NewRecordNotFoundError("ObjectType", id)
 		default:
-			return &objectType, err
+			return &objectType, errors.Wrapf(err, "error getting object type %d", id)
 		}
 	}
 
@@ -95,7 +95,7 @@ func (repo PostgresRepository) GetByTypeId(ctx context.Context, typeId string) (
 		case sql.ErrNoRows:
 			return &objectType, service.NewRecordNotFoundError("ObjectType", typeId)
 		default:
-			return &objectType, errors.Wrap(err, fmt.Sprintf("Unable to get ObjectType with typeId %s from postgres", typeId))
+			return &objectType, errors.Wrapf(err, "error getting object type %s", typeId)
 		}
 	}
 
@@ -200,7 +200,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return models, errors.Wrap(err, "Unable to get object types from postgres")
+			return models, errors.Wrap(err, "error listing object types")
 		}
 	}
 
@@ -226,7 +226,7 @@ func (repo PostgresRepository) UpdateByTypeId(ctx context.Context, typeId string
 		typeId,
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating object type %s", typeId))
+		return errors.Wrapf(err, "error updating object type %s", typeId)
 	}
 
 	return nil
@@ -251,7 +251,7 @@ func (repo PostgresRepository) DeleteByTypeId(ctx context.Context, typeId string
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("ObjectType", typeId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting object type %s", typeId)
 		}
 	}
 

@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	context "github.com/warrant-dev/warrant/pkg/context"
-	"github.com/warrant-dev/warrant/pkg/database"
 )
 
 type CreateResourceEventSpec struct {
@@ -37,7 +36,7 @@ func (spec CreateResourceEventSpec) ToResourceEvent() (*ResourceEvent, error) {
 		Source:       spec.Source,
 		ResourceType: spec.ResourceType,
 		ResourceId:   spec.ResourceId,
-		Meta:         database.StringToNullString(meta),
+		Meta:         meta,
 		CreatedAt:    time.Now().UTC(),
 	}, nil
 }
@@ -60,7 +59,7 @@ type CreateAccessEventSpec struct {
 	Relation        string                 `json:"relation"`
 	SubjectType     string                 `json:"subjectType"`
 	SubjectId       string                 `json:"subjectId"`
-	SubjectRelation string                 `json:"subjectRelation"`
+	SubjectRelation *string                `json:"subjectRelation"`
 	Context         context.ContextSetSpec `json:"context"`
 	Meta            interface{}            `json:"meta"`
 }
@@ -98,8 +97,8 @@ func (spec CreateAccessEventSpec) ToAccessEvent() (*AccessEvent, error) {
 		SubjectType:     spec.SubjectType,
 		SubjectId:       spec.SubjectId,
 		SubjectRelation: spec.SubjectRelation,
-		Meta:            database.StringToNullString(meta),
-		Context:         database.StringToNullString(ctx),
+		Meta:            meta,
+		Context:         ctx,
 		CreatedAt:       time.Now().UTC(),
 	}, nil
 }
@@ -113,7 +112,7 @@ type AccessEventSpec struct {
 	Relation        string                 `json:"relation"`
 	SubjectType     string                 `json:"subjectType"`
 	SubjectId       string                 `json:"subjectId"`
-	SubjectRelation string                 `json:"subjectRelation,omitempty"`
+	SubjectRelation *string                `json:"subjectRelation,omitempty"`
 	Context         context.ContextSetSpec `json:"context,omitempty"`
 	Meta            interface{}            `json:"meta,omitempty"`
 	CreatedAt       time.Time              `json:"createdAt"`

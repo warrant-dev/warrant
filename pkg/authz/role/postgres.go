@@ -53,7 +53,7 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 	)
 
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create role")
+		return -1, errors.Wrap(err, "error creating role")
 	}
 
 	return newRoleId, err
@@ -78,7 +78,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, er
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Role", id)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get role id %d from mysql", id))
+			return nil, errors.Wrapf(err, "error getting role %d", id)
 		}
 	}
 
@@ -104,7 +104,7 @@ func (repo PostgresRepository) GetByRoleId(ctx context.Context, roleId string) (
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Role", roleId)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get role %s from mysql", roleId))
+			return nil, errors.Wrapf(err, "error getting role %s", roleId)
 		}
 	}
 
@@ -209,7 +209,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return models, service.NewInternalError("Unable to list roles")
+			return models, errors.Wrap(err, "error listing roles")
 		}
 	}
 
@@ -237,7 +237,7 @@ func (repo PostgresRepository) UpdateByRoleId(ctx context.Context, roleId string
 		roleId,
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating role %s", roleId))
+		return errors.Wrapf(err, "error updating role %s", roleId)
 	}
 
 	return nil
@@ -262,7 +262,7 @@ func (repo PostgresRepository) DeleteByRoleId(ctx context.Context, roleId string
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("Role", roleId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting role %s", roleId)
 		}
 	}
 

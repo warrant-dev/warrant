@@ -31,14 +31,14 @@ func NewService(env service.Env, repository RoleRepository, eventSvc event.Event
 func (svc RoleService) Create(ctx context.Context, roleSpec RoleSpec) (*RoleSpec, error) {
 	var newRole Model
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+		_, err := svc.Repository.GetByRoleId(txCtx, roleSpec.RoleId)
+		if err == nil {
+			return service.NewDuplicateRecordError("Role", roleSpec.RoleId, "A role with the given roleId already exists")
+		}
+
 		createdObject, err := svc.ObjectSvc.Create(txCtx, *roleSpec.ToObjectSpec())
 		if err != nil {
 			return err
-		}
-
-		_, err = svc.Repository.GetByRoleId(txCtx, roleSpec.RoleId)
-		if err == nil {
-			return service.NewDuplicateRecordError("Role", roleSpec.RoleId, "A role with the given roleId already exists")
 		}
 
 		newRoleId, err := svc.Repository.Create(txCtx, roleSpec.ToRole(createdObject.ID))
