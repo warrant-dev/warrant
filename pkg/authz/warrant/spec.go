@@ -25,24 +25,6 @@ type SortOptions struct {
 	IsAscending bool
 }
 
-type ObjectSpec struct {
-	ObjectType string `json:"objectType" validate:"required,valid_object_type"`
-	ObjectId   string `json:"objectId" validate:"required,valid_object_id"`
-}
-
-func StringToObjectSpec(str string) (*ObjectSpec, error) {
-	objectTypeId := strings.Split(str, ":")
-
-	if len(objectTypeId) != 2 {
-		return nil, fmt.Errorf("invalid object")
-	}
-
-	return &ObjectSpec{
-		ObjectType: objectTypeId[0],
-		ObjectId:   objectTypeId[1],
-	}, nil
-}
-
 type SubjectSpec struct {
 	ObjectType string  `json:"objectType,omitempty" validate:"required_with=ObjectId,valid_object_type"`
 	ObjectId   string  `json:"objectId,omitempty" validate:"required_with=ObjectType,valid_object_id"`
