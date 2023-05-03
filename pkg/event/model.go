@@ -74,7 +74,7 @@ func (resourceEvent ResourceEvent) ToResourceEventSpec() (*ResourceEventSpec, er
 	if resourceEvent.Meta != nil {
 		err := json.Unmarshal([]byte(*resourceEvent.Meta), &meta)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error unmarshaling resource event meta %s", resourceEvent.Meta)
+			return nil, errors.Wrapf(err, "error unmarshaling resource event meta %s", *resourceEvent.Meta)
 		}
 	}
 
@@ -190,7 +190,7 @@ func (accessEvent AccessEvent) ToAccessEventSpec() (*AccessEventSpec, error) {
 	if accessEvent.Meta != nil {
 		err := json.Unmarshal([]byte(*accessEvent.Meta), &meta)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error unmarshaling access event meta %s", accessEvent.Meta)
+			return nil, errors.Wrapf(err, "error unmarshaling access event meta %s", *accessEvent.Meta)
 		}
 	}
 
@@ -198,7 +198,7 @@ func (accessEvent AccessEvent) ToAccessEventSpec() (*AccessEventSpec, error) {
 	if accessEvent.Context != nil {
 		err := json.Unmarshal([]byte(*accessEvent.Context), &ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error unmarshaling access event context %s", accessEvent.Context)
+			return nil, errors.Wrapf(err, "error unmarshaling access event context %s", *accessEvent.Context)
 		}
 	}
 

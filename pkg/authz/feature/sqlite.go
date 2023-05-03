@@ -265,7 +265,7 @@ func (repo SQLiteRepository) DeleteByFeatureId(ctx context.Context, featureId st
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("Feature", featureId)
 		default:
-			return errors.Wrapf(err, "error deleting feature %d", featureId)
+			return errors.Wrapf(err, "error deleting feature %s", featureId)
 		}
 	}
 
