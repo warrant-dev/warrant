@@ -41,7 +41,7 @@ jobs:
           WARRANT_PORT: 8000
           WARRANT_LOGLEVEL: 0
           WARRANT_ENABLEACCESSLOG: true
-          WARRANT_APIKEY: warrant_api_key
+          WARRANT_AUTHENTICATION_APIKEY: warrant_api_key
           WARRANT_DATASTORE: mysql
           WARRANT_DATASTORE_MYSQL_USERNAME: root
           WARRANT_DATASTORE_MYSQL_PASSWORD: root
