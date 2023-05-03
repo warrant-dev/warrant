@@ -10,49 +10,49 @@ import (
 )
 
 // GetRoutes registers all route handlers for this module
-func (svc TenantService) Routes() []service.Route {
+func (svc TenantService) Routes() ([]service.Route, error) {
 	return []service.Route{
 		// create
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/tenants",
 			Method:  "POST",
 			Handler: service.NewRouteHandler(svc, CreateHandler),
 		},
 
 		// get
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/tenants/{tenantId}",
 			Method:  "GET",
 			Handler: service.NewRouteHandler(svc, GetHandler),
 		},
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/tenants",
 			Method:  "GET",
-			Handler: middleware.ChainMiddleware(
+			Handler: middleware.Chain(
 				service.NewRouteHandler(svc, ListHandler),
 				middleware.ListMiddleware[TenantListParamParser],
 			),
 		},
 
 		// update
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/tenants/{tenantId}",
 			Method:  "POST",
 			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/tenants/{tenantId}",
 			Method:  "PUT",
 			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
 
 		// delete
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/tenants/{tenantId}",
 			Method:  "DELETE",
 			Handler: service.NewRouteHandler(svc, DeleteHandler),
 		},
-	}
+	}, nil
 }
 
 func CreateHandler(svc TenantService, w http.ResponseWriter, r *http.Request) error {

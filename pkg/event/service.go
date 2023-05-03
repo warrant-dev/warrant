@@ -19,18 +19,36 @@ const (
 	EventTypeUpdated       = "updated"
 )
 
+type EventContextFunc func(ctx context.Context, synchronizeEvents bool) (context.Context, error)
+
 type EventService struct {
 	service.BaseService
-	Repository        EventRepository
-	synchronizeEvents bool
+	Repository         EventRepository
+	synchronizeEvents  bool
+	createEventContext EventContextFunc
 }
 
-func NewService(env service.Env, repository EventRepository, synchronizeEvents bool) EventService {
-	return EventService{
-		BaseService:       service.NewBaseService(env),
-		Repository:        repository,
-		synchronizeEvents: synchronizeEvents,
+func defaultCreateEventContext(ctx context.Context, synchronizeEvents bool) (context.Context, error) {
+	if synchronizeEvents {
+		return ctx, nil
 	}
+
+	return context.Background(), nil
+}
+
+func NewService(env service.Env, repository EventRepository, synchronizeEvents bool, createEventContext EventContextFunc) EventService {
+	svc := EventService{
+		BaseService:        service.NewBaseService(env),
+		Repository:         repository,
+		synchronizeEvents:  synchronizeEvents,
+		createEventContext: createEventContext,
+	}
+
+	if createEventContext == nil {
+		svc.createEventContext = defaultCreateEventContext
+	}
+
+	return svc
 }
 
 func (svc EventService) TrackResourceCreated(ctx context.Context, resourceType string, resourceId string, meta interface{}) error {
@@ -64,6 +82,11 @@ func (svc EventService) TrackResourceDeleted(ctx context.Context, resourceType s
 }
 
 func (svc EventService) TrackResourceEvent(ctx context.Context, resourceEventSpec CreateResourceEventSpec) error {
+	eventCtx, err := svc.createEventContext(ctx, svc.synchronizeEvents)
+	if err != nil {
+		return err
+	}
+
 	if !svc.synchronizeEvents {
 		go func() {
 			resourceEvent, err := resourceEventSpec.ToResourceEvent()
@@ -71,7 +94,7 @@ func (svc EventService) TrackResourceEvent(ctx context.Context, resourceEventSpe
 				log.Err(err).Msgf("Error tracking resource event %s", resourceEventSpec.Type)
 			}
 
-			err = svc.Repository.TrackResourceEvent(context.Background(), *resourceEvent)
+			err = svc.Repository.TrackResourceEvent(eventCtx, *resourceEvent)
 			if err != nil {
 				log.Err(err).Msgf("Error tracking resource event %s", resourceEvent.Type)
 			}
@@ -84,10 +107,15 @@ func (svc EventService) TrackResourceEvent(ctx context.Context, resourceEventSpe
 		return err
 	}
 
-	return svc.Repository.TrackResourceEvent(ctx, *resourceEvent)
+	return svc.Repository.TrackResourceEvent(eventCtx, *resourceEvent)
 }
 
 func (svc EventService) TrackResourceEvents(ctx context.Context, resourceEventSpecs []CreateResourceEventSpec) error {
+	eventCtx, err := svc.createEventContext(ctx, svc.synchronizeEvents)
+	if err != nil {
+		return err
+	}
+
 	if !svc.synchronizeEvents {
 		go func() {
 			resourceEvents := make([]ResourceEventModel, 0)
@@ -100,7 +128,7 @@ func (svc EventService) TrackResourceEvents(ctx context.Context, resourceEventSp
 				resourceEvents = append(resourceEvents, *resourceEvent)
 			}
 
-			err := svc.Repository.TrackResourceEvents(context.Background(), resourceEvents)
+			err := svc.Repository.TrackResourceEvents(eventCtx, resourceEvents)
 			if err != nil {
 				log.Err(err).Msgf("Error tracking resource events")
 			}
@@ -118,7 +146,7 @@ func (svc EventService) TrackResourceEvents(ctx context.Context, resourceEventSp
 		resourceEvents = append(resourceEvents, *resourceEvent)
 	}
 
-	return svc.Repository.TrackResourceEvents(ctx, resourceEvents)
+	return svc.Repository.TrackResourceEvents(eventCtx, resourceEvents)
 }
 
 func (svc EventService) ListResourceEvents(ctx context.Context, listParams ListResourceEventParams) ([]ResourceEventSpec, string, error) {
@@ -140,7 +168,7 @@ func (svc EventService) ListResourceEvents(ctx context.Context, listParams ListR
 	return resourceEventSpecs, lastId, nil
 }
 
-func (svc EventService) TrackAccessGrantedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, wntCtx wntContext.ContextSetSpec) error {
+func (svc EventService) TrackAccessGrantedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation *string, wntCtx wntContext.ContextSetSpec) error {
 	return svc.TrackAccessEvent(ctx, CreateAccessEventSpec{
 		Type:            EventTypeAccessGranted,
 		Source:          EventSourceApi,
@@ -154,7 +182,7 @@ func (svc EventService) TrackAccessGrantedEvent(ctx context.Context, objectType 
 	})
 }
 
-func (svc EventService) TrackAccessRevokedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, wntCtx wntContext.ContextSetSpec) error {
+func (svc EventService) TrackAccessRevokedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation *string, wntCtx wntContext.ContextSetSpec) error {
 	return svc.TrackAccessEvent(ctx, CreateAccessEventSpec{
 		Type:            EventTypeAccessRevoked,
 		Source:          EventSourceApi,
@@ -168,7 +196,7 @@ func (svc EventService) TrackAccessRevokedEvent(ctx context.Context, objectType 
 	})
 }
 
-func (svc EventService) TrackAccessAllowedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, wntCtx wntContext.ContextSetSpec) error {
+func (svc EventService) TrackAccessAllowedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation *string, wntCtx wntContext.ContextSetSpec) error {
 	return svc.TrackAccessEvent(ctx, CreateAccessEventSpec{
 		Type:            EventTypeAccessAllowed,
 		Source:          EventSourceApi,
@@ -182,7 +210,7 @@ func (svc EventService) TrackAccessAllowedEvent(ctx context.Context, objectType 
 	})
 }
 
-func (svc EventService) TrackAccessDeniedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, wntCtx wntContext.ContextSetSpec) error {
+func (svc EventService) TrackAccessDeniedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation *string, wntCtx wntContext.ContextSetSpec) error {
 	return svc.TrackAccessEvent(ctx, CreateAccessEventSpec{
 		Type:            EventTypeAccessDenied,
 		Source:          EventSourceApi,
@@ -197,6 +225,11 @@ func (svc EventService) TrackAccessDeniedEvent(ctx context.Context, objectType s
 }
 
 func (svc EventService) TrackAccessEvent(ctx context.Context, accessEventSpec CreateAccessEventSpec) error {
+	eventCtx, err := svc.createEventContext(ctx, svc.synchronizeEvents)
+	if err != nil {
+		return err
+	}
+
 	if !svc.synchronizeEvents {
 		go func() {
 			accessEvent, err := accessEventSpec.ToAccessEvent()
@@ -204,7 +237,7 @@ func (svc EventService) TrackAccessEvent(ctx context.Context, accessEventSpec Cr
 				log.Err(err).Msgf("Error tracking access event %s", accessEvent.Type)
 			}
 
-			err = svc.Repository.TrackAccessEvent(context.Background(), *accessEvent)
+			err = svc.Repository.TrackAccessEvent(eventCtx, *accessEvent)
 			if err != nil {
 				log.Err(err).Msgf("Error tracking access event %s", accessEvent.Type)
 			}
@@ -217,10 +250,15 @@ func (svc EventService) TrackAccessEvent(ctx context.Context, accessEventSpec Cr
 		return err
 	}
 
-	return svc.Repository.TrackAccessEvent(ctx, *accessEvent)
+	return svc.Repository.TrackAccessEvent(eventCtx, *accessEvent)
 }
 
 func (svc EventService) TrackAccessEvents(ctx context.Context, accessEventSpecs []CreateAccessEventSpec) error {
+	eventCtx, err := svc.createEventContext(ctx, svc.synchronizeEvents)
+	if err != nil {
+		return err
+	}
+
 	if !svc.synchronizeEvents {
 		go func() {
 			accessEvents := make([]AccessEventModel, 0)
@@ -233,7 +271,7 @@ func (svc EventService) TrackAccessEvents(ctx context.Context, accessEventSpecs 
 				accessEvents = append(accessEvents, *accessEvent)
 			}
 
-			err := svc.Repository.TrackAccessEvents(context.Background(), accessEvents)
+			err := svc.Repository.TrackAccessEvents(eventCtx, accessEvents)
 			if err != nil {
 				log.Err(err).Msg("Error tracking access events")
 			}
@@ -251,7 +289,7 @@ func (svc EventService) TrackAccessEvents(ctx context.Context, accessEventSpecs 
 		accessEvents = append(accessEvents, *accessEvent)
 	}
 
-	return svc.Repository.TrackAccessEvents(ctx, accessEvents)
+	return svc.Repository.TrackAccessEvents(eventCtx, accessEvents)
 }
 
 func (svc EventService) ListAccessEvents(ctx context.Context, listParams ListAccessEventParams) ([]AccessEventSpec, string, error) {

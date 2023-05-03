@@ -9,29 +9,29 @@ import (
 )
 
 const (
-	dateFormatMessage = "Must be in the format YYYY-MM-DD"
-	sinceErrorMessage = "Must be a date occurring before the until date"
-	limitErrorMessage = "Must be an integer between 1 and 1000"
+	DateFormatMessage = "Must be in the format YYYY-MM-DD"
+	SinceErrorMessage = "Must be a date occurring before the until date"
+	LimitErrorMessage = "Must be an integer between 1 and 1000"
 )
 
-func (svc EventService) Routes() []service.Route {
+func (svc EventService) Routes() ([]service.Route, error) {
 	return []service.Route{
 		// get
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/resource-events",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, listResourceEvents),
+			Handler: service.NewRouteHandler(svc, ListResourceEvents),
 		},
 
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/access-events",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, listAccessEvents),
+			Handler: service.NewRouteHandler(svc, ListAccessEvents),
 		},
-	}
+	}, nil
 }
 
-func listResourceEvents(svc EventService, w http.ResponseWriter, r *http.Request) error {
+func ListResourceEvents(svc EventService, w http.ResponseWriter, r *http.Request) error {
 	queryParams := r.URL.Query()
 	listParams := ListResourceEventParams{
 		Type:         queryParams.Get(QueryParamType),
@@ -47,14 +47,14 @@ func listResourceEvents(svc EventService, w http.ResponseWriter, r *http.Request
 	if sinceString == "" {
 		since, err := time.Parse(DateFormat, DateFormat)
 		if err != nil {
-			return service.NewInvalidParameterError(QueryParamSince, dateFormatMessage)
+			return service.NewInvalidParameterError(QueryParamSince, DateFormatMessage)
 		}
 
 		listParams.Since = since.UTC()
 	} else {
 		since, err := time.Parse(DateFormat, sinceString)
 		if err != nil {
-			return service.NewInvalidParameterError(QueryParamSince, dateFormatMessage)
+			return service.NewInvalidParameterError(QueryParamSince, DateFormatMessage)
 		}
 
 		listParams.Since = since.UTC()
@@ -67,14 +67,14 @@ func listResourceEvents(svc EventService, w http.ResponseWriter, r *http.Request
 	} else {
 		until, err := time.Parse(DateFormat, untilString)
 		if err != nil {
-			return service.NewInvalidParameterError(QueryParamUntil, dateFormatMessage)
+			return service.NewInvalidParameterError(QueryParamUntil, DateFormatMessage)
 		}
 
 		listParams.Until = until.Add(24 * time.Hour).Add(-1 * time.Microsecond).UTC()
 	}
 
 	if listParams.Since.After(listParams.Until) {
-		return service.NewInvalidParameterError(QueryParamSince, sinceErrorMessage)
+		return service.NewInvalidParameterError(QueryParamSince, SinceErrorMessage)
 	}
 
 	limitString := queryParams.Get(QueryParamLimit)
@@ -83,7 +83,7 @@ func listResourceEvents(svc EventService, w http.ResponseWriter, r *http.Request
 	} else {
 		listParams.Limit, err = strconv.ParseInt(limitString, 10, 64)
 		if err != nil || listParams.Limit <= 0 || listParams.Limit > 1000 {
-			return service.NewInvalidParameterError(QueryParamLimit, limitErrorMessage)
+			return service.NewInvalidParameterError(QueryParamLimit, LimitErrorMessage)
 		}
 	}
 
@@ -99,7 +99,7 @@ func listResourceEvents(svc EventService, w http.ResponseWriter, r *http.Request
 	return nil
 }
 
-func listAccessEvents(svc EventService, w http.ResponseWriter, r *http.Request) error {
+func ListAccessEvents(svc EventService, w http.ResponseWriter, r *http.Request) error {
 	queryParams := r.URL.Query()
 	listParams := ListAccessEventParams{
 		Type:            queryParams.Get(QueryParamType),
@@ -119,14 +119,14 @@ func listAccessEvents(svc EventService, w http.ResponseWriter, r *http.Request) 
 	if sinceString == "" {
 		since, err := time.Parse(DateFormat, DateFormat)
 		if err != nil {
-			return service.NewInvalidParameterError(QueryParamSince, dateFormatMessage)
+			return service.NewInvalidParameterError(QueryParamSince, DateFormatMessage)
 		}
 
 		listParams.Since = since.UTC()
 	} else {
 		since, err := time.Parse(DateFormat, sinceString)
 		if err != nil {
-			return service.NewInvalidParameterError(QueryParamSince, dateFormatMessage)
+			return service.NewInvalidParameterError(QueryParamSince, DateFormatMessage)
 		}
 
 		listParams.Since = since.UTC()
@@ -139,14 +139,14 @@ func listAccessEvents(svc EventService, w http.ResponseWriter, r *http.Request) 
 	} else {
 		until, err := time.Parse(DateFormat, untilString)
 		if err != nil {
-			return service.NewInvalidParameterError(QueryParamUntil, dateFormatMessage)
+			return service.NewInvalidParameterError(QueryParamUntil, DateFormatMessage)
 		}
 
 		listParams.Until = until.Add(24 * time.Hour).Add(-1 * time.Microsecond).UTC()
 	}
 
 	if listParams.Since.After(listParams.Until) {
-		return service.NewInvalidParameterError(QueryParamSince, sinceErrorMessage)
+		return service.NewInvalidParameterError(QueryParamSince, SinceErrorMessage)
 	}
 
 	limitString := queryParams.Get(QueryParamLimit)
@@ -155,7 +155,7 @@ func listAccessEvents(svc EventService, w http.ResponseWriter, r *http.Request) 
 	} else {
 		listParams.Limit, err = strconv.ParseInt(limitString, 10, 64)
 		if err != nil || listParams.Limit <= 0 || listParams.Limit > 1000 {
-			return service.NewInvalidParameterError(QueryParamLimit, limitErrorMessage)
+			return service.NewInvalidParameterError(QueryParamLimit, LimitErrorMessage)
 		}
 	}
 

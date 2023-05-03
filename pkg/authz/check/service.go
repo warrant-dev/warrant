@@ -225,9 +225,19 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 			}
 
 			if !match {
+				err = svc.EventSvc.TrackAccessDeniedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Context)
+				if err != nil {
+					return nil, err
+				}
+
 				checkResult.Code = http.StatusForbidden
 				checkResult.Result = NotAuthorized
 				return &checkResult, nil
+			}
+
+			err = svc.EventSvc.TrackAccessAllowedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Context)
+			if err != nil {
+				return nil, err
 			}
 		}
 
@@ -256,9 +266,21 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 			}
 
 			if match {
+				err = svc.EventSvc.TrackAccessAllowedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Context)
+				if err != nil {
+					return nil, err
+				}
+
 				checkResult.Code = http.StatusOK
 				checkResult.Result = Authorized
 				return &checkResult, nil
+			}
+
+			if !match {
+				err := svc.EventSvc.TrackAccessDeniedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Context)
+				if err != nil {
+					return nil, err
+				}
 			}
 		}
 
@@ -282,9 +304,19 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 	}
 
 	if match {
+		err = svc.EventSvc.TrackAccessAllowedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Context)
+		if err != nil {
+			return nil, err
+		}
+
 		checkResult.Code = http.StatusOK
 		checkResult.Result = Authorized
 		return &checkResult, nil
+	}
+
+	err = svc.EventSvc.TrackAccessDeniedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Context)
+	if err != nil {
+		return nil, err
 	}
 
 	checkResult.Code = http.StatusForbidden
@@ -332,7 +364,7 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 	}
 
 	for _, matchingWarrant := range matchingWarrants {
-		if matchingWarrant.Subject.Relation == "" {
+		if matchingWarrant.Subject.Relation == nil {
 			continue
 		}
 
@@ -342,7 +374,7 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 			WarrantSpec: warrant.WarrantSpec{
 				ObjectType: matchingWarrant.Subject.ObjectType,
 				ObjectId:   matchingWarrant.Subject.ObjectId,
-				Relation:   matchingWarrant.Subject.Relation,
+				Relation:   *matchingWarrant.Subject.Relation,
 				Subject:    warrantCheck.Subject,
 				Context:    warrantCheck.Context,
 			},
@@ -369,17 +401,7 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 	}
 
 	if match {
-		err := svc.EventSvc.TrackAccessAllowedEvent(ctx, warrantCheck.ObjectType, warrantCheck.ObjectId, warrantCheck.Relation, warrantCheck.Subject.ObjectType, warrantCheck.Subject.ObjectId, warrantCheck.Subject.Relation, warrantCheck.Context)
-		if err != nil {
-			return false, decisionPath, err
-		}
-
 		return true, decisionPath, nil
-	}
-
-	err = svc.EventSvc.TrackAccessDeniedEvent(ctx, warrantCheck.ObjectType, warrantCheck.ObjectId, warrantCheck.Relation, warrantCheck.Subject.ObjectType, warrantCheck.Subject.ObjectId, warrantCheck.Subject.Relation, warrantCheck.Context)
-	if err != nil {
-		return false, decisionPath, err
 	}
 
 	return false, decisionPath, nil

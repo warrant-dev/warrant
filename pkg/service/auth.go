@@ -25,7 +25,8 @@ const (
 )
 
 const (
-	EnableSessionAuthKey = "EnableSessionAuth"
+	AuthTypeApiKey = "ApiKey"
+	AuthTypeBearer = "Bearer"
 )
 
 type AuthInfo struct {
@@ -33,51 +34,66 @@ type AuthInfo struct {
 	TenantId string
 }
 
-type AuthMiddlewareFunc func(next http.Handler, config *config.Config, options map[string]interface{}) http.Handler
+type AuthMiddlewareFunc func(config config.Config, route Route) (http.Handler, error)
 
-func DefaultAuthMiddleware(next http.Handler, config *config.Config, options map[string]interface{}) http.Handler {
+func ApiKeyAuthMiddleware(cfg config.Config, route Route) (http.Handler, error) {
+	warrantCfg, ok := cfg.(config.WarrantConfig)
+	if !ok {
+		return nil, fmt.Errorf("cfg parameter on DefaultAuthMiddleware must be a WarrantConfig")
+	}
+
+	_, ok = route.(WarrantRoute)
+	if !ok {
+		return nil, fmt.Errorf("route parameter on DefaultAuthMiddleware must be a WarrantRoute")
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, tokenString, err := parseAuthTokenFromRequest(r, []string{AuthTypeApiKey})
+		if err != nil {
+			SendErrorResponse(w, NewUnauthorizedError(fmt.Sprintf("Invalid authorization header: %s", err.Error())))
+			return
+		}
+
+		if !secureCompareEqual(tokenString, warrantCfg.GetAuthentication().ApiKey) {
+			SendErrorResponse(w, NewUnauthorizedError("Invalid API key"))
+			return
+		}
+
+		newContext := context.WithValue(r.Context(), authInfoKey, &AuthInfo{})
+		route.GetHandler().ServeHTTP(w, r.WithContext(newContext))
+	}), nil
+}
+
+func ApiKeyAndSessionAuthMiddleware(cfg config.Config, route Route) (http.Handler, error) {
+	warrantCfg, ok := cfg.(config.WarrantConfig)
+	if !ok {
+		return nil, fmt.Errorf("cfg parameter on DefaultAuthMiddleware must be a WarrantConfig")
+	}
+
+	_, ok = route.(WarrantRoute)
+	if !ok {
+		return nil, fmt.Errorf("route parameter on DefaultAuthMiddleware must be a WarrantRoute")
+	}
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := hlog.FromRequest(r)
-
-		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" {
-			SendErrorResponse(w, NewUnauthorizedError("Request missing Authorization header"))
+		tokenType, tokenString, err := parseAuthTokenFromRequest(r, []string{AuthTypeApiKey, AuthTypeBearer})
+		if err != nil {
+			SendErrorResponse(w, NewUnauthorizedError(fmt.Sprintf("Invalid authorization header: %s", err.Error())))
 			return
 		}
-
-		authHeaderParts := strings.Split(authHeader, " ")
-		if len(authHeaderParts) != 2 {
-			SendErrorResponse(w, NewUnauthorizedError("Invalid Authorization header"))
-			logger.Warn().Msgf("Invalid Authorization header %s", authHeader)
-			return
-		}
-
-		tokenType := authHeaderParts[0]
-		tokenString := authHeaderParts[1]
 
 		var authInfo *AuthInfo
 		switch tokenType {
-		case "ApiKey":
-			if !secureCompareEqual(tokenString, config.ApiKey) {
+		case AuthTypeApiKey:
+			if !secureCompareEqual(tokenString, warrantCfg.GetAuthentication().ApiKey) {
 				SendErrorResponse(w, NewUnauthorizedError("Invalid API key"))
 				return
 			}
+
 			authInfo = &AuthInfo{}
-		case "Bearer":
-			enableSessionAuth, ok := options["enableSessionAuth"].(bool)
-			if !ok {
-				SendErrorResponse(w, NewUnauthorizedError("Error validating token"))
-				logger.Err(fmt.Errorf("enableSessionAuth must be of type bool"))
-				return
-			}
-
-			if !enableSessionAuth {
-				SendErrorResponse(w, NewUnauthorizedError("Error validating token"))
-				logger.Err(fmt.Errorf("invalid authentication for the endpoint")).Msg("Session authentication not supported for this endpoint")
-				return
-			}
-
-			if config.Authentication.Provider == "" {
+		case AuthTypeBearer:
+			if warrantCfg.GetAuthentication().Provider == nil {
 				SendErrorResponse(w, NewInternalError("Error validating token"))
 				logger.Err(fmt.Errorf("invalid authentication provider configuration")).Msg("Must configure an authentication provider to allow requests that use third party auth tokens.")
 				return
@@ -86,7 +102,7 @@ func DefaultAuthMiddleware(next http.Handler, config *config.Config, options map
 			var publicKey *rsa.PublicKey
 			var publicKeys map[string]string
 			var err error
-			switch config.Authentication.Provider {
+			switch warrantCfg.GetAuthentication().Provider.Name {
 			case "firebase":
 				// Retrieve Firebase public keys
 				response, err := http.Get(FirebasePublicKeyUrl)
@@ -107,7 +123,7 @@ func DefaultAuthMiddleware(next http.Handler, config *config.Config, options map
 
 				json.Unmarshal(contents, &publicKeys)
 			default:
-				publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(config.Authentication.PublicKey))
+				publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(warrantCfg.GetAuthentication().Provider.PublicKey))
 				if err != nil {
 					SendErrorResponse(w, NewInternalError("Error validating token"))
 					logger.Err(fmt.Errorf("invalid authentication provider configuration")).Msg("Invalid public key for configured authentication provider")
@@ -120,7 +136,7 @@ func DefaultAuthMiddleware(next http.Handler, config *config.Config, options map
 					return nil, NewUnauthorizedError(fmt.Sprintf("Invalid %s token: unexpected signing method %v", tokenType, token.Header["alg"]))
 				}
 
-				if config.Authentication.Provider == "firebase" {
+				if warrantCfg.GetAuthentication().Provider.Name == "firebase" {
 					publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(publicKeys[token.Header["kid"].(string)]))
 					if err != nil {
 						return nil, NewUnauthorizedError("Invalid token")
@@ -147,35 +163,34 @@ func DefaultAuthMiddleware(next http.Handler, config *config.Config, options map
 
 			// Get claims
 			tokenClaims := checkedToken.Claims.(jwt.MapClaims)
-
-			if _, ok := tokenClaims[config.Authentication.UserIdClaim]; !ok {
+			if _, ok := tokenClaims[warrantCfg.GetAuthentication().Provider.UserIdClaim]; !ok {
 				SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
-				logger.Warn().Msgf("Unable to retrieve user id from token with given identifier: %s", config.Authentication.UserIdClaim)
+				logger.Warn().Msgf("Unable to retrieve user id from token with given identifier: %s", warrantCfg.GetAuthentication().Provider.UserIdClaim)
 				return
 			}
-			userId := tokenClaims[config.Authentication.UserIdClaim].(string)
 
 			authInfo = &AuthInfo{
-				UserId: userId,
+				UserId: tokenClaims[warrantCfg.GetAuthentication().Provider.UserIdClaim].(string),
 			}
 
-			if config.Authentication.TenantIdClaim != "" {
-				if _, ok := tokenClaims[config.Authentication.TenantIdClaim]; !ok {
+			if warrantCfg.GetAuthentication().Provider.TenantIdClaim != "" {
+				if _, ok := tokenClaims[warrantCfg.GetAuthentication().Provider.TenantIdClaim]; !ok {
 					SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
-					logger.Warn().Msgf("Unable to retrieve tenant id from token with given identifier: %s", config.Authentication.TenantIdClaim)
+					logger.Warn().Msgf("Unable to retrieve tenant id from token with given identifier: %s", warrantCfg.GetAuthentication().Provider.TenantIdClaim)
 				}
-				authInfo.TenantId = tokenClaims[config.Authentication.TenantIdClaim].(string)
+				authInfo.TenantId = tokenClaims[warrantCfg.GetAuthentication().Provider.TenantIdClaim].(string)
 			}
-		default:
-			SendErrorResponse(w, NewUnauthorizedError("Invalid Authorization header prefix. Must be ApiKey or Bearer"))
-			return
 		}
 
-		// Add authInfo to request context
 		newContext := context.WithValue(r.Context(), authInfoKey, *authInfo)
+		route.GetHandler().ServeHTTP(w, r.WithContext(newContext))
+	}), nil
+}
 
-		next.ServeHTTP(w, r.WithContext(newContext))
-	})
+func PassthroughAuthMiddleware(cfg config.Config, route Route) (http.Handler, error) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		route.GetHandler().ServeHTTP(w, r)
+	}), nil
 }
 
 // GetAuthInfoFromRequestContext returns the AuthInfo object from the given context
@@ -187,6 +202,29 @@ func GetAuthInfoFromRequestContext(context context.Context) *AuthInfo {
 	}
 
 	return nil
+}
+
+func parseAuthTokenFromRequest(r *http.Request, validTokenTypes []string) (string, string, error) {
+	authHeader := r.Header.Get("Authorization")
+	authHeaderParts := strings.Split(authHeader, " ")
+	if len(authHeaderParts) != 2 {
+		return "", "", fmt.Errorf("invalid format")
+	}
+
+	authTokenType := authHeaderParts[0]
+	authToken := authHeaderParts[1]
+
+	var isValidTokenType bool
+	for _, validTokenType := range validTokenTypes {
+		if authTokenType == validTokenType {
+			isValidTokenType = true
+		}
+	}
+	if !isValidTokenType {
+		return "", "", fmt.Errorf("authorization header prefix must be one of: %s", strings.Join(validTokenTypes, ", "))
+	}
+
+	return authTokenType, authToken, nil
 }
 
 func secureCompareEqual(given string, actual string) bool {

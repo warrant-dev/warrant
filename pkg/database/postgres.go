@@ -25,9 +25,7 @@ type Postgres struct {
 
 func NewPostgres(config config.PostgresConfig) *Postgres {
 	return &Postgres{
-		SQL: SQL{
-			DB: nil,
-		},
+		SQL:    NewSQL(nil, config.Database),
 		Config: config,
 	}
 }

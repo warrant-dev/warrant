@@ -23,9 +23,7 @@ type MySQL struct {
 
 func NewMySQL(config config.MySQLConfig) *MySQL {
 	return &MySQL{
-		SQL: SQL{
-			DB: nil,
-		},
+		SQL:    NewSQL(nil, config.Database),
 		Config: config,
 	}
 }

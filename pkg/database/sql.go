@@ -3,72 +3,11 @@ package database
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
-
-// NullString type representing a nullable string
-type NullString struct {
-	sql.NullString
-}
-
-// MarshalJSON returns the marshaled json string
-func (s NullString) MarshalJSON() ([]byte, error) {
-	if s.Valid {
-		return json.Marshal(s.String)
-	}
-
-	return []byte(`null`), nil
-}
-
-// UnmarshalJSON returns the unmarshaled struct
-func (s *NullString) UnmarshalJSON(data []byte) error {
-	var str *string
-	if err := json.Unmarshal(data, &str); err != nil {
-		return err
-	}
-
-	if str != nil {
-		s.Valid = true
-		s.String = *str
-	} else {
-		s.Valid = false
-	}
-
-	return nil
-}
-
-func StringToNullString(str *string) NullString {
-	if str == nil {
-		return NullString{
-			sql.NullString{},
-		}
-	}
-
-	return NullString{
-		sql.NullString{
-			Valid:  true,
-			String: *str,
-		},
-	}
-}
-
-// NullTime type representing a nullable string
-type NullTime struct {
-	sql.NullTime
-}
-
-// MarshalJSON returns the marshaled json string
-func (t NullTime) MarshalJSON() ([]byte, error) {
-	if t.Valid {
-		return json.Marshal(t.Time)
-	}
-
-	return []byte(`null`), nil
-}
 
 type SqlQueryable interface {
 	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
@@ -80,7 +19,15 @@ type SqlQueryable interface {
 	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
 }
 
-type txKey struct{}
+type txKey struct {
+	Database string
+}
+
+func newTxKey(databaseName string) txKey {
+	return txKey{
+		Database: databaseName,
+	}
+}
 
 type SqlTx struct {
 	Tx *sqlx.Tx
@@ -171,14 +118,22 @@ func (q SqlTx) SelectContext(ctx context.Context, dest interface{}, query string
 }
 
 type SQL struct {
-	DB *sqlx.DB
+	DB           *sqlx.DB
+	DatabaseName string
 }
 
-func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(ctx context.Context) error) error {
-	// If transaction already started, re-use it
-	if _, ok := ctx.Value(txKey{}).(*SqlTx); ok {
-		err := txFunc(ctx)
-		return err
+func NewSQL(db *sqlx.DB, databaseName string) SQL {
+	return SQL{
+		DB:           db,
+		DatabaseName: databaseName,
+	}
+}
+
+func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.Context) error) error {
+	// If transaction already started for this database, re-use it and
+	// let the top-level WithinTransaction call manage rollback/commit
+	if _, ok := ctx.Value(newTxKey(ds.DatabaseName)).(*SqlTx); ok {
+		return txFunc(ctx)
 	}
 
 	tx, err := ds.DB.Beginx()
@@ -207,10 +162,9 @@ func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(ctx context.Con
 		}
 	}()
 
-	err = txFunc(context.WithValue(ctx, txKey{}, &SqlTx{
-		Tx: tx,
-	}))
-	return err
+	// Add the newly created transaction for this database to txCtx
+	ctxWithTx := context.WithValue(ctx, newTxKey(ds.DatabaseName), &SqlTx{Tx: tx})
+	return txFunc(ctxWithTx)
 }
 
 func (ds SQL) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
@@ -305,19 +259,17 @@ func (ds SQL) SelectContext(ctx context.Context, dest interface{}, query string,
 }
 
 func (ds SQL) getQueryableFromContext(ctx context.Context) SqlQueryable {
-	if tx, ok := ctx.Value(txKey{}).(*SqlTx); ok {
+	if tx, ok := ctx.Value(newTxKey(ds.DatabaseName)).(*SqlTx); ok {
 		return tx
 	} else {
 		return ds.DB
 	}
 }
 
-// SQLRepository type
 type SQLRepository struct {
 	DB *SQL
 }
 
-// NewSQLRepository returns an instance of SQLRepository
 func NewSQLRepository(db *SQL) SQLRepository {
 	if db == nil {
 		log.Fatal().Msg("Cannot initialize SQLRepository with a nil db parameter")

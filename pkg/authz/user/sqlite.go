@@ -53,7 +53,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 		now,
 	)
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create user")
+		return -1, errors.Wrap(err, "error creating user")
 	}
 
 	return newUserId, nil
@@ -78,7 +78,7 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, erro
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("User", id)
 		default:
-			return nil, err
+			return nil, errors.Wrapf(err, "error getting user %d", id)
 		}
 	}
 
@@ -104,7 +104,7 @@ func (repo SQLiteRepository) GetByUserId(ctx context.Context, userId string) (Mo
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("User", userId)
 		default:
-			return nil, err
+			return nil, errors.Wrapf(err, "error getting user %s", userId)
 		}
 	}
 
@@ -203,7 +203,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.Lis
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return nil, err
+			return nil, errors.Wrap(err, "error listing users")
 		}
 	}
 
@@ -231,7 +231,7 @@ func (repo SQLiteRepository) UpdateByUserId(ctx context.Context, userId string, 
 		model.GetUserId(),
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating user %d", model.GetID()))
+		return errors.Wrapf(err, "error updating user %s", userId)
 	}
 
 	return nil
@@ -255,7 +255,7 @@ func (repo SQLiteRepository) DeleteByUserId(ctx context.Context, userId string) 
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("User", userId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting user %s", userId)
 		}
 	}
 

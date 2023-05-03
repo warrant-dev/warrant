@@ -96,7 +96,7 @@ func (repo PostgresRepository) ListResourceEvents(ctx context.Context, listParam
 	}
 
 	if listParams.LastId != "" {
-		lastIdSpec, err := stringToLastIdSpec(listParams.LastId)
+		lastIdSpec, err := StringToLastIdSpec(listParams.LastId)
 		if err != nil {
 			return models, "", service.NewInvalidParameterError("lastId", "")
 		}
@@ -123,7 +123,7 @@ func (repo PostgresRepository) ListResourceEvents(ctx context.Context, listParam
 		case sql.ErrNoRows:
 			return models, "", nil
 		default:
-			return models, "", err
+			return models, "", errors.Wrap(err, "error listing resource events")
 		}
 	}
 
@@ -136,12 +136,12 @@ func (repo PostgresRepository) ListResourceEvents(ctx context.Context, listParam
 	}
 
 	lastResourceEvent := resourceEvents[len(resourceEvents)-1]
-	lastIdStr, err := lastIdSpecToString(LastIdSpec{
+	lastIdStr, err := LastIdSpecToString(LastIdSpec{
 		ID:        lastResourceEvent.GetID(),
 		CreatedAt: lastResourceEvent.GetCreatedAt(),
 	})
 	if err != nil {
-		return models, "", err
+		return models, "", errors.Wrap(err, "error listing resource events")
 	}
 
 	return models, lastIdStr, nil
@@ -252,7 +252,7 @@ func (repo PostgresRepository) ListAccessEvents(ctx context.Context, listParams 
 	}
 
 	if listParams.LastId != "" {
-		lastIdSpec, err := stringToLastIdSpec(listParams.LastId)
+		lastIdSpec, err := StringToLastIdSpec(listParams.LastId)
 		if err != nil {
 			return models, "", service.NewInvalidParameterError("lastId", "")
 		}
@@ -279,7 +279,7 @@ func (repo PostgresRepository) ListAccessEvents(ctx context.Context, listParams 
 		case sql.ErrNoRows:
 			return models, "", nil
 		default:
-			return models, "", err
+			return models, "", errors.Wrap(err, "error listing access events")
 		}
 	}
 
@@ -292,12 +292,12 @@ func (repo PostgresRepository) ListAccessEvents(ctx context.Context, listParams 
 	}
 
 	lastAccessEvent := accessEvents[len(accessEvents)-1]
-	lastIdStr, err := lastIdSpecToString(LastIdSpec{
+	lastIdStr, err := LastIdSpecToString(LastIdSpec{
 		ID:        lastAccessEvent.GetID(),
 		CreatedAt: lastAccessEvent.GetCreatedAt(),
 	})
 	if err != nil {
-		return models, "", err
+		return models, "", errors.Wrap(err, "error listing access events")
 	}
 
 	return models, lastIdStr, nil

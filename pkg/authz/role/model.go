@@ -2,33 +2,31 @@ package authz
 
 import (
 	"time"
-
-	"github.com/warrant-dev/warrant/pkg/database"
 )
 
 type Model interface {
 	GetID() int64
 	GetObjectId() int64
 	GetRoleId() string
-	GetName() database.NullString
-	SetName(database.NullString)
-	GetDescription() database.NullString
-	SetDescription(database.NullString)
+	GetName() *string
+	SetName(*string)
+	GetDescription() *string
+	SetDescription(*string)
 	GetCreatedAt() time.Time
 	GetUpdatedAt() time.Time
-	GetDeletedAt() database.NullTime
+	GetDeletedAt() *time.Time
 	ToRoleSpec() *RoleSpec
 }
 
 type Role struct {
-	ID          int64               `mysql:"id" postgres:"id" sqlite:"id"`
-	ObjectId    int64               `mysql:"objectId" postgres:"object_id" sqlite:"objectId"`
-	RoleId      string              `mysql:"roleId" postgres:"role_id" sqlite:"roleId"`
-	Name        database.NullString `mysql:"name" postgres:"name" sqlite:"name"`
-	Description database.NullString `mysql:"description" postgres:"description" sqlite:"description"`
-	CreatedAt   time.Time           `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
-	UpdatedAt   time.Time           `mysql:"updatedAt" postgres:"updated_at" sqlite:"updatedAt"`
-	DeletedAt   database.NullTime   `mysql:"deletedAt" postgres:"deleted_at" sqlite:"deletedAt"`
+	ID          int64      `mysql:"id" postgres:"id" sqlite:"id"`
+	ObjectId    int64      `mysql:"objectId" postgres:"object_id" sqlite:"objectId"`
+	RoleId      string     `mysql:"roleId" postgres:"role_id" sqlite:"roleId"`
+	Name        *string    `mysql:"name" postgres:"name" sqlite:"name"`
+	Description *string    `mysql:"description" postgres:"description" sqlite:"description"`
+	CreatedAt   time.Time  `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
+	UpdatedAt   time.Time  `mysql:"updatedAt" postgres:"updated_at" sqlite:"updatedAt"`
+	DeletedAt   *time.Time `mysql:"deletedAt" postgres:"deleted_at" sqlite:"deletedAt"`
 }
 
 func (role Role) GetID() int64 {
@@ -43,19 +41,19 @@ func (role Role) GetRoleId() string {
 	return role.RoleId
 }
 
-func (role Role) GetName() database.NullString {
+func (role Role) GetName() *string {
 	return role.Name
 }
 
-func (role *Role) SetName(newName database.NullString) {
+func (role *Role) SetName(newName *string) {
 	role.Name = newName
 }
 
-func (role Role) GetDescription() database.NullString {
+func (role Role) GetDescription() *string {
 	return role.Description
 }
 
-func (role *Role) SetDescription(newDescription database.NullString) {
+func (role *Role) SetDescription(newDescription *string) {
 	role.Description = newDescription
 }
 
@@ -67,7 +65,7 @@ func (role Role) GetUpdatedAt() time.Time {
 	return role.UpdatedAt
 }
 
-func (role Role) GetDeletedAt() database.NullTime {
+func (role Role) GetDeletedAt() *time.Time {
 	return role.DeletedAt
 }
 

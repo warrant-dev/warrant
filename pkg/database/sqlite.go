@@ -27,9 +27,7 @@ type SQLite struct {
 
 func NewSQLite(config config.SQLiteConfig) *SQLite {
 	return &SQLite{
-		SQL: SQL{
-			DB: nil,
-		},
+		SQL:    NewSQL(nil, config.Database),
 		Config: config,
 	}
 }

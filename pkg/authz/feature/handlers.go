@@ -10,49 +10,49 @@ import (
 )
 
 // GetRoutes registers all route handlers for this module
-func (svc FeatureService) Routes() []service.Route {
+func (svc FeatureService) Routes() ([]service.Route, error) {
 	return []service.Route{
 		// create
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/features",
 			Method:  "POST",
 			Handler: service.NewRouteHandler(svc, CreateHandler),
 		},
 
 		// get
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/features",
 			Method:  "GET",
-			Handler: middleware.ChainMiddleware(
+			Handler: middleware.Chain(
 				service.NewRouteHandler(svc, ListHandler),
 				middleware.ListMiddleware[FeatureListParamParser],
 			),
 		},
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/features/{featureId}",
 			Method:  "GET",
 			Handler: service.NewRouteHandler(svc, GetHandler),
 		},
 
 		// update
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/features/{featureId}",
 			Method:  "POST",
 			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/features/{featureId}",
 			Method:  "PUT",
 			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
 
 		// delete
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/features/{featureId}",
 			Method:  "DELETE",
 			Handler: service.NewRouteHandler(svc, DeleteHandler),
 		},
-	}
+	}, nil
 }
 
 func CreateHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) error {

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -39,13 +38,12 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 		model.GetObjectId(),
 	)
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create object")
+		return -1, errors.Wrap(err, "error creating object")
 	}
 
 	newObjectId, err := result.LastInsertId()
 	if err != nil {
-		log.Err(err).Msg("Unable to create object")
-		return 0, service.NewInternalError("Unable to create object")
+		return -1, errors.Wrap(err, "error creating object")
 	}
 
 	return newObjectId, nil
@@ -70,7 +68,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Object", id)
 		default:
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get Object %d from mysql", id))
+			return nil, errors.Wrapf(err, "error getting object %d", id)
 		}
 	}
 
@@ -98,7 +96,7 @@ func (repo MySQLRepository) GetByObjectTypeAndId(ctx context.Context, objectType
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError(objectType, objectId)
 		default:
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get object %s:%s from mysql", objectType, objectId))
+			return nil, errors.Wrapf(err, "error getting object %s:%s", objectType, objectId)
 		}
 	}
 
@@ -202,7 +200,7 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return nil, err
+			return nil, errors.Wrap(err, "error listing objects")
 		}
 	}
 
@@ -234,7 +232,7 @@ func (repo MySQLRepository) DeleteByObjectTypeAndId(ctx context.Context, objectT
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("Object", fmt.Sprintf("%s:%s", objectType, objectId))
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting object %s:%s", objectType, objectId)
 		}
 	}
 

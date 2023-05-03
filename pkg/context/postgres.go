@@ -47,7 +47,7 @@ func (repository PostgresRepository) CreateAll(ctx context.Context, models []Mod
 		contexts,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "Unable to create contexts")
+		return nil, errors.Wrap(err, "error creating contexts")
 	}
 
 	return repository.ListByWarrantId(ctx, []int64{contexts[0].GetWarrantId()})
@@ -84,7 +84,7 @@ func (repository PostgresRepository) ListByWarrantId(ctx context.Context, warran
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to list contexts for warrant ids %s from postgres", strings.Join(warrantIdStrings, ", ")))
+			return nil, errors.Wrapf(err, "error listing contexts for warrant ids %s", strings.Join(warrantIdStrings, ", "))
 		}
 	}
 
@@ -114,7 +114,7 @@ func (repository PostgresRepository) DeleteAllByWarrantId(ctx context.Context, w
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("Warrant", warrantId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting contexts for warrant %d", warrantId)
 		}
 	}
 

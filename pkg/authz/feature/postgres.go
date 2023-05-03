@@ -53,10 +53,10 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 	)
 
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create feature")
+		return -1, errors.Wrap(err, "error creating feature")
 	}
 
-	return newFeatureId, err
+	return newFeatureId, nil
 }
 
 func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, error) {
@@ -78,7 +78,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, er
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Feature", id)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get feature id %d from postgres", id))
+			return nil, errors.Wrapf(err, "error getting feature id %d", id)
 		}
 	}
 
@@ -104,7 +104,7 @@ func (repo PostgresRepository) GetByFeatureId(ctx context.Context, featureId str
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Feature", featureId)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get feature %s from postgres", featureId))
+			return nil, errors.Wrapf(err, "error getting feature %s", featureId)
 		}
 	}
 
@@ -209,7 +209,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return models, service.NewInternalError("Unable to list features")
+			return models, errors.Wrap(err, "error listing features")
 		}
 	}
 
@@ -237,7 +237,7 @@ func (repo PostgresRepository) UpdateByFeatureId(ctx context.Context, featureId 
 		featureId,
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating feature %s", featureId))
+		return errors.Wrapf(err, "error updating feature %s", featureId)
 	}
 
 	return nil
@@ -262,7 +262,7 @@ func (repo PostgresRepository) DeleteByFeatureId(ctx context.Context, featureId 
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("Feature", featureId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting feature %d", featureId)
 		}
 	}
 

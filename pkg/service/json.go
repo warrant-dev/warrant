@@ -163,6 +163,8 @@ func ValidateStruct(obj interface{}) error {
 
 				ruleName := err.Tag()
 				switch ruleName {
+				case "email":
+					return NewInvalidParameterError(fieldName, "must be a valid email")
 				case "max":
 					return NewInvalidParameterError(fieldName, fmt.Sprintf("must be less than %s", validationRules[ruleName]))
 				case "min":

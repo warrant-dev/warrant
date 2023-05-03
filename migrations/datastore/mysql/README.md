@@ -41,7 +41,7 @@ services:
       WARRANT_EVENTSTORE_MYSQL_PASSWORD: replace_with_password
       WARRANT_EVENTSTORE_MYSQL_HOSTNAME: database
       WARRANT_EVENTSTORE_MYSQL_DATABASE: warrantEvents
-      WARRANT_APIKEY: replace_with_api_key
+      WARRANT_AUTHENTICATION_APIKEY: replace_with_api_key
       WARRANT_AUTHENTICATION_PROVIDER: replace_with_authentication_name
       WARRANT_AUTHENTICATION_PUBLICKEY: replace_with_authentication_public_key
       WARRANT_AUTHENTICATION_USERIDCLAIM: replace_with_authentication_user_id_claim
@@ -76,8 +76,9 @@ touch warrant.yaml
 port: 8000
 logLevel: 0
 enableAccessLog: true
-apiKey: replace_with_api_key
 autoMigrate: true
+authentication:
+  apiKey: replace_with_api_key
 datastore:
   mysql:
     username: replace_with_username

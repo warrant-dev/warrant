@@ -98,7 +98,7 @@ func (repo SQLiteRepository) ListResourceEvents(ctx context.Context, listParams 
 	}
 
 	if listParams.LastId != "" {
-		lastIdSpec, err := stringToLastIdSpec(listParams.LastId)
+		lastIdSpec, err := StringToLastIdSpec(listParams.LastId)
 		if err != nil {
 			return models, "", service.NewInvalidParameterError("lastId", "")
 		}
@@ -125,7 +125,7 @@ func (repo SQLiteRepository) ListResourceEvents(ctx context.Context, listParams 
 		case sql.ErrNoRows:
 			return models, "", nil
 		default:
-			return models, "", err
+			return models, "", errors.Wrap(err, "error listing resource events")
 		}
 	}
 
@@ -138,12 +138,12 @@ func (repo SQLiteRepository) ListResourceEvents(ctx context.Context, listParams 
 	}
 
 	lastResourceEvent := resourceEvents[len(resourceEvents)-1]
-	lastIdStr, err := lastIdSpecToString(LastIdSpec{
+	lastIdStr, err := LastIdSpecToString(LastIdSpec{
 		ID:        lastResourceEvent.ID,
 		CreatedAt: lastResourceEvent.CreatedAt,
 	})
 	if err != nil {
-		return models, "", err
+		return models, "", errors.Wrap(err, "error listing resource events")
 	}
 
 	return models, lastIdStr, nil
@@ -256,7 +256,7 @@ func (repo SQLiteRepository) ListAccessEvents(ctx context.Context, listParams Li
 	}
 
 	if listParams.LastId != "" {
-		lastIdSpec, err := stringToLastIdSpec(listParams.LastId)
+		lastIdSpec, err := StringToLastIdSpec(listParams.LastId)
 		if err != nil {
 			return models, "", service.NewInvalidParameterError("lastId", "")
 		}
@@ -283,7 +283,7 @@ func (repo SQLiteRepository) ListAccessEvents(ctx context.Context, listParams Li
 		case sql.ErrNoRows:
 			return models, "", nil
 		default:
-			return models, "", err
+			return models, "", errors.Wrap(err, "error listing access events")
 		}
 	}
 
@@ -296,12 +296,12 @@ func (repo SQLiteRepository) ListAccessEvents(ctx context.Context, listParams Li
 	}
 
 	lastAccessEvent := accessEvents[len(accessEvents)-1]
-	lastIdStr, err := lastIdSpecToString(LastIdSpec{
+	lastIdStr, err := LastIdSpecToString(LastIdSpec{
 		ID:        lastAccessEvent.ID,
 		CreatedAt: lastAccessEvent.CreatedAt,
 	})
 	if err != nil {
-		return models, "", err
+		return models, "", errors.Wrap(err, "error listing access events")
 	}
 
 	return models, lastIdStr, nil

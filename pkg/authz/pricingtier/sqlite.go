@@ -58,7 +58,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 	)
 
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create pricing tier")
+		return -1, errors.Wrap(err, "error creating pricing tier")
 	}
 
 	return newPricingTierId, err
@@ -83,7 +83,7 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, erro
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("PricingTier", id)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get pricing tier id %d from sqlite", id))
+			return nil, errors.Wrapf(err, "error getting pricing tier id %d", id)
 		}
 	}
 
@@ -109,7 +109,7 @@ func (repo SQLiteRepository) GetByPricingTierId(ctx context.Context, pricingTier
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("PricingTier", pricingTierId)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get pricing tier %s from sqlite", pricingTierId))
+			return nil, errors.Wrapf(err, "error getting pricing tier %s", pricingTierId)
 		}
 	}
 
@@ -208,7 +208,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.Lis
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return models, service.NewInternalError("Unable to list pricing tiers")
+			return models, errors.Wrap(err, "error listing pricing tiers")
 		}
 	}
 
@@ -238,7 +238,7 @@ func (repo SQLiteRepository) UpdateByPricingTierId(ctx context.Context, pricingT
 		pricingTierId,
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating pricing tier %s", pricingTierId))
+		return errors.Wrapf(err, "error updating pricing tier %s", pricingTierId)
 	}
 
 	return nil
@@ -263,7 +263,7 @@ func (repo SQLiteRepository) DeleteByPricingTierId(ctx context.Context, pricingT
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("PricingTier", pricingTierId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting pricing tier %s", pricingTierId)
 		}
 	}
 

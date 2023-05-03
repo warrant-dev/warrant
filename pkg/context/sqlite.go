@@ -54,7 +54,7 @@ func (repository SQLiteRepository) CreateAll(ctx context.Context, models []Model
 		contexts,
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, "Unable to create contexts")
+		return nil, errors.Wrap(err, "error creating contexts")
 	}
 
 	return repository.ListByWarrantId(ctx, []int64{contexts[0].WarrantId})
@@ -91,7 +91,7 @@ func (repository SQLiteRepository) ListByWarrantId(ctx context.Context, warrantI
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to list contexts for warrant ids %s from sqlite", strings.Join(warrantIdStrings, ", ")))
+			return nil, errors.Wrapf(err, "error listing contexts for warrant ids %s", strings.Join(warrantIdStrings, ", "))
 		}
 	}
 
@@ -121,7 +121,7 @@ func (repository SQLiteRepository) DeleteAllByWarrantId(ctx context.Context, war
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("Warrant", warrantId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting contexts for warrant %d", warrantId)
 		}
 	}
 

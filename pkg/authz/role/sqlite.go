@@ -58,7 +58,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 	)
 
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create role")
+		return -1, errors.Wrap(err, "error creating role")
 	}
 
 	return newRoleId, err
@@ -83,7 +83,7 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, erro
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Role", id)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get role id %d from sqlite", id))
+			return nil, errors.Wrapf(err, "error getting role %d", id)
 		}
 	}
 
@@ -109,7 +109,7 @@ func (repo SQLiteRepository) GetByRoleId(ctx context.Context, roleId string) (Mo
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Role", roleId)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get role %s from sqlite", roleId))
+			return nil, errors.Wrapf(err, "error getting role %s", roleId)
 		}
 	}
 
@@ -208,7 +208,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.Lis
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return models, service.NewInternalError("Unable to list roles")
+			return models, errors.Wrap(err, "error listing roles")
 		}
 	}
 
@@ -238,7 +238,7 @@ func (repo SQLiteRepository) UpdateByRoleId(ctx context.Context, roleId string, 
 		roleId,
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating role %s", roleId))
+		return errors.Wrapf(err, "error updating role %s", roleId)
 	}
 
 	return nil
@@ -263,7 +263,7 @@ func (repo SQLiteRepository) DeleteByRoleId(ctx context.Context, roleId string) 
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("Role", roleId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting role %s", roleId)
 		}
 	}
 

@@ -25,15 +25,51 @@ const (
 	ConfigFileName                           = "warrant.yaml"
 )
 
-type Config struct {
+type Config interface {
+	GetPort() int
+	GetLogLevel() int8
+	GetEnableAccessLog() bool
+	GetAutoMigrate() bool
+	GetDatastore() *DatastoreConfig
+	GetEventstore() *EventstoreConfig
+}
+
+type WarrantConfig struct {
 	Port            int               `mapstructure:"port"`
 	LogLevel        int8              `mapstructure:"logLevel"`
 	EnableAccessLog bool              `mapstructure:"enableAccessLog"`
 	AutoMigrate     bool              `mapstructure:"autoMigrate"`
 	Datastore       *DatastoreConfig  `mapstructure:"datastore"`
 	Eventstore      *EventstoreConfig `mapstructure:"eventstore"`
-	ApiKey          string            `mapstructure:"apiKey"`
 	Authentication  *AuthConfig       `mapstructure:"authentication"`
+}
+
+func (warrantConfig WarrantConfig) GetPort() int {
+	return warrantConfig.Port
+}
+
+func (warrantConfig WarrantConfig) GetLogLevel() int8 {
+	return warrantConfig.LogLevel
+}
+
+func (warrantConfig WarrantConfig) GetEnableAccessLog() bool {
+	return warrantConfig.EnableAccessLog
+}
+
+func (warrantConfig WarrantConfig) GetAutoMigrate() bool {
+	return warrantConfig.AutoMigrate
+}
+
+func (warrantConfig WarrantConfig) GetDatastore() *DatastoreConfig {
+	return warrantConfig.Datastore
+}
+
+func (warrantConfig WarrantConfig) GetEventstore() *EventstoreConfig {
+	return warrantConfig.Eventstore
+}
+
+func (warrantConfig WarrantConfig) GetAuthentication() *AuthConfig {
+	return warrantConfig.Authentication
 }
 
 type DatastoreConfig struct {
@@ -79,13 +115,18 @@ type EventstoreConfig struct {
 }
 
 type AuthConfig struct {
-	Provider      string `mapstructure:"provider"`
+	ApiKey   string              `mapstructure:"apiKey"`
+	Provider *AuthProviderConfig `mapstructure:"providers"`
+}
+
+type AuthProviderConfig struct {
+	Name          string `mapstructure:"name"`
 	PublicKey     string `mapstructure:"publicKey"`
 	UserIdClaim   string `mapstructure:"userIdClaim"`
 	TenantIdClaim string `mapstructure:"tenantIdClaim"`
 }
 
-func NewConfig() Config {
+func NewConfig() WarrantConfig {
 	viper.SetConfigFile(ConfigFileName)
 	viper.SetDefault("port", 8000)
 	viper.SetDefault("levelLevel", zerolog.DebugLevel)
@@ -98,7 +139,7 @@ func NewConfig() Config {
 	viper.SetDefault("eventstore.postgres.migrationSource", DefaultPostgresEventstoreMigrationSource)
 	viper.SetDefault("eventstore.sqlite.migrationSource", DefaultSQLiteEventstoreMigrationSource)
 	viper.SetDefault("eventstore.synchronizeEvents", false)
-	viper.SetDefault("authentication.userIdClaim", DefaultAuthenticationUserIdClaim)
+	viper.SetDefault("authentication.provider.userIdClaim", DefaultAuthenticationUserIdClaim)
 
 	// If config file exists, use it
 	_, err := os.ReadFile(ConfigFileName)
@@ -114,7 +155,7 @@ func NewConfig() Config {
 		}
 	}
 
-	var config Config
+	var config WarrantConfig
 	// If available, use env vars for config
 	for _, fieldName := range getFlattenedStructFields(reflect.TypeOf(config)) {
 		envKey := strings.ToUpper(fmt.Sprintf("%s_%s", PrefixWarrant, strings.ReplaceAll(fieldName, ".", "_")))
@@ -132,13 +173,13 @@ func NewConfig() Config {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.DurationFieldUnit = time.Millisecond
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
-	zerolog.SetGlobalLevel(zerolog.Level(config.LogLevel))
+	zerolog.SetGlobalLevel(zerolog.Level(config.GetLogLevel()))
 	if zerolog.GlobalLevel() == zerolog.DebugLevel {
 		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
-	if config.ApiKey == "" {
-		log.Warn().Msg("Warrant is running without an API key. We recommend providing an API key when running in production.")
+	if config.GetAuthentication() == nil || config.GetAuthentication().ApiKey == "" {
+		log.Fatal().Msg("Must provide an API key to authenticate incoming requests to Warrant.")
 	}
 
 	return config

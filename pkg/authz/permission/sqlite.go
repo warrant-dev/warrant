@@ -58,7 +58,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 	)
 
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create permission")
+		return -1, errors.Wrap(err, "error creating permission")
 	}
 
 	return newPermissionId, nil
@@ -83,7 +83,7 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, erro
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Permission", id)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get permission id %d from sqlite", id))
+			return nil, errors.Wrapf(err, "error getting permission id %d", id)
 		}
 	}
 
@@ -109,7 +109,7 @@ func (repo SQLiteRepository) GetByPermissionId(ctx context.Context, permissionId
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Permission", permissionId)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get permission %s from sqlite", permissionId))
+			return nil, errors.Wrapf(err, "error getting permission %s", permissionId)
 		}
 	}
 
@@ -208,7 +208,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.Lis
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return models, service.NewInternalError("Unable to list permissions")
+			return models, errors.Wrap(err, "error listing permissions")
 		}
 	}
 
@@ -238,7 +238,7 @@ func (repo SQLiteRepository) UpdateByPermissionId(ctx context.Context, permissio
 		permissionId,
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating permission %s", permissionId))
+		return errors.Wrapf(err, "error updating permission %s", permissionId)
 	}
 
 	return nil
@@ -263,7 +263,7 @@ func (repo SQLiteRepository) DeleteByPermissionId(ctx context.Context, permissio
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("Permission", permissionId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting permission %s", permissionId)
 		}
 	}
 

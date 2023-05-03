@@ -9,49 +9,49 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-func (svc UserService) Routes() []service.Route {
+func (svc UserService) Routes() ([]service.Route, error) {
 	return []service.Route{
 		// create
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/users",
 			Method:  "POST",
 			Handler: service.NewRouteHandler(svc, CreateHandler),
 		},
 
 		// get
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/users/{userId}",
 			Method:  "GET",
 			Handler: service.NewRouteHandler(svc, GetHandler),
 		},
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/users",
 			Method:  "GET",
-			Handler: middleware.ChainMiddleware(
+			Handler: middleware.Chain(
 				service.NewRouteHandler(svc, ListHandler),
 				middleware.ListMiddleware[UserListParamParser],
 			),
 		},
 
 		// delete
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/users/{userId}",
 			Method:  "DELETE",
 			Handler: service.NewRouteHandler(svc, DeleteHandler),
 		},
 
 		// update
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/users/{userId}",
 			Method:  "POST",
 			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/users/{userId}",
 			Method:  "PUT",
 			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
-	}
+	}, nil
 }
 
 func CreateHandler(svc UserService, w http.ResponseWriter, r *http.Request) error {

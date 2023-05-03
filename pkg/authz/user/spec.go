@@ -5,13 +5,12 @@ import (
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	"github.com/warrant-dev/warrant/pkg/database"
 )
 
 type UserSpec struct {
-	UserId    string              `json:"userId"`
-	Email     database.NullString `json:"email" validate:"email"`
-	CreatedAt time.Time           `json:"createdAt"`
+	UserId    string    `json:"userId"`
+	Email     *string   `json:"email" validate:"omitempty,email"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 func (spec UserSpec) ToUser(objectId int64) *User {
@@ -30,5 +29,5 @@ func (spec UserSpec) ToObjectSpec() *object.ObjectSpec {
 }
 
 type UpdateUserSpec struct {
-	Email database.NullString `json:"email" validate:"email"`
+	Email *string `json:"email" validate:"omitempty,email"`
 }

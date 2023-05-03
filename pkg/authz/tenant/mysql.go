@@ -45,12 +45,12 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 	)
 
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create Tenant")
+		return -1, errors.Wrap(err, "error creating tenant")
 	}
 
 	newTenantId, err := result.LastInsertId()
 	if err != nil {
-		return 0, service.NewInternalError("Unable to create Tenant")
+		return -1, errors.Wrap(err, "error creating tenant")
 	}
 
 	return newTenantId, nil
@@ -75,7 +75,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Tenant", id)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get Tenant %d from mysql", id))
+			return nil, errors.Wrapf(err, "error getting tenant %d", id)
 		}
 	}
 
@@ -101,7 +101,7 @@ func (repo MySQLRepository) GetByTenantId(ctx context.Context, tenantId string) 
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Tenant", tenantId)
 		default:
-			return nil, service.NewInternalError(fmt.Sprintf("Unable to get Tenant %s from mysql", tenantId))
+			return nil, errors.Wrapf(err, "error getting tenant %s", tenantId)
 		}
 	}
 
@@ -201,7 +201,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return models, service.NewInternalError("Unable to list tenants")
+			return models, errors.Wrap(err, "error listing tenants")
 		}
 	}
 
@@ -227,7 +227,7 @@ func (repo MySQLRepository) UpdateByTenantId(ctx context.Context, tenantId strin
 		tenantId,
 	)
 	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Error updating tenant %d", model.GetID()))
+		return errors.Wrapf(err, "error updating tenant %s", tenantId)
 	}
 
 	return nil
@@ -252,7 +252,7 @@ func (repo MySQLRepository) DeleteByTenantId(ctx context.Context, tenantId strin
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("Tenant", tenantId)
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting tenant %s", tenantId)
 		}
 	}
 

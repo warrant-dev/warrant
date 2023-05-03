@@ -2,8 +2,6 @@ package authz
 
 import (
 	"time"
-
-	"github.com/warrant-dev/warrant/pkg/database"
 )
 
 type Model interface {
@@ -12,17 +10,17 @@ type Model interface {
 	GetObjectId() string
 	GetCreatedAt() time.Time
 	GetUpdatedAt() time.Time
-	GetDeletedAt() database.NullTime
+	GetDeletedAt() *time.Time
 	ToObjectSpec() *ObjectSpec
 }
 
 type Object struct {
-	ID         int64             `mysql:"id" postgres:"id" sqlite:"id"`
-	ObjectType string            `mysql:"objectType" postgres:"object_type" sqlite:"objectType"`
-	ObjectId   string            `mysql:"objectId" postgres:"object_id" sqlite:"objectId"`
-	CreatedAt  time.Time         `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
-	UpdatedAt  time.Time         `mysql:"updatedAt" postgres:"updated_at" sqlite:"updatedAt"`
-	DeletedAt  database.NullTime `mysql:"deletedAt" postgres:"deleted_at" sqlite:"deletedAt"`
+	ID         int64      `mysql:"id" postgres:"id" sqlite:"id"`
+	ObjectType string     `mysql:"objectType" postgres:"object_type" sqlite:"objectType"`
+	ObjectId   string     `mysql:"objectId" postgres:"object_id" sqlite:"objectId"`
+	CreatedAt  time.Time  `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
+	UpdatedAt  time.Time  `mysql:"updatedAt" postgres:"updated_at" sqlite:"updatedAt"`
+	DeletedAt  *time.Time `mysql:"deletedAt" postgres:"deleted_at" sqlite:"deletedAt"`
 }
 
 func (object Object) GetID() int64 {
@@ -45,7 +43,7 @@ func (object Object) GetUpdatedAt() time.Time {
 	return object.UpdatedAt
 }
 
-func (object Object) GetDeletedAt() database.NullTime {
+func (object Object) GetDeletedAt() *time.Time {
 	return object.DeletedAt
 }
 

@@ -5,14 +5,13 @@ import (
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	"github.com/warrant-dev/warrant/pkg/database"
 )
 
 type PricingTierSpec struct {
-	PricingTierId string              `json:"pricingTierId" validate:"required"`
-	Name          database.NullString `json:"name"`
-	Description   database.NullString `json:"description"`
-	CreatedAt     time.Time           `json:"createdAt"`
+	PricingTierId string    `json:"pricingTierId" validate:"required"`
+	Name          *string   `json:"name"`
+	Description   *string   `json:"description"`
+	CreatedAt     time.Time `json:"createdAt"`
 }
 
 func (spec PricingTierSpec) ToPricingTier(objectId int64) Model {
@@ -32,6 +31,6 @@ func (spec PricingTierSpec) ToObjectSpec() *object.ObjectSpec {
 }
 
 type UpdatePricingTierSpec struct {
-	Name        database.NullString `json:"name"`
-	Description database.NullString `json:"description"`
+	Name        *string `json:"name"`
+	Description *string `json:"description"`
 }

@@ -8,36 +8,36 @@ import (
 )
 
 // GetRoutes registers all route handlers for this module
-func (svc WarrantService) Routes() []service.Route {
+func (svc WarrantService) Routes() ([]service.Route, error) {
 	return []service.Route{
 		// create
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/warrants",
 			Method:  "POST",
-			Handler: middleware.ChainMiddleware(
+			Handler: middleware.Chain(
 				service.NewRouteHandler(svc, CreateHandler),
 			),
 		},
 
 		// get
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/warrants",
 			Method:  "GET",
-			Handler: middleware.ChainMiddleware(
+			Handler: middleware.Chain(
 				service.NewRouteHandler(svc, ListHandler),
 				middleware.ListMiddleware[WarrantListParamParser],
 			),
 		},
 
 		// delete
-		{
+		service.WarrantRoute{
 			Pattern: "/v1/warrants",
 			Method:  "DELETE",
-			Handler: middleware.ChainMiddleware(
+			Handler: middleware.Chain(
 				service.NewRouteHandler(svc, DeleteHandler),
 			),
 		},
-	}
+	}, nil
 }
 
 func CreateHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
@@ -66,8 +66,11 @@ func ListHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) err
 		Subject: &SubjectSpec{
 			ObjectType: queryParams.Get("subjectType"),
 			ObjectId:   queryParams.Get("subjectId"),
-			Relation:   queryParams.Get("subjectRelation"),
 		},
+	}
+	subjectRelation := queryParams.Get("subjectRelation")
+	if subjectRelation != "" {
+		filters.Subject.Relation = &subjectRelation
 	}
 
 	warrants, err := svc.List(r.Context(), &filters, listParams)

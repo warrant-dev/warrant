@@ -42,7 +42,7 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 		model.GetObjectId(),
 	)
 	if err != nil {
-		return 0, errors.Wrap(err, "Unable to create object")
+		return -1, errors.Wrap(err, "error creating object")
 	}
 
 	return newObjectId, nil
@@ -67,7 +67,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, er
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError("Object", id)
 		default:
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get Object %d from postgres", id))
+			return nil, errors.Wrapf(err, "error getting object %d", id)
 		}
 	}
 
@@ -95,7 +95,7 @@ func (repo PostgresRepository) GetByObjectTypeAndId(ctx context.Context, objectT
 		case sql.ErrNoRows:
 			return nil, service.NewRecordNotFoundError(objectType, objectId)
 		default:
-			return nil, errors.Wrap(err, fmt.Sprintf("Unable to get object %s:%s from postgres", objectType, objectId))
+			return nil, errors.Wrapf(err, "error getting object %s:%s", objectType, objectId)
 		}
 	}
 
@@ -205,7 +205,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return nil, err
+			return nil, errors.Wrap(err, "error listing objects")
 		}
 	}
 
@@ -237,7 +237,7 @@ func (repo PostgresRepository) DeleteByObjectTypeAndId(ctx context.Context, obje
 		case sql.ErrNoRows:
 			return service.NewRecordNotFoundError("Object", fmt.Sprintf("%s:%s", objectType, objectId))
 		default:
-			return err
+			return errors.Wrapf(err, "error deleting object %s:%s", objectType, objectId)
 		}
 	}
 
