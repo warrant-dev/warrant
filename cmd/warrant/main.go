@@ -297,7 +297,7 @@ func main() {
 		log.Fatal().Err(err).Msg("Could not initialize service router")
 	}
 
-	log.Debug().Msgf("Listening on port %d", cfg.GetPort())
+	log.Info().Msgf("Listening on port %d", cfg.GetPort())
 	shutdownErr := http.ListenAndServe(fmt.Sprintf(":%d", cfg.GetPort()), router)
 	log.Fatal().Err(shutdownErr).Msg("")
 }
