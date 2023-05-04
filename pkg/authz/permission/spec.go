@@ -8,7 +8,7 @@ import (
 )
 
 type PermissionSpec struct {
-	PermissionId string    `json:"permissionId" validate:"required"`
+	PermissionId string    `json:"permissionId" validate:"required,valid_object_id"`
 	Name         *string   `json:"name"`
 	Description  *string   `json:"description"`
 	CreatedAt    time.Time `json:"createdAt"`

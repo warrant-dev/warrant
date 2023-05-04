@@ -2,9 +2,9 @@ package tenant
 
 import (
 	"context"
-	"regexp"
 
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	"github.com/warrant-dev/warrant/pkg/event"
@@ -31,13 +31,17 @@ func NewService(env service.Env, repository TenantRepository, eventSvc event.Eve
 }
 
 func (svc TenantService) Create(ctx context.Context, tenantSpec TenantSpec) (*TenantSpec, error) {
-	err := validateOrGenerateTenantIdInSpec(&tenantSpec)
-	if err != nil {
-		return nil, err
+	if tenantSpec.TenantId == "" {
+		// generate an id for the tenant if one isn't supplied
+		generatedUUID, err := uuid.NewRandom()
+		if err != nil {
+			return nil, errors.New("unable to generate random UUID for tenant")
+		}
+		tenantSpec.TenantId = generatedUUID.String()
 	}
 
 	var newTenant Model
-	err = svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		createdObject, err := svc.ObjectSvc.Create(txCtx, *tenantSpec.ToObjectSpec())
 		if err != nil {
 			switch err.(type) {
@@ -150,23 +154,5 @@ func (svc TenantService) DeleteByTenantId(ctx context.Context, tenantId string) 
 		return err
 	}
 
-	return nil
-}
-
-func validateOrGenerateTenantIdInSpec(tenantSpec *TenantSpec) error {
-	tenantIdRegExp := regexp.MustCompile(`^[a-zA-Z0-9_\-\.@\|:]+$`)
-	if tenantSpec.TenantId != "" {
-		// Validate tenantId if provided
-		if !tenantIdRegExp.Match([]byte(tenantSpec.TenantId)) {
-			return service.NewInvalidParameterError("tenantId", "must be provided and can only contain alphanumeric characters and/or '-', '_', '@', ':', and '|'")
-		}
-	} else {
-		// Generate a TenantId for the tenant if one isn't supplied
-		generatedUUID, err := uuid.NewRandom()
-		if err != nil {
-			return service.NewInternalError("unable to generate random UUID for tenant")
-		}
-		tenantSpec.TenantId = generatedUUID.String()
-	}
 	return nil
 }
