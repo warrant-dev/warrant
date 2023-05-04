@@ -12,7 +12,7 @@ type Model interface {
 	GetRelation() string
 	GetSubjectType() string
 	GetSubjectId() string
-	GetSubjectRelation() *string
+	GetSubjectRelation() string
 	GetContextHash() string
 	GetCreatedAt() time.Time
 	GetUpdatedAt() time.Time
@@ -28,7 +28,7 @@ type Warrant struct {
 	Relation        string     `mysql:"relation" postgres:"relation" sqlite:"relation"`
 	SubjectType     string     `mysql:"subjectType" postgres:"subject_type" sqlite:"subjectType"`
 	SubjectId       string     `mysql:"subjectId" postgres:"subject_id" sqlite:"subjectId"`
-	SubjectRelation *string    `mysql:"subjectRelation" postgres:"subject_relation" sqlite:"subjectRelation"`
+	SubjectRelation string     `mysql:"subjectRelation" postgres:"subject_relation" sqlite:"subjectRelation"`
 	ContextHash     string     `mysql:"contextHash" postgres:"context_hash" sqlite:"contextHash"`
 	CreatedAt       time.Time  `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
 	UpdatedAt       time.Time  `mysql:"updatedAt" postgres:"updated_at" sqlite:"updatedAt"`
@@ -59,7 +59,7 @@ func (warrant Warrant) GetSubjectId() string {
 	return warrant.SubjectId
 }
 
-func (warrant Warrant) GetSubjectRelation() *string {
+func (warrant Warrant) GetSubjectRelation() string {
 	return warrant.SubjectRelation
 }
 
@@ -98,8 +98,8 @@ func (warrant Warrant) ToWarrantSpec() *WarrantSpec {
 func (warrant Warrant) String() string {
 	str := fmt.Sprintf("%s:%s#%s@%s:%s", warrant.ObjectType, warrant.ObjectId, warrant.Relation, warrant.SubjectType, warrant.SubjectId)
 
-	if warrant.SubjectRelation != nil {
-		str = fmt.Sprintf("%s#%s", str, *warrant.SubjectRelation)
+	if warrant.SubjectRelation != "" {
+		str = fmt.Sprintf("%s#%s", str, warrant.SubjectRelation)
 	}
 
 	if warrant.ContextHash != "" {

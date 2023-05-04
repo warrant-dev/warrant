@@ -98,7 +98,7 @@ type AccessEventModel interface {
 	GetRelation() string
 	GetSubjectType() string
 	GetSubjectId() string
-	GetSubjectRelation() *string
+	GetSubjectRelation() string
 	GetContext() *string
 	GetMeta() *string
 	GetCreatedAt() time.Time
@@ -114,7 +114,7 @@ type AccessEvent struct {
 	Relation        string    `mysql:"relation" postgres:"relation" sqlite:"relation"`
 	SubjectType     string    `mysql:"subjectType" postgres:"subject_type" sqlite:"subjectType"`
 	SubjectId       string    `mysql:"subjectId" postgres:"subject_id" sqlite:"subjectId"`
-	SubjectRelation *string   `mysql:"subjectRelation" postgres:"subject_relation" sqlite:"subjectRelation"`
+	SubjectRelation string    `mysql:"subjectRelation" postgres:"subject_relation" sqlite:"subjectRelation"`
 	Context         *string   `mysql:"context" postgres:"context" sqlite:"context"`
 	Meta            *string   `mysql:"meta" postgres:"meta" sqlite:"meta"`
 	CreatedAt       time.Time `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
@@ -169,7 +169,7 @@ func (accessEvent AccessEvent) GetSubjectId() string {
 	return accessEvent.SubjectId
 }
 
-func (accessEvent AccessEvent) GetSubjectRelation() *string {
+func (accessEvent AccessEvent) GetSubjectRelation() string {
 	return accessEvent.SubjectRelation
 }
 

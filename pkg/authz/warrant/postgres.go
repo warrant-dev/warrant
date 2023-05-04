@@ -139,47 +139,38 @@ func (repo PostgresRepository) DeleteAllBySubject(ctx context.Context, subjectTy
 	return nil
 }
 
-func (repo PostgresRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation *string, contextHash string) (Model, error) {
+func (repo PostgresRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error) {
 	var warrant Warrant
-	query := `
-		SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, created_at, updated_at, deleted_at
-		FROM warrant
-		WHERE
-			object_type = ? AND
-			object_id = ? AND
-			relation = ? AND
-			subject_type = ? AND
-			subject_id = ? AND
-			context_hash = ? AND
-			deleted_at IS NULL
-	`
-	replacements := []interface{}{
+	err := repo.DB.GetContext(
+		ctx,
+		&warrant,
+		`
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, created_at, updated_at, deleted_at
+			FROM warrant
+			WHERE
+				object_type = ? AND
+				object_id = ? AND
+				relation = ? AND
+				subject_type = ? AND
+				subject_id = ? AND
+				subject_relation = ? AND
+				context_hash = ? AND
+				deleted_at IS NULL
+		`,
 		objectType,
 		objectId,
 		relation,
 		subjectType,
 		subjectId,
+		subjectRelation,
 		contextHash,
-	}
-	if subjectRelation != nil {
-		query = fmt.Sprintf("%s AND subject_relation = ?", query)
-		replacements = append(replacements, subjectRelation)
-	} else {
-		query = fmt.Sprintf("%s AND subject_relation IS NULL", query)
-	}
-
-	err := repo.DB.GetContext(
-		ctx,
-		&warrant,
-		query,
-		replacements...,
 	)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
 			wntErrorId := fmt.Sprintf("%s:%s#%s@%s:%s", objectType, objectId, relation, subjectType, subjectId)
-			if subjectRelation != nil {
-				wntErrorId = fmt.Sprintf("%s#%s", wntErrorId, *subjectRelation)
+			if subjectRelation != "" {
+				wntErrorId = fmt.Sprintf("%s#%s", wntErrorId, subjectRelation)
 			}
 
 			return nil, service.NewRecordNotFoundError("Warrant", wntErrorId)
@@ -191,40 +182,31 @@ func (repo PostgresRepository) Get(ctx context.Context, objectType string, objec
 	return &warrant, nil
 }
 
-func (repo PostgresRepository) GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation *string, contextHash string) (Model, error) {
+func (repo PostgresRepository) GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error) {
 	var warrant Warrant
-	query := `
-		SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, created_at, updated_at, deleted_at
-		FROM warrant
-		WHERE
-			object_type = ? AND
-			(object_id = ? OR object_id = '*') AND
-			relation = ? AND
-			subject_type = ? AND
-			subject_id = ? AND
-			(context_hash = ? OR context_hash = '') AND
-			deleted_at IS NULL
-	`
-	replacements := []interface{}{
+	err := repo.DB.GetContext(
+		ctx,
+		&warrant,
+		`
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, created_at, updated_at, deleted_at
+			FROM warrant
+			WHERE
+				object_type = ? AND
+				(object_id = ? OR object_id = '*') AND
+				relation = ? AND
+				subject_type = ? AND
+				subject_id = ? AND
+				subject_relation = ? AND
+				(context_hash = ? OR context_hash = '') AND
+				deleted_at IS NULL
+		`,
 		objectType,
 		objectId,
 		relation,
 		subjectType,
 		subjectId,
+		subjectRelation,
 		contextHash,
-	}
-	if subjectRelation != nil {
-		query = fmt.Sprintf("%s AND subject_relation = ?", query)
-		replacements = append(replacements, subjectRelation)
-	} else {
-		query = fmt.Sprintf("%s AND subject_relation IS NULL", query)
-	}
-
-	err := repo.DB.GetContext(
-		ctx,
-		&warrant,
-		query,
-		replacements...,
 	)
 	if err != nil {
 		switch err {
@@ -295,7 +277,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 		query = fmt.Sprintf(`%s AND subject_type = ? AND subject_id = ?`, query)
 		replacements = append(replacements, filterOptions.Subject.ObjectType, filterOptions.Subject.ObjectId)
 
-		if filterOptions.Subject.Relation != nil {
+		if filterOptions.Subject.Relation != "" {
 			query = fmt.Sprintf("%s AND subject_relation = ?", query)
 			replacements = append(replacements, filterOptions.Subject.Relation)
 		}

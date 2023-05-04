@@ -168,7 +168,7 @@ func (svc EventService) ListResourceEvents(ctx context.Context, listParams ListR
 	return resourceEventSpecs, lastId, nil
 }
 
-func (svc EventService) TrackAccessGrantedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation *string, wntCtx wntContext.ContextSetSpec) error {
+func (svc EventService) TrackAccessGrantedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, wntCtx wntContext.ContextSetSpec) error {
 	return svc.TrackAccessEvent(ctx, CreateAccessEventSpec{
 		Type:            EventTypeAccessGranted,
 		Source:          EventSourceApi,
@@ -182,7 +182,7 @@ func (svc EventService) TrackAccessGrantedEvent(ctx context.Context, objectType 
 	})
 }
 
-func (svc EventService) TrackAccessRevokedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation *string, wntCtx wntContext.ContextSetSpec) error {
+func (svc EventService) TrackAccessRevokedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, wntCtx wntContext.ContextSetSpec) error {
 	return svc.TrackAccessEvent(ctx, CreateAccessEventSpec{
 		Type:            EventTypeAccessRevoked,
 		Source:          EventSourceApi,
@@ -196,7 +196,7 @@ func (svc EventService) TrackAccessRevokedEvent(ctx context.Context, objectType 
 	})
 }
 
-func (svc EventService) TrackAccessAllowedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation *string, wntCtx wntContext.ContextSetSpec) error {
+func (svc EventService) TrackAccessAllowedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, wntCtx wntContext.ContextSetSpec) error {
 	return svc.TrackAccessEvent(ctx, CreateAccessEventSpec{
 		Type:            EventTypeAccessAllowed,
 		Source:          EventSourceApi,
@@ -210,7 +210,7 @@ func (svc EventService) TrackAccessAllowedEvent(ctx context.Context, objectType 
 	})
 }
 
-func (svc EventService) TrackAccessDeniedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation *string, wntCtx wntContext.ContextSetSpec) error {
+func (svc EventService) TrackAccessDeniedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, wntCtx wntContext.ContextSetSpec) error {
 	return svc.TrackAccessEvent(ctx, CreateAccessEventSpec{
 		Type:            EventTypeAccessDenied,
 		Source:          EventSourceApi,

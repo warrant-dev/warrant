@@ -144,47 +144,38 @@ func (repo SQLiteRepository) DeleteAllBySubject(ctx context.Context, subjectType
 	return nil
 }
 
-func (repo SQLiteRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation *string, contextHash string) (Model, error) {
+func (repo SQLiteRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error) {
 	var warrant Warrant
-	query := `
-		SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
-		FROM warrant
-		WHERE
-			objectType = ? AND
-			objectId = ? AND
-			relation = ? AND
-			subjectType = ? AND
-			subjectId = ? AND
-			contextHash = ? AND
-			deletedAt IS NULL
-	`
-	replacements := []interface{}{
+	err := repo.DB.GetContext(
+		ctx,
+		&warrant,
+		`
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
+			FROM warrant
+			WHERE
+				objectType = ? AND
+				objectId = ? AND
+				relation = ? AND
+				subjectType = ? AND
+				subjectId = ? AND
+				subjectRelation = ? AND
+				contextHash = ? AND
+				deletedAt IS NULL
+		`,
 		objectType,
 		objectId,
 		relation,
 		subjectType,
 		subjectId,
+		subjectRelation,
 		contextHash,
-	}
-	if subjectRelation != nil {
-		query = fmt.Sprintf("%s AND subjectRelation = ?", query)
-		replacements = append(replacements, subjectRelation)
-	} else {
-		query = fmt.Sprintf("%s AND subjectRelation IS NULL", query)
-	}
-
-	err := repo.DB.GetContext(
-		ctx,
-		&warrant,
-		query,
-		replacements...,
 	)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
 			wntErrorId := fmt.Sprintf("%s:%s#%s@%s:%s", objectType, objectId, relation, subjectType, subjectId)
-			if subjectRelation != nil {
-				wntErrorId = fmt.Sprintf("%s#%s", wntErrorId, *subjectRelation)
+			if subjectRelation != "" {
+				wntErrorId = fmt.Sprintf("%s#%s", wntErrorId, subjectRelation)
 			}
 
 			return nil, service.NewRecordNotFoundError("Warrant", wntErrorId)
@@ -196,40 +187,31 @@ func (repo SQLiteRepository) Get(ctx context.Context, objectType string, objectI
 	return &warrant, nil
 }
 
-func (repo SQLiteRepository) GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation *string, contextHash string) (Model, error) {
+func (repo SQLiteRepository) GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error) {
 	var warrant Warrant
-	query := `
-		SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
-		FROM warrant
-		WHERE
-			objectType = ? AND
-			(objectId = ? OR objectId = "*") AND
-			relation = ? AND
-			subjectType = ? AND
-			subjectId = ? AND
-			(contextHash = ? OR contextHash = "") AND
-			deletedAt IS NULL
-	`
-	replacements := []interface{}{
+	err := repo.DB.GetContext(
+		ctx,
+		&warrant,
+		`
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
+			FROM warrant
+			WHERE
+				objectType = ? AND
+				(objectId = ? OR objectId = "*") AND
+				relation = ? AND
+				subjectType = ? AND
+				subjectId = ? AND
+				subjectRelation = ? AND
+				(contextHash = ? OR contextHash = "") AND
+				deletedAt IS NULL
+		`,
 		objectType,
 		objectId,
 		relation,
 		subjectType,
 		subjectId,
+		subjectRelation,
 		contextHash,
-	}
-	if subjectRelation != nil {
-		query = fmt.Sprintf("%s AND subjectRelation = ?", query)
-		replacements = append(replacements, subjectRelation)
-	} else {
-		query = fmt.Sprintf("%s AND subjectRelation IS NULL", query)
-	}
-
-	err := repo.DB.GetContext(
-		ctx,
-		&warrant,
-		query,
-		replacements...,
 	)
 	if err != nil {
 		switch err {
@@ -300,7 +282,7 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 		query = fmt.Sprintf("%s AND subjectType = ? AND subjectId = ?", query)
 		replacements = append(replacements, filterOptions.Subject.ObjectType, filterOptions.Subject.ObjectId)
 
-		if filterOptions.Subject.Relation != nil {
+		if filterOptions.Subject.Relation != "" {
 			query = fmt.Sprintf("%s AND subjectRelation = ?", query)
 			replacements = append(replacements, filterOptions.Subject.Relation)
 		}

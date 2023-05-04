@@ -59,7 +59,7 @@ type CreateAccessEventSpec struct {
 	Relation        string                 `json:"relation"`
 	SubjectType     string                 `json:"subjectType"`
 	SubjectId       string                 `json:"subjectId"`
-	SubjectRelation *string                `json:"subjectRelation"`
+	SubjectRelation string                 `json:"subjectRelation"`
 	Context         context.ContextSetSpec `json:"context"`
 	Meta            interface{}            `json:"meta"`
 }
@@ -112,7 +112,7 @@ type AccessEventSpec struct {
 	Relation        string                 `json:"relation"`
 	SubjectType     string                 `json:"subjectType"`
 	SubjectId       string                 `json:"subjectId"`
-	SubjectRelation *string                `json:"subjectRelation,omitempty"`
+	SubjectRelation string                 `json:"subjectRelation,omitempty"`
 	Context         context.ContextSetSpec `json:"context,omitempty"`
 	Meta            interface{}            `json:"meta,omitempty"`
 	CreatedAt       time.Time              `json:"createdAt"`
