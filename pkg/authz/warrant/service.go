@@ -3,6 +3,7 @@ package authz
 import (
 	"context"
 
+	"github.com/rs/zerolog/log"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	wntContext "github.com/warrant-dev/warrant/pkg/context"
 	"github.com/warrant-dev/warrant/pkg/event"
@@ -88,7 +89,7 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 	return createdWarrantSpec, nil
 }
 
-func (svc WarrantService) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation *string, wntCtx wntContext.ContextSetSpec) (*WarrantSpec, error) {
+func (svc WarrantService) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, wntCtx wntContext.ContextSetSpec) (*WarrantSpec, error) {
 	warrant, err := svc.Repository.Get(ctx, objectType, objectId, relation, subjectType, subjectId, subjectRelation, wntCtx.ToHash())
 	if err != nil {
 		return nil, err
@@ -114,6 +115,7 @@ func (svc WarrantService) List(ctx context.Context, filterOptions *FilterOptions
 	warrantMap := make(map[int64]WarrantSpec)
 	warrantIds := make([]int64, 0)
 	for i, warrant := range warrants {
+		log.Debug().Msgf("%s", warrant)
 		warrantIds = append(warrantIds, warrant.GetID())
 		warrantMap[warrant.GetID()] = *warrants[i].ToWarrantSpec()
 	}
@@ -129,6 +131,7 @@ func (svc WarrantService) List(ctx context.Context, filterOptions *FilterOptions
 	}
 
 	for _, warrant := range warrants {
+		log.Debug().Msgf("%s", warrant.ToWarrantSpec())
 		warrantSpecs = append(warrantSpecs, warrant.ToWarrantSpec())
 	}
 

@@ -26,14 +26,14 @@ type SortOptions struct {
 }
 
 type SubjectSpec struct {
-	ObjectType string  `json:"objectType,omitempty" validate:"required_with=ObjectId,valid_object_type"`
-	ObjectId   string  `json:"objectId,omitempty" validate:"required_with=ObjectType,valid_object_id"`
-	Relation   *string `json:"relation,omitempty" validate:"omitempty,valid_relation"`
+	ObjectType string `json:"objectType,omitempty" validate:"required_with=ObjectId,valid_object_type"`
+	ObjectId   string `json:"objectId,omitempty" validate:"required_with=ObjectType,valid_object_id"`
+	Relation   string `json:"relation,omitempty" validate:"omitempty,valid_relation"`
 }
 
 func (spec *SubjectSpec) String() string {
-	if spec.Relation != nil {
-		return fmt.Sprintf("%s:%s#%s", spec.ObjectType, spec.ObjectId, *spec.Relation)
+	if spec.Relation != "" {
+		return fmt.Sprintf("%s:%s#%s", spec.ObjectType, spec.ObjectId, spec.Relation)
 	}
 
 	return fmt.Sprintf("%s:%s", spec.ObjectType, spec.ObjectId)
@@ -67,7 +67,7 @@ func StringToSubjectSpec(str string) (*SubjectSpec, error) {
 		ObjectId:   objectId,
 	}
 	if relation != "" {
-		subjectSpec.Relation = &relation
+		subjectSpec.Relation = relation
 	}
 
 	return subjectSpec, nil
