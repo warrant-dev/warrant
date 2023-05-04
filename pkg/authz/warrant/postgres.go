@@ -273,14 +273,19 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 		replacements = append(replacements, filterOptions.Relation)
 	}
 
-	if filterOptions.Subject != nil {
-		query = fmt.Sprintf(`%s AND subject_type = ? AND subject_id = ?`, query)
-		replacements = append(replacements, filterOptions.Subject.ObjectType, filterOptions.Subject.ObjectId)
+	if filterOptions.Subject.ObjectType != "" {
+		query = fmt.Sprintf("%s AND subject_type = ?", query)
+		replacements = append(replacements, filterOptions.Subject.ObjectType)
+	}
 
-		if filterOptions.Subject.Relation != "" {
-			query = fmt.Sprintf("%s AND subject_relation = ?", query)
-			replacements = append(replacements, filterOptions.Subject.Relation)
-		}
+	if filterOptions.Subject.ObjectId != "" {
+		query = fmt.Sprintf("%s AND subject_id = ?", query)
+		replacements = append(replacements, filterOptions.Subject.ObjectId)
+	}
+
+	if filterOptions.Subject.Relation != "" {
+		query = fmt.Sprintf("%s AND subject_relation = ?", query)
+		replacements = append(replacements, filterOptions.Subject.Relation)
 	}
 
 	if listParams.SortBy != "" {
