@@ -25,24 +25,6 @@ type SortOptions struct {
 	IsAscending bool
 }
 
-type ObjectSpec struct {
-	ObjectType string `json:"objectType" validate:"required,valid_object_type"`
-	ObjectId   string `json:"objectId" validate:"required,valid_object_id"`
-}
-
-func StringToObjectSpec(str string) (*ObjectSpec, error) {
-	objectTypeId := strings.Split(str, ":")
-
-	if len(objectTypeId) != 2 {
-		return nil, fmt.Errorf("invalid object")
-	}
-
-	return &ObjectSpec{
-		ObjectType: objectTypeId[0],
-		ObjectId:   objectTypeId[1],
-	}, nil
-}
-
 type SubjectSpec struct {
 	ObjectType string  `json:"objectType,omitempty" validate:"required_with=ObjectId,valid_object_type"`
 	ObjectId   string  `json:"objectId,omitempty" validate:"required_with=ObjectType,valid_object_id"`
@@ -60,23 +42,25 @@ func (spec *SubjectSpec) String() string {
 func StringToSubjectSpec(str string) (*SubjectSpec, error) {
 	objectRelation := strings.Split(str, "#")
 	if len(objectRelation) < 2 {
-		objectTypeId := strings.Split(str, ":")
+		objectType, objectId, colonFound := strings.Cut(str, ":")
 
-		if len(objectTypeId) != 2 {
+		if !colonFound {
 			return nil, fmt.Errorf("invalid subject")
 		}
 
 		return &SubjectSpec{
-			ObjectType: objectTypeId[0],
-			ObjectId:   objectTypeId[1],
+			ObjectType: objectType,
+			ObjectId:   objectId,
 		}, nil
 	}
 
 	object := objectRelation[0]
 	relation := objectRelation[1]
-	objectTypeId := strings.Split(object, ":")
-	objectType := objectTypeId[0]
-	objectId := objectTypeId[1]
+
+	objectType, objectId, colonFound := strings.Cut(object, ":")
+	if !colonFound {
+		return nil, fmt.Errorf("invalid subject")
+	}
 
 	subjectSpec := &SubjectSpec{
 		ObjectType: objectType,
@@ -147,8 +131,8 @@ func StringToWarrantSpec(warrantString string) (*WarrantSpec, error) {
 		return nil, fmt.Errorf("invalid warrant")
 	}
 
-	objectTypeAndObjectId := strings.Split(objectAndRelation[0], ":")
-	if len(objectTypeAndObjectId) != 2 {
+	objectType, objectId, colonFound := strings.Cut(objectAndRelation[0], ":")
+	if !colonFound {
 		return nil, fmt.Errorf("invalid warrant")
 	}
 
@@ -176,8 +160,8 @@ func StringToWarrantSpec(warrantString string) (*WarrantSpec, error) {
 	}
 
 	return &WarrantSpec{
-		ObjectType: objectTypeAndObjectId[0],
-		ObjectId:   objectTypeAndObjectId[1],
+		ObjectType: objectType,
+		ObjectId:   objectId,
 		Relation:   objectAndRelation[1],
 		Subject:    subjectSpec,
 		Context:    contextSetSpec,

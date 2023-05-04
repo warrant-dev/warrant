@@ -2,9 +2,9 @@ package authz
 
 import (
 	"context"
-	"regexp"
 
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	"github.com/warrant-dev/warrant/pkg/event"
@@ -31,13 +31,17 @@ func NewService(env service.Env, repository UserRepository, eventSvc event.Event
 }
 
 func (svc UserService) Create(ctx context.Context, userSpec UserSpec) (*UserSpec, error) {
-	err := validateOrGenerateUserIdInSpec(&userSpec)
-	if err != nil {
-		return nil, err
+	if userSpec.UserId == "" {
+		// generate an id for the user if one isn't provided
+		generatedUUID, err := uuid.NewRandom()
+		if err != nil {
+			return nil, errors.New("unable to generate random UUID for user")
+		}
+		userSpec.UserId = generatedUUID.String()
 	}
 
 	var newUser Model
-	err = svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		createdObject, err := svc.ObjectSvc.Create(txCtx, *userSpec.ToObjectSpec())
 		if err != nil {
 			switch err.(type) {
@@ -148,22 +152,4 @@ func (svc UserService) DeleteByUserId(ctx context.Context, userId string) error 
 	})
 
 	return err
-}
-
-func validateOrGenerateUserIdInSpec(userSpec *UserSpec) error {
-	userIdRegExp := regexp.MustCompile(`^[a-zA-Z0-9_\-\.@\|]+$`)
-	if userSpec.UserId != "" {
-		// Validate userId if provided
-		if !userIdRegExp.Match([]byte(userSpec.UserId)) {
-			return service.NewInvalidParameterError("userId", "must be provided and can only contain alphanumeric characters and/or '-', '_', '@', and '|'")
-		}
-	} else {
-		// Generate a UserID for the user if one isn't supplied
-		generatedUUID, err := uuid.NewRandom()
-		if err != nil {
-			return service.NewInternalError("unable to generate random UUID for user")
-		}
-		userSpec.UserId = generatedUUID.String()
-	}
-	return nil
 }

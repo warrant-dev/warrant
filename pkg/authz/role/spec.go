@@ -8,7 +8,7 @@ import (
 )
 
 type RoleSpec struct {
-	RoleId      string    `json:"roleId" validate:"required"`
+	RoleId      string    `json:"roleId" validate:"required,valid_object_id"`
 	Name        *string   `json:"name"`
 	Description *string   `json:"description"`
 	CreatedAt   time.Time `json:"createdAt"`

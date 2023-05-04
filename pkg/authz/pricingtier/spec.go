@@ -8,7 +8,7 @@ import (
 )
 
 type PricingTierSpec struct {
-	PricingTierId string    `json:"pricingTierId" validate:"required"`
+	PricingTierId string    `json:"pricingTierId" validate:"required,valid_object_id"`
 	Name          *string   `json:"name"`
 	Description   *string   `json:"description"`
 	CreatedAt     time.Time `json:"createdAt"`
