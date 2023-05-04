@@ -1,0 +1,70 @@
+name: MySQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go env
+        uses: actions/setup-go@v3
+        with:
+          go-version: "^1.19.3"
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      - name: Build binary
+        run: make build
+        working-directory: cmd/warrant
+      - name: Start & configure mysql
+        run: |
+          sudo systemctl start mysql
+          mysql -e 'CREATE DATABASE warrant;' -uroot -proot
+          mysql -e 'CREATE DATABASE warrantEvents;' -uroot -proot
+      - name: Install apirunner & go-migrate
+        run: |
+          go install github.com/warrant-dev/apirunner/cmd/apirunner@latest
+          go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+      - name: Run datastore migrations
+        run: migrate -path ./migrations/datastore/mysql/ -database mysql://root:root@/warrant up
+      - name: Run eventstore migrations
+        run: migrate -path ./migrations/eventstore/mysql/ -database mysql://root:root@/warrantEvents up
+      - name: Start test server
+        id: start-server
+        run: ./cmd/warrant/bin/warrant > server.log 2>&1 &
+        env:
+          WARRANT_AUTOMIGRATE: false
+          WARRANT_PORT: 8000
+          WARRANT_LOGLEVEL: 0
+          WARRANT_ENABLEACCESSLOG: true
+          WARRANT_AUTHENTICATION_APIKEY: warrant_api_key
+          WARRANT_DATASTORE: mysql
+          WARRANT_DATASTORE_MYSQL_USERNAME: root
+          WARRANT_DATASTORE_MYSQL_PASSWORD: root
+          WARRANT_DATASTORE_MYSQL_HOSTNAME: 127.0.0.1
+          WARRANT_DATASTORE_MYSQL_DATABASE: warrant
+          WARRANT_EVENTSTORE: mysql
+          WARRANT_EVENTSTORE_MYSQL_USERNAME: root
+          WARRANT_EVENTSTORE_MYSQL_PASSWORD: root
+          WARRANT_EVENTSTORE_MYSQL_HOSTNAME: 127.0.0.1
+          WARRANT_EVENTSTORE_MYSQL_DATABASE: warrantEvents
+          WARRANT_EVENTSTORE_SYNCHRONIZEEVENTS: true
+      - name: Run apirunner tests
+        run: |
+          sleep 3
+          apirunner tests/ tests/ci-apirunner.conf
+      - name: Shutdown test server
+        if: success() || (failure() && steps.start-server.outcome == 'success')
+        run: kill -9 `lsof -i:8000 -t`
+      - name: Archive server log
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: server-log
+          path: server.log
+          if-no-files-found: warn
+          retention-days: 5
