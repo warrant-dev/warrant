@@ -183,11 +183,11 @@ func ValidateStruct(obj interface{}) error {
 					validValues := strings.Join(strings.Split(err.Param(), " "), ", ")
 					return NewInvalidParameterError(fieldName, fmt.Sprintf("must be one of %s", validValues))
 				case "valid_object_type", "valid_relation":
-					return NewInvalidParameterError(fieldName, "must be provided and can only contain lower-case alphanumeric characters and/or '-' and '_'")
+					return NewInvalidParameterError(fieldName, "can only contain lower-case alphanumeric characters and/or '-' and '_'")
 				case "valid_object_id":
-					return NewInvalidParameterError(fieldName, "must be provided and can only contain alphanumeric characters and/or '-', '_', '@', ':', and '|'")
+					return NewInvalidParameterError(fieldName, "can only contain alphanumeric characters and/or '-', '_', '@', ':', and '|'")
 				case "valid_inheritif":
-					return NewInvalidParameterError(fieldName, "must be provided and can only be 'anyOf', 'allOf', 'noneOf', or a valid relation name")
+					return NewInvalidParameterError(fieldName, "can only be 'anyOf', 'allOf', 'noneOf', or a valid relation name")
 				default:
 					return NewInvalidRequestError("Invalid request body")
 				}
