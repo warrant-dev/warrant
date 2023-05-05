@@ -127,13 +127,13 @@ func (svc FeatureService) DeleteByFeatureId(ctx context.Context, featureId strin
 			return err
 		}
 
+		err = svc.EventSvc.TrackResourceDeleted(txCtx, ResourceTypeFeature, featureId, nil)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
-	if err != nil {
-		return err
-	}
-
-	err = svc.EventSvc.TrackResourceDeleted(ctx, ResourceTypeFeature, featureId, nil)
 	if err != nil {
 		return err
 	}

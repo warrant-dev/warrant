@@ -143,7 +143,7 @@ func (svc UserService) DeleteByUserId(ctx context.Context, userId string) error 
 			return err
 		}
 
-		err = svc.EventSvc.TrackResourceDeleted(ctx, ResourceTypeUser, userId, nil)
+		err = svc.EventSvc.TrackResourceDeleted(txCtx, ResourceTypeUser, userId, nil)
 		if err != nil {
 			return err
 		}
