@@ -51,7 +51,7 @@ func (svc RoleService) Create(ctx context.Context, roleSpec RoleSpec) (*RoleSpec
 			return err
 		}
 
-		err = svc.EventSvc.TrackResourceCreated(ctx, ResourceTypeRole, newRole.GetRoleId(), newRole.ToRoleSpec())
+		err = svc.EventSvc.TrackResourceCreated(txCtx, ResourceTypeRole, newRole.GetRoleId(), newRole.ToRoleSpec())
 		if err != nil {
 			return err
 		}
@@ -128,7 +128,7 @@ func (svc RoleService) DeleteByRoleId(ctx context.Context, roleId string) error 
 			return err
 		}
 
-		err = svc.EventSvc.TrackResourceDeleted(ctx, ResourceTypeRole, roleId, nil)
+		err = svc.EventSvc.TrackResourceDeleted(txCtx, ResourceTypeRole, roleId, nil)
 		if err != nil {
 			return err
 		}

@@ -51,7 +51,7 @@ func (svc PricingTierService) Create(ctx context.Context, pricingTierSpec Pricin
 			return err
 		}
 
-		err = svc.EventSvc.TrackResourceCreated(ctx, ResourceTypePricingTier, newPricingTier.GetPricingTierId(), newPricingTier.ToPricingTierSpec())
+		err = svc.EventSvc.TrackResourceCreated(txCtx, ResourceTypePricingTier, newPricingTier.GetPricingTierId(), newPricingTier.ToPricingTierSpec())
 		if err != nil {
 			return err
 		}
@@ -128,7 +128,7 @@ func (svc PricingTierService) DeleteByPricingTierId(ctx context.Context, pricing
 			return err
 		}
 
-		err = svc.EventSvc.TrackResourceDeleted(ctx, ResourceTypePricingTier, pricingTierId, nil)
+		err = svc.EventSvc.TrackResourceDeleted(txCtx, ResourceTypePricingTier, pricingTierId, nil)
 		if err != nil {
 			return err
 		}
