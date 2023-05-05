@@ -75,13 +75,13 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 			}
 		}
 
+		err = svc.EventSvc.TrackAccessGrantedEvent(txCtx, createdWarrantSpec.ObjectType, createdWarrantSpec.ObjectId, createdWarrantSpec.Relation, createdWarrantSpec.Subject.ObjectType, createdWarrantSpec.Subject.ObjectId, createdWarrantSpec.Subject.Relation, warrantSpec.Context)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	err = svc.EventSvc.TrackAccessGrantedEvent(ctx, createdWarrantSpec.ObjectType, createdWarrantSpec.ObjectId, createdWarrantSpec.Relation, createdWarrantSpec.Subject.ObjectType, createdWarrantSpec.Subject.ObjectId, createdWarrantSpec.Subject.Relation, warrantSpec.Context)
 	if err != nil {
 		return nil, err
 	}
@@ -155,13 +155,13 @@ func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) e
 			return err
 		}
 
+		err = svc.EventSvc.TrackAccessRevokedEvent(txCtx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Context)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
-	if err != nil {
-		return err
-	}
-
-	err = svc.EventSvc.TrackAccessRevokedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Context)
 	if err != nil {
 		return err
 	}

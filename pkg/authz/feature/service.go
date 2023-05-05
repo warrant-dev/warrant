@@ -51,13 +51,13 @@ func (svc FeatureService) Create(ctx context.Context, featureSpec FeatureSpec) (
 			return err
 		}
 
+		err = svc.EventSvc.TrackResourceCreated(txCtx, ResourceTypeFeature, newFeature.GetFeatureId(), newFeature.ToFeatureSpec())
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	err = svc.EventSvc.TrackResourceCreated(ctx, ResourceTypeFeature, newFeature.GetFeatureId(), newFeature.ToFeatureSpec())
 	if err != nil {
 		return nil, err
 	}
@@ -127,13 +127,13 @@ func (svc FeatureService) DeleteByFeatureId(ctx context.Context, featureId strin
 			return err
 		}
 
+		err = svc.EventSvc.TrackResourceDeleted(txCtx, ResourceTypeFeature, featureId, nil)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
-	if err != nil {
-		return err
-	}
-
-	err = svc.EventSvc.TrackResourceDeleted(ctx, ResourceTypeFeature, featureId, nil)
 	if err != nil {
 		return err
 	}

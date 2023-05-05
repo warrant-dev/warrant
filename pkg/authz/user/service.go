@@ -67,13 +67,13 @@ func (svc UserService) Create(ctx context.Context, userSpec UserSpec) (*UserSpec
 			return err
 		}
 
+		err = svc.EventSvc.TrackResourceCreated(txCtx, ResourceTypeUser, newUser.GetUserId(), newUser.ToUserSpec())
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	err = svc.EventSvc.TrackResourceCreated(ctx, ResourceTypeUser, newUser.GetUserId(), newUser.ToUserSpec())
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (svc UserService) DeleteByUserId(ctx context.Context, userId string) error 
 			return err
 		}
 
-		err = svc.EventSvc.TrackResourceDeleted(ctx, ResourceTypeUser, userId, nil)
+		err = svc.EventSvc.TrackResourceDeleted(txCtx, ResourceTypeUser, userId, nil)
 		if err != nil {
 			return err
 		}
