@@ -51,13 +51,13 @@ func (svc FeatureService) Create(ctx context.Context, featureSpec FeatureSpec) (
 			return err
 		}
 
+		err = svc.EventSvc.TrackResourceCreated(ctx, ResourceTypeFeature, newFeature.GetFeatureId(), newFeature.ToFeatureSpec())
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	err = svc.EventSvc.TrackResourceCreated(ctx, ResourceTypeFeature, newFeature.GetFeatureId(), newFeature.ToFeatureSpec())
 	if err != nil {
 		return nil, err
 	}

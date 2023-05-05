@@ -67,13 +67,13 @@ func (svc UserService) Create(ctx context.Context, userSpec UserSpec) (*UserSpec
 			return err
 		}
 
+		err = svc.EventSvc.TrackResourceCreated(ctx, ResourceTypeUser, newUser.GetUserId(), newUser.ToUserSpec())
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	err = svc.EventSvc.TrackResourceCreated(ctx, ResourceTypeUser, newUser.GetUserId(), newUser.ToUserSpec())
 	if err != nil {
 		return nil, err
 	}
