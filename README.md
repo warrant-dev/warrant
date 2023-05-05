@@ -68,12 +68,9 @@ Once you've created an account, refer to our [docs](https://docs.warrant.dev/) t
 
 ### Self-hosting
 
-To self-host or run Warrant locally, follow one of the guides below (select the guide for your database of choice).
+To self-host or run Warrant locally, check out:
 
-- [MySQL](/migrations/datastore/mysql/README.md)
-- [Postgres](/migrations/datastore/postgres/README.md)
-- [SQLite](/migrations/datastore/sqlite/README.md)
-- To request support for another database, please [open an issue](https://github.com/warrant-dev/warrant/issues/new/choose)!
+- [Local development](/development.md)
 
 ## SDKs
 
