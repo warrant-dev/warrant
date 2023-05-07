@@ -144,7 +144,7 @@ func ValidateStruct(obj interface{}) error {
 			return NewInvalidRequestError("Invalid request body")
 		case validator.ValidationErrors:
 			for _, err := range err {
-				objType := reflect.ValueOf(obj).Elem().Type()
+				objType := reflect.Indirect(reflect.ValueOf(obj)).Type()
 				invalidField, fieldFound := getFieldFromType(err.Field(), objType)
 				if !fieldFound {
 					log.Debug().Msgf("field %s not found on %v", err.Field(), objType)
