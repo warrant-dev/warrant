@@ -216,6 +216,24 @@
             }
         },
         {
+            "name": "failToCreateATenantWithInvalidTenantId",
+            "request": {
+                "method": "POST",
+                "url": "/v1/tenants",
+                "body": {
+                    "tenantId": "invalid-tenant-id*&^%"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 400,
+                "body": {
+                    "code": "invalid_parameter",
+                    "parameter": "tenantId",
+                    "message": "can only contain alphanumeric characters and/or '-', '_', '@', ':', and '|'"
+                }
+            }
+        },
+        {
             "name": "deleteTenant1",
             "request": {
                 "method": "DELETE",

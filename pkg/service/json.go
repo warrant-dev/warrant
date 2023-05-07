@@ -32,7 +32,7 @@ func requiredIfOneOf(fl validator.FieldLevel) bool {
 
 	var otherFieldValue reflect.Value
 	switch fl.Parent().Kind() {
-	case reflect.Ptr:
+	case reflect.Pointer:
 		otherFieldValue = fl.Parent().Elem().FieldByName(otherFieldName)
 	default:
 		otherFieldValue = fl.Parent().FieldByName(otherFieldName)
@@ -41,7 +41,7 @@ func requiredIfOneOf(fl validator.FieldLevel) bool {
 	for _, validValue := range validValues {
 		if otherFieldValue.String() == validValue {
 			switch fl.Field().Kind() {
-			case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+			case reflect.Slice, reflect.Map, reflect.Pointer, reflect.Interface, reflect.Chan, reflect.Func:
 				return !fl.Field().IsNil()
 			default:
 				return !fl.Field().IsZero()
@@ -144,7 +144,7 @@ func ValidateStruct(obj interface{}) error {
 			return NewInvalidRequestError("Invalid request body")
 		case validator.ValidationErrors:
 			for _, err := range err {
-				objType := reflect.ValueOf(obj).Elem().Type()
+				objType := reflect.Indirect(reflect.ValueOf(obj)).Type()
 				invalidField, fieldFound := getFieldFromType(err.Field(), objType)
 				if !fieldFound {
 					log.Debug().Msgf("field %s not found on %v", err.Field(), objType)
