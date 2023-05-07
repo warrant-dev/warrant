@@ -32,7 +32,7 @@ func requiredIfOneOf(fl validator.FieldLevel) bool {
 
 	var otherFieldValue reflect.Value
 	switch fl.Parent().Kind() {
-	case reflect.Ptr:
+	case reflect.Pointer:
 		otherFieldValue = fl.Parent().Elem().FieldByName(otherFieldName)
 	default:
 		otherFieldValue = fl.Parent().FieldByName(otherFieldName)
@@ -41,7 +41,7 @@ func requiredIfOneOf(fl validator.FieldLevel) bool {
 	for _, validValue := range validValues {
 		if otherFieldValue.String() == validValue {
 			switch fl.Field().Kind() {
-			case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+			case reflect.Slice, reflect.Map, reflect.Pointer, reflect.Interface, reflect.Chan, reflect.Func:
 				return !fl.Field().IsNil()
 			default:
 				return !fl.Field().IsZero()
