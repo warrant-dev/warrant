@@ -216,6 +216,43 @@
             }
         },
         {
+            "name": "failToCreateAUserWithInvalidUserId",
+            "request": {
+                "method": "POST",
+                "url": "/v1/users",
+                "body": {
+                    "userId": "invalid-user-id*&^%"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 400,
+                "body": {
+                    "code": "invalid_parameter",
+                    "message": "can only contain alphanumeric characters and/or '-', '_', '@', ':', and '|'",
+                    "parameter": "userId"
+                }
+            }
+        },
+        {
+            "name": "failToCreateAUserWithInvalidEmail",
+            "request": {
+                "method": "POST",
+                "url": "/v1/users",
+                "body": {
+                    "userId": "invalid-email",
+                    "email": "invalid-email"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 400,
+                "body": {
+                    "code": "invalid_parameter",
+                    "message": "must be a valid email",
+                    "parameter": "email"
+                }
+            }
+        },
+        {
             "name": "deleteUser4444444444444",
             "request": {
                 "method": "DELETE",
