@@ -164,7 +164,8 @@ func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.C
 
 	// Add the newly created transaction for this database to txCtx
 	ctxWithTx := context.WithValue(ctx, newTxKey(ds.DatabaseName), &SqlTx{Tx: tx})
-	return txFunc(ctxWithTx)
+	err = txFunc(ctxWithTx)
+	return err
 }
 
 func (ds SQL) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
