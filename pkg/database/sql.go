@@ -136,7 +136,7 @@ func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.C
 		return txFunc(ctx)
 	}
 
-	tx, err := ds.DB.Beginx()
+	tx, err := ds.DB.BeginTxx(ctx, nil)
 	if err != nil {
 		return errors.Wrap(err, "Error beginning sql transaction")
 	}
