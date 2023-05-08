@@ -136,7 +136,7 @@ func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.C
 		return txFunc(ctx)
 	}
 
-	tx, err := ds.DB.Beginx()
+	tx, err := ds.DB.BeginTxx(ctx, nil)
 	if err != nil {
 		return errors.Wrap(err, "Error beginning sql transaction")
 	}
@@ -145,26 +145,29 @@ func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.C
 		if p := recover(); p != nil {
 			err = tx.Rollback()
 			if err != nil {
-				log.Err(err).Msg("error rolling back sql transaction")
+				err = errors.Wrap(err, "error rolling back sql transaction")
 			}
 
 			panic(p)
+		} else if errors.Is(err, context.Canceled) {
+			err = errors.Wrap(err, "sql transaction rolled back")
 		} else if err != nil {
 			err = tx.Rollback()
 			if err != nil {
-				log.Err(err).Msg("error rolling back sql transaction")
+				err = errors.Wrap(err, "error rolling back sql transaction")
 			}
 		} else {
 			err = tx.Commit()
 			if err != nil {
-				log.Err(err).Msg("error committing sql transaction")
+				err = errors.Wrap(err, "error committing sql transaction")
 			}
 		}
 	}()
 
 	// Add the newly created transaction for this database to txCtx
 	ctxWithTx := context.WithValue(ctx, newTxKey(ds.DatabaseName), &SqlTx{Tx: tx})
-	return txFunc(ctxWithTx)
+	err = txFunc(ctxWithTx)
+	return err
 }
 
 func (ds SQL) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
