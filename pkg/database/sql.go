@@ -150,7 +150,7 @@ func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.C
 
 			panic(p)
 		} else if errors.Is(err, context.Canceled) {
-			err = errors.Wrap(err, "transaction rolled back")
+			err = errors.Wrap(err, "sql transaction rolled back")
 		} else if err != nil {
 			err = tx.Rollback()
 			if err != nil {
