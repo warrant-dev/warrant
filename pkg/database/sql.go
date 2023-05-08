@@ -146,7 +146,6 @@ func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.C
 			err = tx.Rollback()
 			if err != nil {
 				err = errors.Wrap(err, "error rolling back sql transaction")
-				log.Err(err).Msg("")
 			}
 
 			panic(p)
@@ -156,13 +155,11 @@ func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.C
 			err = tx.Rollback()
 			if err != nil {
 				err = errors.Wrap(err, "error rolling back sql transaction")
-				log.Err(err).Msg("")
 			}
 		} else {
 			err = tx.Commit()
 			if err != nil {
 				err = errors.Wrap(err, "error committing sql transaction")
-				log.Err(err).Msg("")
 			}
 		}
 	}()
