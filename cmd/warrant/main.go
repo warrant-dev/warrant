@@ -292,7 +292,7 @@ func main() {
 		routes = append(routes, svcRoutes...)
 	}
 
-	router, err := service.NewRouter(cfg, "", routes, service.ApiKeyAuthMiddleware)
+	router, err := service.NewRouter(cfg, "", routes, service.ApiKeyAuthMiddleware, []service.Middleware{}, []service.Middleware{})
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize service router")
 	}
