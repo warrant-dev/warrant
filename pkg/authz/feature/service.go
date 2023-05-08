@@ -6,7 +6,6 @@ import (
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	"github.com/warrant-dev/warrant/pkg/event"
-	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -74,7 +73,7 @@ func (svc FeatureService) GetByFeatureId(ctx context.Context, featureId string) 
 	return feature.ToFeatureSpec(), nil
 }
 
-func (svc FeatureService) List(ctx context.Context, listParams middleware.ListParams) ([]FeatureSpec, error) {
+func (svc FeatureService) List(ctx context.Context, listParams service.ListParams) ([]FeatureSpec, error) {
 	featureSpecs := make([]FeatureSpec, 0)
 	features, err := svc.Repository.List(ctx, listParams)
 	if err != nil {

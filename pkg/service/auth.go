@@ -34,17 +34,12 @@ type AuthInfo struct {
 	TenantId string
 }
 
-type AuthMiddlewareFunc func(config config.Config, route Route) (http.Handler, error)
+type AuthMiddlewareFunc func(config config.Config, next http.Handler) (http.Handler, error)
 
-func ApiKeyAuthMiddleware(cfg config.Config, route Route) (http.Handler, error) {
+func ApiKeyAuthMiddleware(cfg config.Config, next http.Handler) (http.Handler, error) {
 	warrantCfg, ok := cfg.(config.WarrantConfig)
 	if !ok {
 		return nil, fmt.Errorf("cfg parameter on DefaultAuthMiddleware must be a WarrantConfig")
-	}
-
-	_, ok = route.(WarrantRoute)
-	if !ok {
-		return nil, fmt.Errorf("route parameter on DefaultAuthMiddleware must be a WarrantRoute")
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -60,19 +55,14 @@ func ApiKeyAuthMiddleware(cfg config.Config, route Route) (http.Handler, error) 
 		}
 
 		newContext := context.WithValue(r.Context(), authInfoKey, &AuthInfo{})
-		route.GetHandler().ServeHTTP(w, r.WithContext(newContext))
+		next.ServeHTTP(w, r.WithContext(newContext))
 	}), nil
 }
 
-func ApiKeyAndSessionAuthMiddleware(cfg config.Config, route Route) (http.Handler, error) {
+func ApiKeyAndSessionAuthMiddleware(cfg config.Config, next http.Handler) (http.Handler, error) {
 	warrantCfg, ok := cfg.(config.WarrantConfig)
 	if !ok {
 		return nil, fmt.Errorf("cfg parameter on DefaultAuthMiddleware must be a WarrantConfig")
-	}
-
-	_, ok = route.(WarrantRoute)
-	if !ok {
-		return nil, fmt.Errorf("route parameter on DefaultAuthMiddleware must be a WarrantRoute")
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -183,13 +173,13 @@ func ApiKeyAndSessionAuthMiddleware(cfg config.Config, route Route) (http.Handle
 		}
 
 		newContext := context.WithValue(r.Context(), authInfoKey, *authInfo)
-		route.GetHandler().ServeHTTP(w, r.WithContext(newContext))
+		next.ServeHTTP(w, r.WithContext(newContext))
 	}), nil
 }
 
-func PassthroughAuthMiddleware(cfg config.Config, route Route) (http.Handler, error) {
+func PassthroughAuthMiddleware(cfg config.Config, next http.Handler) (http.Handler, error) {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		route.GetHandler().ServeHTTP(w, r)
+		next.ServeHTTP(w, r)
 	}), nil
 }
 

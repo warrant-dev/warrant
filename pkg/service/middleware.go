@@ -1,4 +1,4 @@
-package middleware
+package service
 
 import (
 	"context"
@@ -7,10 +7,7 @@ import (
 	"strconv"
 
 	"github.com/rs/zerolog/log"
-	"github.com/warrant-dev/warrant/pkg/service"
 )
-
-type key uint8
 
 const (
 	paramNameLimit            = "limit"
@@ -37,6 +34,17 @@ const (
 	SortOrderAsc  SortOrder = iota
 	SortOrderDesc SortOrder = iota
 )
+
+// Middleware defines the type of all middleware
+type Middleware func(http.Handler) http.Handler
+
+// ChainMiddleware a top-level middleware which applies the given middlewares in order from inner to outer (order of execution)
+func ChainMiddleware(handler http.Handler, middlewares ...Middleware) http.Handler {
+	for i := len(middlewares) - 1; i >= 0; i-- {
+		handler = middlewares[i](handler)
+	}
+	return handler
+}
 
 type SortOrder int
 
@@ -160,63 +168,63 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 
 		page, err := ParsePage(pageParam)
 		if err != nil {
-			service.SendErrorResponse(w, service.NewInvalidParameterError(paramNamePage, err.Error()))
+			SendErrorResponse(w, NewInvalidParameterError(paramNamePage, err.Error()))
 			return
 		}
 
 		limit, err := ParseLimit(limitParam)
 		if err != nil {
-			service.SendErrorResponse(w, service.NewInvalidParameterError(paramNameLimit, err.Error()))
+			SendErrorResponse(w, NewInvalidParameterError(paramNameLimit, err.Error()))
 			return
 		}
 
 		sortOrder, err := ParseSortOrder(sortOrderParam)
 		if err != nil {
-			service.SendErrorResponse(w, service.NewInvalidParameterError(paramNameSortOrder, err.Error()))
+			SendErrorResponse(w, NewInvalidParameterError(paramNameSortOrder, err.Error()))
 			return
 		}
 
 		sortBy, err = ParseSortBy(sortBy, listParamParser)
 		if err != nil {
-			service.SendErrorResponse(w, service.NewInvalidParameterError(paramNameSortBy, err.Error()))
+			SendErrorResponse(w, NewInvalidParameterError(paramNameSortBy, err.Error()))
 			return
 		}
 
 		afterId, err := ParseId(afterIdParam)
 		if err != nil {
-			service.SendErrorResponse(w, service.NewInvalidParameterError(paramNameAfterId, err.Error()))
+			SendErrorResponse(w, NewInvalidParameterError(paramNameAfterId, err.Error()))
 			return
 		}
 
 		beforeId, err := ParseId(beforeIdParam)
 		if err != nil {
-			service.SendErrorResponse(w, service.NewInvalidParameterError(paramNameBeforeId, err.Error()))
+			SendErrorResponse(w, NewInvalidParameterError(paramNameBeforeId, err.Error()))
 			return
 		}
 
 		if urlQueryParams.Has(paramNameAfterValue) && !urlQueryParams.Has(paramNameAfterId) {
-			service.SendErrorResponse(w, service.NewMissingRequiredParameterError(paramNameAfterId))
+			SendErrorResponse(w, NewMissingRequiredParameterError(paramNameAfterId))
 			return
 		}
 
 		if urlQueryParams.Has(paramNameBeforeValue) && !urlQueryParams.Has(paramNameBeforeId) {
-			service.SendErrorResponse(w, service.NewMissingRequiredParameterError(paramNameBeforeId))
+			SendErrorResponse(w, NewMissingRequiredParameterError(paramNameBeforeId))
 			return
 		}
 
 		defaultSortBy := listParamParser.GetDefaultSortBy()
 		if !urlQueryParams.Has(paramNameAfterValue) && sortBy != defaultSortBy && urlQueryParams.Has(paramNameAfterId) {
-			service.SendErrorResponse(w, service.NewMissingRequiredParameterError(paramNameAfterValue))
+			SendErrorResponse(w, NewMissingRequiredParameterError(paramNameAfterValue))
 			return
 		}
 
 		if !urlQueryParams.Has(paramNameBeforeValue) && sortBy != defaultSortBy && urlQueryParams.Has(paramNameBeforeId) {
-			service.SendErrorResponse(w, service.NewMissingRequiredParameterError(paramNameBeforeValue))
+			SendErrorResponse(w, NewMissingRequiredParameterError(paramNameBeforeValue))
 			return
 		}
 
 		if (urlQueryParams.Has(paramNameAfterValue) || urlQueryParams.Has(paramNameBeforeValue)) && sortBy == defaultSortBy {
-			service.SendErrorResponse(w, service.NewInvalidRequestError(fmt.Sprintf("cannot pass %s or %s when sorting by %s", paramNameAfterValue, paramNameBeforeValue, defaultSortBy)))
+			SendErrorResponse(w, NewInvalidRequestError(fmt.Sprintf("cannot pass %s or %s when sorting by %s", paramNameAfterValue, paramNameBeforeValue, defaultSortBy)))
 			return
 		}
 
@@ -224,7 +232,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 		if urlQueryParams.Has(paramNameAfterValue) {
 			afterValue, err = ParseValue(afterValueParam, sortBy, listParamParser)
 			if err != nil {
-				service.SendErrorResponse(w, service.NewInvalidParameterError(paramNameAfterValue, err.Error()))
+				SendErrorResponse(w, NewInvalidParameterError(paramNameAfterValue, err.Error()))
 				return
 			}
 		}
@@ -233,7 +241,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 		if urlQueryParams.Has(paramNameBeforeValue) {
 			beforeValue, err = ParseValue(beforeValueParam, sortBy, listParamParser)
 			if err != nil {
-				service.SendErrorResponse(w, service.NewInvalidParameterError(paramNameBeforeValue, err.Error()))
+				SendErrorResponse(w, NewInvalidParameterError(paramNameBeforeValue, err.Error()))
 				return
 			}
 		}

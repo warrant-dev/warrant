@@ -8,7 +8,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
-	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -112,7 +111,7 @@ func (repo MySQLRepository) GetByPricingTierId(ctx context.Context, pricingTierI
 	return &pricingTier, nil
 }
 
-func (repo MySQLRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Model, error) {
+func (repo MySQLRepository) List(ctx context.Context, listParams service.ListParams) ([]Model, error) {
 	models := make([]Model, 0)
 	pricingTiers := make([]PricingTier, 0)
 	query := `
@@ -131,7 +130,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 
 	if listParams.AfterId != "" {
 		if listParams.AfterValue != nil {
-			if listParams.SortOrder == middleware.SortOrderAsc {
+			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND (%s > ? OR (pricingTierId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.AfterValue,
@@ -147,7 +146,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 				)
 			}
 		} else {
-			if listParams.SortOrder == middleware.SortOrderAsc {
+			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND pricingTierId > ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			} else {
@@ -159,7 +158,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 
 	if listParams.BeforeId != "" {
 		if listParams.BeforeValue != nil {
-			if listParams.SortOrder == middleware.SortOrderAsc {
+			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND (%s < ? OR (pricingTierId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.BeforeValue,
@@ -175,7 +174,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams middleware.List
 				)
 			}
 		} else {
-			if listParams.SortOrder == middleware.SortOrderAsc {
+			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND pricingTierId < ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			} else {

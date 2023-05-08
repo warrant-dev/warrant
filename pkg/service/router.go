@@ -45,7 +45,7 @@ func (rh RouteHandler[T]) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewRouter(config config.Config, pathPrefix string, routes []Route, authMiddleware AuthMiddlewareFunc, additionalMiddlewares ...mux.MiddlewareFunc) (*mux.Router, error) {
+func NewRouter(config config.Config, pathPrefix string, routes []Route, authMiddleware AuthMiddlewareFunc, routerMiddlewares []Middleware, requestMiddlewares []Middleware) (*mux.Router, error) {
 	router := mux.NewRouter()
 
 	// Setup default middleware
@@ -66,26 +66,28 @@ func NewRouter(config config.Config, pathPrefix string, routes []Route, authMidd
 
 	router.Use(hlog.URLHandler("uri"))
 
-	// Setup supplied middleware
-	for _, additionalMiddleware := range additionalMiddlewares {
-		router.Use(additionalMiddleware)
+	// Setup router middlewares, which will be run on ALL
+	// requests, even if they are to non-existent endpoints.
+	for _, routerMiddleware := range routerMiddlewares {
+		router.Use(mux.MiddlewareFunc(routerMiddleware))
 	}
 
 	// Setup routes
 	for _, route := range routes {
-		var authProtectedHandler http.Handler
-		var err error
 		routePattern := fmt.Sprintf("%s%s", pathPrefix, route.GetPattern())
+		middlewareWrappedHandler := ChainMiddleware(route.GetHandler(), requestMiddlewares...)
+
+		var err error
 		if route.GetOverrideAuthMiddlewareFunc() != nil {
-			authProtectedHandler, err = route.GetOverrideAuthMiddlewareFunc()(config, route)
+			middlewareWrappedHandler, err = route.GetOverrideAuthMiddlewareFunc()(config, middlewareWrappedHandler)
 		} else {
-			authProtectedHandler, err = authMiddleware(config, route)
+			middlewareWrappedHandler, err = authMiddleware(config, middlewareWrappedHandler)
 		}
 		if err != nil {
 			return nil, err
 		}
 
-		router.Handle(routePattern, authProtectedHandler).Methods(route.GetMethod())
+		router.Handle(routePattern, middlewareWrappedHandler).Methods(route.GetMethod())
 	}
 
 	// Configure catch all handler for 404s

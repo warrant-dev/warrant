@@ -8,7 +8,6 @@ import (
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	"github.com/warrant-dev/warrant/pkg/event"
-	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -90,7 +89,7 @@ func (svc UserService) GetByUserId(ctx context.Context, userId string) (*UserSpe
 	return user.ToUserSpec(), nil
 }
 
-func (svc UserService) List(ctx context.Context, listParams middleware.ListParams) ([]UserSpec, error) {
+func (svc UserService) List(ctx context.Context, listParams service.ListParams) ([]UserSpec, error) {
 	userSpecs := make([]UserSpec, 0)
 
 	users, err := svc.Repository.List(ctx, listParams)

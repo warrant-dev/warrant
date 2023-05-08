@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -22,9 +21,9 @@ func (svc ObjectTypeService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern: "/v1/object-types",
 			Method:  "GET",
-			Handler: middleware.Chain(
+			Handler: service.ChainMiddleware(
 				service.NewRouteHandler(svc, ListHandler),
-				middleware.ListMiddleware[ObjectTypeListParamParser],
+				service.ListMiddleware[ObjectTypeListParamParser],
 			),
 		},
 
@@ -73,7 +72,7 @@ func CreateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 }
 
 func ListHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
-	listParams := middleware.GetListParamsFromContext(r.Context())
+	listParams := service.GetListParamsFromContext(r.Context())
 	objectTypeSpecs, err := svc.List(r.Context(), listParams)
 	if err != nil {
 		return err

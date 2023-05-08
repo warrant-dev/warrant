@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	"github.com/warrant-dev/warrant/pkg/database"
-	"github.com/warrant-dev/warrant/pkg/middleware"
+	"github.com/warrant-dev/warrant/pkg/service"
 )
 
 type UserRepository interface {
 	Create(ctx context.Context, user Model) (int64, error)
 	GetById(ctx context.Context, id int64) (Model, error)
 	GetByUserId(ctx context.Context, userId string) (Model, error)
-	List(ctx context.Context, listParams middleware.ListParams) ([]Model, error)
+	List(ctx context.Context, listParams service.ListParams) ([]Model, error)
 	UpdateByUserId(ctx context.Context, userId string, user Model) error
 	DeleteByUserId(ctx context.Context, userId string) error
 }

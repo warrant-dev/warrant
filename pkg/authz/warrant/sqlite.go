@@ -8,7 +8,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
-	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -251,7 +250,7 @@ func (repo SQLiteRepository) GetByID(ctx context.Context, id int64) (Model, erro
 	return &warrant, nil
 }
 
-func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]Model, error) {
+func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]Model, error) {
 	offset := (listParams.Page - 1) * listParams.Limit
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)

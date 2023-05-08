@@ -6,7 +6,6 @@ import (
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	"github.com/warrant-dev/warrant/pkg/event"
-	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -74,7 +73,7 @@ func (svc RoleService) GetByRoleId(ctx context.Context, roleId string) (*RoleSpe
 	return role.ToRoleSpec(), nil
 }
 
-func (svc RoleService) List(ctx context.Context, listParams middleware.ListParams) ([]RoleSpec, error) {
+func (svc RoleService) List(ctx context.Context, listParams service.ListParams) ([]RoleSpec, error) {
 	roleSpecs := make([]RoleSpec, 0)
 
 	roles, err := svc.Repository.List(ctx, listParams)

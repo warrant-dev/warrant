@@ -3,7 +3,6 @@ package authz
 import (
 	"net/http"
 
-	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -14,7 +13,7 @@ func (svc WarrantService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern: "/v1/warrants",
 			Method:  "POST",
-			Handler: middleware.Chain(
+			Handler: service.ChainMiddleware(
 				service.NewRouteHandler(svc, CreateHandler),
 			),
 		},
@@ -23,9 +22,9 @@ func (svc WarrantService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern: "/v1/warrants",
 			Method:  "GET",
-			Handler: middleware.Chain(
+			Handler: service.ChainMiddleware(
 				service.NewRouteHandler(svc, ListHandler),
-				middleware.ListMiddleware[WarrantListParamParser],
+				service.ListMiddleware[WarrantListParamParser],
 			),
 		},
 
@@ -33,7 +32,7 @@ func (svc WarrantService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern: "/v1/warrants",
 			Method:  "DELETE",
-			Handler: middleware.Chain(
+			Handler: service.ChainMiddleware(
 				service.NewRouteHandler(svc, DeleteHandler),
 			),
 		},
@@ -57,7 +56,7 @@ func CreateHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 }
 
 func ListHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
-	listParams := middleware.GetListParamsFromContext(r.Context())
+	listParams := service.GetListParamsFromContext(r.Context())
 	queryParams := r.URL.Query()
 	filters := FilterOptions{
 		ObjectType: queryParams.Get("objectType"),
