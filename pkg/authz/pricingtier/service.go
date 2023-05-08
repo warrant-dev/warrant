@@ -6,7 +6,6 @@ import (
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	"github.com/warrant-dev/warrant/pkg/event"
-	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -74,7 +73,7 @@ func (svc PricingTierService) GetByPricingTierId(ctx context.Context, pricingTie
 	return pricingTier.ToPricingTierSpec(), nil
 }
 
-func (svc PricingTierService) List(ctx context.Context, listParams middleware.ListParams) ([]PricingTierSpec, error) {
+func (svc PricingTierService) List(ctx context.Context, listParams service.ListParams) ([]PricingTierSpec, error) {
 	pricingTierSpecs := make([]PricingTierSpec, 0)
 
 	pricingTiers, err := svc.Repository.List(ctx, listParams)

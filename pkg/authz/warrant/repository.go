@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/warrant-dev/warrant/pkg/database"
-	"github.com/warrant-dev/warrant/pkg/middleware"
+	"github.com/warrant-dev/warrant/pkg/service"
 )
 
 type WarrantRepository interface {
@@ -15,7 +15,7 @@ type WarrantRepository interface {
 	GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error)
 	GetAllMatchingWildcard(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Model, error)
 	GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Model, error)
-	List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]Model, error)
+	List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]Model, error)
 	DeleteById(ctx context.Context, id int64) error
 	DeleteAllByObject(ctx context.Context, objectType string, objectId string) error
 	DeleteAllBySubject(ctx context.Context, subjectType string, subjectId string) error

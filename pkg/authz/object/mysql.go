@@ -8,7 +8,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
-	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -103,7 +102,7 @@ func (repo MySQLRepository) GetByObjectTypeAndId(ctx context.Context, objectType
 	return &object, nil
 }
 
-func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]Model, error) {
+func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]Model, error) {
 	models := make([]Model, 0)
 	objects := make([]Object, 0)
 	query := `
@@ -127,7 +126,7 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 
 	if listParams.AfterId != "" {
 		if listParams.AfterValue != nil {
-			if listParams.SortOrder == middleware.SortOrderAsc {
+			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND (%s > ? OR (objectId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.AfterValue,
@@ -143,7 +142,7 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 				)
 			}
 		} else {
-			if listParams.SortOrder == middleware.SortOrderAsc {
+			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND objectId > ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			} else {
@@ -155,7 +154,7 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 
 	if listParams.BeforeId != "" {
 		if listParams.BeforeValue != nil {
-			if listParams.SortOrder == middleware.SortOrderAsc {
+			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND (%s < ? OR (objectId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.BeforeValue,
@@ -171,7 +170,7 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 				)
 			}
 		} else {
-			if listParams.SortOrder == middleware.SortOrderAsc {
+			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND objectId < ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			} else {

@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	"github.com/warrant-dev/warrant/pkg/database"
-	"github.com/warrant-dev/warrant/pkg/middleware"
+	"github.com/warrant-dev/warrant/pkg/service"
 )
 
 type ObjectTypeRepository interface {
 	Create(ctx context.Context, objectType Model) (int64, error)
 	GetById(ctx context.Context, id int64) (Model, error)
 	GetByTypeId(ctx context.Context, typeId string) (Model, error)
-	List(ctx context.Context, listParams middleware.ListParams) ([]Model, error)
+	List(ctx context.Context, listParams service.ListParams) ([]Model, error)
 	UpdateByTypeId(ctx context.Context, typeId string, objectType Model) error
 	DeleteByTypeId(ctx context.Context, typeId string) error
 }

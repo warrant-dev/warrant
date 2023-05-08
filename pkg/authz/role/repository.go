@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	"github.com/warrant-dev/warrant/pkg/database"
-	"github.com/warrant-dev/warrant/pkg/middleware"
+	"github.com/warrant-dev/warrant/pkg/service"
 )
 
 type RoleRepository interface {
 	Create(ctx context.Context, role Model) (int64, error)
 	GetById(ctx context.Context, id int64) (Model, error)
 	GetByRoleId(ctx context.Context, roleId string) (Model, error)
-	List(ctx context.Context, listParams middleware.ListParams) ([]Model, error)
+	List(ctx context.Context, listParams service.ListParams) ([]Model, error)
 	UpdateByRoleId(ctx context.Context, roleId string, role Model) error
 	DeleteByRoleId(ctx context.Context, roleId string) error
 }

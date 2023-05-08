@@ -8,7 +8,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
-	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -111,7 +110,7 @@ func (repo SQLiteRepository) GetByUserId(ctx context.Context, userId string) (Mo
 	return &user, nil
 }
 
-func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Model, error) {
+func (repo SQLiteRepository) List(ctx context.Context, listParams service.ListParams) ([]Model, error) {
 	models := make([]Model, 0)
 	users := make([]User, 0)
 	query := `
@@ -130,7 +129,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.Lis
 
 	if listParams.AfterId != "" {
 		if listParams.AfterValue != nil {
-			if listParams.SortOrder == middleware.SortOrderAsc {
+			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND (%s > ? OR (userId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.AfterValue,
@@ -146,7 +145,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.Lis
 				)
 			}
 		} else {
-			if listParams.SortOrder == middleware.SortOrderAsc {
+			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND userId > ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			} else {
@@ -158,7 +157,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.Lis
 
 	if listParams.BeforeId != "" {
 		if listParams.BeforeValue != nil {
-			if listParams.SortOrder == middleware.SortOrderAsc {
+			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND (%s < ? OR (userId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.BeforeValue,
@@ -174,7 +173,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams middleware.Lis
 				)
 			}
 		} else {
-			if listParams.SortOrder == middleware.SortOrderAsc {
+			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND userId < ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			} else {

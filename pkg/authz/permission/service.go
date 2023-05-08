@@ -6,7 +6,6 @@ import (
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	"github.com/warrant-dev/warrant/pkg/event"
-	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -74,7 +73,7 @@ func (svc PermissionService) GetByPermissionId(ctx context.Context, permissionId
 	return permission.ToPermissionSpec(), nil
 }
 
-func (svc PermissionService) List(ctx context.Context, listParams middleware.ListParams) ([]PermissionSpec, error) {
+func (svc PermissionService) List(ctx context.Context, listParams service.ListParams) ([]PermissionSpec, error) {
 	permissionSpecs := make([]PermissionSpec, 0)
 
 	permissions, err := svc.Repository.List(ctx, listParams)

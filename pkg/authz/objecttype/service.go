@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/warrant-dev/warrant/pkg/event"
-	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -67,7 +66,7 @@ func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*O
 	return objectType.ToObjectTypeSpec()
 }
 
-func (svc ObjectTypeService) List(ctx context.Context, listParams middleware.ListParams) ([]ObjectTypeSpec, error) {
+func (svc ObjectTypeService) List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, error) {
 	objectTypes, err := svc.Repository.List(ctx, listParams)
 	if err != nil {
 		return nil, err

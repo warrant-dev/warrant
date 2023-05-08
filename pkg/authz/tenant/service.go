@@ -8,7 +8,6 @@ import (
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	"github.com/warrant-dev/warrant/pkg/event"
-	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -90,7 +89,7 @@ func (svc TenantService) GetByTenantId(ctx context.Context, tenantId string) (*T
 	return tenant.ToTenantSpec(), nil
 }
 
-func (svc TenantService) List(ctx context.Context, listParams middleware.ListParams) ([]TenantSpec, error) {
+func (svc TenantService) List(ctx context.Context, listParams service.ListParams) ([]TenantSpec, error) {
 	tenantSpecs := make([]TenantSpec, 0)
 
 	tenants, err := svc.Repository.List(ctx, listParams)

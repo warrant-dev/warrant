@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	"github.com/warrant-dev/warrant/pkg/database"
-	"github.com/warrant-dev/warrant/pkg/middleware"
+	"github.com/warrant-dev/warrant/pkg/service"
 )
 
 type PermissionRepository interface {
 	Create(ctx context.Context, permission Model) (int64, error)
 	GetById(ctx context.Context, id int64) (Model, error)
 	GetByPermissionId(ctx context.Context, permissionId string) (Model, error)
-	List(ctx context.Context, listParams middleware.ListParams) ([]Model, error)
+	List(ctx context.Context, listParams service.ListParams) ([]Model, error)
 	UpdateByPermissionId(ctx context.Context, permissionId string, permission Model) error
 	DeleteByPermissionId(ctx context.Context, permissionId string) error
 }

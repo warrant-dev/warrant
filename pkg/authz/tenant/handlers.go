@@ -5,7 +5,6 @@ import (
 	"net/url"
 
 	"github.com/gorilla/mux"
-	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -28,9 +27,9 @@ func (svc TenantService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern: "/v1/tenants",
 			Method:  "GET",
-			Handler: middleware.Chain(
+			Handler: service.ChainMiddleware(
 				service.NewRouteHandler(svc, ListHandler),
-				middleware.ListMiddleware[TenantListParamParser],
+				service.ListMiddleware[TenantListParamParser],
 			),
 		},
 
@@ -88,7 +87,7 @@ func GetHandler(svc TenantService, w http.ResponseWriter, r *http.Request) error
 }
 
 func ListHandler(svc TenantService, w http.ResponseWriter, r *http.Request) error {
-	listParams := middleware.GetListParamsFromContext(r.Context())
+	listParams := service.GetListParamsFromContext(r.Context())
 	tenants, err := svc.List(r.Context(), listParams)
 	if err != nil {
 		return err

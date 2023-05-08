@@ -9,7 +9,6 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
-	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -111,7 +110,7 @@ func (repo PostgresRepository) GetByFeatureId(ctx context.Context, featureId str
 	return &feature, nil
 }
 
-func (repo PostgresRepository) List(ctx context.Context, listParams middleware.ListParams) ([]Model, error) {
+func (repo PostgresRepository) List(ctx context.Context, listParams service.ListParams) ([]Model, error) {
 	models := make([]Model, 0)
 	features := make([]Feature, 0)
 	query := `
@@ -131,7 +130,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 	sortBy := regexp.MustCompile("([A-Z])").ReplaceAllString(listParams.SortBy, `_$1`)
 	if listParams.AfterId != "" {
 		if listParams.AfterValue != nil {
-			if listParams.SortOrder == middleware.SortOrderAsc {
+			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND (%s > ? OR (feature_id > ? AND %s = ?))", query, sortBy, sortBy)
 				replacements = append(replacements,
 					listParams.AfterValue,
@@ -147,7 +146,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 				)
 			}
 		} else {
-			if listParams.SortOrder == middleware.SortOrderAsc {
+			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND feature_id > ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			} else {
@@ -159,7 +158,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 
 	if listParams.BeforeId != "" {
 		if listParams.BeforeValue != nil {
-			if listParams.SortOrder == middleware.SortOrderAsc {
+			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND (%s < ? OR (feature_id < ? AND %s = ?))", query, sortBy, sortBy)
 				replacements = append(replacements,
 					listParams.BeforeValue,
@@ -175,7 +174,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 				)
 			}
 		} else {
-			if listParams.SortOrder == middleware.SortOrderAsc {
+			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND feature_id < ?", query)
 				replacements = append(replacements, listParams.AfterId)
 			} else {
@@ -186,7 +185,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams middleware.L
 	}
 
 	nullSortClause := "NULLS LAST"
-	if listParams.SortOrder == middleware.SortOrderAsc {
+	if listParams.SortOrder == service.SortOrderAsc {
 		nullSortClause = "NULLS FIRST"
 	}
 

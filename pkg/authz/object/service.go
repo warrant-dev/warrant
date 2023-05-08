@@ -6,7 +6,6 @@ import (
 
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	"github.com/warrant-dev/warrant/pkg/event"
-	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -72,7 +71,7 @@ func (svc ObjectService) GetByObjectTypeAndId(ctx context.Context, objectType st
 	return object.ToObjectSpec(), nil
 }
 
-func (svc ObjectService) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]ObjectSpec, error) {
+func (svc ObjectService) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]ObjectSpec, error) {
 	objectSpecs := make([]ObjectSpec, 0)
 	objects, err := svc.Repository.List(ctx, filterOptions, listParams)
 	if err != nil {

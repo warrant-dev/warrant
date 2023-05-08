@@ -7,7 +7,6 @@ import (
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	wntContext "github.com/warrant-dev/warrant/pkg/context"
 	"github.com/warrant-dev/warrant/pkg/event"
-	"github.com/warrant-dev/warrant/pkg/middleware"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -105,7 +104,7 @@ func (svc WarrantService) Get(ctx context.Context, objectType string, objectId s
 	return warrantSpec, nil
 }
 
-func (svc WarrantService) List(ctx context.Context, filterOptions *FilterOptions, listParams middleware.ListParams) ([]*WarrantSpec, error) {
+func (svc WarrantService) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]*WarrantSpec, error) {
 	warrantSpecs := make([]*WarrantSpec, 0)
 	warrants, err := svc.Repository.List(ctx, filterOptions, listParams)
 	if err != nil {
