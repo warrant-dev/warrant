@@ -2,7 +2,6 @@ package tenant
 
 import (
 	"net/http"
-	"net/url"
 
 	"github.com/gorilla/mux"
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -71,12 +70,7 @@ func CreateHandler(svc TenantService, w http.ResponseWriter, r *http.Request) er
 }
 
 func GetHandler(svc TenantService, w http.ResponseWriter, r *http.Request) error {
-	tenantIdParam := mux.Vars(r)["tenantId"]
-	tenantId, err := url.QueryUnescape(tenantIdParam)
-	if err != nil {
-		return service.NewInvalidParameterError("tenantId", "")
-	}
-
+	tenantId := mux.Vars(r)["tenantId"]
 	tenant, err := svc.GetByTenantId(r.Context(), tenantId)
 	if err != nil {
 		return err
@@ -104,12 +98,7 @@ func UpdateHandler(svc TenantService, w http.ResponseWriter, r *http.Request) er
 		return err
 	}
 
-	tenantIdParam := mux.Vars(r)["tenantId"]
-	tenantId, err := url.QueryUnescape(tenantIdParam)
-	if err != nil {
-		return service.NewInvalidParameterError("tenantId", "")
-	}
-
+	tenantId := mux.Vars(r)["tenantId"]
 	updatedTenant, err := svc.UpdateByTenantId(r.Context(), tenantId, updateTenant)
 	if err != nil {
 		return err

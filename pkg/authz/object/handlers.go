@@ -77,8 +77,8 @@ func ListHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) erro
 
 func GetHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
 	objectType := mux.Vars(r)["objectType"]
-	objectIdParam := mux.Vars(r)["objectId"]
-	object, err := svc.GetByObjectTypeAndId(r.Context(), objectType, objectIdParam)
+	objectId := mux.Vars(r)["objectId"]
+	object, err := svc.GetByObjectTypeAndId(r.Context(), objectType, objectId)
 	if err != nil {
 		return err
 	}

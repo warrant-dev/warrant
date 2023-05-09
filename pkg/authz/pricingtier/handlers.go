@@ -2,7 +2,6 @@ package authz
 
 import (
 	"net/http"
-	"net/url"
 
 	"github.com/gorilla/mux"
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -71,12 +70,7 @@ func CreateHandler(svc PricingTierService, w http.ResponseWriter, r *http.Reques
 }
 
 func GetHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
-	pricingTierIdParam := mux.Vars(r)["pricingTierId"]
-	pricingTierId, err := url.QueryUnescape(pricingTierIdParam)
-	if err != nil {
-		return service.NewInvalidParameterError("pricingTierId", "")
-	}
-
+	pricingTierId := mux.Vars(r)["pricingTierId"]
 	pricingTier, err := svc.GetByPricingTierId(r.Context(), pricingTierId)
 	if err != nil {
 		return err
@@ -104,12 +98,7 @@ func UpdateHandler(svc PricingTierService, w http.ResponseWriter, r *http.Reques
 		return err
 	}
 
-	pricingTierIdParam := mux.Vars(r)["pricingTierId"]
-	pricingTierId, err := url.QueryUnescape(pricingTierIdParam)
-	if err != nil {
-		return service.NewInvalidParameterError("pricingTierId", "")
-	}
-
+	pricingTierId := mux.Vars(r)["pricingTierId"]
 	updatedPricingTier, err := svc.UpdateByPricingTierId(r.Context(), pricingTierId, updatePricingTier)
 	if err != nil {
 		return err

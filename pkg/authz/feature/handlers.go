@@ -2,7 +2,6 @@ package authz
 
 import (
 	"net/http"
-	"net/url"
 
 	"github.com/gorilla/mux"
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -71,12 +70,7 @@ func CreateHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) e
 }
 
 func GetHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
-	featureIdParam := mux.Vars(r)["featureId"]
-	featureId, err := url.QueryUnescape(featureIdParam)
-	if err != nil {
-		return service.NewInvalidParameterError("featureId", "")
-	}
-
+	featureId := mux.Vars(r)["featureId"]
 	feature, err := svc.GetByFeatureId(r.Context(), featureId)
 	if err != nil {
 		return err
@@ -104,12 +98,7 @@ func UpdateHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
-	featureIdParam := mux.Vars(r)["featureId"]
-	featureId, err := url.QueryUnescape(featureIdParam)
-	if err != nil {
-		return service.NewInvalidParameterError("featureId", "")
-	}
-
+	featureId := mux.Vars(r)["featureId"]
 	updatedFeature, err := svc.UpdateByFeatureId(r.Context(), featureId, updateFeature)
 	if err != nil {
 		return err

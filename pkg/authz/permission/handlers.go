@@ -2,7 +2,6 @@ package authz
 
 import (
 	"net/http"
-	"net/url"
 
 	"github.com/gorilla/mux"
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -71,12 +70,7 @@ func CreateHandler(svc PermissionService, w http.ResponseWriter, r *http.Request
 }
 
 func GetHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
-	permissionIdParam := mux.Vars(r)["permissionId"]
-	permissionId, err := url.QueryUnescape(permissionIdParam)
-	if err != nil {
-		return service.NewInvalidParameterError("permissionId", "")
-	}
-
+	permissionId := mux.Vars(r)["permissionId"]
 	permission, err := svc.GetByPermissionId(r.Context(), permissionId)
 	if err != nil {
 		return err
@@ -104,12 +98,7 @@ func UpdateHandler(svc PermissionService, w http.ResponseWriter, r *http.Request
 		return err
 	}
 
-	permissionIdParam := mux.Vars(r)["permissionId"]
-	permissionId, err := url.QueryUnescape(permissionIdParam)
-	if err != nil {
-		return service.NewInvalidParameterError("permissionId", "")
-	}
-
+	permissionId := mux.Vars(r)["permissionId"]
 	updatedPermission, err := svc.UpdateByPermissionId(r.Context(), permissionId, updatePermission)
 	if err != nil {
 		return err
