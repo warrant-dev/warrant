@@ -83,8 +83,8 @@ func ListHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) 
 }
 
 func GetHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
-	typeParam := mux.Vars(r)["type"]
-	objectTypeSpec, err := svc.GetByTypeId(r.Context(), typeParam)
+	typeId := mux.Vars(r)["type"]
+	objectTypeSpec, err := svc.GetByTypeId(r.Context(), typeId)
 	if err != nil {
 		return err
 	}
@@ -100,8 +100,8 @@ func UpdateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 		return err
 	}
 
-	typeParam := mux.Vars(r)["type"]
-	updatedObjectTypeSpec, err := svc.UpdateByTypeId(r.Context(), typeParam, objectTypeSpec)
+	typeId := mux.Vars(r)["type"]
+	updatedObjectTypeSpec, err := svc.UpdateByTypeId(r.Context(), typeId, objectTypeSpec)
 	if err != nil {
 		return err
 	}

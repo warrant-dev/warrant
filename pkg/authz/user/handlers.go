@@ -2,7 +2,6 @@ package authz
 
 import (
 	"net/http"
-	"net/url"
 
 	"github.com/gorilla/mux"
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -70,12 +69,7 @@ func CreateHandler(svc UserService, w http.ResponseWriter, r *http.Request) erro
 }
 
 func GetHandler(svc UserService, w http.ResponseWriter, r *http.Request) error {
-	userIdParam := mux.Vars(r)["userId"]
-	userId, err := url.QueryUnescape(userIdParam)
-	if err != nil {
-		return service.NewInvalidParameterError("userId", "")
-	}
-
+	userId := mux.Vars(r)["userId"]
 	user, err := svc.GetByUserId(r.Context(), userId)
 	if err != nil {
 		return err
@@ -103,12 +97,7 @@ func UpdateHandler(svc UserService, w http.ResponseWriter, r *http.Request) erro
 		return err
 	}
 
-	userIdParam := mux.Vars(r)["userId"]
-	userId, err := url.QueryUnescape(userIdParam)
-	if err != nil {
-		return service.NewInvalidParameterError("userId", "")
-	}
-
+	userId := mux.Vars(r)["userId"]
 	updatedUser, err := svc.UpdateByUserId(r.Context(), userId, updateUser)
 	if err != nil {
 		return err
@@ -119,13 +108,8 @@ func UpdateHandler(svc UserService, w http.ResponseWriter, r *http.Request) erro
 }
 
 func DeleteHandler(svc UserService, w http.ResponseWriter, r *http.Request) error {
-	userIdParam := mux.Vars(r)["userId"]
-	userId, err := url.QueryUnescape(userIdParam)
-	if err != nil {
-		return service.NewInvalidParameterError("userId", "")
-	}
-
-	err = svc.DeleteByUserId(r.Context(), userId)
+	userId := mux.Vars(r)["userId"]
+	err := svc.DeleteByUserId(r.Context(), userId)
 	if err != nil {
 		return err
 	}

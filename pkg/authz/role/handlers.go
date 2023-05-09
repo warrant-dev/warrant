@@ -2,7 +2,6 @@ package authz
 
 import (
 	"net/http"
-	"net/url"
 
 	"github.com/gorilla/mux"
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -71,12 +70,7 @@ func CreateHandler(svc RoleService, w http.ResponseWriter, r *http.Request) erro
 }
 
 func GetHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error {
-	roleIdParam := mux.Vars(r)["roleId"]
-	roleId, err := url.QueryUnescape(roleIdParam)
-	if err != nil {
-		return service.NewInvalidParameterError("roleId", "")
-	}
-
+	roleId := mux.Vars(r)["roleId"]
 	role, err := svc.GetByRoleId(r.Context(), roleId)
 	if err != nil {
 		return err
@@ -104,12 +98,7 @@ func UpdateHandler(svc RoleService, w http.ResponseWriter, r *http.Request) erro
 		return err
 	}
 
-	roleIdParam := mux.Vars(r)["roleId"]
-	roleId, err := url.QueryUnescape(roleIdParam)
-	if err != nil {
-		return service.NewInvalidParameterError("roleId", "")
-	}
-
+	roleId := mux.Vars(r)["roleId"]
 	updatedRole, err := svc.UpdateByRoleId(r.Context(), roleId, updateRole)
 	if err != nil {
 		return err
