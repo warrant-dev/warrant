@@ -68,12 +68,7 @@ Once you've created an account, refer to our [docs](https://docs.warrant.dev/) t
 
 ### Self-hosting
 
-To self-host or run Warrant locally, follow one of the guides below (select the guide for your database of choice).
-
-- [MySQL](/migrations/datastore/mysql/README.md)
-- [Postgres](/migrations/datastore/postgres/README.md)
-- [SQLite](/migrations/datastore/sqlite/README.md)
-- To request support for another database, please [open an issue](https://github.com/warrant-dev/warrant/issues/new/choose)!
+To self-host or run Warrant locally, check out our [local development guide](/development.md).
 
 ## SDKs
 
@@ -99,11 +94,4 @@ Join our [Slack community](https://join.slack.com/t/warrantcommunity/shared_invi
 
 ## Contributing
 
-To report a bug you found or request a feature that you'd like, open an issue. If you'd like to contribute, submit a PR to resolve the issue.
-
-Contributions from the community are welcome! Just be sure to follow some ground rules:
-
-- Never submit a PR without an associated issue.
-- Issues should mention whether the issue is a bug or a feature.
-- Issues reporting a bug should describe (1) steps to reproduce the bug, (2) what the current behavior is, and (3) what the expected behavior should be.
-- Issues requesting a feature should (1) provide a description of the feature and (2) explain the intended use case for the feature.
+Contributions welcome. Please see our [contributing guide](/CONTRIBUTING.md) for more details.

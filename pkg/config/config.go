@@ -129,7 +129,7 @@ type AuthProviderConfig struct {
 func NewConfig() WarrantConfig {
 	viper.SetConfigFile(ConfigFileName)
 	viper.SetDefault("port", 8000)
-	viper.SetDefault("levelLevel", zerolog.DebugLevel)
+	viper.SetDefault("logLevel", zerolog.DebugLevel)
 	viper.SetDefault("enableAccessLog", true)
 	viper.SetDefault("autoMigrate", false)
 	viper.SetDefault("datastore.mysql.migrationSource", DefaultMySQLDatastoreMigrationSource)
