@@ -1,80 +1,22 @@
-# Self-hosting Warrant with MySQL
+# Running Warrant with MySQL
 
-This guide will cover how to self-host Warrant with MySQL as the datastore. Note that Warrant only supports versions of MySQL >= 8.0.32.
+This guide covers how to set up MySQL as a datastore/eventstore for Warrant.
 
-## Docker Compose (Recommended)
+Note: Please first refer to the [development guide](/development.md) to ensure that your Go environment is set up and you have checked out the Warrant source or [downloaded a binary](https://github.com/warrant-dev/warrant/releases).
 
-The following [Docker Compose](https://docs.docker.com/compose/) manifest will create a MySQL database, setup the database schema required by Warrant, and start Warrant. You can also accomplish this by running Warrant with [Kubernetes](https://kubernetes.io/).
-
-```yaml
-version: "3.9"
-services:
-  database:
-    image: mysql:8.0.32
-    environment:
-      MYSQL_USER: replace_with_username
-      MYSQL_PASSWORD: replace_with_password
-    ports:
-      - 3306:3306
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 5s
-      retries: 10
-
-  web:
-    image: warrantdev/warrant
-    ports:
-      - 8000:8000
-    depends_on:
-      database:
-        condition: service_healthy
-    environment:
-      WARRANT_PORT: 8000
-      WARRANT_LOGLEVEL: 1
-      WARRANT_ENABLEACCESSLOG: true
-      WARRANT_AUTOMIGRATE: true
-      WARRANT_DATASTORE_MYSQL_USERNAME: replace_with_username
-      WARRANT_DATASTORE_MYSQL_PASSWORD: replace_with_password
-      WARRANT_DATASTORE_MYSQL_HOSTNAME: database
-      WARRANT_DATASTORE_MYSQL_DATABASE: warrant
-      WARRANT_EVENTSTORE_MYSQL_USERNAME: replace_with_username
-      WARRANT_EVENTSTORE_MYSQL_PASSWORD: replace_with_password
-      WARRANT_EVENTSTORE_MYSQL_HOSTNAME: database
-      WARRANT_EVENTSTORE_MYSQL_DATABASE: warrantEvents
-      WARRANT_AUTHENTICATION_APIKEY: replace_with_api_key
-      WARRANT_AUTHENTICATION_PROVIDER: replace_with_authentication_name
-      WARRANT_AUTHENTICATION_PUBLICKEY: replace_with_authentication_public_key
-      WARRANT_AUTHENTICATION_USERIDCLAIM: replace_with_authentication_user_id_claim
-      WARRANT_AUTHENTICATION_TENANTIDCLAIM: replace_with_authentication_tenant_id_claim
-```
-
-## Running the Binary
-
-### Setup and Configure MySQL
+## Install MySQL
 
 Follow the [MySQL Installation Guide](https://dev.mysql.com/doc/mysql-installation-excerpt/8.0/en/) for your OS to install and start MySQL. For MacOS users, we recommend [installing MySQL using homebrew](https://formulae.brew.sh/formula/mysql).
 
-### Download the Binary
+## Warrant configuration
 
-Download the latest warrant binary for your architecture from [here](https://github.com/warrant-dev/warrant/releases/latest). Then unzip the tarball and run the `warrant` executable.
+The Warrant server requires certain configuration, defined either within a `warrant.yaml` file (located within the same directory as the binary) or via environment variables. This configuration includes some common variables and some MySQL specific variables. Here's a sample config:
 
-```bash
-tar -xvf <name_of_tarball>
-```
-
-### Create `warrant.yaml` Configuration
-
-Create a file called `warrant.yaml` in the directory containing the Warrant binary.
-
-```bash
-cd <path_to_untarred_directory>
-touch warrant.yaml
-```
+### Sample `warrant.yaml` config
 
 ```yaml
-# warrant.yaml
 port: 8000
-logLevel: 0
+logLevel: 1
 enableAccessLog: true
 autoMigrate: true
 authentication:
@@ -86,6 +28,7 @@ datastore:
     hostname: 127.0.0.1
     database: warrant
 eventstore:
+  synchronizeEvents: false
   mysql:
     username: replace_with_username
     password: replace_with_password
@@ -93,8 +36,17 @@ eventstore:
     database: warrantEvents
 ```
 
-### Run the Binary
+Note: You must use 2 different databases for `datastore` and `eventstore`. You can create the databases via the mysql command line and configure them as the `database` attribute under datastore and eventstore.
 
-```bash
-./warrant
+The `synchronizeEvents` attribute in the eventstore section is false by default. Setting it to true means that all events will be tracked in order within the same transaction (helpful for testing locally).
+
+## Running db migrations
+
+Warrant uses [golang-migrate](https://github.com/golang-migrate/migrate) to manage sql db migrations. If the `autoMigrate` config flag is set to true, the server will automatically run migrations on start. If you prefer managing migrations and upgrades manually, please set the `autoMigrate` flag to false.
+
+You can [install golang-migrate yourself](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate) and run the MySQL migrations manually:
+
+```shell
+migrate -path ./migrations/datastore/mysql/ -database mysql://username:password@hostname/warrant up
+migrate -path ./migrations/eventstore/mysql/ -database mysql://username:password@hostname/warrantEvents up
 ```
