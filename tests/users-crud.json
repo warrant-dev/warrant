@@ -16,8 +16,7 @@
                 "statusCode": 200,
                 "body": {
                     "userId": "test_-.|@User123",
-                    "email": null,
-                    "createdAt": "2022-09-30T17:04:20Z"
+                    "email": null
                 }
             }
         },
@@ -34,8 +33,7 @@
                 "statusCode": 200,
                 "body": {
                     "userId": "4444444444444",
-                    "email": null,
-                    "createdAt": "2022-09-30T17:04:20Z"
+                    "email": null
                 }
             }
         },
@@ -53,8 +51,7 @@
                 "statusCode": 200,
                 "body": {
                     "userId": "5555555555555",
-                    "email": "provided@gmail.com",
-                    "createdAt": "2022-09-30T17:04:20Z"
+                    "email": "provided@gmail.com"
                 }
             }
         },
@@ -69,8 +66,7 @@
                 "statusCode": 200,
                 "body": {
                     "userId": "{{ createUserWithGeneratedIdNoEmail.userId }}",
-                    "email": null,
-                    "createdAt": "2022-09-30T17:04:20Z"
+                    "email": null
                 }
             }
         },
@@ -87,8 +83,24 @@
                 "statusCode": 200,
                 "body": {
                     "userId": "{{ createUserWithGeneratedIdAndEmail.userId }}",
-                    "email": "generated@gmail.com",
-                    "createdAt": "2022-09-30T17:04:20Z"
+                    "email": "generated@gmail.com"
+                }
+            }
+        },
+        {
+            "name": "createUserWithNonEmail",
+            "request": {
+                "method": "POST",
+                "url": "/v1/users",
+                "body": {
+                    "email": "not-an-email"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "userId": "{{ createUserWithNonEmail.userId }}",
+                    "email": "not-an-email"
                 }
             }
         },
@@ -102,29 +114,28 @@
                 "statusCode": 200,
                 "body": [
                     {
+                        "userId": "{{ createUserWithNonEmail.userId }}",
+                        "email": "not-an-email"
+                    },
+                    {
                         "userId": "{{ createUserWithGeneratedIdAndEmail.userId }}",
-                        "email": "generated@gmail.com",
-                        "createdAt": "2022-09-30T17:04:20Z"
+                        "email": "generated@gmail.com"
                     },
                     {
                         "userId": "{{ createUserWithGeneratedIdNoEmail.userId }}",
-                        "email": null,
-                        "createdAt": "2022-09-30T17:04:20Z"
+                        "email": null
                     },
                     {
                         "userId": "5555555555555",
-                        "email": "provided@gmail.com",
-                        "createdAt": "2022-09-30T17:04:20Z"
+                        "email": "provided@gmail.com"
                     },
                     {
                         "userId": "4444444444444",
-                        "email": null,
-                        "createdAt": "2022-09-30T17:04:20Z"
+                        "email": null
                     },
                     {
                         "userId": "test_-.|@User123",
-                        "email": null,
-                        "createdAt": "2022-09-30T17:04:20Z"
+                        "email": null
                     }
                 ]
             }
@@ -139,8 +150,7 @@
                 "statusCode": 200,
                 "body": {
                     "userId": "{{ createUserWithGeneratedIdNoEmail.userId }}",
-                    "email": null,
-                    "createdAt": "2022-09-30T17:04:20Z"
+                    "email": null
                 }
             }
         },
@@ -157,8 +167,7 @@
                 "statusCode": 200,
                 "body": {
                     "userId": "{{ createUserWithGeneratedIdNoEmail.userId }}",
-                    "email": "updated@gmail.com",
-                    "createdAt": "2022-09-30T17:04:20Z"
+                    "email": "updated@gmail.com"
                 }
             }
         },
@@ -172,8 +181,7 @@
                 "statusCode": 200,
                 "body": {
                     "userId": "{{ createUserWithGeneratedIdNoEmail.userId }}",
-                    "email": "updated@gmail.com",
-                    "createdAt": "2022-09-30T17:04:20Z"
+                    "email": "updated@gmail.com"
                 }
             }
         },
@@ -191,8 +199,7 @@
                 "statusCode": 200,
                 "body": {
                     "userId": "{{ createUserWithGeneratedIdNoEmail.userId }}",
-                    "email": "updated@gmail.com",
-                    "createdAt": "2022-09-30T17:04:20Z"
+                    "email": "updated@gmail.com"
                 }
             }
         },
@@ -234,22 +241,13 @@
             }
         },
         {
-            "name": "failToCreateAUserWithInvalidEmail",
+            "name": "deleteUserWithNonEmail",
             "request": {
-                "method": "POST",
-                "url": "/v1/users",
-                "body": {
-                    "userId": "invalid-email",
-                    "email": "invalid-email"
-                }
+                "method": "DELETE",
+                "url": "/v1/users/{{ createUserWithNonEmail.userId }}"
             },
             "expectedResponse": {
-                "statusCode": 400,
-                "body": {
-                    "code": "invalid_parameter",
-                    "message": "must be a valid email",
-                    "parameter": "email"
-                }
+                "statusCode": 200
             }
         },
         {
@@ -305,8 +303,7 @@
                 "statusCode": 200,
                 "body": {
                     "userId": "4444444444444",
-                    "email": null,
-                    "createdAt": "2022-09-30T17:04:20Z"
+                    "email": null
                 }
             }
         },
@@ -320,8 +317,7 @@
                 "statusCode": 200,
                 "body": {
                     "userId": "4444444444444",
-                    "email": null,
-                    "createdAt": "2022-09-30T17:04:20Z"
+                    "email": null
                 }
             }
         },

@@ -9,7 +9,7 @@ import (
 
 type UserSpec struct {
 	UserId    string    `json:"userId" validate:"omitempty,valid_object_id"`
-	Email     *string   `json:"email" validate:"omitempty,email"`
+	Email     *string   `json:"email"`
 	CreatedAt time.Time `json:"createdAt"`
 }
 
@@ -29,5 +29,5 @@ func (spec UserSpec) ToObjectSpec() *object.ObjectSpec {
 }
 
 type UpdateUserSpec struct {
-	Email *string `json:"email" validate:"omitempty,email"`
+	Email *string `json:"email"`
 }
