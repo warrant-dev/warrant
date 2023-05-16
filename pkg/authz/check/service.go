@@ -83,7 +83,7 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType stri
 	return warrantSpecs, nil
 }
 
-func (svc CheckService) getMatchingSubjectsWithSubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string, wntCtx wntContext.ContextSetSpec) ([]warrant.WarrantSpec, error) {
+func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string, wntCtx wntContext.ContextSetSpec) ([]warrant.WarrantSpec, error) {
 	log.Debug().Msgf("Getting matching subjects for %s:%s#%s@%s:___%s", objectType, objectId, relation, subjectType, wntCtx)
 
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
@@ -187,7 +187,7 @@ func (svc CheckService) checkRule(ctx context.Context, authInfo *service.AuthInf
 			})
 		}
 
-		matchingWarrants, err := svc.getMatchingSubjectsWithSubjectType(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, rule.WithRelation, rule.OfType, warrantSpec.Context)
+		matchingWarrants, err := svc.getMatchingSubjectsBySubjectType(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, rule.WithRelation, rule.OfType, warrantSpec.Context)
 		if err != nil {
 			return false, decisionPath, err
 		}
