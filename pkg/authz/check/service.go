@@ -68,7 +68,6 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType stri
 		wntCtx.ToHash(),
 	)
 	if err != nil {
-		log.Err(err).Msg("Error fetching warrants for object")
 		return warrantSpecs, err
 	}
 
@@ -105,7 +104,6 @@ func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, ob
 		wntCtx.ToHash(),
 	)
 	if err != nil {
-		log.Err(err).Msg("Error fetching warrants for object")
 		return warrantSpecs, err
 	}
 
