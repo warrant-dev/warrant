@@ -14,7 +14,8 @@ type WarrantRepository interface {
 	GetByID(ctx context.Context, id int64) (Model, error)
 	GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error)
 	GetAllMatchingWildcard(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Model, error)
-	GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Model, error)
+	GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Model, error)
+	GetAllMatchingObjectAndRelationWithSubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Model, error)
 	List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]Model, error)
 	DeleteById(ctx context.Context, id int64) error
 	DeleteAllByObject(ctx context.Context, objectType string, objectId string) error

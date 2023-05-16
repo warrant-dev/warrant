@@ -683,7 +683,7 @@
             }
         },
         {
-            "name": "checkUserCNotOwnerOfReportB",
+            "name": "checkUserCOwnerOfReportB",
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
@@ -708,13 +708,13 @@
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "code": 403,
-                    "result": "Not Authorized"
+                    "code": 200,
+                    "result": "Authorized"
                 }
             }
         },
         {
-            "name": "checkUserDNotOwnerOfReportA",
+            "name": "checkUserDOwnerOfReportA",
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
@@ -739,8 +739,8 @@
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "code": 403,
-                    "result": "Not Authorized"
+                    "code": 200,
+                    "result": "Authorized"
                 }
             }
         },
