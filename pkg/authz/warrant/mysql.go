@@ -411,7 +411,7 @@ func (repo MySQLRepository) GetAllMatchingObjectAndRelation(ctx context.Context,
 	return models, nil
 }
 
-func (repo MySQLRepository) GetAllMatchingObjectAndRelationWithSubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Model, error) {
+func (repo MySQLRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(

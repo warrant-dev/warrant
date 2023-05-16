@@ -112,7 +112,7 @@ func (svc CheckService) getMatchingSubjectsWithSubjectType(ctx context.Context, 
 		return warrantSpecs, nil
 	}
 
-	warrants, err := svc.WarrantRepository.GetAllMatchingObjectAndRelationWithSubjectType(
+	warrants, err := svc.WarrantRepository.GetAllMatchingObjectAndRelationBySubjectType(
 		ctx,
 		objectType,
 		objectId,

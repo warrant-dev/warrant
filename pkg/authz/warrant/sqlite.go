@@ -415,7 +415,7 @@ func (repo SQLiteRepository) GetAllMatchingObjectAndRelation(ctx context.Context
 	return models, nil
 }
 
-func (repo SQLiteRepository) GetAllMatchingObjectAndRelationWithSubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Model, error) {
+func (repo SQLiteRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
