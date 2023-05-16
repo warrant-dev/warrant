@@ -322,39 +322,22 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 	return models, nil
 }
 
-func (repo SQLiteRepository) GetAllMatchingWildcard(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Model, error) {
+func (repo SQLiteRepository) GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
 		&warrants,
 		`
-			SELECT
-				w2.id,
-				w2.objectType,
-				w2.objectId,
-				w2.relation,
-				w1.subjectType,
-				w1.subjectId,
-				w1.subjectRelation,
-				w2.contextHash,
-				w2.createdAt,
-				w2.updatedAt
-			FROM warrant AS w1
-			JOIN warrant AS w2 ON
-				w1.id != w2.id AND
-				w1.objectType = w2.objectType AND
-				w1.relation = w2.relation AND
-				w1.contextHash = w2.contextHash
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, contextHash, createdAt, updatedAt, deletedAt
+			FROM warrant
 			WHERE
-				w1.objectType = ? AND
-				w1.objectId = "*" AND
-				w2.objectId = ? AND
-				w1.relation = ? AND
-				(w1.contextHash = ? OR w1.contextHash = "") AND
-				w1.deletedAt IS NULL AND
-				w2.deletedAt IS NULL
-			ORDER BY w2.createdAt DESC, w2.id DESC
+				objectType = ? AND
+				(objectId = ? OR objectId = "*") AND
+				relation = ? AND
+				(contextHash = ? OR contextHash = "") AND
+				deletedAt IS NULL
+			ORDER BY createdAt DESC, id DESC
 		`,
 		objectType,
 		objectId,
@@ -366,7 +349,7 @@ func (repo SQLiteRepository) GetAllMatchingWildcard(ctx context.Context, objectT
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return nil, errors.Wrapf(err, "error getting warrants matching object type %s and relation %s", objectType, relation)
+			return nil, errors.Wrapf(err, "error getting warrants with object type %s, object id %s, and relation %s", objectType, objectId, relation)
 		}
 	}
 
@@ -377,7 +360,7 @@ func (repo SQLiteRepository) GetAllMatchingWildcard(ctx context.Context, objectT
 	return models, nil
 }
 
-func (repo SQLiteRepository) GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Model, error) {
+func (repo SQLiteRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
@@ -388,7 +371,7 @@ func (repo SQLiteRepository) GetAllMatchingObjectAndRelation(ctx context.Context
 			FROM warrant
 			WHERE
 				objectType = ? AND
-				objectId = ? AND
+				(objectId = ? OR objectId = "*") AND
 				relation = ? AND
 				subjectType = ? AND
 				(contextHash = ? OR contextHash = "") AND

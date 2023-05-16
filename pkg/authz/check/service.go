@@ -47,8 +47,8 @@ func (svc CheckService) getWithContextMatch(ctx context.Context, spec warrant.Wa
 	return warrantSpec, nil
 }
 
-func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType string, objectId string, relation string, subjectType string, wntCtx wntContext.ContextSetSpec) ([]warrant.WarrantSpec, error) {
-	log.Debug().Msgf("Getting matching subjects for %s:%s#%s@%s:___%s", objectType, objectId, relation, subjectType, wntCtx)
+func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType string, objectId string, relation string, wntCtx wntContext.ContextSetSpec) ([]warrant.WarrantSpec, error) {
+	log.Debug().Msgf("Getting matching subjects for %s:%s#%s@___%s", objectType, objectId, relation, wntCtx)
 
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
 	objectTypeSpec, err := svc.ObjectTypeSvc.GetByTypeId(ctx, objectType)
@@ -65,11 +65,9 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType stri
 		objectType,
 		objectId,
 		relation,
-		subjectType,
 		wntCtx.ToHash(),
 	)
 	if err != nil {
-		log.Err(err).Msg("Error fetching warrants for object")
 		return warrantSpecs, err
 	}
 
@@ -81,20 +79,40 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType stri
 		return warrantSpecs, err
 	}
 
-	warrants, err = svc.WarrantRepository.GetAllMatchingWildcard(
+	return warrantSpecs, nil
+}
+
+func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string, wntCtx wntContext.ContextSetSpec) ([]warrant.WarrantSpec, error) {
+	log.Debug().Msgf("Getting matching subjects for %s:%s#%s@%s:___%s", objectType, objectId, relation, subjectType, wntCtx)
+
+	warrantSpecs := make([]warrant.WarrantSpec, 0)
+	objectTypeSpec, err := svc.ObjectTypeSvc.GetByTypeId(ctx, objectType)
+	if err != nil {
+		return warrantSpecs, err
+	}
+
+	if _, ok := objectTypeSpec.Relations[relation]; !ok {
+		return warrantSpecs, nil
+	}
+
+	warrants, err := svc.WarrantRepository.GetAllMatchingObjectAndRelationBySubjectType(
 		ctx,
 		objectType,
 		objectId,
 		relation,
+		subjectType,
 		wntCtx.ToHash(),
 	)
 	if err != nil {
-		log.Err(err).Msg("Error fetching warrants matching wildcard")
 		return warrantSpecs, err
 	}
 
 	for _, warrant := range warrants {
 		warrantSpecs = append(warrantSpecs, *warrant.ToWarrantSpec())
+	}
+
+	if err != nil {
+		return warrantSpecs, err
 	}
 
 	return warrantSpecs, nil
@@ -167,7 +185,7 @@ func (svc CheckService) checkRule(ctx context.Context, authInfo *service.AuthInf
 			})
 		}
 
-		matchingWarrants, err := svc.getMatchingSubjects(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, rule.WithRelation, rule.OfType, warrantSpec.Context)
+		matchingWarrants, err := svc.getMatchingSubjectsBySubjectType(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, rule.WithRelation, rule.OfType, warrantSpec.Context)
 		if err != nil {
 			return false, decisionPath, err
 		}
@@ -358,7 +376,7 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 	}
 
 	// Check against indirectly related warrants
-	matchingWarrants, err := svc.getMatchingSubjects(ctx, warrantCheck.ObjectType, warrantCheck.ObjectId, warrantCheck.Relation, "%", warrantCheck.Context)
+	matchingWarrants, err := svc.getMatchingSubjects(ctx, warrantCheck.ObjectType, warrantCheck.ObjectId, warrantCheck.Relation, warrantCheck.Context)
 	if err != nil {
 		return false, decisionPath, err
 	}

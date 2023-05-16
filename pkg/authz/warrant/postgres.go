@@ -318,39 +318,22 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 	return models, nil
 }
 
-func (repo PostgresRepository) GetAllMatchingWildcard(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Model, error) {
+func (repo PostgresRepository) GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
 		&warrants,
 		`
-			SELECT
-				w2.id,
-				w2.object_type,
-				w2.object_id,
-				w2.relation,
-				w1.subject_type,
-				w1.subject_id,
-				w1.subject_relation,
-				w2.context_hash,
-				w2.created_at,
-				w2.updated_at
-			FROM warrant AS w1
-			JOIN warrant AS w2 ON
-				w1.id != w2.id AND
-				w1.object_type = w2.object_type AND
-				w1.relation = w2.relation AND
-				w1.context_hash = w2.context_hash
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, context_hash, created_at, updated_at, deleted_at
+			FROM warrant
 			WHERE
-				w1.object_type = ? AND
-				w1.object_id = '*' AND
-				w2.object_id = ? AND
-				w1.relation = ? AND
-				(w1.context_hash = ? OR w1.context_hash = '') AND
-				w1.deleted_at IS NULL AND
-				w2.deleted_at IS NULL
-			ORDER BY w2.created_at DESC, w2.id DESC
+				object_type = ? AND
+				(object_id = ? OR object_id = '*') AND
+				relation = ? AND
+				(context_hash = ? OR context_hash = '') AND
+				deleted_at IS NULL
+			ORDER BY created_at DESC, id DESC
 		`,
 		objectType,
 		objectId,
@@ -362,7 +345,7 @@ func (repo PostgresRepository) GetAllMatchingWildcard(ctx context.Context, objec
 		case sql.ErrNoRows:
 			return models, nil
 		default:
-			return nil, errors.Wrapf(err, "error getting warrants matching object type %s and relation %s", objectType, relation)
+			return nil, errors.Wrapf(err, "error getting warrants with object type %s, object id %s, and relation %s", objectType, objectId, relation)
 		}
 	}
 
@@ -373,7 +356,7 @@ func (repo PostgresRepository) GetAllMatchingWildcard(ctx context.Context, objec
 	return models, nil
 }
 
-func (repo PostgresRepository) GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Model, error) {
+func (repo PostgresRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
@@ -384,7 +367,7 @@ func (repo PostgresRepository) GetAllMatchingObjectAndRelation(ctx context.Conte
 			FROM warrant
 			WHERE
 				object_type = ? AND
-				object_id = ? AND
+				(object_id = ? OR object_id = '*') AND
 				relation = ? AND
 				subject_type = ? AND
 				(context_hash = ? OR context_hash = '') AND

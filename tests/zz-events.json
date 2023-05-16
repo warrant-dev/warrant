@@ -526,7 +526,7 @@
                             "subjectId": "user-e"
                         },
                         {
-                            "type": "access_denied",
+                            "type": "access_allowed",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-a",
@@ -628,7 +628,7 @@
                             "subjectId": "user-c"
                         },
                         {
-                            "type": "access_denied",
+                            "type": "access_allowed",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-b",
