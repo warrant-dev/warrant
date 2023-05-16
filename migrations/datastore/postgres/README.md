@@ -1,81 +1,22 @@
-# Self-hosting Warrant with PostgreSQL
+# Running Warrant with PostgreSQL
 
-This guide will cover how to self-host Warrant with PostgreSQL as the datastore. Note that Warrant only supports versions of PostgreSQL >= 14.7.
+This guide covers how to set up PostgreSQL as a datastore/eventstore for Warrant.
 
-## Docker Compose (Recommended)
+Note: Please first refer to the [development guide](/development.md) to ensure that your Go environment is set up and you have checked out the Warrant source or [downloaded a binary](https://github.com/warrant-dev/warrant/releases).
 
-The following [Docker Compose](https://docs.docker.com/compose/) manifest will create a PostgreSQL database, setup the database schema required by Warrant, and start Warrant. You can also accomplish this by running Warrant with [Kubernetes](https://kubernetes.io/).
-
-```yaml
-version: "3.9"
-services:
-  database:
-    image: postgres:14.7
-    environment:
-      POSTGRES_PASSWORD: replace_with_password
-    ports:
-      - 5432:5432
-    healthcheck:
-      test: ["CMD", "pg_isready", "-d", "warrant"]
-      timeout: 5s
-      retries: 10
-
-  web:
-    image: warrantdev/warrant
-    ports:
-      - 8000:8000
-    depends_on:
-      database:
-        condition: service_healthy
-    environment:
-      WARRANT_PORT: 8000
-      WARRANT_LOGLEVEL: 1
-      WARRANT_ENABLEACCESSLOG: true
-      WARRANT_AUTOMIGRATE: true
-      WARRANT_DATASTORE_POSTGRES_USERNAME: postgres
-      WARRANT_DATASTORE_POSTGRES_PASSWORD: replace_with_password
-      WARRANT_DATASTORE_POSTGRES_HOSTNAME: database
-      WARRANT_DATASTORE_POSTGRES_DATABASE: warrant
-      WARRANT_DATASTORE_POSTGRES_SSLMODE: disable
-      WARRANT_EVENTSTORE_POSTGRES_USERNAME: postgres
-      WARRANT_EVENTSTORE_POSTGRES_PASSWORD: replace_with_password
-      WARRANT_EVENTSTORE_POSTGRES_HOSTNAME: database
-      WARRANT_EVENTSTORE_POSTGRES_DATABASE: warrant_events
-      WARRANT_EVENTSTORE_POSTGRES_SSLMODE: disable
-      WARRANT_AUTHENTICATION_APIKEY: replace_with_api_key
-      WARRANT_AUTHENTICATION_PROVIDER: replace_with_authentication_name
-      WARRANT_AUTHENTICATION_PUBLICKEY: replace_with_authentication_public_key
-      WARRANT_AUTHENTICATION_USERIDCLAIM: replace_with_authentication_user_id_claim
-      WARRANT_AUTHENTICATION_TENANTIDCLAIM: replace_with_authentication_tenant_id_claim
-```
-
-## Running the Binary
-
-### Setup and Configure PostgreSQL
+## Install PostgreSQL
 
 Install and run the [PostgreSQL Installer](https://www.postgresql.org/download/) for your OS to install and start PostgreSQL. For MacOS users, we recommend [installing PostgreSQL using homebrew](https://formulae.brew.sh/formula/postgresql@14).
 
-### Download the Binary
+## Warrant configuration
 
-Download the latest warrant binary for your architecture from [here](https://github.com/warrant-dev/warrant/releases/latest). Then unzip the tarball and run the `warrant` executable.
+The Warrant server requires certain configuration, defined either within a `warrant.yaml` file (located within the same directory as the binary) or via environment variables. This configuration includes some common variables and some PostgreSQL specific variables. Here's a sample config:
 
-```bash
-tar -xvf <name_of_tarball>
-```
-
-### Create `warrant.yaml` Configuration
-
-Create a file called `warrant.yaml` in the directory containing the Warrant binary.
-
-```bash
-cd <path_to_untarred_directory>
-touch warrant.yaml
-```
+### Sample `warrant.yaml` config
 
 ```yaml
-# warrant.yaml
 port: 8000
-logLevel: 0
+logLevel: 1
 enableAccessLog: true
 autoMigrate: true
 authentication:
@@ -88,6 +29,7 @@ datastore:
     database: warrant
     sslmode: disable
 eventstore:
+  synchronizeEvents: false
   postgres:
     username: replace_with_username
     password: replace_with_password
@@ -96,8 +38,17 @@ eventstore:
     sslmode: disable
 ```
 
-### Run the Binary
+Note: You must use 2 different databases for `datastore` and `eventstore`. You can create the databases via the postgres command line and configure them as the `database` attribute under datastore and eventstore.
 
-```bash
-./warrant
+The `synchronizeEvents` attribute in the eventstore section is false by default. Setting it to true means that all events will be tracked in order within the same transaction (helpful for testing locally).
+
+## Running db migrations
+
+Warrant uses [golang-migrate](https://github.com/golang-migrate/migrate) to manage sql db migrations. If the `autoMigrate` config flag is set to true, the server will automatically run migrations on start. If you prefer managing migrations and upgrades manually, please set the `autoMigrate` flag to false.
+
+You can [install golang-migrate yourself](https://github.com/golang-migrate/migrate/tree/master/cmd/migrate) and run the PostgreSQL migrations manually:
+
+```shell
+migrate -path ./migrations/datastore/postgres/ -database postgres://username:password@hostname/warrant up
+migrate -path ./migrations/eventstore/postgres/ -database postgres://username:password@hostname/warrant_events up
 ```

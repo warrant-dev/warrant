@@ -1,10 +1,10 @@
 # Running Warrant with SQLite
 
-This guide will cover how to run Warrant with SQLite as the datastore/eventstore. Note that running Warrant with SQLite requires that you build Warrant from source.
+This guide covers how to set up SQLite as a datastore/eventstore for Warrant.
 
-## Running the Binary
+Note: Please first refer to the [development guide](/development.md) to ensure that your Go environment is set up and you have checked out the Warrant source or [downloaded a binary](https://github.com/warrant-dev/warrant/releases).
 
-### Install SQLite
+## Install SQLite
 
 Many operating systems (like MacOS) come with SQLite pre-installed. If you already have SQLite installed, you can skip to the next step. If you don't already have SQLite installed, [install it](https://www.tutorialspoint.com/sqlite/sqlite_installation.htm). Once installed, you should be able to run the following command to print the currently installed version of SQLite:
 
@@ -12,28 +12,15 @@ Many operating systems (like MacOS) come with SQLite pre-installed. If you alrea
 sqlite3 --version
 ```
 
-### Install Go
+## Warrant configuration
 
-[Install Go](https://go.dev/doc/install).
+The Warrant server requires certain configuration, defined either within a `warrant.yaml` file (located within the same directory as the binary) or via environment variables. This configuration includes some common variables and some SQLite specific variables. Here's a sample config:
 
-### Build Warrant From Source
-
-Clone the Warrant repository from GitHub or download and unzip the tarball containing the source code for the [latest Warrant release](https://github.com/warrant-dev/warrant/releases/latest).
-
-```bash
-tar -xvf <name_of_tarball>
-```
-
-Navigate to the `cmd/warrant` directory and run `make dev` to build Warrant. This will create a file called `warrant` that contains the executable.
-
-### Create `warrant.yaml` Configuration
-
-Create a file called `warrant.yaml` in the directory containing the Warrant binary. Add properties to configure SQLite as both the datastore and evenstore for Warrant.
+### Sample `warrant.yaml` config
 
 ```yaml
-# warrant.yaml
 port: 8000
-logLevel: 0
+logLevel: 1
 enableAccessLog: true
 autoMigrate: true
 authentication:
@@ -43,15 +30,14 @@ datastore:
     database: warrant
     inMemory: true
 eventstore:
+  synchronizeEvents: false
   sqlite:
     database: warrantEvents
     inMemory: true
 ```
 
-NOTE: By default, SQLite will create a database file for both the database and eventstore. The filenames are configurable using the `database` property under `datastore` and `eventstore`. Specifying the `inMemory` option under `datastore` or `eventstore` will bypass creation of a database file and run the SQLite database completely in memory. When running Warrant with the `inMemory` configuration, **any data in Warrant will be lost once the Warrant process is shutdown/killed**.
+Note: By default, SQLite will create a database file for both the database and eventstore. The filenames are configurable using the `database` property under `datastore` and `eventstore`. Specifying the `inMemory` option under `datastore` or `eventstore` will bypass creation of a database file and run the SQLite database completely in memory. When running Warrant with the `inMemory` configuration, **any data in Warrant will be lost once the Warrant process is shutdown/killed**.
 
-### Run the Executable
+The `synchronizeEvents` attribute in the eventstore section is false by default. Setting it to true means that all events will be tracked in order within the same transaction (helpful for testing locally).
 
-```bash
-./warrant
-```
+Unlike `mysql` and `postgresql`, `sqlite` currently does not support manually running db migrations on the command line via golang-migrate. Therefore, you should keep `autoMigrate` set to true in your Warrant config so that the server runs migrations as part of startup.

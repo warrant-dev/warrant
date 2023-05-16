@@ -16,16 +16,6 @@ git clone git@github.com:warrant-dev/warrant.git
 
 Note: It's recommended you clone the repository into a directory relative to your `GOPATH` (e.g. `$GOPATH/src/github.com/warrant-dev`)
 
-## Set up datastore & eventstore
-
-Warrant is a stateful service that runs with an accompanying `datastore` and `eventstore` (for tracking resource & access events). Currently, `MySQL`, `PostgreSQL` and `SQLite` (file and in-memory) are supported. Refer to these guides to set up your desired database(s):
-
-- [MySQL](/migrations/datastore/mysql/README.md)
-- [PostgreSQL](/migrations/datastore/postgres/README.md)
-- [SQLite](/migrations/datastore/sqlite/README.md)
-
-Note: It's possible to use different dbs for the `datastore` and `eventstore` (e.g. mysql for datastore and sqlite for eventstore) but we recommend using the same type of db during development for simplicity.
-
 ## Server configuration
 
 Warrant requires certain configuration variables to be set via either a `warrant.yaml` config file or via environment variables. There is a set of common variables as well as datastore and eventstore-specific configuration.
@@ -40,9 +30,17 @@ Warrant requires certain configuration variables to be set via either a `warrant
 | `autoMigrate` | If set to `true`, the server will apply datastore and eventstore migrations before starting up. | no | false | `autoMigrate: VALUE` | `WARRANT_AUTOMIGRATE=VALUE` |
 | `authentication.apiKey` | The unique API key that all clients must pass to the server via the `Authorization: ApiKey VALUE` header | yes | - | `authentication:`<br>&emsp;`apiKey: VALUE` | `WARRANT_AUTHENTICATION_APIKEY=VALUE` |
 
-### Datastore & eventstore configuration
+## Set up datastore & eventstore
 
-Follow the datastore & eventstore setup [steps above](#set-up-datastore--eventstore) to set the appropriate `datastore` and `eventstore` configuration values. Here is an example of a server config using `mysql` for both the datastore and eventstore:
+Warrant is a stateful service that runs with an accompanying `datastore` and `eventstore` (for tracking resource & access events). Currently, `MySQL`, `PostgreSQL` and `SQLite` (file and in-memory) are supported. Refer to these guides to set up your desired database(s):
+
+- [MySQL](/migrations/datastore/mysql/README.md)
+- [PostgreSQL](/migrations/datastore/postgres/README.md)
+- [SQLite](/migrations/datastore/sqlite/README.md)
+
+Note: It's possible to use different dbs for the `datastore` and `eventstore` (e.g. mysql for datastore and sqlite for eventstore) but we recommend using the same type of db during development for simplicity.
+
+Here is an example of a full server config using `mysql` for both the datastore and eventstore:
 
 ### Sample `warrant.yaml` config (place file in same dir as server binary)
 
@@ -89,7 +87,7 @@ export WARRANT_EVENTSTORE_MYSQL_DATABASE="warrantEvents"
 
 ## Build binary & start server
 
-With the configuration set, build & start the server:
+After the datastore, eventstore and configuration are set, build & start the server:
 
 ```shell
 cd cmd/warrant
