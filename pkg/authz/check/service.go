@@ -80,22 +80,6 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType stri
 		return warrantSpecs, err
 	}
 
-	warrants, err = svc.WarrantRepository.GetAllMatchingWildcard(
-		ctx,
-		objectType,
-		objectId,
-		relation,
-		wntCtx.ToHash(),
-	)
-	if err != nil {
-		log.Err(err).Msg("Error fetching warrants matching wildcard")
-		return warrantSpecs, err
-	}
-
-	for _, warrant := range warrants {
-		warrantSpecs = append(warrantSpecs, *warrant.ToWarrantSpec())
-	}
-
 	return warrantSpecs, nil
 }
 
@@ -131,22 +115,6 @@ func (svc CheckService) getMatchingSubjectsWithSubjectType(ctx context.Context, 
 
 	if err != nil {
 		return warrantSpecs, err
-	}
-
-	warrants, err = svc.WarrantRepository.GetAllMatchingWildcard(
-		ctx,
-		objectType,
-		objectId,
-		relation,
-		wntCtx.ToHash(),
-	)
-	if err != nil {
-		log.Err(err).Msg("Error fetching warrants matching wildcard")
-		return warrantSpecs, err
-	}
-
-	for _, warrant := range warrants {
-		warrantSpecs = append(warrantSpecs, *warrant.ToWarrantSpec())
 	}
 
 	return warrantSpecs, nil
