@@ -29,6 +29,10 @@ Warrant requires certain configuration variables to be set via either a `warrant
 | `enableAccessLog` | Determines whether the built-in request logger is enabled or not. | no | true | `enableAccessLog: VALUE` | `WARRANT_ENABLEACCESSLOG=VALUE` |
 | `autoMigrate` | If set to `true`, the server will apply datastore and eventstore migrations before starting up. | no | false | `autoMigrate: VALUE` | `WARRANT_AUTOMIGRATE=VALUE` |
 | `authentication.apiKey` | The unique API key that all clients must pass to the server via the `Authorization: ApiKey VALUE` header | yes | - | `authentication:`<br>&emsp;`apiKey: VALUE` | `WARRANT_AUTHENTICATION_APIKEY=VALUE` |
+| `authentication.provider` | The authentication provider used to generate the auth tokens. | no | - | `authentication:`<br>&emsp;`provider: VALUE` | `WARRANT_AUTHENTICATION_PROVIDER=VALUE` |
+| `authentication.publicKey` | The signing certificate used to sign the auth token. Currently only RSA signed tokens are supported. If the provider is set to `firebase`, the public key is automatically fetched. | no | - | `authentication:`<br>&emsp;`publicKey: VALUE` | `WARRANT_AUTHENTICATION_PUBLICKEY=VALUE` |
+| `authentication.userIdClaim` | The claim containing the user id of the user being authenticated. | no | sub | `authentication:`<br>&emsp;`userIdClaim: VALUE` | `WARRANT_AUTHENTICATION_USERIDCLAIM=VALUE` |
+| `authentication.tenantIdClaim` | The claim containig the tenant id of the user being authenticated. | no | - | `authentication:`<br>&emsp;`tenantIdClaim: VALUE` | `WARRANT_AUTHENTICATION_TENANTIDCLAIM=VALUE` |
 
 ## Set up datastore & eventstore
 
