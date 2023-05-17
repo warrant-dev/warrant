@@ -517,7 +517,16 @@
                             "subjectId": "user-f"
                         },
                         {
-                            "type": "access_allowed",
+                            "type": "access_denied",
+                            "source": "api",
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subjectType": "user",
+                            "subjectId": "user-f"
+                        },
+                        {
+                            "type": "access_denied",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-a",
@@ -532,16 +541,7 @@
                             "objectId": "report-a",
                             "relation": "owner",
                             "subjectType": "user",
-                            "subjectId": "user-d"
-                        },
-                        {
-                            "type": "access_allowed",
-                            "source": "api",
-                            "objectType": "report",
-                            "objectId": "report-a",
-                            "relation": "owner",
-                            "subjectType": "user",
-                            "subjectId": "user-c"
+                            "subjectId": "user-e"
                         }
                     ],
                     "lastId": "{{ listAccessEventsFilterByObjectTypeAndObjectIdAndRelation.lastId }}"
@@ -628,7 +628,7 @@
                             "subjectId": "user-c"
                         },
                         {
-                            "type": "access_allowed",
+                            "type": "access_denied",
                             "source": "api",
                             "objectType": "report",
                             "objectId": "report-b",
