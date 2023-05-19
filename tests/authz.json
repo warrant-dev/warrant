@@ -1,6 +1,7 @@
 {
     "ignoredFields": [
-        "createdAt"
+        "createdAt",
+        "processingTime"
     ],
     "tests": [
         {
@@ -94,7 +95,7 @@
             }
         },
         {
-            "name": "createWarrant",
+            "name": "assignUserAEditorOfReportA",
             "request": {
                 "method": "POST",
                 "url": "/v1/warrants",
@@ -238,7 +239,7 @@
             }
         },
         {
-            "name": "assignRoleSeniorAccountantToUserWithContext",
+            "name": "assignRoleSeniorAccountantToUserAInTenantA",
             "request": {
                 "method": "POST",
                 "url": "/v1/warrants",
@@ -272,7 +273,7 @@
             }
         },
         {
-            "name": "checkAccessWithContextAuthorized",
+            "name": "checkUserAMemberOfPermissionEditBalanceSheetInTenantA",
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
@@ -291,19 +292,36 @@
                                 "tenant": "tenant-a"
                             }
                         }
-                    ]
+                    ],
+                    "debug": true
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "code": 200,
-                    "result": "Authorized"
+                    "result": "Authorized",
+                    "decisionPath": {
+                        "permission:edit-balance-sheet#member@user:user-a[tenant=tenant-a]": [
+                            {
+                                "objectType": "role",
+                                "objectId": "senior-accountant",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "user-a"
+                                },
+                                "context": {
+                                    "tenant": "tenant-a"
+                                }
+                            }
+                        ]
+                    }
                 }
             }
         },
         {
-            "name": "checkAccessWithContextNotAuthorized",
+            "name": "checkUserANotMemberOfPermissionEditBalanceSheetInTenantB",
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
@@ -322,7 +340,8 @@
                                 "tenant": "tenant-b"
                             }
                         }
-                    ]
+                    ],
+                    "debug": true
                 }
             },
             "expectedResponse": {
@@ -334,7 +353,7 @@
             }
         },
         {
-            "name": "checkAccessDirectWarrantAuthorized",
+            "name": "checkUserAEditorOfReportA",
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
@@ -350,19 +369,33 @@
                                 "objectId": "user-a"
                             }
                         }
-                    ]
+                    ],
+                    "debug": true
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "code": 200,
-                    "result": "Authorized"
+                    "result": "Authorized",
+                    "decisionPath": {
+                        "report:report-a#editor@user:user-a": [
+                            {
+                                "objectType": "report",
+                                "objectId": "report-a",
+                                "relation": "editor",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "user-a"
+                                }
+                            }
+                        ]
+                    }
                 }
             }
         },
         {
-            "name": "checkAccessUsersetRuleAuthorized",
+            "name": "checkUserAViewerOfReportA",
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
@@ -378,19 +411,33 @@
                                 "objectId": "user-a"
                             }
                         }
-                    ]
+                    ],
+                    "debug": true
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "code": 200,
-                    "result": "Authorized"
+                    "result": "Authorized",
+                    "decisionPath": {
+                        "report:report-a#viewer@user:user-a": [
+                            {
+                                "objectType": "report",
+                                "objectId": "report-a",
+                                "relation": "editor",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "user-a"
+                                }
+                            }
+                        ]
+                    }
                 }
             }
         },
         {
-            "name": "checkAccessAllOfRuleAuthorized",
+            "name": "checkUserAEditorViewerOfReportA",
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
@@ -406,19 +453,42 @@
                                 "objectId": "user-a"
                             }
                         }
-                    ]
+                    ],
+                    "debug": true
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "code": 200,
-                    "result": "Authorized"
+                    "result": "Authorized",
+                    "decisionPath": {
+                        "report:report-a#editor-viewer@user:user-a": [
+                            {
+                                "objectType": "report",
+                                "objectId": "report-a",
+                                "relation": "editor",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "user-a"
+                                }
+                            },
+                            {
+                                "objectType": "report",
+                                "objectId": "report-a",
+                                "relation": "editor",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "user-a"
+                                }
+                            }
+                        ]
+                    }
                 }
             }
         },
         {
-            "name": "checkAccessNoneOfRuleAuthorized",
+            "name": "checkUserANonOwnerOfReportA",
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
@@ -539,7 +609,7 @@
             }
         },
         {
-            "name": "deleteWarrant",
+            "name": "removeUserAEditorOfReportA",
             "request": {
                 "method": "DELETE",
                 "url": "/v1/warrants",

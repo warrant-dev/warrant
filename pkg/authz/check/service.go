@@ -321,6 +321,13 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 		return nil, err
 	}
 
+	if warrantCheck.Debug {
+		checkResult.ProcessingTime = time.Since(start).Milliseconds()
+		if len(decisionPath) > 0 {
+			checkResult.DecisionPath[warrantSpec.String()] = decisionPath
+		}
+	}
+
 	if match {
 		err = svc.EventSvc.TrackAccessAllowedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Context)
 		if err != nil {
@@ -339,13 +346,6 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 
 	checkResult.Code = http.StatusForbidden
 	checkResult.Result = NotAuthorized
-	if warrantCheck.Debug {
-		checkResult.ProcessingTime = time.Since(start).Milliseconds()
-		if len(decisionPath) > 0 {
-			checkResult.DecisionPath[warrantSpec.String()] = decisionPath
-		}
-	}
-
 	return &checkResult, nil
 }
 
