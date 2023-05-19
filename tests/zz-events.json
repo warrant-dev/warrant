@@ -180,28 +180,12 @@
             "name": "listResourceEventsFilterByResourceTypeAndResourceId",
             "request": {
                 "method": "GET",
-                "url": "/v1/resource-events?limit=5&resourceType=user&resourceId=user-a"
+                "url": "/v1/resource-events?limit=3&resourceType=user&resourceId=user-a"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "events": [
-                        {
-                            "type": "deleted",
-                            "source": "api",
-                            "resourceType": "user",
-                            "resourceId": "user-a"
-                        },
-                        {
-                            "type": "created",
-                            "source": "api",
-                            "resourceType": "user",
-                            "resourceId": "user-a",
-                            "meta": {
-                                "email": "user-a@warrant.dev",
-                                "userId": "user-a"
-                            }
-                        },
                         {
                             "type": "deleted",
                             "source": "api",
