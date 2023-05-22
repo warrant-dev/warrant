@@ -416,6 +416,16 @@
                                 "context": {
                                     "tenant": "tenant-b"
                                 }
+                            },
+                            {
+                                "objectType": "report",
+                                "objectId": "report-a",
+                                "relation": "editor",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
                             }
                         ]
                     }
@@ -464,6 +474,16 @@
                                 "context": {
                                     "tenant": "tenant-b"
                                 }
+                            },
+                            {
+                                "objectType": "report",
+                                "objectId": "report-a",
+                                "relation": "editor",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
                             }
                         ]
                     }
@@ -511,6 +531,15 @@
                                 },
                                 "context": {
                                     "tenant": "tenant-a"
+                                }
+                            },
+                            {
+                                "objectType": "permission",
+                                "objectId": "edit-balance-sheet",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "senior-accountant"
                                 }
                             }
                         ]
