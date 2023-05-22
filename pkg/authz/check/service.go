@@ -207,6 +207,7 @@ func (svc CheckService) checkRule(ctx context.Context, authInfo *service.AuthInf
 			}
 
 			if match {
+				decisionPath = append(decisionPath, matchingWarrant)
 				return true, decisionPath, nil
 			}
 		}
@@ -402,6 +403,7 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 		}
 
 		if match {
+			decisionPath = append(decisionPath, matchingWarrant)
 			return true, decisionPath, nil
 		}
 	}
