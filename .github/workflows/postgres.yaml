@@ -1,0 +1,85 @@
+name: PostgreSQL
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go env
+        uses: actions/setup-go@v3
+        with:
+          go-version: "^1.20.4"
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      - name: Build binary
+        run: make build
+        working-directory: cmd/warrant
+      - name: Start & configure postgres
+        run: |
+          sudo systemctl start postgresql.service
+          pg_isready
+          sudo -u postgres psql --command="CREATE USER warrant_user PASSWORD 'db_password'"
+          sudo -u postgres psql --command="ALTER USER warrant_user CREATEDB" --command="\du"
+          sudo -u postgres createdb --owner=warrant_user warrant_user
+          sudo -u postgres createdb --owner=warrant_user warrant
+          sudo -u postgres createdb --owner=warrant_user warrant_events
+          sudo -u postgres psql --command="\l"
+      - name: Install apirunner & go-migrate
+        run: |
+          go install github.com/warrant-dev/apirunner/cmd/apirunner@latest
+          go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+      - name: Run datastore migrations 'up'
+        run: migrate -path ./migrations/datastore/postgres/ -database postgres://warrant_user:db_password@/warrant?sslmode=disable up
+      - name: Run eventstore migrations 'up'
+        run: migrate -path ./migrations/eventstore/postgres/ -database postgres://warrant_user:db_password@/warrant_events?sslmode=disable up
+      - name: Start test server
+        id: start-server
+        run: ./cmd/warrant/bin/warrant > server.log 2>&1 &
+        env:
+          WARRANT_AUTOMIGRATE: false
+          WARRANT_PORT: 8000
+          WARRANT_LOGLEVEL: 0
+          WARRANT_ENABLEACCESSLOG: true
+          WARRANT_AUTHENTICATION_APIKEY: warrant_api_key
+          WARRANT_DATASTORE: postgres
+          WARRANT_DATASTORE_POSTGRES_USERNAME: warrant_user
+          WARRANT_DATASTORE_POSTGRES_PASSWORD: db_password
+          WARRANT_DATASTORE_POSTGRES_HOSTNAME: localhost
+          WARRANT_DATASTORE_POSTGRES_DATABASE: warrant
+          WARRANT_DATASTORE_POSTGRES_SSLMODE: disable
+          WARRANT_EVENTSTORE: postgres
+          WARRANT_EVENTSTORE_POSTGRES_USERNAME: warrant_user
+          WARRANT_EVENTSTORE_POSTGRES_PASSWORD: db_password
+          WARRANT_EVENTSTORE_POSTGRES_HOSTNAME: localhost
+          WARRANT_EVENTSTORE_POSTGRES_DATABASE: warrant_events
+          WARRANT_EVENTSTORE_POSTGRES_SSLMODE: disable
+          WARRANT_EVENTSTORE_SYNCHRONIZEEVENTS: true
+      - name: Run apirunner tests
+        run: |
+          sleep 3
+          apirunner tests/ tests/ci-apirunner.conf
+      - name: Shutdown test server
+        if: success() || (failure() && steps.start-server.outcome == 'success')
+        run: kill -9 `lsof -i:8000 -t`
+      - name: Run datastore migrations 'down'
+        run: echo 'y' | migrate -path ./migrations/datastore/postgres/ -database postgres://warrant_user:db_password@/warrant?sslmode=disable down
+      - name: Run eventstore migrations 'down'
+        run: echo 'y' | migrate -path ./migrations/eventstore/postgres/ -database postgres://warrant_user:db_password@/warrant_events?sslmode=disable down
+      - name: Archive server log
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: server-log
+          path: server.log
+          if-no-files-found: warn
+          retention-days: 5
