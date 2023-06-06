@@ -26,11 +26,11 @@ import (
 
 const (
 	MySQLDatastoreMigrationVersion     = 000004
-	MySQLEventstoreMigrationVersion    = 000002
+	MySQLEventstoreMigrationVersion    = 000003
 	PostgresDatastoreMigrationVersion  = 000004
-	PostgresEventstoreMigrationVersion = 000002
+	PostgresEventstoreMigrationVersion = 000003
 	SQLiteDatastoreMigrationVersion    = 000004
-	SQLiteEventstoreMigrationVersion   = 000002
+	SQLiteEventstoreMigrationVersion   = 000003
 )
 
 type ServiceEnv struct {

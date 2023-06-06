@@ -172,7 +172,6 @@ func (repo SQLiteRepository) TrackAccessEvents(ctx context.Context, models []Acc
 			  subjectType,
 			  subjectId,
 			  subjectRelation,
-			  context,
 			  meta,
 			  createdAt
 		   ) VALUES (
@@ -185,7 +184,6 @@ func (repo SQLiteRepository) TrackAccessEvents(ctx context.Context, models []Acc
 			  :subjectType,
 			  :subjectId,
 			  :subjectRelation,
-			  :context,
 			  :meta,
 			  :createdAt
 		   )
@@ -208,7 +206,7 @@ func (repo SQLiteRepository) ListAccessEvents(ctx context.Context, listParams Li
 	models := make([]AccessEventModel, 0)
 	accessEvents := make([]AccessEvent, 0)
 	query := `
-		SELECT id, type, source, objectType, objectId, relation, subjectType, subjectId, subjectRelation, context, meta, createdAt
+		SELECT id, type, source, objectType, objectId, relation, subjectType, subjectId, subjectRelation, meta, createdAt
 		FROM accessEvent
 		WHERE
 	`

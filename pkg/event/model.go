@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/warrant-dev/warrant/pkg/context"
 )
 
 type ResourceEventModel interface {
@@ -99,7 +98,6 @@ type AccessEventModel interface {
 	GetSubjectType() string
 	GetSubjectId() string
 	GetSubjectRelation() string
-	GetContext() *string
 	GetMeta() *string
 	GetCreatedAt() time.Time
 	ToAccessEventSpec() (*AccessEventSpec, error)
@@ -115,7 +113,6 @@ type AccessEvent struct {
 	SubjectType     string    `mysql:"subjectType" postgres:"subject_type" sqlite:"subjectType"`
 	SubjectId       string    `mysql:"subjectId" postgres:"subject_id" sqlite:"subjectId"`
 	SubjectRelation string    `mysql:"subjectRelation" postgres:"subject_relation" sqlite:"subjectRelation"`
-	Context         *string   `mysql:"context" postgres:"context" sqlite:"context"`
 	Meta            *string   `mysql:"meta" postgres:"meta" sqlite:"meta"`
 	CreatedAt       time.Time `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
 }
@@ -131,7 +128,6 @@ func NewAccessEventFromModel(model AccessEventModel) *AccessEvent {
 		SubjectType:     model.GetSubjectType(),
 		SubjectId:       model.GetSubjectId(),
 		SubjectRelation: model.GetSubjectRelation(),
-		Context:         model.GetContext(),
 		Meta:            model.GetMeta(),
 		CreatedAt:       model.GetCreatedAt(),
 	}
@@ -173,10 +169,6 @@ func (accessEvent AccessEvent) GetSubjectRelation() string {
 	return accessEvent.SubjectRelation
 }
 
-func (accessEvent AccessEvent) GetContext() *string {
-	return accessEvent.Context
-}
-
 func (accessEvent AccessEvent) GetMeta() *string {
 	return accessEvent.Meta
 }
@@ -191,14 +183,6 @@ func (accessEvent AccessEvent) ToAccessEventSpec() (*AccessEventSpec, error) {
 		err := json.Unmarshal([]byte(*accessEvent.Meta), &meta)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error unmarshaling access event meta %s", *accessEvent.Meta)
-		}
-	}
-
-	var ctx context.ContextSetSpec
-	if accessEvent.Context != nil {
-		err := json.Unmarshal([]byte(*accessEvent.Context), &ctx)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error unmarshaling access event context %s", *accessEvent.Context)
 		}
 	}
 
