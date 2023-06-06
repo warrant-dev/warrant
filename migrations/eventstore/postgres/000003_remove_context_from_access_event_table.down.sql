@@ -1,0 +1,6 @@
+BEGIN;
+
+ALTER TABLE access_event
+ADD COLUMN context json DEFAULT NULL;
+
+COMMIT;
