@@ -110,6 +110,39 @@
             }
         },
         {
+            "name": "failToCreateDuplicateWarrant",
+            "request": {
+                "method": "POST",
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "view-balance-sheet",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "senior-accountant"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 400,
+                "body": {
+                    "code": "duplicate_record",
+                    "message": "Duplicate Warrant permission:view-balance-sheet#member@role:senior-accountant, A warrant with the given objectType, objectId, relation, subject, and policy already exists",
+                    "type": "Warrant",
+                    "key": {
+                        "objectType": "permission",
+                        "objectId": "view-balance-sheet",
+                        "relation": "member",
+                        "subject": {
+                            "objectType": "role",
+                            "objectId": "senior-accountant"
+                        }
+                    }
+                }
+            }
+        },
+        {
             "name": "assignPermissionEditBalanceSheetToUserUsera",
             "request": {
                 "method": "POST",
