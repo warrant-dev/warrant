@@ -4,6 +4,7 @@ import "time"
 
 const (
 	DateFormat                = "2006-01-02"
+	DefaultEpochMicroseconds  = 1136160000000
 	DefaultLimit              = 100
 	QueryParamType            = "type"
 	QueryParamSource          = "source"
