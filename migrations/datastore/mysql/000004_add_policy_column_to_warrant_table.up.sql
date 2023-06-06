@@ -19,11 +19,10 @@ SET
     warrant.policyHash = SHA2(warrant.policy, 256)
 WHERE warrant.contextHash != "";
 
-CREATE INDEX warrant_uk_obj_rel_sub_policy_hash ON warrant(objectType, objectId, relation, subjectType, subjectId, subjectRelation, policyHash);
-
 ALTER TABLE warrant
 DROP INDEX warrant_uk_obj_rel_sub_ctx_hash,
-DROP COLUMN contextHash;
+DROP COLUMN contextHash,
+ADD UNIQUE KEY warrant_uk_obj_rel_sub_policy_hash (objectType, objectId, relation, subjectType, subjectId, subjectRelation, policyHash);
 
 DROP TABLE IF EXISTS context;
 
