@@ -39,7 +39,7 @@ type AuthMiddlewareFunc func(config config.Config, next http.Handler) (http.Hand
 func ApiKeyAuthMiddleware(cfg config.Config, next http.Handler) (http.Handler, error) {
 	warrantCfg, ok := cfg.(config.WarrantConfig)
 	if !ok {
-		return nil, fmt.Errorf("cfg parameter on DefaultAuthMiddleware must be a WarrantConfig")
+		return nil, errors.New("cfg parameter on DefaultAuthMiddleware must be a WarrantConfig")
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +62,7 @@ func ApiKeyAuthMiddleware(cfg config.Config, next http.Handler) (http.Handler, e
 func ApiKeyAndSessionAuthMiddleware(cfg config.Config, next http.Handler) (http.Handler, error) {
 	warrantCfg, ok := cfg.(config.WarrantConfig)
 	if !ok {
-		return nil, fmt.Errorf("cfg parameter on DefaultAuthMiddleware must be a WarrantConfig")
+		return nil, errors.New("cfg parameter on DefaultAuthMiddleware must be a WarrantConfig")
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

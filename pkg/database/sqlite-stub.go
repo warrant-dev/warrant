@@ -5,8 +5,8 @@ package database
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/config"
 )
 
@@ -24,13 +24,13 @@ func (ds SQLite) Type() string {
 }
 
 func (ds *SQLite) Connect(ctx context.Context) error {
-	return fmt.Errorf("sqlite not supported")
+	return errors.New("sqlite not supported")
 }
 
 func (ds SQLite) Migrate(ctx context.Context, toVersion uint) error {
-	return fmt.Errorf("sqlite not supported")
+	return errors.New("sqlite not supported")
 }
 
 func (ds SQLite) Ping(ctx context.Context) error {
-	return fmt.Errorf("sqlite not supported")
+	return errors.New("sqlite not supported")
 }

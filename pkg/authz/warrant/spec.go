@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
 	context "github.com/warrant-dev/warrant/pkg/context"
 )
 
@@ -45,7 +46,7 @@ func StringToSubjectSpec(str string) (*SubjectSpec, error) {
 		objectType, objectId, colonFound := strings.Cut(str, ":")
 
 		if !colonFound {
-			return nil, fmt.Errorf("invalid subject")
+			return nil, errors.New("invalid subject")
 		}
 
 		return &SubjectSpec{
@@ -59,7 +60,7 @@ func StringToSubjectSpec(str string) (*SubjectSpec, error) {
 
 	objectType, objectId, colonFound := strings.Cut(object, ":")
 	if !colonFound {
-		return nil, fmt.Errorf("invalid subject")
+		return nil, errors.New("invalid subject")
 	}
 
 	subjectSpec := &SubjectSpec{
