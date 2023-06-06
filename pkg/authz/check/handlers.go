@@ -29,9 +29,9 @@ func AuthorizeHandler(svc CheckService, w http.ResponseWriter, r *http.Request) 
 			return err
 		}
 
-		warrantSpecs := make([]warrant.WarrantSpec, 0)
+		warrantSpecs := make([]CheckWarrantSpec, 0)
 		for _, warrantSpec := range sessionCheckManySpec.Warrants {
-			warrantSpecs = append(warrantSpecs, warrant.WarrantSpec{
+			warrantSpecs = append(warrantSpecs, CheckWarrantSpec{
 				ObjectType: warrantSpec.ObjectType,
 				ObjectId:   warrantSpec.ObjectId,
 				Relation:   warrantSpec.Relation,
@@ -43,11 +43,10 @@ func AuthorizeHandler(svc CheckService, w http.ResponseWriter, r *http.Request) 
 		}
 
 		checkManySpec := CheckManySpec{
-			Op:             sessionCheckManySpec.Op,
-			Warrants:       warrantSpecs,
-			Context:        sessionCheckManySpec.Context,
-			ConsistentRead: sessionCheckManySpec.ConsistentRead,
-			Debug:          sessionCheckManySpec.Debug,
+			Op:       sessionCheckManySpec.Op,
+			Warrants: warrantSpecs,
+			Context:  sessionCheckManySpec.Context,
+			Debug:    sessionCheckManySpec.Debug,
 		}
 
 		checkResult, err := svc.CheckMany(r.Context(), authInfo, &checkManySpec)

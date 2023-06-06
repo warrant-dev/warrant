@@ -150,10 +150,7 @@
                         "objectType": "user",
                         "objectId": "user-a"
                     },
-                    "context": {
-                        "tenant": "tenant-a",
-                        "organization": "org-a"
-                    }
+                    "policy": "tenant == \"tenant-a\" && organization == \"org-a\""
                 }
             },
             "expectedResponse": {
@@ -166,10 +163,7 @@
                         "objectType": "user",
                         "objectId": "user-a"
                     },
-                    "context": {
-                        "tenant": "tenant-a",
-                        "organization": "org-a"
-                    }
+                    "policy": "tenant == \"tenant-a\" && organization == \"org-a\""
                 }
             }
         },
@@ -186,10 +180,7 @@
                         "objectType": "user",
                         "objectId": "user-a"
                     },
-                    "context": {
-                        "tenant": "tenant-a",
-                        "organization": "org-a"
-                    }
+                    "policy": "tenant == \"tenant-a\" && organization == \"org-a\""
                 }
             },
             "expectedResponse": {

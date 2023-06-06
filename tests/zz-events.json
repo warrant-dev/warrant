@@ -248,7 +248,10 @@
                             "objectId": "senior-accountant",
                             "relation": "member",
                             "subjectType": "user",
-                            "subjectId": "user-a"
+                            "subjectId": "user-a",
+                            "meta": {
+                                "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
+                            }
                         }
                     ],
                     "lastId": "{{ listLastThreeAccessEvents.lastId }}"
@@ -272,7 +275,10 @@
                             "objectId": "senior-accountant",
                             "relation": "member",
                             "subjectType": "user",
-                            "subjectId": "user-a"
+                            "subjectId": "user-a",
+                            "meta": {
+                                "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
+                            }
                         },
                         {
                             "type": "access_granted",
@@ -318,7 +324,10 @@
                             "objectId": "senior-accountant",
                             "relation": "member",
                             "subjectType": "user",
-                            "subjectId": "user-a"
+                            "subjectId": "user-a",
+                            "meta": {
+                                "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
+                            }
                         },
                         {
                             "type": "access_granted",
@@ -491,7 +500,10 @@
                             "objectId": "report-a",
                             "relation": "owner",
                             "subjectType": "user",
-                            "subjectId": "user-a"
+                            "subjectId": "user-a",
+                            "meta": {
+                                "policy": "tenant == \"tenant-a\""
+                            }
                         },
                         {
                             "type": "access_denied",
@@ -500,7 +512,12 @@
                             "objectId": "report-a",
                             "relation": "owner",
                             "subjectType": "user",
-                            "subjectId": "user-f"
+                            "subjectId": "user-f",
+                            "meta": {
+                                "context": {
+                                    "tenant": "tenant-b"
+                                }
+                            }
                         },
                         {
                             "type": "access_denied",
@@ -509,7 +526,12 @@
                             "objectId": "report-a",
                             "relation": "owner",
                             "subjectType": "user",
-                            "subjectId": "user-f"
+                            "subjectId": "user-f",
+                            "meta": {
+                                "context": {
+                                    "tenant": "tenant-a"
+                                }
+                            }
                         },
                         {
                             "type": "access_denied",
@@ -518,7 +540,12 @@
                             "objectId": "report-a",
                             "relation": "owner",
                             "subjectType": "user",
-                            "subjectId": "user-e"
+                            "subjectId": "user-e",
+                            "meta": {
+                                "context": {
+                                    "tenant": "tenant-b"
+                                }
+                            }
                         },
                         {
                             "type": "access_allowed",
@@ -527,7 +554,12 @@
                             "objectId": "report-a",
                             "relation": "owner",
                             "subjectType": "user",
-                            "subjectId": "user-e"
+                            "subjectId": "user-e",
+                            "meta": {
+                                "context": {
+                                    "tenant": "tenant-a"
+                                }
+                            }
                         }
                     ],
                     "lastId": "{{ listAccessEventsFilterByObjectTypeAndObjectIdAndRelation.lastId }}"
@@ -560,7 +592,10 @@
                             "objectId": "senior-accountant",
                             "relation": "member",
                             "subjectType": "user",
-                            "subjectId": "user-a"
+                            "subjectId": "user-a",
+                            "meta": {
+                                "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
+                            }
                         },
                         {
                             "type": "access_granted",
@@ -569,7 +604,10 @@
                             "objectId": "senior-accountant",
                             "relation": "member",
                             "subjectType": "user",
-                            "subjectId": "user-a"
+                            "subjectId": "user-a",
+                            "meta": {
+                                "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
+                            }
                         },
                         {
                             "type": "access_granted",
@@ -611,7 +649,10 @@
                             "objectId": "admin-a",
                             "relation": "member",
                             "subjectType": "user",
-                            "subjectId": "user-c"
+                            "subjectId": "user-c",
+                            "meta": {
+                                "policy": "tenant == \"tenant-a\""
+                            }
                         },
                         {
                             "type": "access_denied",
@@ -620,7 +661,12 @@
                             "objectId": "report-b",
                             "relation": "owner",
                             "subjectType": "user",
-                            "subjectId": "user-c"
+                            "subjectId": "user-c",
+                            "meta": {
+                                "context": {
+                                    "tenant": "tenant-b"
+                                }
+                            }
                         }
                     ],
                     "lastId": "{{ listAccessEventsFilterBySubjectTypeAndSubjectId.lastId }}"
@@ -665,7 +711,10 @@
                             "relation": "owner",
                             "subjectType": "role",
                             "subjectId": "admin-a",
-                            "subjectRelation": "member"
+                            "subjectRelation": "member",
+                            "meta": {
+                                "policy": "tenant == \"tenant-a\""
+                            }
                         },
                         {
                             "type": "access_revoked",
@@ -675,7 +724,10 @@
                             "relation": "owner",
                             "subjectType": "role",
                             "subjectId": "admin-b",
-                            "subjectRelation": "member"
+                            "subjectRelation": "member",
+                            "meta": {
+                                "policy": "tenant == \"tenant-b\""
+                            }
                         }
                     ],
                     "lastId": "{{ listAccessEventsFilterBySubjectTypeAndSubjectRelation.lastId }}"

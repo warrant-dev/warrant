@@ -3,6 +3,7 @@ package authz
 import (
 	"net/http"
 
+	"github.com/warrant-dev/warrant/pkg/policy"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -18,7 +19,7 @@ func (svc WarrantService) Routes() ([]service.Route, error) {
 			),
 		},
 
-		// get
+		// list
 		service.WarrantRoute{
 			Pattern: "/v1/warrants",
 			Method:  "GET",
@@ -44,6 +45,14 @@ func CreateHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 	err := service.ParseJSONBody(r.Body, &warrantSpec)
 	if err != nil {
 		return err
+	}
+
+	// TODO: move into a custom golang-validate function
+	if warrantSpec.Policy != "" {
+		err := policy.Validate(warrantSpec.Policy)
+		if err != nil {
+			return service.NewInvalidParameterError("policy", err.Error())
+		}
 	}
 
 	createdWarrant, err := svc.Create(r.Context(), warrantSpec)

@@ -32,8 +32,9 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 				subjectType,
 				subjectId,
 				subjectRelation,
-				contextHash
-			) VALUES (?, ?, ?, ?, ?, ?, ?)
+				policy,
+				policyHash
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 			ON DUPLICATE KEY UPDATE
 				createdAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
@@ -44,7 +45,8 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 		model.GetSubjectType(),
 		model.GetSubjectId(),
 		model.GetSubjectRelation(),
-		model.GetContextHash(),
+		model.GetPolicy(),
+		model.GetPolicyHash(),
 	)
 	if err != nil {
 		return -1, errors.Wrap(err, "error creating warrant")
@@ -139,13 +141,13 @@ func (repo MySQLRepository) DeleteAllBySubject(ctx context.Context, subjectType 
 	return nil
 }
 
-func (repo MySQLRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error) {
+func (repo MySQLRepository) get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) (Model, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
 		&warrant,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, policy, createdAt, updatedAt, deletedAt
 			FROM warrant
 			WHERE
 				objectType = ? AND
@@ -154,7 +156,7 @@ func (repo MySQLRepository) Get(ctx context.Context, objectType string, objectId
 				subjectType = ? AND
 				subjectId = ? AND
 				subjectRelation = ? AND
-				contextHash = ? AND
+				policyHash = ? AND
 				deletedAt IS NULL
 		`,
 		objectType,
@@ -163,7 +165,7 @@ func (repo MySQLRepository) Get(ctx context.Context, objectType string, objectId
 		subjectType,
 		subjectId,
 		subjectRelation,
-		contextHash,
+		policyHash,
 	)
 	if err != nil {
 		switch err {
@@ -171,6 +173,9 @@ func (repo MySQLRepository) Get(ctx context.Context, objectType string, objectId
 			wntErrorId := fmt.Sprintf("%s:%s#%s@%s:%s", objectType, objectId, relation, subjectType, subjectId)
 			if subjectRelation != "" {
 				wntErrorId = fmt.Sprintf("%s#%s", wntErrorId, subjectRelation)
+			}
+			if policyHash != "" {
+				wntErrorId = fmt.Sprintf("%s[%s]", wntErrorId, policyHash)
 			}
 
 			return nil, service.NewRecordNotFoundError("Warrant", wntErrorId)
@@ -182,51 +187,13 @@ func (repo MySQLRepository) Get(ctx context.Context, objectType string, objectId
 	return &warrant, nil
 }
 
-func (repo MySQLRepository) GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error) {
+func (repo MySQLRepository) getByID(ctx context.Context, id int64) (Model, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
 		&warrant,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
-			FROM warrant
-			WHERE
-				objectType = ? AND
-				(objectId = ? OR objectId = "*") AND
-				relation = ? AND
-				subjectType = ? AND
-				subjectId = ? AND
-				subjectRelation = ? AND
-				(contextHash = ? OR contextHash = "") AND
-				deletedAt IS NULL
-		`,
-		objectType,
-		objectId,
-		relation,
-		subjectType,
-		subjectId,
-		subjectRelation,
-		contextHash,
-	)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return nil, nil
-		default:
-			return nil, errors.Wrap(err, "error getting warrant with context match")
-		}
-	}
-
-	return &warrant, nil
-}
-
-func (repo MySQLRepository) GetByID(ctx context.Context, id int64) (Model, error) {
-	var warrant Warrant
-	err := repo.DB.GetContext(
-		ctx,
-		&warrant,
-		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, policy, createdAt, updatedAt, deletedAt
 			FROM warrant
 			WHERE
 				id = ? AND
@@ -251,7 +218,7 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	query := `
-		SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
+		SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, policy, createdAt, updatedAt, deletedAt
 		FROM warrant
 		WHERE
 			deletedAt IS NULL
@@ -318,27 +285,66 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 	return models, nil
 }
 
-func (repo MySQLRepository) GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Model, error) {
+func (repo MySQLRepository) GetAllMatchingObjectRelationAndSubject(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
 		&warrants,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, contextHash, createdAt, updatedAt, deletedAt
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, policy, createdAt, updatedAt, deletedAt
 			FROM warrant
 			WHERE
 				objectType = ? AND
 				(objectId = ? OR objectId = "*") AND
 				relation = ? AND
-				(contextHash = ? OR contextHash = "") AND
+				subjectType = ? AND
+				subjectId = ? AND
+				subjectRelation = ? AND
+				deletedAt IS NULL
+		`,
+		objectType,
+		objectId,
+		relation,
+		subjectType,
+		subjectId,
+		subjectRelation,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return models, nil
+		default:
+			return nil, errors.Wrapf(err, "error getting warrants with object type %s, object id %s, relation %s, subject type %s, subject id %s, and subject relation %s", objectType, objectId, relation, subjectType, subjectId, subjectRelation)
+		}
+	}
+
+	for i := range warrants {
+		models = append(models, &warrants[i])
+	}
+
+	return models, nil
+}
+
+func (repo MySQLRepository) GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string) ([]Model, error) {
+	models := make([]Model, 0)
+	warrants := make([]Warrant, 0)
+	err := repo.DB.SelectContext(
+		ctx,
+		&warrants,
+		`
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, policy, createdAt, updatedAt, deletedAt
+			FROM warrant
+			WHERE
+				objectType = ? AND
+				(objectId = ? OR objectId = "*") AND
+				relation = ? AND
 				deletedAt IS NULL
 			ORDER BY createdAt DESC, id DESC
 		`,
 		objectType,
 		objectId,
 		relation,
-		contextHash,
 	)
 	if err != nil {
 		switch err {
@@ -356,21 +362,20 @@ func (repo MySQLRepository) GetAllMatchingObjectAndRelation(ctx context.Context,
 	return models, nil
 }
 
-func (repo MySQLRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Model, error) {
+func (repo MySQLRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
 		&warrants,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, contextHash, createdAt, updatedAt, deletedAt
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, policy, createdAt, updatedAt, deletedAt
 			FROM warrant
 			WHERE
 				objectType = ? AND
 				(objectId = ? OR objectId = "*") AND
 				relation = ? AND
 				subjectType = ? AND
-				(contextHash = ? OR contextHash = "") AND
 				deletedAt IS NULL
 			ORDER BY createdAt DESC, id DESC
 		`,
@@ -378,7 +383,6 @@ func (repo MySQLRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx con
 		objectId,
 		relation,
 		subjectType,
-		contextHash,
 	)
 	if err != nil {
 		switch err {

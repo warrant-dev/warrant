@@ -214,6 +214,5 @@ func (accessEvent AccessEvent) ToAccessEventSpec() (*AccessEventSpec, error) {
 		SubjectId:       accessEvent.SubjectId,
 		SubjectRelation: accessEvent.SubjectRelation,
 		Meta:            meta,
-		Context:         ctx,
 	}, nil
 }

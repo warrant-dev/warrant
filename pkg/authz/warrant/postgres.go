@@ -35,9 +35,10 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 				subject_type,
 				subject_id,
 				subject_relation,
-				context_hash
-			) VALUES (?, ?, ?, ?, ?, ?, ?)
-			ON CONFLICT (object_type, object_id, relation, subject_type, subject_id, subject_relation, context_hash) DO UPDATE SET
+				policy,
+				policy_hash
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+			ON CONFLICT (object_type, object_id, relation, subject_type, subject_id, subject_relation, policy_hash) DO UPDATE SET
 				created_at = CURRENT_TIMESTAMP(6),
 				deleted_at = NULL
 			RETURNING id
@@ -48,7 +49,8 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 		model.GetSubjectType(),
 		model.GetSubjectId(),
 		model.GetSubjectRelation(),
-		model.GetContextHash(),
+		model.GetPolicy(),
+		model.GetPolicyHash(),
 	)
 	if err != nil {
 		return -1, errors.Wrap(err, "error creating warrant")
@@ -138,13 +140,13 @@ func (repo PostgresRepository) DeleteAllBySubject(ctx context.Context, subjectTy
 	return nil
 }
 
-func (repo PostgresRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error) {
+func (repo PostgresRepository) get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) (Model, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
 		&warrant,
 		`
-			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, created_at, updated_at, deleted_at
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, policy, created_at, updated_at, deleted_at
 			FROM warrant
 			WHERE
 				object_type = ? AND
@@ -153,7 +155,7 @@ func (repo PostgresRepository) Get(ctx context.Context, objectType string, objec
 				subject_type = ? AND
 				subject_id = ? AND
 				subject_relation = ? AND
-				context_hash = ? AND
+				policy_hash = ? AND
 				deleted_at IS NULL
 		`,
 		objectType,
@@ -162,7 +164,7 @@ func (repo PostgresRepository) Get(ctx context.Context, objectType string, objec
 		subjectType,
 		subjectId,
 		subjectRelation,
-		contextHash,
+		policyHash,
 	)
 	if err != nil {
 		switch err {
@@ -170,6 +172,9 @@ func (repo PostgresRepository) Get(ctx context.Context, objectType string, objec
 			wntErrorId := fmt.Sprintf("%s:%s#%s@%s:%s", objectType, objectId, relation, subjectType, subjectId)
 			if subjectRelation != "" {
 				wntErrorId = fmt.Sprintf("%s#%s", wntErrorId, subjectRelation)
+			}
+			if policyHash != "" {
+				wntErrorId = fmt.Sprintf("%s[%s]", wntErrorId, policyHash)
 			}
 
 			return nil, service.NewRecordNotFoundError("Warrant", wntErrorId)
@@ -181,51 +186,13 @@ func (repo PostgresRepository) Get(ctx context.Context, objectType string, objec
 	return &warrant, nil
 }
 
-func (repo PostgresRepository) GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error) {
+func (repo PostgresRepository) getByID(ctx context.Context, id int64) (Model, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
 		&warrant,
 		`
-			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, created_at, updated_at, deleted_at
-			FROM warrant
-			WHERE
-				object_type = ? AND
-				(object_id = ? OR object_id = '*') AND
-				relation = ? AND
-				subject_type = ? AND
-				subject_id = ? AND
-				subject_relation = ? AND
-				(context_hash = ? OR context_hash = '') AND
-				deleted_at IS NULL
-		`,
-		objectType,
-		objectId,
-		relation,
-		subjectType,
-		subjectId,
-		subjectRelation,
-		contextHash,
-	)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return nil, nil
-		default:
-			return nil, errors.Wrap(err, "error getting warrant with context match")
-		}
-	}
-
-	return &warrant, nil
-}
-
-func (repo PostgresRepository) GetByID(ctx context.Context, id int64) (Model, error) {
-	var warrant Warrant
-	err := repo.DB.GetContext(
-		ctx,
-		&warrant,
-		`
-			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, created_at, updated_at, deleted_at
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, policy, created_at, updated_at, deleted_at
 			FROM warrant
 			WHERE
 				id = ? AND
@@ -318,27 +285,66 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 	return models, nil
 }
 
-func (repo PostgresRepository) GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Model, error) {
+func (repo PostgresRepository) GetAllMatchingObjectRelationAndSubject(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
 		&warrants,
 		`
-			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, context_hash, created_at, updated_at, deleted_at
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, policy, created_at, updated_at, deleted_at
 			FROM warrant
 			WHERE
 				object_type = ? AND
 				(object_id = ? OR object_id = '*') AND
 				relation = ? AND
-				(context_hash = ? OR context_hash = '') AND
+				subject_type = ? AND
+				subject_id = ? AND
+				subject_relation = ? AND
+				deleted_at IS NULL
+		`,
+		objectType,
+		objectId,
+		relation,
+		subjectType,
+		subjectId,
+		subjectRelation,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return models, nil
+		default:
+			return nil, errors.Wrapf(err, "error getting warrants with object type %s, object id %s, relation %s, subject type %s, subject id %s, and subject relation %s", objectType, objectId, relation, subjectType, subjectId, subjectRelation)
+		}
+	}
+
+	for i := range warrants {
+		models = append(models, &warrants[i])
+	}
+
+	return models, nil
+}
+
+func (repo PostgresRepository) GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string) ([]Model, error) {
+	models := make([]Model, 0)
+	warrants := make([]Warrant, 0)
+	err := repo.DB.SelectContext(
+		ctx,
+		&warrants,
+		`
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, policy, created_at, updated_at, deleted_at
+			FROM warrant
+			WHERE
+				object_type = ? AND
+				(object_id = ? OR object_id = '*') AND
+				relation = ? AND
 				deleted_at IS NULL
 			ORDER BY created_at DESC, id DESC
 		`,
 		objectType,
 		objectId,
 		relation,
-		contextHash,
 	)
 	if err != nil {
 		switch err {
@@ -356,21 +362,20 @@ func (repo PostgresRepository) GetAllMatchingObjectAndRelation(ctx context.Conte
 	return models, nil
 }
 
-func (repo PostgresRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Model, error) {
+func (repo PostgresRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
 		&warrants,
 		`
-			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, context_hash, created_at, updated_at, deleted_at
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, policy, created_at, updated_at, deleted_at
 			FROM warrant
 			WHERE
 				object_type = ? AND
 				(object_id = ? OR object_id = '*') AND
 				relation = ? AND
 				subject_type = ? AND
-				(context_hash = ? OR context_hash = '') AND
 				deleted_at IS NULL
 			ORDER BY created_at DESC, id DESC
 		`,
@@ -378,7 +383,6 @@ func (repo PostgresRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx 
 		objectId,
 		relation,
 		subjectType,
-		contextHash,
 	)
 	if err != nil {
 		switch err {
