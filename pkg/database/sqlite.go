@@ -41,7 +41,7 @@ func (ds *SQLite) Connect(ctx context.Context) error {
 	var err error
 
 	if ds.Config.Database == ":memory:" {
-		return fmt.Errorf("invalid database \"%s\" provided for sqlite", ds.Config.Database)
+		return errors.New(fmt.Sprintf("invalid database \"%s\" provided for sqlite", ds.Config.Database))
 	}
 
 	connectionString := fmt.Sprintf("file:%s?_foreign_keys=on", url.QueryEscape(ds.Config.Database))

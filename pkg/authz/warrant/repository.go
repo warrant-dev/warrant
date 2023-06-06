@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -26,25 +27,25 @@ func NewRepository(db database.Database) (WarrantRepository, error) {
 	case database.TypeMySQL:
 		mysql, ok := db.(*database.MySQL)
 		if !ok {
-			return nil, fmt.Errorf("invalid %s database config", database.TypeMySQL)
+			return nil, errors.New(fmt.Sprintf("invalid %s database config", database.TypeMySQL))
 		}
 
 		return NewMySQLRepository(mysql), nil
 	case database.TypePostgres:
 		postgres, ok := db.(*database.Postgres)
 		if !ok {
-			return nil, fmt.Errorf("invalid %s database config", database.TypePostgres)
+			return nil, errors.New(fmt.Sprintf("invalid %s database config", database.TypePostgres))
 		}
 
 		return NewPostgresRepository(postgres), nil
 	case database.TypeSQLite:
 		sqlite, ok := db.(*database.SQLite)
 		if !ok {
-			return nil, fmt.Errorf("invalid %s database config", database.TypeSQLite)
+			return nil, errors.New(fmt.Sprintf("invalid %s database config", database.TypeSQLite))
 		}
 
 		return NewSQLiteRepository(sqlite), nil
 	default:
-		return nil, fmt.Errorf("unsupported database type %s specified", db.Type())
+		return nil, errors.New(fmt.Sprintf("unsupported database type %s specified", db.Type()))
 	}
 }

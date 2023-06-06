@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	check "github.com/warrant-dev/warrant/pkg/authz/check"
 	feature "github.com/warrant-dev/warrant/pkg/authz/feature"
@@ -104,7 +105,7 @@ func (env *ServiceEnv) InitDB(cfg config.Config) error {
 		return nil
 	}
 
-	return fmt.Errorf("invalid database configuration provided")
+	return errors.New("invalid database configuration provided")
 }
 
 func (env *ServiceEnv) InitEventDB(config config.Config) error {
@@ -165,7 +166,7 @@ func (env *ServiceEnv) InitEventDB(config config.Config) error {
 		return nil
 	}
 
-	return fmt.Errorf("invalid database configuration provided")
+	return errors.New("invalid database configuration provided")
 }
 
 func NewServiceEnv() ServiceEnv {
