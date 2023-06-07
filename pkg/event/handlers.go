@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	DateFormatMessage = "Must be in the format YYYY-MM-DD"
+	DateFormatMessage = "Must be an integer specifying a unix timestamp in microseconds"
 	SinceErrorMessage = "Must be a date occurring before the until date"
 	LimitErrorMessage = "Must be an integer between 1 and 1000"
 )
@@ -45,32 +45,26 @@ func ListResourceEvents(svc EventService, w http.ResponseWriter, r *http.Request
 	var err error
 	sinceString := queryParams.Get(QueryParamSince)
 	if sinceString == "" {
-		since, err := time.Parse(DateFormat, DateFormat)
-		if err != nil {
-			return service.NewInvalidParameterError(QueryParamSince, DateFormatMessage)
-		}
-
-		listParams.Since = since.UTC()
+		listParams.Since = time.UnixMicro(DefaultEpochMicroseconds).UTC()
 	} else {
-		since, err := time.Parse(DateFormat, sinceString)
+		sinceMicroseconds, err := strconv.ParseInt(sinceString, 10, 64)
 		if err != nil {
 			return service.NewInvalidParameterError(QueryParamSince, DateFormatMessage)
 		}
 
-		listParams.Since = since.UTC()
+		listParams.Since = time.UnixMicro(sinceMicroseconds).UTC()
 	}
 
 	untilString := queryParams.Get(QueryParamUntil)
 	if untilString == "" {
-		year, month, day := time.Now().Date()
-		listParams.Until = time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+		listParams.Until = time.Now().UTC()
 	} else {
-		until, err := time.Parse(DateFormat, untilString)
+		untilMicroseconds, err := strconv.ParseInt(untilString, 10, 64)
 		if err != nil {
 			return service.NewInvalidParameterError(QueryParamUntil, DateFormatMessage)
 		}
 
-		listParams.Until = until.Add(24 * time.Hour).Add(-1 * time.Microsecond).UTC()
+		listParams.Until = time.UnixMicro(untilMicroseconds).UTC()
 	}
 
 	if listParams.Since.After(listParams.Until) {
@@ -117,32 +111,26 @@ func ListAccessEvents(svc EventService, w http.ResponseWriter, r *http.Request) 
 	var err error
 	sinceString := queryParams.Get(QueryParamSince)
 	if sinceString == "" {
-		since, err := time.Parse(DateFormat, DateFormat)
-		if err != nil {
-			return service.NewInvalidParameterError(QueryParamSince, DateFormatMessage)
-		}
-
-		listParams.Since = since.UTC()
+		listParams.Since = time.UnixMicro(DefaultEpochMicroseconds).UTC()
 	} else {
-		since, err := time.Parse(DateFormat, sinceString)
+		sinceMicroseconds, err := strconv.ParseInt(sinceString, 10, 64)
 		if err != nil {
 			return service.NewInvalidParameterError(QueryParamSince, DateFormatMessage)
 		}
 
-		listParams.Since = since.UTC()
+		listParams.Since = time.UnixMicro(sinceMicroseconds).UTC()
 	}
 
 	untilString := queryParams.Get(QueryParamUntil)
 	if untilString == "" {
-		year, month, day := time.Now().Date()
-		listParams.Until = time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+		listParams.Until = time.Now().UTC()
 	} else {
-		until, err := time.Parse(DateFormat, untilString)
+		untilMicroseconds, err := strconv.ParseInt(untilString, 10, 64)
 		if err != nil {
 			return service.NewInvalidParameterError(QueryParamUntil, DateFormatMessage)
 		}
 
-		listParams.Until = until.Add(24 * time.Hour).Add(-1 * time.Microsecond).UTC()
+		listParams.Until = time.UnixMicro(untilMicroseconds).UTC()
 	}
 
 	if listParams.Since.After(listParams.Until) {
