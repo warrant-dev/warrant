@@ -3,11 +3,11 @@ package event
 import (
 	"encoding/base64"
 	"encoding/json"
+	"reflect"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	context "github.com/warrant-dev/warrant/pkg/context"
 )
 
 type CreateResourceEventSpec struct {
@@ -19,26 +19,25 @@ type CreateResourceEventSpec struct {
 }
 
 func (spec CreateResourceEventSpec) ToResourceEvent() (*ResourceEvent, error) {
-	serializedMeta, err := json.Marshal(spec.Meta)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error marshaling resource event meta %v", spec.Meta)
-	}
-
-	var meta *string
-	if spec.Meta != nil {
-		metaStr := string(serializedMeta)
-		meta = &metaStr
-	}
-
-	return &ResourceEvent{
+	resourceEvent := ResourceEvent{
 		ID:           uuid.NewString(),
 		Type:         spec.Type,
 		Source:       spec.Source,
 		ResourceType: spec.ResourceType,
 		ResourceId:   spec.ResourceId,
-		Meta:         meta,
 		CreatedAt:    time.Now().UTC(),
-	}, nil
+	}
+	if spec.Meta != nil && !reflect.ValueOf(spec.Meta).IsZero() {
+		serializedMeta, err := json.Marshal(spec.Meta)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error marshaling resource event meta %v", spec.Meta)
+		}
+
+		meta := string(serializedMeta)
+		resourceEvent.Meta = &meta
+	}
+
+	return &resourceEvent, nil
 }
 
 type ResourceEventSpec struct {
@@ -52,42 +51,19 @@ type ResourceEventSpec struct {
 }
 
 type CreateAccessEventSpec struct {
-	Type            string                 `json:"type"`
-	Source          string                 `json:"source"`
-	ObjectType      string                 `json:"objectType"`
-	ObjectId        string                 `json:"objectId"`
-	Relation        string                 `json:"relation"`
-	SubjectType     string                 `json:"subjectType"`
-	SubjectId       string                 `json:"subjectId"`
-	SubjectRelation string                 `json:"subjectRelation"`
-	Context         context.ContextSetSpec `json:"context"`
-	Meta            interface{}            `json:"meta"`
+	Type            string      `json:"type"`
+	Source          string      `json:"source"`
+	ObjectType      string      `json:"objectType"`
+	ObjectId        string      `json:"objectId"`
+	Relation        string      `json:"relation"`
+	SubjectType     string      `json:"subjectType"`
+	SubjectId       string      `json:"subjectId"`
+	SubjectRelation string      `json:"subjectRelation"`
+	Meta            interface{} `json:"meta"`
 }
 
 func (spec CreateAccessEventSpec) ToAccessEvent() (*AccessEvent, error) {
-	serializedMeta, err := json.Marshal(spec.Meta)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error marshaling access event meta %v", spec.Meta)
-	}
-
-	var meta *string
-	if spec.Meta != nil {
-		metaStr := string(serializedMeta)
-		meta = &metaStr
-	}
-
-	serializedContext, err := json.Marshal(spec.Context)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error marshaling access event context %v", spec.Context)
-	}
-
-	var ctx *string
-	if spec.Meta != nil {
-		ctxStr := string(serializedContext)
-		ctx = &ctxStr
-	}
-
-	return &AccessEvent{
+	accessEvent := AccessEvent{
 		ID:              uuid.NewString(),
 		Type:            spec.Type,
 		Source:          spec.Source,
@@ -97,25 +73,33 @@ func (spec CreateAccessEventSpec) ToAccessEvent() (*AccessEvent, error) {
 		SubjectType:     spec.SubjectType,
 		SubjectId:       spec.SubjectId,
 		SubjectRelation: spec.SubjectRelation,
-		Meta:            meta,
-		Context:         ctx,
 		CreatedAt:       time.Now().UTC(),
-	}, nil
+	}
+	if spec.Meta != nil && !reflect.ValueOf(spec.Meta).IsZero() {
+		serializedMeta, err := json.Marshal(spec.Meta)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error marshaling access event meta %v", spec.Meta)
+		}
+
+		meta := string(serializedMeta)
+		accessEvent.Meta = &meta
+	}
+
+	return &accessEvent, nil
 }
 
 type AccessEventSpec struct {
-	ID              string                 `json:"id"`
-	Type            string                 `json:"type"`
-	Source          string                 `json:"source"`
-	ObjectType      string                 `json:"objectType"`
-	ObjectId        string                 `json:"objectId"`
-	Relation        string                 `json:"relation"`
-	SubjectType     string                 `json:"subjectType"`
-	SubjectId       string                 `json:"subjectId"`
-	SubjectRelation string                 `json:"subjectRelation,omitempty"`
-	Context         context.ContextSetSpec `json:"context,omitempty"`
-	Meta            interface{}            `json:"meta,omitempty"`
-	CreatedAt       time.Time              `json:"createdAt"`
+	ID              string      `json:"id"`
+	Type            string      `json:"type"`
+	Source          string      `json:"source"`
+	ObjectType      string      `json:"objectType"`
+	ObjectId        string      `json:"objectId"`
+	Relation        string      `json:"relation"`
+	SubjectType     string      `json:"subjectType"`
+	SubjectId       string      `json:"subjectId"`
+	SubjectRelation string      `json:"subjectRelation,omitempty"`
+	Meta            interface{} `json:"meta,omitempty"`
+	CreatedAt       time.Time   `json:"createdAt"`
 }
 
 type ListEventsSpec[T ResourceEventSpec | AccessEventSpec] struct {

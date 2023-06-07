@@ -1,6 +1,8 @@
 package authz
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"time"
 )
@@ -13,7 +15,8 @@ type Model interface {
 	GetSubjectType() string
 	GetSubjectId() string
 	GetSubjectRelation() string
-	GetContextHash() string
+	GetPolicy() string
+	GetPolicyHash() string
 	GetCreatedAt() time.Time
 	GetUpdatedAt() time.Time
 	GetDeletedAt() *time.Time
@@ -29,7 +32,8 @@ type Warrant struct {
 	SubjectType     string     `mysql:"subjectType" postgres:"subject_type" sqlite:"subjectType"`
 	SubjectId       string     `mysql:"subjectId" postgres:"subject_id" sqlite:"subjectId"`
 	SubjectRelation string     `mysql:"subjectRelation" postgres:"subject_relation" sqlite:"subjectRelation"`
-	ContextHash     string     `mysql:"contextHash" postgres:"context_hash" sqlite:"contextHash"`
+	Policy          string     `mysql:"policy" postgres:"policy" sqlite:"policy"`
+	PolicyHash      string     `mysql:"policyHash" postgres:"policy_hash" sqlite:"policyHash"`
 	CreatedAt       time.Time  `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
 	UpdatedAt       time.Time  `mysql:"updatedAt" postgres:"updated_at" sqlite:"updatedAt"`
 	DeletedAt       *time.Time `mysql:"deletedAt" postgres:"deleted_at" sqlite:"deletedAt"`
@@ -63,8 +67,17 @@ func (warrant Warrant) GetSubjectRelation() string {
 	return warrant.SubjectRelation
 }
 
-func (warrant Warrant) GetContextHash() string {
-	return warrant.ContextHash
+func (warrant Warrant) GetPolicy() string {
+	return warrant.Policy
+}
+
+func (warrant Warrant) GetPolicyHash() string {
+	if warrant.Policy == "" {
+		return ""
+	}
+
+	hash := sha256.Sum256([]byte(warrant.Policy))
+	return hex.EncodeToString(hash[:])
 }
 
 func (warrant Warrant) GetCreatedAt() time.Time {
@@ -89,6 +102,7 @@ func (warrant Warrant) ToWarrantSpec() *WarrantSpec {
 			ObjectId:   warrant.SubjectId,
 			Relation:   warrant.SubjectRelation,
 		},
+		Policy:    warrant.Policy,
 		CreatedAt: warrant.CreatedAt,
 	}
 
@@ -102,8 +116,8 @@ func (warrant Warrant) String() string {
 		str = fmt.Sprintf("%s#%s", str, warrant.SubjectRelation)
 	}
 
-	if warrant.ContextHash != "" {
-		str = fmt.Sprintf("%s[%s]", str, warrant.ContextHash)
+	if warrant.Policy != "" {
+		str = fmt.Sprintf("%s[%s]", str, warrant.Policy)
 	}
 
 	return str
@@ -122,6 +136,6 @@ func StringToWarrant(warrantString string) (*Warrant, error) {
 		SubjectType:     warrantSpec.Subject.ObjectType,
 		SubjectId:       warrantSpec.Subject.ObjectId,
 		SubjectRelation: warrantSpec.Subject.Relation,
-		ContextHash:     warrantSpec.Context.ToHash(),
+		Policy:          warrantSpec.Policy,
 	}, nil
 }

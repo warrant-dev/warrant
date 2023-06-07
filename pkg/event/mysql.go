@@ -170,7 +170,6 @@ func (repo MySQLRepository) TrackAccessEvents(ctx context.Context, models []Acce
 			  subjectType,
 			  subjectId,
 			  subjectRelation,
-			  context,
 			  meta
 		   ) VALUES (
 			  UUID_TO_BIN(:id),
@@ -182,7 +181,6 @@ func (repo MySQLRepository) TrackAccessEvents(ctx context.Context, models []Acce
 			  :subjectType,
 			  :subjectId,
 			  :subjectRelation,
-			  :context,
 			  :meta
 		   )
 		`,
@@ -204,7 +202,7 @@ func (repo MySQLRepository) ListAccessEvents(ctx context.Context, listParams Lis
 	models := make([]AccessEventModel, 0)
 	accessEvents := make([]AccessEvent, 0)
 	query := `
-		SELECT BIN_TO_UUID(id) id, type, source, objectType, objectId, relation, subjectType, subjectId, subjectRelation, context, meta, createdAt
+		SELECT BIN_TO_UUID(id) id, type, source, objectType, objectId, relation, subjectType, subjectId, subjectRelation, meta, createdAt
 		FROM accessEvent
 		WHERE
 	`

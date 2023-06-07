@@ -128,9 +128,7 @@
                         "objectType": "user",
                         "objectId": "user-a"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             },
             "expectedResponse": {
@@ -143,9 +141,7 @@
                         "objectType": "user",
                         "objectId": "user-a"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             }
         },
@@ -162,9 +158,7 @@
                         "objectType": "user",
                         "objectId": "user-b"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             },
             "expectedResponse": {
@@ -177,9 +171,7 @@
                         "objectType": "user",
                         "objectId": "user-b"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             }
         },
@@ -196,9 +188,7 @@
                         "objectType": "user",
                         "objectId": "user-c"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             },
             "expectedResponse": {
@@ -211,9 +201,7 @@
                         "objectType": "user",
                         "objectId": "user-c"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             }
         },
@@ -230,9 +218,7 @@
                         "objectType": "user",
                         "objectId": "user-d"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             },
             "expectedResponse": {
@@ -245,9 +231,7 @@
                         "objectType": "user",
                         "objectId": "user-d"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             }
         },
@@ -264,9 +248,7 @@
                         "objectType": "user",
                         "objectId": "user-e"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             },
             "expectedResponse": {
@@ -279,9 +261,7 @@
                         "objectType": "user",
                         "objectId": "user-e"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             }
         },
@@ -298,9 +278,7 @@
                         "objectType": "user",
                         "objectId": "user-f"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             },
             "expectedResponse": {
@@ -313,9 +291,7 @@
                         "objectType": "user",
                         "objectId": "user-f"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             }
         },
@@ -332,9 +308,7 @@
                         "objectType": "user",
                         "objectId": "user-a"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             },
             "expectedResponse": {
@@ -347,9 +321,7 @@
                         "objectType": "user",
                         "objectId": "user-a"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             }
         },
@@ -366,9 +338,7 @@
                         "objectType": "user",
                         "objectId": "user-b"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             },
             "expectedResponse": {
@@ -381,9 +351,7 @@
                         "objectType": "user",
                         "objectId": "user-b"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             }
         },
@@ -400,9 +368,7 @@
                         "objectType": "user",
                         "objectId": "user-e"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             },
             "expectedResponse": {
@@ -415,9 +381,7 @@
                         "objectType": "user",
                         "objectId": "user-e"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             }
         },
@@ -434,9 +398,7 @@
                         "objectType": "user",
                         "objectId": "user-f"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             },
             "expectedResponse": {
@@ -449,9 +411,7 @@
                         "objectType": "user",
                         "objectId": "user-f"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             }
         },
@@ -469,9 +429,7 @@
                         "objectId": "admin-a",
                         "relation": "member"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             },
             "expectedResponse": {
@@ -485,9 +443,7 @@
                         "objectId": "admin-a",
                         "relation": "member"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             }
         },
@@ -505,9 +461,7 @@
                         "objectId": "admin-b",
                         "relation": "member"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             },
             "expectedResponse": {
@@ -521,9 +475,7 @@
                         "objectId": "admin-b",
                         "relation": "member"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             }
         },
@@ -1285,9 +1237,7 @@
                         "objectId": "admin-b",
                         "relation": "member"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             },
             "expectedResponse": {
@@ -1308,9 +1258,7 @@
                         "objectId": "admin-a",
                         "relation": "member"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             },
             "expectedResponse": {
@@ -1330,9 +1278,7 @@
                         "objectType": "user",
                         "objectId": "user-f"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             },
             "expectedResponse": {
@@ -1352,9 +1298,7 @@
                         "objectType": "user",
                         "objectId": "user-e"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             },
             "expectedResponse": {
@@ -1374,9 +1318,7 @@
                         "objectType": "user",
                         "objectId": "user-b"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             },
             "expectedResponse": {
@@ -1396,9 +1338,7 @@
                         "objectType": "user",
                         "objectId": "user-a"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             },
             "expectedResponse": {
@@ -1418,9 +1358,7 @@
                         "objectType": "user",
                         "objectId": "user-f"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             },
             "expectedResponse": {
@@ -1440,9 +1378,7 @@
                         "objectType": "user",
                         "objectId": "user-e"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             },
             "expectedResponse": {
@@ -1462,9 +1398,7 @@
                         "objectType": "user",
                         "objectId": "user-d"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             },
             "expectedResponse": {
@@ -1484,9 +1418,7 @@
                         "objectType": "user",
                         "objectId": "user-c"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             },
             "expectedResponse": {
@@ -1506,9 +1438,7 @@
                         "objectType": "user",
                         "objectId": "user-b"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             },
             "expectedResponse": {
@@ -1528,9 +1458,7 @@
                         "objectType": "user",
                         "objectId": "user-a"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             },
             "expectedResponse": {

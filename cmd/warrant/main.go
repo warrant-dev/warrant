@@ -19,19 +19,18 @@ import (
 	user "github.com/warrant-dev/warrant/pkg/authz/user"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	"github.com/warrant-dev/warrant/pkg/config"
-	wntContext "github.com/warrant-dev/warrant/pkg/context"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
 const (
-	MySQLDatastoreMigrationVersion     = 000003
-	MySQLEventstoreMigrationVersion    = 000002
-	PostgresDatastoreMigrationVersion  = 000003
-	PostgresEventstoreMigrationVersion = 000002
-	SQLiteDatastoreMigrationVersion    = 000003
-	SQLiteEventstoreMigrationVersion   = 000002
+	MySQLDatastoreMigrationVersion     = 000004
+	MySQLEventstoreMigrationVersion    = 000003
+	PostgresDatastoreMigrationVersion  = 000004
+	PostgresEventstoreMigrationVersion = 000003
+	SQLiteDatastoreMigrationVersion    = 000004
+	SQLiteEventstoreMigrationVersion   = 000003
 )
 
 type ServiceEnv struct {
@@ -203,22 +202,15 @@ func main() {
 	}
 	objectTypeSvc := objecttype.NewService(svcEnv, objectTypeRepository, eventSvc)
 
-	// Init context repo and service
-	ctxRepository, err := wntContext.NewRepository(svcEnv.DB())
-	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize ContextRepository")
-	}
-	ctxSvc := wntContext.NewService(svcEnv, ctxRepository)
-
 	// Init warrant repo and service
 	warrantRepository, err := warrant.NewRepository(svcEnv.DB())
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize WarrantRepository")
 	}
-	warrantSvc := warrant.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, ctxSvc)
+	warrantSvc := warrant.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc)
 
 	// Init check service
-	checkSvc := check.NewService(svcEnv, warrantRepository, ctxSvc, eventSvc, objectTypeSvc)
+	checkSvc := check.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc)
 
 	// Init object repo and service
 	objectRepository, err := object.NewRepository(svcEnv.DB())

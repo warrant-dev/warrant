@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	context "github.com/warrant-dev/warrant/pkg/context"
+	"github.com/warrant-dev/warrant/pkg/policy"
 )
 
 // FilterOptions type for the filter options available on the warrant table
@@ -15,7 +15,6 @@ type FilterOptions struct {
 	ObjectId   string
 	Relation   string
 	Subject    *SubjectSpec
-	Context    *context.ContextSetSpec
 	ObjectIds  []string
 	SubjectIds []string
 }
@@ -75,29 +74,37 @@ func StringToSubjectSpec(str string) (*SubjectSpec, error) {
 }
 
 type WarrantSpec struct {
-	ObjectType string                 `json:"objectType" validate:"required,valid_object_type"`
-	ObjectId   string                 `json:"objectId" validate:"required,valid_object_id"`
-	Relation   string                 `json:"relation" validate:"required,valid_relation"`
-	Subject    *SubjectSpec           `json:"subject" validate:"required"`
-	Context    context.ContextSetSpec `json:"context,omitempty"`
-	CreatedAt  time.Time              `json:"createdAt"`
+	ObjectType string       `json:"objectType" validate:"required,valid_object_type"`
+	ObjectId   string       `json:"objectId" validate:"required,valid_object_id"`
+	Relation   string       `json:"relation" validate:"required,valid_relation"`
+	Subject    *SubjectSpec `json:"subject" validate:"required"`
+	Policy     string       `json:"policy,omitempty"`
+	CreatedAt  time.Time    `json:"createdAt"`
 }
 
-func (spec *WarrantSpec) ToWarrant() *Warrant {
+func (spec *WarrantSpec) ToWarrant() (*Warrant, error) {
 	warrant := &Warrant{
-		ObjectType:      spec.ObjectType,
-		ObjectId:        spec.ObjectId,
-		Relation:        spec.Relation,
-		SubjectType:     spec.Subject.ObjectType,
-		SubjectId:       spec.Subject.ObjectId,
-		SubjectRelation: spec.Subject.Relation,
+		ObjectType: spec.ObjectType,
+		ObjectId:   spec.ObjectId,
+		Relation:   spec.Relation,
 	}
 
-	if len(spec.Context) > 0 {
-		warrant.ContextHash = spec.Context.ToHash()
+	if spec.Subject != nil {
+		warrant.SubjectType = spec.Subject.ObjectType
+		warrant.SubjectId = spec.Subject.ObjectId
+		warrant.SubjectRelation = spec.Subject.Relation
 	}
 
-	return warrant
+	if spec.Policy != "" {
+		err := policy.Validate(spec.Policy)
+		if err != nil {
+			return nil, err
+		}
+
+		warrant.Policy = spec.Policy
+	}
+
+	return warrant, nil
 }
 
 func (spec *WarrantSpec) ToMap() map[string]interface{} {
@@ -106,73 +113,73 @@ func (spec *WarrantSpec) ToMap() map[string]interface{} {
 		"objectId":   spec.ObjectId,
 		"relation":   spec.Relation,
 		"subject":    spec.Subject,
-		"context":    spec.Context,
+		"policy":     spec.Policy,
 	}
 }
 
 func (spec WarrantSpec) String() string {
-	return fmt.Sprintf(
-		"%s:%s#%s@%s%s",
+	str := fmt.Sprintf(
+		"%s:%s#%s@%s",
 		spec.ObjectType,
 		spec.ObjectId,
 		spec.Relation,
 		spec.Subject.String(),
-		spec.Context,
 	)
+
+	if spec.Policy != "" {
+		str = fmt.Sprintf("%s[%s]", str, spec.Policy)
+	}
+
+	return str
 }
 
 func StringToWarrantSpec(warrantString string) (*WarrantSpec, error) {
-	objectRelationAndSubjectContext := strings.Split(warrantString, "@")
-	if len(objectRelationAndSubjectContext) != 2 {
-		return nil, fmt.Errorf("invalid warrant")
+	var spec WarrantSpec
+	objectAndRelationSubjectPolicy := strings.Split(warrantString, "#")
+	if len(objectAndRelationSubjectPolicy) != 2 {
+		return nil, errors.New("invalid warrant")
 	}
 
-	objectAndRelation := strings.Split(objectRelationAndSubjectContext[0], "#")
-	if len(objectAndRelation) != 2 {
-		return nil, fmt.Errorf("invalid warrant")
+	objectParts := strings.Split(objectAndRelationSubjectPolicy[0], ":")
+	if len(objectParts) != 2 {
+		return nil, errors.New("invalid warrant")
+	}
+	spec.ObjectType = objectParts[0]
+	spec.ObjectId = objectParts[1]
+
+	relationAndSubjectPolicy := strings.Split(objectAndRelationSubjectPolicy[1], "@")
+	if len(relationAndSubjectPolicy) == 2 {
+		// subject provided, policy is optional
+		subjectAndPolicy := strings.Split(relationAndSubjectPolicy[1], "[")
+		if len(subjectAndPolicy) > 2 || len(subjectAndPolicy) < 1 {
+			return nil, errors.New("invalid warrant")
+		} else if len(subjectAndPolicy) == 2 {
+			// policy provided
+			if !strings.HasSuffix(subjectAndPolicy[1], "]") {
+				return nil, errors.New("invalid warrant")
+			}
+			spec.Policy = subjectAndPolicy[1]
+		}
+
+		subjectSpec, err := StringToSubjectSpec(subjectAndPolicy[0])
+		if err != nil {
+			return nil, err
+		}
+
+		spec.Relation = relationAndSubjectPolicy[0]
+		spec.Subject = subjectSpec
+	} else if len(relationAndSubjectPolicy) == 1 {
+		// subject not provided, policy is required
+		relationAndPolicy := strings.Split(relationAndSubjectPolicy[0], "[")
+		if len(relationAndPolicy) != 2 || !strings.HasSuffix(relationAndPolicy[1], "]") {
+			return nil, errors.New("invalid warrant")
+		}
+
+		spec.Relation = relationAndPolicy[0]
+		spec.Policy = relationAndPolicy[1]
+	} else {
+		return nil, errors.New("invalid warrant")
 	}
 
-	objectType, objectId, colonFound := strings.Cut(objectAndRelation[0], ":")
-	if !colonFound {
-		return nil, fmt.Errorf("invalid warrant")
-	}
-
-	subjectAndContext := strings.Split(objectRelationAndSubjectContext[1], "[")
-	if len(subjectAndContext) > 2 {
-		return nil, fmt.Errorf("invalid warrant")
-	}
-	if len(subjectAndContext) == 2 && !strings.HasSuffix(subjectAndContext[1], "]") {
-		return nil, fmt.Errorf("invalid warrant")
-	}
-
-	ctx := ""
-	if len(subjectAndContext) == 2 {
-		ctx = strings.TrimSuffix(subjectAndContext[1], "]")
-	}
-
-	subjectSpec, err := StringToSubjectSpec(subjectAndContext[0])
-	if err != nil {
-		return nil, err
-	}
-
-	contextSetSpec, err := context.StringToContextSetSpec(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return &WarrantSpec{
-		ObjectType: objectType,
-		ObjectId:   objectId,
-		Relation:   objectAndRelation[1],
-		Subject:    subjectSpec,
-		Context:    contextSetSpec,
-	}, nil
-}
-
-type SessionWarrantSpec struct {
-	ObjectType string                 `json:"objectType" validate:"required,valid_object_type"`
-	ObjectId   string                 `json:"objectId" validate:"required,valid_object_id"`
-	Relation   string                 `json:"relation" validate:"required,valid_relation"`
-	Context    context.ContextSetSpec `json:"context,omitempty"`
-	CreatedAt  time.Time              `json:"createdAt"`
+	return &spec, nil
 }

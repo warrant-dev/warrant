@@ -11,11 +11,11 @@ import (
 
 type WarrantRepository interface {
 	Create(ctx context.Context, warrant Model) (int64, error)
-	Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error)
-	GetByID(ctx context.Context, id int64) (Model, error)
-	GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error)
-	GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Model, error)
-	GetAllMatchingObjectAndRelationBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Model, error)
+	get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) (Model, error)
+	getByID(ctx context.Context, id int64) (Model, error)
+	GetAllMatchingObjectRelationAndSubject(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string) ([]Model, error)
+	GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string) ([]Model, error)
+	GetAllMatchingObjectAndRelationBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string) ([]Model, error)
 	List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]Model, error)
 	DeleteById(ctx context.Context, id int64) error
 	DeleteAllByObject(ctx context.Context, objectType string, objectId string) error

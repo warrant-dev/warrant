@@ -170,7 +170,6 @@ func (repo PostgresRepository) TrackAccessEvents(ctx context.Context, models []A
 			  subject_type,
 			  subject_id,
 			  subject_relation,
-			  context,
 			  meta
 		   ) VALUES (
 			  :id,
@@ -182,7 +181,6 @@ func (repo PostgresRepository) TrackAccessEvents(ctx context.Context, models []A
 			  :subject_type,
 			  :subject_id,
 			  :subject_relation,
-			  :context,
 			  :meta
 		   )
 		`,
@@ -204,7 +202,7 @@ func (repo PostgresRepository) ListAccessEvents(ctx context.Context, listParams 
 	models := make([]AccessEventModel, 0)
 	accessEvents := make([]AccessEvent, 0)
 	query := `
-		SELECT id, type, source, object_type, object_id, relation, subject_type, subject_id, subject_relation, context, meta, created_at
+		SELECT id, type, source, object_type, object_id, relation, subject_type, subject_id, subject_relation, meta, created_at
 		FROM access_event
 		WHERE
 	`

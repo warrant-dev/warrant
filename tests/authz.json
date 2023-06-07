@@ -319,9 +319,7 @@
                         "objectType": "user",
                         "objectId": "user-b"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             },
             "expectedResponse": {
@@ -334,9 +332,7 @@
                         "objectType": "user",
                         "objectId": "user-b"
                     },
-                    "context": {
-                        "tenant": "tenant-b"
-                    }
+                    "policy": "tenant == \"tenant-b\""
                 }
             }
         },
@@ -353,9 +349,7 @@
                         "objectType": "user",
                         "objectId": "user-a"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             },
             "expectedResponse": {
@@ -368,9 +362,7 @@
                         "objectType": "user",
                         "objectId": "user-a"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             }
         },
@@ -413,9 +405,7 @@
                                     "objectType": "user",
                                     "objectId": "user-b"
                                 },
-                                "context": {
-                                    "tenant": "tenant-b"
-                                }
+                                "policy": "tenant == \"tenant-b\""
                             },
                             {
                                 "objectType": "report",
@@ -471,9 +461,7 @@
                                     "objectType": "user",
                                     "objectId": "user-b"
                                 },
-                                "context": {
-                                    "tenant": "tenant-b"
-                                }
+                                "policy": "tenant == \"tenant-b\""
                             },
                             {
                                 "objectType": "report",
@@ -529,9 +517,7 @@
                                     "objectType": "user",
                                     "objectId": "user-a"
                                 },
-                                "context": {
-                                    "tenant": "tenant-a"
-                                }
+                                "policy": "tenant == \"tenant-a\""
                             },
                             {
                                 "objectType": "permission",
@@ -755,9 +741,7 @@
                         "objectType": "user",
                         "objectId": "user-a"
                     },
-                    "context": {
-                        "tenant": "tenant-a"
-                    }
+                    "policy": "tenant == \"tenant-a\""
                 }
             },
             "expectedResponse": {

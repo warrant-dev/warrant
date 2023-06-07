@@ -1,40 +1,83 @@
 package authz
 
 import (
+	"fmt"
+
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
-	context "github.com/warrant-dev/warrant/pkg/context"
+	"github.com/warrant-dev/warrant/pkg/policy"
 )
 
 const Authorized = "Authorized"
 const NotAuthorized = "Not Authorized"
 
-type CheckSpec struct {
-	warrant.WarrantSpec
-	ConsistentRead bool `json:"consistentRead"`
-	Debug          bool `json:"debug"`
+type CheckWarrantSpec struct {
+	ObjectType string               `json:"objectType" validate:"required,valid_object_type"`
+	ObjectId   string               `json:"objectId" validate:"required,valid_object_id"`
+	Relation   string               `json:"relation" validate:"required,valid_relation"`
+	Subject    *warrant.SubjectSpec `json:"subject" validate:"required"`
+	Context    policy.ContextSpec   `json:"context"`
 }
 
-func (spec CheckSpec) ToMap() map[string]interface{} {
+func (spec CheckWarrantSpec) String() string {
+	return fmt.Sprintf(
+		"%s:%s#%s@%s%s",
+		spec.ObjectType,
+		spec.ObjectId,
+		spec.Relation,
+		spec.Subject,
+		spec.Context,
+	)
+}
+
+func (spec CheckWarrantSpec) ToMap() map[string]interface{} {
 	return map[string]interface{}{
-		"warrant":        spec.WarrantSpec.ToMap(),
-		"consistentRead": spec.ConsistentRead,
-		"debug":          spec.Debug,
+		"objectType": spec.ObjectType,
+		"objectId":   spec.ObjectId,
+		"relation":   spec.Relation,
+		"subject":    spec.Subject,
+		"context":    spec.Context,
 	}
 }
 
+type CheckSessionWarrantSpec struct {
+	ObjectType string             `json:"objectType" validate:"required,valid_object_type"`
+	ObjectId   string             `json:"objectId" validate:"required,valid_object_id"`
+	Relation   string             `json:"relation" validate:"required,valid_relation"`
+	Context    policy.ContextSpec `json:"context"`
+}
+
+func (spec CheckSessionWarrantSpec) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"objectType": spec.ObjectType,
+		"objectId":   spec.ObjectId,
+		"relation":   spec.Relation,
+		"context":    spec.Context,
+	}
+}
+
+type CheckSpec struct {
+	CheckWarrantSpec
+	Debug bool `json:"debug" validate:"boolean"`
+}
+
+func (spec CheckSpec) ToMap() map[string]interface{} {
+	result := spec.CheckWarrantSpec.ToMap()
+	result["debug"] = spec.Debug
+	return result
+}
+
 type CheckManySpec struct {
-	Op             string                 `json:"op"`
-	Warrants       []warrant.WarrantSpec  `json:"warrants" validate:"min=1,dive"`
-	Context        context.ContextSetSpec `json:"context"`
-	ConsistentRead bool                   `json:"consistentRead"`
-	Debug          bool                   `json:"debug"`
+	Op       string             `json:"op"`
+	Warrants []CheckWarrantSpec `json:"warrants" validate:"min=1,dive"`
+	Context  policy.ContextSpec `json:"context"`
+	Debug    bool               `json:"debug"`
 }
 
 func (spec CheckManySpec) ToMap() map[string]interface{} {
 	result := map[string]interface{}{
-		"op":             spec.Op,
-		"consistentRead": spec.ConsistentRead,
-		"debug":          spec.Debug,
+		"op":      spec.Op,
+		"context": spec.Context,
+		"debug":   spec.Debug,
 	}
 
 	warrantMaps := make([]map[string]interface{}, 0)
@@ -47,11 +90,26 @@ func (spec CheckManySpec) ToMap() map[string]interface{} {
 }
 
 type SessionCheckManySpec struct {
-	Op             string                       `json:"op"`
-	Warrants       []warrant.SessionWarrantSpec `json:"warrants" validate:"min=1,dive"`
-	Context        context.ContextSetSpec       `json:"context"`
-	ConsistentRead bool                         `json:"consistentRead"`
-	Debug          bool                         `json:"debug"`
+	Op       string                    `json:"op"`
+	Warrants []CheckSessionWarrantSpec `json:"warrants" validate:"min=1,dive"`
+	Context  policy.ContextSpec        `json:"context"`
+	Debug    bool                      `json:"debug"`
+}
+
+func (spec SessionCheckManySpec) ToMap() map[string]interface{} {
+	result := map[string]interface{}{
+		"op":      spec.Op,
+		"context": spec.Context,
+		"debug":   spec.Debug,
+	}
+
+	warrantMaps := make([]map[string]interface{}, 0)
+	for _, warrantSpec := range spec.Warrants {
+		warrantMaps = append(warrantMaps, warrantSpec.ToMap())
+	}
+
+	result["warrants"] = warrantMaps
+	return result
 }
 
 type CheckResultSpec struct {

@@ -35,11 +35,12 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 				subjectType,
 				subjectId,
 				subjectRelation,
-				contextHash,
+				policy,
+				policyHash,
 				createdAt,
 				updatedAt
-			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-			ON CONFLICT (objectType, objectId, relation, subjectType, subjectId, subjectRelation, contextHash) DO UPDATE SET
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			ON CONFLICT (objectType, objectId, relation, subjectType, subjectId, subjectRelation, policyHash) DO UPDATE SET
 				createdAt = ?,
 				deletedAt = NULL
 			RETURNING id
@@ -50,7 +51,8 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 		model.GetSubjectType(),
 		model.GetSubjectId(),
 		model.GetSubjectRelation(),
-		model.GetContextHash(),
+		model.GetPolicy(),
+		model.GetPolicyHash(),
 		now,
 		now,
 		now,
@@ -143,13 +145,13 @@ func (repo SQLiteRepository) DeleteAllBySubject(ctx context.Context, subjectType
 	return nil
 }
 
-func (repo SQLiteRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error) {
+func (repo SQLiteRepository) get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) (Model, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
 		&warrant,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, policy, createdAt, updatedAt, deletedAt
 			FROM warrant
 			WHERE
 				objectType = ? AND
@@ -158,7 +160,7 @@ func (repo SQLiteRepository) Get(ctx context.Context, objectType string, objectI
 				subjectType = ? AND
 				subjectId = ? AND
 				subjectRelation = ? AND
-				contextHash = ? AND
+				policyHash = ? AND
 				deletedAt IS NULL
 		`,
 		objectType,
@@ -167,7 +169,7 @@ func (repo SQLiteRepository) Get(ctx context.Context, objectType string, objectI
 		subjectType,
 		subjectId,
 		subjectRelation,
-		contextHash,
+		policyHash,
 	)
 	if err != nil {
 		switch err {
@@ -175,6 +177,9 @@ func (repo SQLiteRepository) Get(ctx context.Context, objectType string, objectI
 			wntErrorId := fmt.Sprintf("%s:%s#%s@%s:%s", objectType, objectId, relation, subjectType, subjectId)
 			if subjectRelation != "" {
 				wntErrorId = fmt.Sprintf("%s#%s", wntErrorId, subjectRelation)
+			}
+			if policyHash != "" {
+				wntErrorId = fmt.Sprintf("%s[%s]", wntErrorId, policyHash)
 			}
 
 			return nil, service.NewRecordNotFoundError("Warrant", wntErrorId)
@@ -186,51 +191,13 @@ func (repo SQLiteRepository) Get(ctx context.Context, objectType string, objectI
 	return &warrant, nil
 }
 
-func (repo SQLiteRepository) GetWithContextMatch(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, contextHash string) (Model, error) {
+func (repo SQLiteRepository) getByID(ctx context.Context, id int64) (Model, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
 		&warrant,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
-			FROM warrant
-			WHERE
-				objectType = ? AND
-				(objectId = ? OR objectId = "*") AND
-				relation = ? AND
-				subjectType = ? AND
-				subjectId = ? AND
-				subjectRelation = ? AND
-				(contextHash = ? OR contextHash = "") AND
-				deletedAt IS NULL
-		`,
-		objectType,
-		objectId,
-		relation,
-		subjectType,
-		subjectId,
-		subjectRelation,
-		contextHash,
-	)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return nil, nil
-		default:
-			return nil, errors.Wrap(err, "error getting warrant with context match")
-		}
-	}
-
-	return &warrant, nil
-}
-
-func (repo SQLiteRepository) GetByID(ctx context.Context, id int64) (Model, error) {
-	var warrant Warrant
-	err := repo.DB.GetContext(
-		ctx,
-		&warrant,
-		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, policy, createdAt, updatedAt, deletedAt
 			FROM warrant
 			WHERE
 				id = ? AND
@@ -322,27 +289,66 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 	return models, nil
 }
 
-func (repo SQLiteRepository) GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string, contextHash string) ([]Model, error) {
+func (repo SQLiteRepository) GetAllMatchingObjectRelationAndSubject(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
 		&warrants,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, contextHash, createdAt, updatedAt, deletedAt
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, policy, createdAt, updatedAt, deletedAt
 			FROM warrant
 			WHERE
 				objectType = ? AND
 				(objectId = ? OR objectId = "*") AND
 				relation = ? AND
-				(contextHash = ? OR contextHash = "") AND
+				subjectType = ? AND
+				subjectId = ? AND
+				subjectRelation = ? AND
+				deletedAt IS NULL
+		`,
+		objectType,
+		objectId,
+		relation,
+		subjectType,
+		subjectId,
+		subjectRelation,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return models, nil
+		default:
+			return nil, errors.Wrapf(err, "error getting warrants with object type %s, object id %s, relation %s, subject type %s, subject id %s, and subject relation %s", objectType, objectId, relation, subjectType, subjectId, subjectRelation)
+		}
+	}
+
+	for i := range warrants {
+		models = append(models, &warrants[i])
+	}
+
+	return models, nil
+}
+
+func (repo SQLiteRepository) GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string) ([]Model, error) {
+	models := make([]Model, 0)
+	warrants := make([]Warrant, 0)
+	err := repo.DB.SelectContext(
+		ctx,
+		&warrants,
+		`
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, policy, createdAt, updatedAt, deletedAt
+			FROM warrant
+			WHERE
+				objectType = ? AND
+				(objectId = ? OR objectId = "*") AND
+				relation = ? AND
 				deletedAt IS NULL
 			ORDER BY createdAt DESC, id DESC
 		`,
 		objectType,
 		objectId,
 		relation,
-		contextHash,
 	)
 	if err != nil {
 		switch err {
@@ -360,21 +366,20 @@ func (repo SQLiteRepository) GetAllMatchingObjectAndRelation(ctx context.Context
 	return models, nil
 }
 
-func (repo SQLiteRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string, contextHash string) ([]Model, error) {
+func (repo SQLiteRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	err := repo.DB.SelectContext(
 		ctx,
 		&warrants,
 		`
-			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, contextHash, createdAt, updatedAt, deletedAt
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, policy, createdAt, updatedAt, deletedAt
 			FROM warrant
 			WHERE
 				objectType = ? AND
 				(objectId = ? OR objectId = "*") AND
 				relation = ? AND
 				subjectType = ? AND
-				(contextHash = ? OR contextHash = "") AND
 				deletedAt IS NULL
 			ORDER BY createdAt DESC, id DESC
 		`,
@@ -382,7 +387,6 @@ func (repo SQLiteRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx co
 		objectId,
 		relation,
 		subjectType,
-		contextHash,
 	)
 	if err != nil {
 		switch err {
