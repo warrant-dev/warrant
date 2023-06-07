@@ -11,6 +11,8 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
+const DateFormatRFC3339Micro = "2006-01-02T15:04:05.999999Z07:00"
+
 type PostgresRepository struct {
 	database.SQLRepository
 }
@@ -107,8 +109,8 @@ func (repo PostgresRepository) ListResourceEvents(ctx context.Context, listParam
 	}
 
 	conditions = append(conditions, "created_at BETWEEN ? AND ?")
-	replacements = append(replacements, listParams.Since.Format(DateFormat))
-	replacements = append(replacements, listParams.Until.Format(DateFormat))
+	replacements = append(replacements, listParams.Since.Format(DateFormatRFC3339Micro))
+	replacements = append(replacements, listParams.Until.Format(DateFormatRFC3339Micro))
 
 	query = fmt.Sprintf("%s %s ORDER BY created_at DESC, id DESC LIMIT ?", query, strings.Join(conditions, " AND "))
 	replacements = append(replacements, listParams.Limit)
@@ -263,8 +265,8 @@ func (repo PostgresRepository) ListAccessEvents(ctx context.Context, listParams 
 	}
 
 	conditions = append(conditions, "created_at BETWEEN ? AND ?")
-	replacements = append(replacements, listParams.Since.Format(DateFormat))
-	replacements = append(replacements, listParams.Until.Format(DateFormat))
+	replacements = append(replacements, listParams.Since.Format(DateFormatRFC3339Micro))
+	replacements = append(replacements, listParams.Until.Format(DateFormatRFC3339Micro))
 
 	query = fmt.Sprintf("%s %s ORDER BY created_at DESC, id DESC LIMIT ?", query, strings.Join(conditions, " AND "))
 	replacements = append(replacements, listParams.Limit)

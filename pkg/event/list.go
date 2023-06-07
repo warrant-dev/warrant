@@ -3,7 +3,6 @@ package event
 import "time"
 
 const (
-	DateFormat                = "2006-01-02T15:04:05.999999Z07:00"
 	DefaultEpochMicroseconds  = 1136160000000
 	DefaultLimit              = 100
 	QueryParamType            = "type"
