@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	DateFormatMessage = "Must be an integer specifying the epoch time in microseconds"
+	DateFormatMessage = "Must be an integer specifying a unix timestamp in microseconds"
 	SinceErrorMessage = "Must be a date occurring before the until date"
 	LimitErrorMessage = "Must be an integer between 1 and 1000"
 )
