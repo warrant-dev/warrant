@@ -106,7 +106,7 @@ func (repo PostgresRepository) ListResourceEvents(ctx context.Context, listParam
 		replacements = append(replacements, lastIdSpec.ID)
 	}
 
-	conditions = append(conditions, "DATE(created_at) BETWEEN DATE(?) AND DATE(?)")
+	conditions = append(conditions, "created_at BETWEEN ? AND ?")
 	replacements = append(replacements, listParams.Since.Format(DateFormat))
 	replacements = append(replacements, listParams.Until.Format(DateFormat))
 
@@ -262,9 +262,9 @@ func (repo PostgresRepository) ListAccessEvents(ctx context.Context, listParams 
 		replacements = append(replacements, lastIdSpec.ID)
 	}
 
-	conditions = append(conditions, "DATE(created_at) BETWEEN DATE(?) AND DATE(?)")
-	replacements = append(replacements, listParams.Since.Format(DateFormat))
-	replacements = append(replacements, listParams.Until.Format(DateFormat))
+	conditions = append(conditions, "created_at BETWEEN ? AND ?")
+	replacements = append(replacements, listParams.Since)
+	replacements = append(replacements, listParams.Until)
 
 	query = fmt.Sprintf("%s %s ORDER BY created_at DESC, id DESC LIMIT ?", query, strings.Join(conditions, " AND "))
 	replacements = append(replacements, listParams.Limit)

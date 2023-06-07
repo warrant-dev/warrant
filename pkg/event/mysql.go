@@ -106,7 +106,7 @@ func (repo MySQLRepository) ListResourceEvents(ctx context.Context, listParams L
 		replacements = append(replacements, lastIdSpec.ID)
 	}
 
-	conditions = append(conditions, "DATE(createdAt) BETWEEN DATE(?) AND DATE(?)")
+	conditions = append(conditions, "createdAt BETWEEN ? AND ?")
 	replacements = append(replacements, listParams.Since)
 	replacements = append(replacements, listParams.Until)
 
@@ -262,7 +262,7 @@ func (repo MySQLRepository) ListAccessEvents(ctx context.Context, listParams Lis
 		replacements = append(replacements, lastIdSpec.ID)
 	}
 
-	conditions = append(conditions, "DATE(createdAt) BETWEEN DATE(?) AND DATE(?)")
+	conditions = append(conditions, "createdAt BETWEEN ? AND ?")
 	replacements = append(replacements, listParams.Since)
 	replacements = append(replacements, listParams.Until)
 

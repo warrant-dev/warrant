@@ -108,7 +108,7 @@ func (repo SQLiteRepository) ListResourceEvents(ctx context.Context, listParams 
 		replacements = append(replacements, lastIdSpec.ID)
 	}
 
-	conditions = append(conditions, "DATE(createdAt) BETWEEN DATE(?) AND DATE(?)")
+	conditions = append(conditions, "createdAt BETWEEN ? AND ?")
 	replacements = append(replacements, listParams.Since)
 	replacements = append(replacements, listParams.Until)
 
@@ -266,7 +266,7 @@ func (repo SQLiteRepository) ListAccessEvents(ctx context.Context, listParams Li
 		replacements = append(replacements, lastIdSpec.ID)
 	}
 
-	conditions = append(conditions, "DATE(createdAt) BETWEEN DATE(?) AND DATE(?)")
+	conditions = append(conditions, "createdAt BETWEEN ? AND ?")
 	replacements = append(replacements, listParams.Since)
 	replacements = append(replacements, listParams.Until)
 
