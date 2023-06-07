@@ -263,8 +263,8 @@ func (repo PostgresRepository) ListAccessEvents(ctx context.Context, listParams 
 	}
 
 	conditions = append(conditions, "created_at BETWEEN ? AND ?")
-	replacements = append(replacements, listParams.Since)
-	replacements = append(replacements, listParams.Until)
+	replacements = append(replacements, listParams.Since.Format(DateFormat))
+	replacements = append(replacements, listParams.Until.Format(DateFormat))
 
 	query = fmt.Sprintf("%s %s ORDER BY created_at DESC, id DESC LIMIT ?", query, strings.Join(conditions, " AND "))
 	replacements = append(replacements, listParams.Limit)
