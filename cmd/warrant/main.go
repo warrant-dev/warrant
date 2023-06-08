@@ -27,8 +27,8 @@ import (
 const (
 	MySQLDatastoreMigrationVersion     = 000004
 	MySQLEventstoreMigrationVersion    = 000003
-	PostgresDatastoreMigrationVersion  = 000004
-	PostgresEventstoreMigrationVersion = 000003
+	PostgresDatastoreMigrationVersion  = 000005
+	PostgresEventstoreMigrationVersion = 000004
 	SQLiteDatastoreMigrationVersion    = 000004
 	SQLiteEventstoreMigrationVersion   = 000003
 )
