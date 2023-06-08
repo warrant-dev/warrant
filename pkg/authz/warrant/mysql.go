@@ -46,7 +46,7 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 		model.GetSubjectId(),
 		model.GetSubjectRelation(),
 		model.GetPolicy(),
-		model.GetPolicyHash(),
+		model.GetPolicy().Hash(),
 	)
 	if err != nil {
 		return -1, errors.Wrap(err, "error creating warrant")

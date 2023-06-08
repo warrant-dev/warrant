@@ -52,7 +52,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 		model.GetSubjectId(),
 		model.GetSubjectRelation(),
 		model.GetPolicy(),
-		model.GetPolicyHash(),
+		model.GetPolicy().Hash(),
 		now,
 		now,
 		now,
@@ -222,7 +222,7 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	query := `
-		SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, createdAt, updatedAt, deletedAt
+		SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, policy, createdAt, updatedAt, deletedAt
 		FROM warrant
 		WHERE
 			deletedAt IS NULL

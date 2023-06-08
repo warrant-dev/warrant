@@ -3,7 +3,6 @@ package authz
 import (
 	"net/http"
 
-	"github.com/warrant-dev/warrant/pkg/policy"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -49,7 +48,7 @@ func CreateHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 
 	// TODO: move into a custom golang-validate function
 	if warrantSpec.Policy != "" {
-		err := policy.Validate(warrantSpec.Policy)
+		err := warrantSpec.Policy.Validate()
 		if err != nil {
 			return service.NewInvalidParameterError("policy", err.Error())
 		}
