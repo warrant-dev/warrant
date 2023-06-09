@@ -43,12 +43,7 @@ func (svc CheckService) getWithPolicyMatch(ctx context.Context, spec CheckWarran
 
 	for _, warrant := range warrants {
 		if warrant.GetPolicy() != "" {
-			policyMatched, err := evalWarrantPolicy(warrant, spec.Context)
-			if err != nil {
-				return nil, err
-			}
-
-			if policyMatched {
+			if policyMatched := evalWarrantPolicy(warrant, spec.Context); policyMatched {
 				return warrant.ToWarrantSpec(), nil
 			}
 		}
@@ -84,12 +79,7 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType stri
 		if warrant.GetPolicy() == "" {
 			warrantSpecs = append(warrantSpecs, *warrant.ToWarrantSpec())
 		} else {
-			policyMatched, err := evalWarrantPolicy(warrant, checkCtx)
-			if err != nil {
-				return nil, err
-			}
-
-			if policyMatched {
+			if policyMatched := evalWarrantPolicy(warrant, checkCtx); policyMatched {
 				warrantSpecs = append(warrantSpecs, *warrant.ToWarrantSpec())
 			}
 		}
@@ -130,12 +120,7 @@ func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, ob
 		if warrant.GetPolicy() == "" {
 			warrantSpecs = append(warrantSpecs, *warrant.ToWarrantSpec())
 		} else {
-			policyMatched, err := evalWarrantPolicy(warrant, checkCtx)
-			if err != nil {
-				return nil, err
-			}
-
-			if policyMatched {
+			if policyMatched := evalWarrantPolicy(warrant, checkCtx); policyMatched {
 				warrantSpecs = append(warrantSpecs, *warrant.ToWarrantSpec())
 			}
 		}
@@ -472,7 +457,7 @@ func (svc CheckService) appendTenantContext(warrantCheck *CheckSpec, tenantId st
 	}
 }
 
-func evalWarrantPolicy(w warrant.Model, policyCtx warrant.PolicyContext) (bool, error) {
+func evalWarrantPolicy(w warrant.Model, policyCtx warrant.PolicyContext) bool {
 	policyCtxWithWarrant := make(warrant.PolicyContext)
 	for k, v := range policyCtx {
 		policyCtxWithWarrant[k] = v
@@ -481,8 +466,9 @@ func evalWarrantPolicy(w warrant.Model, policyCtx warrant.PolicyContext) (bool, 
 
 	policyMatched, err := w.GetPolicy().Eval(policyCtxWithWarrant)
 	if err != nil {
-		return false, err
+		log.Err(err).Msgf("Error while evaluating policy %s", w.GetPolicy())
+		return false
 	}
 
-	return policyMatched, nil
+	return policyMatched
 }

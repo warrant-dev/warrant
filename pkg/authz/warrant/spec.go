@@ -201,7 +201,7 @@ func (pc PolicyContext) String() string {
 
 	keyValuePairs := make([]string, 0)
 	for _, key := range contextKeys {
-		keyValuePairs = append(keyValuePairs, fmt.Sprintf("%s=%s", key, pc[key]))
+		keyValuePairs = append(keyValuePairs, fmt.Sprintf("%s=%v", key, pc[key]))
 	}
 
 	return fmt.Sprintf("[%s]", strings.Join(keyValuePairs, " "))
