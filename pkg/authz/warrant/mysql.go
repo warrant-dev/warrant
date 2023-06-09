@@ -255,6 +255,11 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 		replacements = append(replacements, filterOptions.Subject.Relation)
 	}
 
+	if filterOptions.Policy != "" {
+		query = fmt.Sprintf("%s AND policyHash = ?", query)
+		replacements = append(replacements, filterOptions.Policy.Hash())
+	}
+
 	if listParams.SortBy != "" {
 		query = fmt.Sprintf("%s ORDER BY %s %s", query, listParams.SortBy, listParams.SortOrder)
 	} else {

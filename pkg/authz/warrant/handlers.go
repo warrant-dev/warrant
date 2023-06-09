@@ -74,6 +74,7 @@ func ListHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) err
 			ObjectType: queryParams.Get("subjectType"),
 			ObjectId:   queryParams.Get("subjectId"),
 		},
+		Policy: Policy(queryParams.Get("policy")),
 	}
 	subjectRelation := queryParams.Get("subjectRelation")
 	if subjectRelation != "" {

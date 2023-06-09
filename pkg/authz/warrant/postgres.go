@@ -254,6 +254,11 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 		replacements = append(replacements, filterOptions.Subject.Relation)
 	}
 
+	if filterOptions.Policy != "" {
+		query = fmt.Sprintf("%s AND policy_hash = ?", query)
+		replacements = append(replacements, filterOptions.Policy.Hash())
+	}
+
 	if listParams.SortBy != "" {
 		sortBy := regexp.MustCompile("([A-Z])").ReplaceAllString(listParams.SortBy, `_$1`)
 		query = fmt.Sprintf(`%s ORDER BY %s %s`, query, sortBy, listParams.SortOrder)

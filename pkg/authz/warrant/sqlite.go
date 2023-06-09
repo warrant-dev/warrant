@@ -259,6 +259,11 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 		replacements = append(replacements, filterOptions.Subject.Relation)
 	}
 
+	if filterOptions.Policy != "" {
+		query = fmt.Sprintf("%s AND policyHash = ?", query)
+		replacements = append(replacements, filterOptions.Policy.Hash())
+	}
+
 	if listParams.SortBy != "" {
 		query = fmt.Sprintf("%s ORDER BY %s %s", query, listParams.SortBy, listParams.SortOrder)
 	} else {
