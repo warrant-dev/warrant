@@ -350,11 +350,14 @@
                         {
                             "type": "access_granted",
                             "source": "api",
-                            "objectType": "pricing-tier",
-                            "objectId": "enterprise",
+                            "objectType": "role",
+                            "objectId": "senior-accountant",
                             "relation": "member",
-                            "subjectType": "tenant",
-                            "subjectId": "tenant2-enterprise"
+                            "subjectType": "user",
+                            "subjectId": "user-a",
+                            "meta": {
+                                "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
+                            }
                         }
                     ],
                     "lastId": "{{ listAccessEventsFilterByType.lastId }}"
@@ -619,13 +622,13 @@
                             "subjectId": "user-a"
                         },
                         {
-                            "type": "access_allowed",
+                            "type": "access_revoked",
                             "source": "api",
-                            "objectType": "feature",
-                            "objectId": "analytics",
+                            "objectType": "permission",
+                            "objectId": "balance-sheet:edit",
                             "relation": "member",
                             "subjectType": "user",
-                            "subjectId": "user2-t2"
+                            "subjectId": "user-b"
                         }
                     ],
                     "lastId": "{{ listAccessEventsFilterBySubjectType.lastId }}"
