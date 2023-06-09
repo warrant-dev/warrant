@@ -1,8 +1,6 @@
 package authz
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"time"
 )
@@ -15,7 +13,7 @@ type Model interface {
 	GetSubjectType() string
 	GetSubjectId() string
 	GetSubjectRelation() string
-	GetPolicy() string
+	GetPolicy() Policy
 	GetPolicyHash() string
 	GetCreatedAt() time.Time
 	GetUpdatedAt() time.Time
@@ -32,7 +30,7 @@ type Warrant struct {
 	SubjectType     string     `mysql:"subjectType" postgres:"subject_type" sqlite:"subjectType"`
 	SubjectId       string     `mysql:"subjectId" postgres:"subject_id" sqlite:"subjectId"`
 	SubjectRelation string     `mysql:"subjectRelation" postgres:"subject_relation" sqlite:"subjectRelation"`
-	Policy          string     `mysql:"policy" postgres:"policy" sqlite:"policy"`
+	Policy          Policy     `mysql:"policy" postgres:"policy" sqlite:"policy"`
 	PolicyHash      string     `mysql:"policyHash" postgres:"policy_hash" sqlite:"policyHash"`
 	CreatedAt       time.Time  `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
 	UpdatedAt       time.Time  `mysql:"updatedAt" postgres:"updated_at" sqlite:"updatedAt"`
@@ -67,17 +65,12 @@ func (warrant Warrant) GetSubjectRelation() string {
 	return warrant.SubjectRelation
 }
 
-func (warrant Warrant) GetPolicy() string {
+func (warrant Warrant) GetPolicy() Policy {
 	return warrant.Policy
 }
 
 func (warrant Warrant) GetPolicyHash() string {
-	if warrant.Policy == "" {
-		return ""
-	}
-
-	hash := sha256.Sum256([]byte(warrant.Policy))
-	return hex.EncodeToString(hash[:])
+	return warrant.PolicyHash
 }
 
 func (warrant Warrant) GetCreatedAt() time.Time {

@@ -9,7 +9,6 @@ import (
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	"github.com/warrant-dev/warrant/pkg/event"
-	"github.com/warrant-dev/warrant/pkg/policy"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -44,12 +43,7 @@ func (svc CheckService) getWithPolicyMatch(ctx context.Context, spec CheckWarran
 
 	for _, warrant := range warrants {
 		if warrant.GetPolicy() != "" {
-			policyMatched, err := policy.Eval(warrant.GetPolicy(), spec.Context)
-			if err != nil {
-				return nil, err
-			}
-
-			if policyMatched {
+			if policyMatched := evalWarrantPolicy(warrant, spec.Context); policyMatched {
 				return warrant.ToWarrantSpec(), nil
 			}
 		}
@@ -58,7 +52,7 @@ func (svc CheckService) getWithPolicyMatch(ctx context.Context, spec CheckWarran
 	return nil, nil
 }
 
-func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType string, objectId string, relation string, checkCtx policy.ContextSpec) ([]warrant.WarrantSpec, error) {
+func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType string, objectId string, relation string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
 	log.Debug().Msgf("Getting matching subjects for %s:%s#%s@___%s", objectType, objectId, relation, checkCtx)
 
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
@@ -85,12 +79,7 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType stri
 		if warrant.GetPolicy() == "" {
 			warrantSpecs = append(warrantSpecs, *warrant.ToWarrantSpec())
 		} else {
-			policyMatched, err := policy.Eval(warrant.GetPolicy(), checkCtx)
-			if err != nil {
-				return nil, err
-			}
-
-			if policyMatched {
+			if policyMatched := evalWarrantPolicy(warrant, checkCtx); policyMatched {
 				warrantSpecs = append(warrantSpecs, *warrant.ToWarrantSpec())
 			}
 		}
@@ -103,7 +92,7 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType stri
 	return warrantSpecs, nil
 }
 
-func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string, checkCtx policy.ContextSpec) ([]warrant.WarrantSpec, error) {
+func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
 	log.Debug().Msgf("Getting matching subjects for %s:%s#%s@%s:___%s", objectType, objectId, relation, subjectType, checkCtx)
 
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
@@ -131,12 +120,7 @@ func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, ob
 		if warrant.GetPolicy() == "" {
 			warrantSpecs = append(warrantSpecs, *warrant.ToWarrantSpec())
 		} else {
-			policyMatched, err := policy.Eval(warrant.GetPolicy(), checkCtx)
-			if err != nil {
-				return nil, err
-			}
-
-			if policyMatched {
+			if policyMatched := evalWarrantPolicy(warrant, checkCtx); policyMatched {
 				warrantSpecs = append(warrantSpecs, *warrant.ToWarrantSpec())
 			}
 		}
@@ -465,10 +449,26 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 
 func (svc CheckService) appendTenantContext(warrantCheck *CheckSpec, tenantId string) {
 	if warrantCheck.CheckWarrantSpec.Context == nil {
-		warrantCheck.CheckWarrantSpec.Context = policy.ContextSpec{
+		warrantCheck.CheckWarrantSpec.Context = warrant.PolicyContext{
 			"tenant": tenantId,
 		}
 	} else {
 		warrantCheck.CheckWarrantSpec.Context["tenant"] = tenantId
 	}
+}
+
+func evalWarrantPolicy(w warrant.Model, policyCtx warrant.PolicyContext) bool {
+	policyCtxWithWarrant := make(warrant.PolicyContext)
+	for k, v := range policyCtx {
+		policyCtxWithWarrant[k] = v
+	}
+	policyCtxWithWarrant["warrant"] = w
+
+	policyMatched, err := w.GetPolicy().Eval(policyCtxWithWarrant)
+	if err != nil {
+		log.Err(err).Msgf("Error while evaluating policy %s", w.GetPolicy())
+		return false
+	}
+
+	return policyMatched
 }

@@ -50,7 +50,7 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 		model.GetSubjectId(),
 		model.GetSubjectRelation(),
 		model.GetPolicy(),
-		model.GetPolicyHash(),
+		model.GetPolicy().Hash(),
 	)
 	if err != nil {
 		return -1, errors.Wrap(err, "error creating warrant")
@@ -217,7 +217,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	query := `
-		SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, created_at, updated_at, deleted_at
+		SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, policy, created_at, updated_at, deleted_at
 		FROM warrant
 		WHERE
 			deleted_at IS NULL

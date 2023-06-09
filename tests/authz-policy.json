@@ -584,6 +584,33 @@
             }
         },
         {
+            "name": "checkPolicyNotMatchedWhenNoContextProvided",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "warrants": [
+                        {
+                            "objectType": "approval",
+                            "objectId": "approval-1",
+                            "relation": "approver",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized"
+                }
+            }
+        },
+        {
             "name": "removeWarrantWithSetPolicy",
             "request": {
                 "method": "DELETE",

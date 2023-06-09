@@ -2,11 +2,11 @@ package authz
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/warrant-dev/warrant/pkg/policy"
 )
 
 // FilterOptions type for the filter options available on the warrant table
@@ -15,6 +15,7 @@ type FilterOptions struct {
 	ObjectId   string
 	Relation   string
 	Subject    *SubjectSpec
+	Policy     Policy
 	ObjectIds  []string
 	SubjectIds []string
 }
@@ -78,7 +79,7 @@ type WarrantSpec struct {
 	ObjectId   string       `json:"objectId" validate:"required,valid_object_id"`
 	Relation   string       `json:"relation" validate:"required,valid_relation"`
 	Subject    *SubjectSpec `json:"subject" validate:"required"`
-	Policy     string       `json:"policy,omitempty"`
+	Policy     Policy       `json:"policy,omitempty"`
 	CreatedAt  time.Time    `json:"createdAt"`
 }
 
@@ -96,12 +97,13 @@ func (spec *WarrantSpec) ToWarrant() (*Warrant, error) {
 	}
 
 	if spec.Policy != "" {
-		err := policy.Validate(spec.Policy)
+		err := spec.Policy.Validate()
 		if err != nil {
 			return nil, err
 		}
 
 		warrant.Policy = spec.Policy
+		warrant.PolicyHash = spec.Policy.Hash()
 	}
 
 	return warrant, nil
@@ -158,7 +160,7 @@ func StringToWarrantSpec(warrantString string) (*WarrantSpec, error) {
 			if !strings.HasSuffix(subjectAndPolicy[1], "]") {
 				return nil, errors.New("invalid warrant")
 			}
-			spec.Policy = subjectAndPolicy[1]
+			spec.Policy = Policy(subjectAndPolicy[1])
 		}
 
 		subjectSpec, err := StringToSubjectSpec(subjectAndPolicy[0])
@@ -176,10 +178,31 @@ func StringToWarrantSpec(warrantString string) (*WarrantSpec, error) {
 		}
 
 		spec.Relation = relationAndPolicy[0]
-		spec.Policy = relationAndPolicy[1]
+		spec.Policy = Policy(relationAndPolicy[1])
 	} else {
 		return nil, errors.New("invalid warrant")
 	}
 
 	return &spec, nil
+}
+
+type PolicyContext map[string]interface{}
+
+func (pc PolicyContext) String() string {
+	if len(pc) == 0 {
+		return ""
+	}
+
+	contextKeys := make([]string, 0)
+	for key := range pc {
+		contextKeys = append(contextKeys, key)
+	}
+	sort.Strings(contextKeys)
+
+	keyValuePairs := make([]string, 0)
+	for _, key := range contextKeys {
+		keyValuePairs = append(keyValuePairs, fmt.Sprintf("%s=%v", key, pc[key]))
+	}
+
+	return fmt.Sprintf("[%s]", strings.Join(keyValuePairs, " "))
 }
