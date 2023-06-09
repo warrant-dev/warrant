@@ -140,7 +140,7 @@ func (repo PostgresRepository) DeleteAllBySubject(ctx context.Context, subjectTy
 	return nil
 }
 
-func (repo PostgresRepository) get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) (Model, error) {
+func (repo PostgresRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) (Model, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
@@ -186,7 +186,7 @@ func (repo PostgresRepository) get(ctx context.Context, objectType string, objec
 	return &warrant, nil
 }
 
-func (repo PostgresRepository) getByID(ctx context.Context, id int64) (Model, error) {
+func (repo PostgresRepository) GetByID(ctx context.Context, id int64) (Model, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,

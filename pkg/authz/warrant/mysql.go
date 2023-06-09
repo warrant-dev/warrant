@@ -141,7 +141,7 @@ func (repo MySQLRepository) DeleteAllBySubject(ctx context.Context, subjectType 
 	return nil
 }
 
-func (repo MySQLRepository) get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) (Model, error) {
+func (repo MySQLRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) (Model, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
@@ -187,7 +187,7 @@ func (repo MySQLRepository) get(ctx context.Context, objectType string, objectId
 	return &warrant, nil
 }
 
-func (repo MySQLRepository) getByID(ctx context.Context, id int64) (Model, error) {
+func (repo MySQLRepository) GetByID(ctx context.Context, id int64) (Model, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,

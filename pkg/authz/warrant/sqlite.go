@@ -145,7 +145,7 @@ func (repo SQLiteRepository) DeleteAllBySubject(ctx context.Context, subjectType
 	return nil
 }
 
-func (repo SQLiteRepository) get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) (Model, error) {
+func (repo SQLiteRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) (Model, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
@@ -191,7 +191,7 @@ func (repo SQLiteRepository) get(ctx context.Context, objectType string, objectI
 	return &warrant, nil
 }
 
-func (repo SQLiteRepository) getByID(ctx context.Context, id int64) (Model, error) {
+func (repo SQLiteRepository) GetByID(ctx context.Context, id int64) (Model, error) {
 	var warrant Warrant
 	err := repo.DB.GetContext(
 		ctx,
