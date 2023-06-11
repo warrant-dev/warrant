@@ -17,14 +17,14 @@ type SQLiteRepository struct {
 
 func NewSQLiteRepository(db *database.SQLite) SQLiteRepository {
 	return SQLiteRepository{
-		database.NewSQLRepository(&db.SQL),
+		database.NewSQLRepository(db),
 	}
 }
 
 func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newTenantId int64
 	now := time.Now().UTC()
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&newTenantId,
 		`
@@ -61,7 +61,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 
 func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var tenant Tenant
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&tenant,
 		`
@@ -87,7 +87,7 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, erro
 
 func (repo SQLiteRepository) GetByTenantId(ctx context.Context, tenantId string) (Model, error) {
 	var tenant Tenant
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&tenant,
 		`
@@ -193,7 +193,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams service.ListPa
 		replacements = append(replacements, listParams.Limit)
 	}
 
-	err := repo.DB.SelectContext(
+	err := repo.DB(ctx).SelectContext(
 		ctx,
 		&tenants,
 		query,
@@ -216,7 +216,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams service.ListPa
 }
 
 func (repo SQLiteRepository) UpdateByTenantId(ctx context.Context, tenantId string, model Model) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE tenant
@@ -239,7 +239,7 @@ func (repo SQLiteRepository) UpdateByTenantId(ctx context.Context, tenantId stri
 }
 
 func (repo SQLiteRepository) DeleteByTenantId(ctx context.Context, tenantId string) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE tenant

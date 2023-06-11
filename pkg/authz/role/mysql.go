@@ -17,12 +17,12 @@ type MySQLRepository struct {
 
 func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	return MySQLRepository{
-		database.NewSQLRepository(&db.SQL),
+		database.NewSQLRepository(db),
 	}
 }
 
 func (repo MySQLRepository) Create(ctx context.Context, role Model) (int64, error) {
-	result, err := repo.DB.ExecContext(
+	result, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			INSERT INTO role (
@@ -61,7 +61,7 @@ func (repo MySQLRepository) Create(ctx context.Context, role Model) (int64, erro
 
 func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var role Role
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&role,
 		`
@@ -87,7 +87,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error
 
 func (repo MySQLRepository) GetByRoleId(ctx context.Context, roleId string) (Model, error) {
 	var role Role
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&role,
 		`
@@ -192,7 +192,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 		replacements = append(replacements, listParams.Limit)
 	}
 
-	err := repo.DB.SelectContext(
+	err := repo.DB(ctx).SelectContext(
 		ctx,
 		&roles,
 		query,
@@ -215,7 +215,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 }
 
 func (repo MySQLRepository) UpdateByRoleId(ctx context.Context, roleId string, model Model) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE role
@@ -238,7 +238,7 @@ func (repo MySQLRepository) UpdateByRoleId(ctx context.Context, roleId string, m
 }
 
 func (repo MySQLRepository) DeleteByRoleId(ctx context.Context, roleId string) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE role

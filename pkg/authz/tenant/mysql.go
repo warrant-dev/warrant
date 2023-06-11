@@ -17,12 +17,12 @@ type MySQLRepository struct {
 
 func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	return MySQLRepository{
-		database.NewSQLRepository(&db.SQL),
+		database.NewSQLRepository(db),
 	}
 }
 
 func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, error) {
-	result, err := repo.DB.ExecContext(
+	result, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			INSERT INTO tenant (
@@ -57,7 +57,7 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 
 func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var tenant Tenant
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&tenant,
 		`
@@ -83,7 +83,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error
 
 func (repo MySQLRepository) GetByTenantId(ctx context.Context, tenantId string) (Model, error) {
 	var tenant Tenant
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&tenant,
 		`
@@ -189,7 +189,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 		replacements = append(replacements, listParams.Limit)
 	}
 
-	err := repo.DB.SelectContext(
+	err := repo.DB(ctx).SelectContext(
 		ctx,
 		&tenants,
 		query,
@@ -212,7 +212,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 }
 
 func (repo MySQLRepository) UpdateByTenantId(ctx context.Context, tenantId string, model Model) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE tenant
@@ -233,7 +233,7 @@ func (repo MySQLRepository) UpdateByTenantId(ctx context.Context, tenantId strin
 }
 
 func (repo MySQLRepository) DeleteByTenantId(ctx context.Context, tenantId string) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE tenant

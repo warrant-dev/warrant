@@ -17,14 +17,14 @@ type SQLiteRepository struct {
 
 func NewSQLiteRepository(db *database.SQLite) SQLiteRepository {
 	return SQLiteRepository{
-		database.NewSQLRepository(&db.SQL),
+		database.NewSQLRepository(db),
 	}
 }
 
 func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newObjectId int64
 	now := time.Now().UTC()
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&newObjectId,
 		`
@@ -54,7 +54,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 
 func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var object Object
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&object,
 		`
@@ -80,7 +80,7 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, erro
 
 func (repo SQLiteRepository) GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (Model, error) {
 	var object Object
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&object,
 		`
@@ -192,7 +192,7 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 		replacements = append(replacements, listParams.Limit)
 	}
 
-	err := repo.DB.SelectContext(
+	err := repo.DB(ctx).SelectContext(
 		ctx,
 		&objects,
 		query,
@@ -215,7 +215,7 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 }
 
 func (repo SQLiteRepository) DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE object

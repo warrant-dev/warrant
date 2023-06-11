@@ -17,7 +17,7 @@ type MySQLRepository struct {
 
 func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	return MySQLRepository{
-		database.NewSQLRepository(&db.SQL),
+		database.NewSQLRepository(db),
 	}
 }
 
@@ -31,7 +31,7 @@ func (repo MySQLRepository) TrackResourceEvents(ctx context.Context, models []Re
 		resourceEvents = append(resourceEvents, *NewResourceEventFromModel(model))
 	}
 
-	result, err := repo.DB.NamedExecContext(
+	result, err := repo.DB(ctx).NamedExecContext(
 		ctx,
 		`
 		   INSERT INTO resourceEvent (
@@ -112,7 +112,7 @@ func (repo MySQLRepository) ListResourceEvents(ctx context.Context, listParams L
 
 	query = fmt.Sprintf("%s %s ORDER BY createdAt DESC, BIN_TO_UUID(id) DESC LIMIT ?", query, strings.Join(conditions, " AND "))
 	replacements = append(replacements, listParams.Limit)
-	err := repo.DB.SelectContext(
+	err := repo.DB(ctx).SelectContext(
 		ctx,
 		&resourceEvents,
 		query,
@@ -157,7 +157,7 @@ func (repo MySQLRepository) TrackAccessEvents(ctx context.Context, models []Acce
 		accessEvents = append(accessEvents, *NewAccessEventFromModel(model))
 	}
 
-	result, err := repo.DB.NamedExecContext(
+	result, err := repo.DB(ctx).NamedExecContext(
 		ctx,
 		`
 		   INSERT INTO accessEvent (
@@ -266,7 +266,7 @@ func (repo MySQLRepository) ListAccessEvents(ctx context.Context, listParams Lis
 
 	query = fmt.Sprintf("%s %s ORDER BY createdAt DESC, BIN_TO_UUID(id) DESC LIMIT ?", query, strings.Join(conditions, " AND "))
 	replacements = append(replacements, listParams.Limit)
-	err := repo.DB.SelectContext(
+	err := repo.DB(ctx).SelectContext(
 		ctx,
 		&accessEvents,
 		query,

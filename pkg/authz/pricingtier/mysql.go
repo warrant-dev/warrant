@@ -17,12 +17,12 @@ type MySQLRepository struct {
 
 func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	return MySQLRepository{
-		database.NewSQLRepository(&db.SQL),
+		database.NewSQLRepository(db),
 	}
 }
 
 func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, error) {
-	result, err := repo.DB.ExecContext(
+	result, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			INSERT INTO pricingTier (
@@ -61,7 +61,7 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 
 func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var pricingTier PricingTier
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&pricingTier,
 		`
@@ -87,7 +87,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error
 
 func (repo MySQLRepository) GetByPricingTierId(ctx context.Context, pricingTierId string) (Model, error) {
 	var pricingTier PricingTier
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&pricingTier,
 		`
@@ -192,7 +192,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 		replacements = append(replacements, listParams.Limit)
 	}
 
-	err := repo.DB.SelectContext(
+	err := repo.DB(ctx).SelectContext(
 		ctx,
 		&pricingTiers,
 		query,
@@ -215,7 +215,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 }
 
 func (repo MySQLRepository) UpdateByPricingTierId(ctx context.Context, pricingTierId string, model Model) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE pricingTier
@@ -238,7 +238,7 @@ func (repo MySQLRepository) UpdateByPricingTierId(ctx context.Context, pricingTi
 }
 
 func (repo MySQLRepository) DeleteByPricingTierId(ctx context.Context, pricingTierId string) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE pricingTier
