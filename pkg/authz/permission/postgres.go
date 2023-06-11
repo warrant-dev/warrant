@@ -18,13 +18,13 @@ type PostgresRepository struct {
 
 func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	return PostgresRepository{
-		database.NewSQLRepository(&db.SQL),
+		database.NewSQLRepository(db),
 	}
 }
 
 func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newPermissionId int64
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&newPermissionId,
 		`
@@ -60,7 +60,7 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 
 func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var permission Permission
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&permission,
 		`
@@ -86,7 +86,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, er
 
 func (repo PostgresRepository) GetByPermissionId(ctx context.Context, permissionId string) (Model, error) {
 	var permission Permission
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&permission,
 		`
@@ -197,7 +197,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 		replacements = append(replacements, listParams.Limit)
 	}
 
-	err := repo.DB.SelectContext(
+	err := repo.DB(ctx).SelectContext(
 		ctx,
 		&permissions,
 		query,
@@ -220,7 +220,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 }
 
 func (repo PostgresRepository) UpdateByPermissionId(ctx context.Context, permissionId string, model Model) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE permission
@@ -243,7 +243,7 @@ func (repo PostgresRepository) UpdateByPermissionId(ctx context.Context, permiss
 }
 
 func (repo PostgresRepository) DeleteByPermissionId(ctx context.Context, permissionId string) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE permission

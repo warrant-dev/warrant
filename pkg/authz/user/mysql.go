@@ -17,12 +17,12 @@ type MySQLRepository struct {
 
 func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	return MySQLRepository{
-		database.NewSQLRepository(&db.SQL),
+		database.NewSQLRepository(db),
 	}
 }
 
 func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, error) {
-	result, err := repo.DB.ExecContext(
+	result, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			INSERT INTO user (
@@ -56,7 +56,7 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 
 func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var user User
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&user,
 		`
@@ -82,7 +82,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error
 
 func (repo MySQLRepository) GetByUserId(ctx context.Context, userId string) (Model, error) {
 	var user User
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&user,
 		`
@@ -187,7 +187,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 		replacements = append(replacements, listParams.Limit)
 	}
 
-	err := repo.DB.SelectContext(
+	err := repo.DB(ctx).SelectContext(
 		ctx,
 		&users,
 		query,
@@ -210,7 +210,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 }
 
 func (repo MySQLRepository) UpdateByUserId(ctx context.Context, userId string, model Model) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE user
@@ -231,7 +231,7 @@ func (repo MySQLRepository) UpdateByUserId(ctx context.Context, userId string, m
 }
 
 func (repo MySQLRepository) DeleteByUserId(ctx context.Context, userId string) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE user

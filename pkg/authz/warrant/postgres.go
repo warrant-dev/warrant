@@ -18,13 +18,13 @@ type PostgresRepository struct {
 
 func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	return PostgresRepository{
-		database.NewSQLRepository(&db.SQL),
+		database.NewSQLRepository(db),
 	}
 }
 
 func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newWarrantId int64
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&newWarrantId,
 		`
@@ -60,7 +60,7 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 }
 
 func (repo PostgresRepository) DeleteById(ctx context.Context, id int64) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE warrant
@@ -85,7 +85,7 @@ func (repo PostgresRepository) DeleteById(ctx context.Context, id int64) error {
 }
 
 func (repo PostgresRepository) DeleteAllByObject(ctx context.Context, objectType string, objectId string) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE warrant
@@ -113,7 +113,7 @@ func (repo PostgresRepository) DeleteAllByObject(ctx context.Context, objectType
 }
 
 func (repo PostgresRepository) DeleteAllBySubject(ctx context.Context, subjectType string, subjectId string) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE warrant
@@ -142,7 +142,7 @@ func (repo PostgresRepository) DeleteAllBySubject(ctx context.Context, subjectTy
 
 func (repo PostgresRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) (Model, error) {
 	var warrant Warrant
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&warrant,
 		`
@@ -188,7 +188,7 @@ func (repo PostgresRepository) Get(ctx context.Context, objectType string, objec
 
 func (repo PostgresRepository) GetByID(ctx context.Context, id int64) (Model, error) {
 	var warrant Warrant
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&warrant,
 		`
@@ -268,7 +268,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 
 	query = fmt.Sprintf(`%s LIMIT ? OFFSET ?`, query)
 	replacements = append(replacements, listParams.Limit, offset)
-	err := repo.DB.SelectContext(
+	err := repo.DB(ctx).SelectContext(
 		ctx,
 		&warrants,
 		query,
@@ -293,7 +293,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 func (repo PostgresRepository) GetAllMatchingObjectRelationAndSubject(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
-	err := repo.DB.SelectContext(
+	err := repo.DB(ctx).SelectContext(
 		ctx,
 		&warrants,
 		`
@@ -334,7 +334,7 @@ func (repo PostgresRepository) GetAllMatchingObjectRelationAndSubject(ctx contex
 func (repo PostgresRepository) GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
-	err := repo.DB.SelectContext(
+	err := repo.DB(ctx).SelectContext(
 		ctx,
 		&warrants,
 		`
@@ -370,7 +370,7 @@ func (repo PostgresRepository) GetAllMatchingObjectAndRelation(ctx context.Conte
 func (repo PostgresRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
-	err := repo.DB.SelectContext(
+	err := repo.DB(ctx).SelectContext(
 		ctx,
 		&warrants,
 		`

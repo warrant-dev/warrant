@@ -124,3 +124,7 @@ func (ds Postgres) Migrate(ctx context.Context, toVersion uint) error {
 func (ds Postgres) Ping(ctx context.Context) error {
 	return ds.DB.PingContext(ctx)
 }
+
+func (ds Postgres) DbHandler(ctx context.Context) interface{} {
+	return &ds.SQL
+}

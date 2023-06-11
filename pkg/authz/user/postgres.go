@@ -18,13 +18,13 @@ type PostgresRepository struct {
 
 func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	return PostgresRepository{
-		database.NewSQLRepository(&db.SQL),
+		database.NewSQLRepository(db),
 	}
 }
 
 func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newUserId int64
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&newUserId,
 		`
@@ -55,7 +55,7 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 
 func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var user User
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&user,
 		`
@@ -81,7 +81,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, er
 
 func (repo PostgresRepository) GetByUserId(ctx context.Context, userId string) (Model, error) {
 	var user User
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&user,
 		`
@@ -192,7 +192,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 		replacements = append(replacements, listParams.Limit)
 	}
 
-	err := repo.DB.SelectContext(
+	err := repo.DB(ctx).SelectContext(
 		ctx,
 		&users,
 		query,
@@ -215,7 +215,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 }
 
 func (repo PostgresRepository) UpdateByUserId(ctx context.Context, userId string, model Model) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE "user"
@@ -236,7 +236,7 @@ func (repo PostgresRepository) UpdateByUserId(ctx context.Context, userId string
 }
 
 func (repo PostgresRepository) DeleteByUserId(ctx context.Context, userId string) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE "user"

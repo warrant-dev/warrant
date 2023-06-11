@@ -117,3 +117,7 @@ func (ds MySQL) Migrate(ctx context.Context, toVersion uint) error {
 func (ds MySQL) Ping(ctx context.Context) error {
 	return ds.DB.PingContext(ctx)
 }
+
+func (ds MySQL) DbHandler(ctx context.Context) interface{} {
+	return &ds.SQL
+}

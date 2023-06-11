@@ -17,14 +17,14 @@ type SQLiteRepository struct {
 
 func NewSQLiteRepository(db *database.SQLite) SQLiteRepository {
 	return SQLiteRepository{
-		database.NewSQLRepository(&db.SQL),
+		database.NewSQLRepository(db),
 	}
 }
 
 func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newFeatureId int64
 	now := time.Now().UTC()
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&newFeatureId,
 		`
@@ -67,7 +67,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 
 func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var feature Feature
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&feature,
 		`
@@ -93,7 +93,7 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, erro
 
 func (repo SQLiteRepository) GetByFeatureId(ctx context.Context, featureId string) (Model, error) {
 	var feature Feature
-	err := repo.DB.GetContext(
+	err := repo.DB(ctx).GetContext(
 		ctx,
 		&feature,
 		`
@@ -198,7 +198,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams service.ListPa
 		replacements = append(replacements, listParams.Limit)
 	}
 
-	err := repo.DB.SelectContext(
+	err := repo.DB(ctx).SelectContext(
 		ctx,
 		&features,
 		query,
@@ -221,7 +221,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams service.ListPa
 }
 
 func (repo SQLiteRepository) UpdateByFeatureId(ctx context.Context, featureId string, model Model) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE feature
@@ -246,7 +246,7 @@ func (repo SQLiteRepository) UpdateByFeatureId(ctx context.Context, featureId st
 }
 
 func (repo SQLiteRepository) DeleteByFeatureId(ctx context.Context, featureId string) error {
-	_, err := repo.DB.ExecContext(
+	_, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
 			UPDATE feature

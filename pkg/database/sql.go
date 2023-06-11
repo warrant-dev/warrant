@@ -270,15 +270,23 @@ func (ds SQL) getQueryableFromContext(ctx context.Context) SqlQueryable {
 }
 
 type SQLRepository struct {
-	DB *SQL
+	db Database
 }
 
-func NewSQLRepository(db *SQL) SQLRepository {
+func NewSQLRepository(db Database) SQLRepository {
 	if db == nil {
 		log.Fatal().Msg("Cannot initialize SQLRepository with a nil db parameter")
 	}
+	_, ok := db.DbHandler(context.TODO()).(*SQL)
+	if !ok {
+		log.Fatal().Msg("No/invalid SQL driver provided, cannot initialize SQLRepository")
+	}
 
 	return SQLRepository{
-		DB: db,
+		db: db,
 	}
+}
+
+func (d SQLRepository) DB(ctx context.Context) *SQL {
+	return d.db.DbHandler(ctx).(*SQL)
 }
