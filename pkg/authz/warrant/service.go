@@ -80,15 +80,6 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 	return createdWarrant.ToWarrantSpec(), nil
 }
 
-func (svc WarrantService) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policy string) (*WarrantSpec, error) {
-	warrant, err := svc.Repository.Get(ctx, objectType, objectId, relation, subjectType, subjectId, subjectRelation, policy)
-	if err != nil {
-		return nil, err
-	}
-
-	return warrant.ToWarrantSpec(), nil
-}
-
 func (svc WarrantService) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]*WarrantSpec, error) {
 	warrantSpecs := make([]*WarrantSpec, 0)
 	warrants, err := svc.Repository.List(ctx, filterOptions, listParams)
