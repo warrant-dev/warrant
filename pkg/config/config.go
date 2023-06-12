@@ -79,13 +79,16 @@ type DatastoreConfig struct {
 }
 
 type MySQLConfig struct {
-	Username           string `mapstructure:"username"`
-	Password           string `mapstructure:"password"`
-	Hostname           string `mapstructure:"hostname"`
-	Database           string `mapstructure:"database"`
-	MigrationSource    string `mapstructure:"migrationSource"`
-	MaxIdleConnections int    `mapstructure:"maxIdleConnections"`
-	MaxOpenConnections int    `mapstructure:"maxOpenConnections"`
+	Username                      string `mapstructure:"username"`
+	Password                      string `mapstructure:"password"`
+	Hostname                      string `mapstructure:"hostname"`
+	Database                      string `mapstructure:"database"`
+	MigrationSource               string `mapstructure:"migrationSource"`
+	MaxIdleConnections            int    `mapstructure:"maxIdleConnections"`
+	MaxOpenConnections            int    `mapstructure:"maxOpenConnections"`
+	ReadReplicaHostname           string `mapstructure:"readReplicaHostname"`
+	ReadReplicaMaxIdleConnections int    `mapstructure:"readReplicaMaxIdleConnections"`
+	ReadReplicaMaxOpenConnections int    `mapstructure:"readReplicaMaxOpenConnections"`
 }
 
 type PostgresConfig struct {

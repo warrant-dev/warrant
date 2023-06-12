@@ -17,14 +17,16 @@ import (
 )
 
 type MySQL struct {
-	SQL
-	Config config.MySQLConfig
+	sql         SQL
+	readReplica SQL
+	Config      config.MySQLConfig
 }
 
 func NewMySQL(config config.MySQLConfig) *MySQL {
 	return &MySQL{
-		SQL:    NewSQL(nil, config.Database),
-		Config: config,
+		sql:         NewSQL(nil, config.Database),
+		readReplica: NewSQL(nil, config.Database),
+		Config:      config,
 	}
 }
 
@@ -71,9 +73,33 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 
 	// map struct attributes to db column names
 	db.Mapper = reflectx.NewMapperFunc("mysql", func(s string) string { return s })
-
-	ds.DB = db
+	ds.sql.DB = db
 	log.Debug().Msgf("Connected to mysql database %s", ds.Config.Database)
+
+	if ds.Config.ReadReplicaHostname != "" {
+		readReplica, err := sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", ds.Config.Username, ds.Config.Password, ds.Config.ReadReplicaHostname, ds.Config.Database))
+		if err != nil {
+			return errors.Wrap(err, "Unable to establish connection to mysql read replica. Shutting down server.")
+		}
+
+		err = readReplica.PingContext(ctx)
+		if err != nil {
+			return errors.Wrap(err, "Unable to ping mysql read replica. Shutting down server.")
+		}
+
+		if ds.Config.ReadReplicaMaxIdleConnections != 0 {
+			readReplica.SetMaxIdleConns(ds.Config.ReadReplicaMaxIdleConnections)
+		}
+
+		if ds.Config.ReadReplicaMaxOpenConnections != 0 {
+			readReplica.SetMaxOpenConns(ds.Config.ReadReplicaMaxOpenConnections)
+		}
+		// map struct attributes to db column names
+		readReplica.Mapper = reflectx.NewMapperFunc("mysql", func(s string) string { return s })
+		ds.readReplica.DB = readReplica
+		log.Debug().Msgf("Connected to mysql read replica database %s", ds.Config.Database)
+	}
+
 	return nil
 }
 
@@ -115,9 +141,25 @@ func (ds MySQL) Migrate(ctx context.Context, toVersion uint) error {
 }
 
 func (ds MySQL) Ping(ctx context.Context) error {
-	return ds.DB.PingContext(ctx)
+	err := ds.sql.DB.PingContext(ctx)
+	if err != nil {
+		return err
+	}
+	if ds.readReplica.DB != nil {
+		err = ds.readReplica.DB.PingContext(ctx)
+	}
+	return err
 }
 
 func (ds MySQL) DbHandler(ctx context.Context) interface{} {
-	return &ds.SQL
+	replicaSafeOp, ok := ctx.Value("replicaSafeOp").(bool)
+	if ok && replicaSafeOp {
+		return &ds.readReplica
+	}
+	return &ds.sql
+}
+
+// Any transactional statements execute on main db instance
+func (ds MySQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.Context) error) error {
+	return ds.sql.WithinTransaction(ctx, txFunc)
 }
