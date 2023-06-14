@@ -262,22 +262,22 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 func GetListParamsFromContext(context context.Context) ListParams {
 	contextPage := context.Value(contextKeyPage)
 	if contextPage == nil {
-		log.Fatal().Msg("List context not available. Did you forget to add ListMiddleware to a handler?")
+		log.Ctx(context).Fatal().Msg("List context not available. Did you forget to add ListMiddleware to a handler?")
 	}
 
 	contextLimit := context.Value(contextKeyLimit)
 	if contextLimit == nil {
-		log.Fatal().Msg("List context not available. Did you forget to add ListMiddleware to a handler?")
+		log.Ctx(context).Fatal().Msg("List context not available. Did you forget to add ListMiddleware to a handler?")
 	}
 
 	contextSortBy := context.Value(contextKeySortBy)
 	if contextSortBy == nil {
-		log.Fatal().Msg("List context not available. Did you forget to add ListMiddleware to a handler?")
+		log.Ctx(context).Fatal().Msg("List context not available. Did you forget to add ListMiddleware to a handler?")
 	}
 
 	contextSortOrder := context.Value(contextKeySortOrder)
 	if contextSortOrder == nil {
-		log.Fatal().Msg("List context not available. Did you forget to add ListMiddleware to a handler?")
+		log.Ctx(context).Fatal().Msg("List context not available. Did you forget to add ListMiddleware to a handler?")
 	}
 
 	contextQuery := context.Value(contextKeyQuery)

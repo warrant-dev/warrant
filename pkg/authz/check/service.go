@@ -53,7 +53,7 @@ func (svc CheckService) getWithPolicyMatch(ctx context.Context, spec CheckWarran
 }
 
 func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType string, objectId string, relation string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
-	log.Debug().Msgf("Getting matching subjects for %s:%s#%s@___%s", objectType, objectId, relation, checkCtx)
+	log.Ctx(ctx).Debug().Msgf("Getting matching subjects for %s:%s#%s@___%s", objectType, objectId, relation, checkCtx)
 
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
 	objectTypeSpec, err := svc.ObjectTypeSvc.GetByTypeId(ctx, objectType)
@@ -93,7 +93,7 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType stri
 }
 
 func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
-	log.Debug().Msgf("Getting matching subjects for %s:%s#%s@%s:___%s", objectType, objectId, relation, subjectType, checkCtx)
+	log.Ctx(ctx).Debug().Msgf("Getting matching subjects for %s:%s#%s@%s:___%s", objectType, objectId, relation, subjectType, checkCtx)
 
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
 	objectTypeSpec, err := svc.ObjectTypeSvc.GetByTypeId(ctx, objectType)
@@ -380,7 +380,7 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 
 // Check returns true if the subject has a warrant (explicitly or implicitly) for given objectType:objectId#relation and context
 func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, warrantCheck CheckSpec) (match bool, decisionPath []warrant.WarrantSpec, err error) {
-	log.Debug().Msgf("Checking for warrant %s", warrantCheck.String())
+	log.Ctx(ctx).Debug().Msgf("Checking for warrant %s", warrantCheck.String())
 
 	// Used to automatically append tenant context for session token w/ tenantId checks
 	if authInfo != nil && authInfo.TenantId != "" {
