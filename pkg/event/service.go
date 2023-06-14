@@ -90,12 +90,12 @@ func (svc EventService) TrackResourceEvent(ctx context.Context, resourceEventSpe
 		go func() {
 			resourceEvent, err := resourceEventSpec.ToResourceEvent()
 			if err != nil {
-				log.Err(err).Msgf("Error tracking resource event %s", resourceEventSpec.Type)
+				log.Ctx(ctx).Err(err).Msgf("Error tracking resource event %s", resourceEventSpec.Type)
 			}
 
 			err = svc.Repository.TrackResourceEvent(eventCtx, *resourceEvent)
 			if err != nil {
-				log.Err(err).Msgf("Error tracking resource event %s", resourceEvent.Type)
+				log.Ctx(ctx).Err(err).Msgf("Error tracking resource event %s", resourceEvent.Type)
 			}
 		}()
 		return nil
@@ -121,7 +121,7 @@ func (svc EventService) TrackResourceEvents(ctx context.Context, resourceEventSp
 			for _, resourceEventSpec := range resourceEventSpecs {
 				resourceEvent, err := resourceEventSpec.ToResourceEvent()
 				if err != nil {
-					log.Err(err).Msgf("Error tracking resource events")
+					log.Ctx(ctx).Err(err).Msgf("Error tracking resource events")
 				}
 
 				resourceEvents = append(resourceEvents, *resourceEvent)
@@ -129,7 +129,7 @@ func (svc EventService) TrackResourceEvents(ctx context.Context, resourceEventSp
 
 			err := svc.Repository.TrackResourceEvents(eventCtx, resourceEvents)
 			if err != nil {
-				log.Err(err).Msgf("Error tracking resource events")
+				log.Ctx(ctx).Err(err).Msgf("Error tracking resource events")
 			}
 		}()
 		return nil
@@ -233,12 +233,12 @@ func (svc EventService) TrackAccessEvent(ctx context.Context, accessEventSpec Cr
 		go func() {
 			accessEvent, err := accessEventSpec.ToAccessEvent()
 			if err != nil {
-				log.Err(err).Msgf("Error tracking access event %s", accessEvent.Type)
+				log.Ctx(ctx).Err(err).Msgf("Error tracking access event %s", accessEvent.Type)
 			}
 
 			err = svc.Repository.TrackAccessEvent(eventCtx, *accessEvent)
 			if err != nil {
-				log.Err(err).Msgf("Error tracking access event %s", accessEvent.Type)
+				log.Ctx(ctx).Err(err).Msgf("Error tracking access event %s", accessEvent.Type)
 			}
 		}()
 		return nil
@@ -264,7 +264,7 @@ func (svc EventService) TrackAccessEvents(ctx context.Context, accessEventSpecs 
 			for _, accessEventSpec := range accessEventSpecs {
 				accessEvent, err := accessEventSpec.ToAccessEvent()
 				if err != nil {
-					log.Err(err).Msg("Error tracking access events")
+					log.Ctx(ctx).Err(err).Msg("Error tracking access events")
 				}
 
 				accessEvents = append(accessEvents, *accessEvent)
@@ -272,7 +272,7 @@ func (svc EventService) TrackAccessEvents(ctx context.Context, accessEventSpecs 
 
 			err := svc.Repository.TrackAccessEvents(eventCtx, accessEvents)
 			if err != nil {
-				log.Err(err).Msg("Error tracking access events")
+				log.Ctx(ctx).Err(err).Msg("Error tracking access events")
 			}
 		}()
 		return nil

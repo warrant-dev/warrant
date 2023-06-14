@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"github.com/rs/zerolog/hlog"
 	"github.com/rs/zerolog/log"
 	"github.com/warrant-dev/warrant/pkg/config"
+	"github.com/warrant-dev/warrant/pkg/stats"
 )
 
 type RouteHandler[T Service] struct {
@@ -57,14 +59,15 @@ func NewRouter(config config.Config, pathPrefix string, routes []Route, authMidd
 	if logger.GetLevel() == zerolog.DebugLevel {
 		logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
-
 	router.Use(hlog.NewHandler(logger))
+	router.Use(requestStatsMiddleware)
 	if config.GetEnableAccessLog() {
 		router.Use(accessLogMiddleware)
-		router.Use(hlog.RequestIDHandler("requestId", "Warrant-Request-Id"))
 	}
-
+	router.Use(hlog.RequestIDHandler("requestId", "Warrant-Request-Id"))
 	router.Use(hlog.URLHandler("uri"))
+	router.Use(hlog.MethodHandler("method"))
+	router.Use(hlog.ProtoHandler("protocol"))
 
 	// Setup router middlewares, which will be run on ALL
 	// requests, even if they are to non-existent endpoints.
@@ -98,9 +101,21 @@ func NewRouter(config config.Config, pathPrefix string, routes []Route, authMidd
 	return router, nil
 }
 
+// Create & inject a 'per-request' stats object into request context
+func requestStatsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		reqStats := stats.RequestStats{
+			Queries: make([]stats.QueryStat, 0),
+		}
+		newContext := context.WithValue(r.Context(), stats.RequestStatsKey{}, &reqStats)
+		next.ServeHTTP(w, r.WithContext(newContext))
+	})
+}
+
 func accessLogMiddleware(next http.Handler) http.Handler {
 	return hlog.AccessHandler(func(r *http.Request, status, size int, duration time.Duration) {
-		logEvent := hlog.FromRequest(r).Info().
+		logger := hlog.FromRequest(r)
+		logEvent := logger.Info().
 			Str("method", r.Method).
 			Str("protocol", r.Proto).
 			Stringer("uri", r.URL).
@@ -119,6 +134,14 @@ func accessLogMiddleware(next http.Handler) http.Handler {
 
 		if duration.Milliseconds() >= 500 {
 			logEvent = logEvent.Bool("slow", true)
+		}
+
+		reqStats, ok := r.Context().Value(stats.RequestStatsKey{}).(*stats.RequestStats)
+		if ok {
+			logEvent = logEvent.Int("numQueries", reqStats.NumQueries)
+			if logger.GetLevel() <= zerolog.DebugLevel {
+				logEvent.Object("requestStats", reqStats)
+			}
 		}
 
 		logEvent.Msg("ACCESS")

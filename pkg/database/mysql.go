@@ -23,7 +23,7 @@ type MySQL struct {
 
 func NewMySQL(config config.MySQLConfig) *MySQL {
 	return &MySQL{
-		SQL:    NewSQL(nil, config.Database),
+		SQL:    NewSQL(nil, config.Hostname, config.Database),
 		Config: config,
 	}
 }
@@ -73,12 +73,12 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 	db.Mapper = reflectx.NewMapperFunc("mysql", func(s string) string { return s })
 
 	ds.DB = db
-	log.Debug().Msgf("Connected to mysql database %s", ds.Config.Database)
+	log.Ctx(ctx).Debug().Msgf("Connected to mysql database %s", ds.Config.Database)
 	return nil
 }
 
 func (ds MySQL) Migrate(ctx context.Context, toVersion uint) error {
-	log.Debug().Msgf("Migrating mysql database %s", ds.Config.Database)
+	log.Ctx(ctx).Debug().Msgf("Migrating mysql database %s", ds.Config.Database)
 	// migrate database to latest schema
 	mig, err := migrate.New(
 		ds.Config.MigrationSource,
@@ -99,18 +99,18 @@ func (ds MySQL) Migrate(ctx context.Context, toVersion uint) error {
 	}
 
 	if currentVersion == toVersion {
-		log.Debug().Msg("Migrations already up-to-date")
+		log.Ctx(ctx).Debug().Msg("Migrations already up-to-date")
 		return nil
 	}
 
 	numStepsToMigrate := toVersion - currentVersion
-	log.Debug().Msgf("Applying %d migration(s)", numStepsToMigrate)
+	log.Ctx(ctx).Debug().Msgf("Applying %d migration(s)", numStepsToMigrate)
 	err = mig.Steps(int(numStepsToMigrate))
 	if err != nil {
 		return errors.Wrap(err, "Error migrating mysql database")
 	}
 
-	log.Debug().Msgf("Migrations for database %s up-to-date.", ds.Config.Database)
+	log.Ctx(ctx).Debug().Msgf("Migrations for database %s up-to-date.", ds.Config.Database)
 	return nil
 }
 
