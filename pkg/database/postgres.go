@@ -79,12 +79,12 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 	db.Mapper = reflectx.NewMapperFunc("postgres", func(s string) string { return s })
 
 	ds.DB = db
-	log.Ctx(ctx).Debug().Msgf("Connected to postgres database %s", ds.Config.Database)
+	log.Info().Msgf("Connected to postgres database %s", ds.Config.Database)
 	return nil
 }
 
 func (ds Postgres) Migrate(ctx context.Context, toVersion uint) error {
-	log.Ctx(ctx).Debug().Msgf("Migrating postgres database %s", ds.Config.Database)
+	log.Info().Msgf("Migrating postgres database %s", ds.Config.Database)
 	// migrate database to latest schema
 	usernamePassword := url.UserPassword(ds.Config.Username, ds.Config.Password).String()
 	mig, err := migrate.New(
@@ -106,18 +106,18 @@ func (ds Postgres) Migrate(ctx context.Context, toVersion uint) error {
 	}
 
 	if currentVersion == toVersion {
-		log.Ctx(ctx).Debug().Msg("Migrations already up-to-date")
+		log.Info().Msg("Migrations already up-to-date")
 		return nil
 	}
 
 	numStepsToMigrate := toVersion - currentVersion
-	log.Ctx(ctx).Debug().Msgf("Applying %d migration(s)", numStepsToMigrate)
+	log.Info().Msgf("Applying %d migration(s)", numStepsToMigrate)
 	err = mig.Steps(int(numStepsToMigrate))
 	if err != nil {
 		return errors.Wrap(err, "Error migrating postgres database")
 	}
 
-	log.Ctx(ctx).Debug().Msgf("Migrations for database %s up-to-date.", ds.Config.Database)
+	log.Info().Msgf("Migrations for database %s up-to-date.", ds.Config.Database)
 	return nil
 }
 
