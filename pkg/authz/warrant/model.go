@@ -122,13 +122,10 @@ func StringToWarrant(warrantString string) (*Warrant, error) {
 		return nil, err
 	}
 
-	return &Warrant{
-		ObjectType:      warrantSpec.ObjectType,
-		ObjectId:        warrantSpec.ObjectId,
-		Relation:        warrantSpec.Relation,
-		SubjectType:     warrantSpec.Subject.ObjectType,
-		SubjectId:       warrantSpec.Subject.ObjectId,
-		SubjectRelation: warrantSpec.Subject.Relation,
-		Policy:          warrantSpec.Policy,
-	}, nil
+	warrant, err := warrantSpec.ToWarrant()
+	if err != nil {
+		return nil, err
+	}
+
+	return warrant, nil
 }

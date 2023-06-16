@@ -6,6 +6,20 @@ import (
 	"time"
 )
 
+func TestPolicyContextToString(t *testing.T) {
+	policyContext := PolicyContext{
+		"hello": "world",
+		"user": map[string]interface{}{
+			"email": "john.doe@gmail.com",
+		},
+	}
+	expectedPolicyContextStr := "[hello=world user=map[email:john.doe@gmail.com]]"
+	actualPolicyContextStr := policyContext.String()
+	if actualPolicyContextStr != expectedPolicyContextStr {
+		t.Fatalf("Expected policy context string to be %s, but it was %s", expectedPolicyContextStr, actualPolicyContextStr)
+	}
+}
+
 func TestPolicyEvalUndefinedVariables(t *testing.T) {
 	_, err := Policy("a > b").Eval(PolicyContext{})
 	if err == nil {
