@@ -33,6 +33,65 @@
             }
         },
         {
+            "name": "assignWarrantWithContext",
+            "request": {
+                "method": "POST",
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "cluster",
+                    "objectId": "us-east-1",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "context": {
+                        "element": "115"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "cluster",
+                    "objectId": "us-east-1",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "element == \"115\""
+                }
+            }
+        },
+        {
+            "name": "failToCreateWarrantWithPolicyAndContext",
+            "request": {
+                "method": "POST",
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "cluster",
+                    "objectId": "us-east-1",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "element == \"115\"",
+                    "context": {
+                        "element": "115"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 400,
+                "body": {
+                    "code": "invalid_request",
+                    "message": "Invalid request body"
+                }
+            }
+        },
+        {
             "name": "assignWarrantWithRegexPolicy",
             "request": {
                 "method": "POST",
@@ -171,6 +230,28 @@
                         "objectId": "user-a"
                     },
                     "policy": "clientIp matches \"192\\.168\\..*\\..*\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeWarrantWithContext",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "cluster",
+                    "objectId": "us-east-1",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "context": {
+                        "element": "115"
+                    }
                 }
             },
             "expectedResponse": {
