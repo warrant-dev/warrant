@@ -4,6 +4,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/antonmedv/expr"
@@ -11,6 +13,27 @@ import (
 )
 
 type Policy string
+
+type PolicyContext map[string]interface{}
+
+func (pc PolicyContext) String() string {
+	if len(pc) == 0 {
+		return ""
+	}
+
+	contextKeys := make([]string, 0)
+	for key := range pc {
+		contextKeys = append(contextKeys, key)
+	}
+	sort.Strings(contextKeys)
+
+	keyValuePairs := make([]string, 0)
+	for _, key := range contextKeys {
+		keyValuePairs = append(keyValuePairs, fmt.Sprintf("%s=%v", key, pc[key]))
+	}
+
+	return fmt.Sprintf("[%s]", strings.Join(keyValuePairs, " "))
+}
 
 func defaultExprOptions(ctx PolicyContext) []expr.Option {
 	opts := []expr.Option{

@@ -5,6 +5,23 @@ import (
 	"time"
 )
 
+// FilterOptions type for the filter options available on the warrant table
+type FilterOptions struct {
+	ObjectType string
+	ObjectId   string
+	Relation   string
+	Subject    *SubjectSpec
+	Policy     Policy
+	ObjectIds  []string
+	SubjectIds []string
+}
+
+// SortOptions type for sorting filtered results from the warrant table
+type SortOptions struct {
+	Column      string
+	IsAscending bool
+}
+
 type WarrantListParamParser struct{}
 
 func (parser WarrantListParamParser) GetDefaultSortBy() string {

@@ -214,7 +214,6 @@ func (repo MySQLRepository) GetByID(ctx context.Context, id int64) (Model, error
 }
 
 func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]Model, error) {
-	offset := (listParams.Page - 1) * listParams.Limit
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	query := `
@@ -266,6 +265,7 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 		query = fmt.Sprintf("%s ORDER BY createdAt DESC, id DESC", query)
 	}
 
+	offset := (listParams.Page - 1) * listParams.Limit
 	query = fmt.Sprintf("%s LIMIT ?, ?", query)
 	replacements = append(replacements, offset, listParams.Limit)
 	err := repo.DB(ctx).SelectContext(
@@ -277,7 +277,7 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			// Do nothing
+			return models, nil
 		default:
 			return nil, errors.Wrap(err, "error listing warrants")
 		}
