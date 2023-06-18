@@ -237,144 +237,152 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 
 	var checkResult CheckResultSpec
 	checkResult.DecisionPath = make(map[string][]warrant.WarrantSpec, 0)
-	if warrantCheck.Op == objecttype.InheritIfAllOf {
-		var processingTime int64
-		for _, warrantSpec := range warrantCheck.Warrants {
-			match, decisionPath, err := svc.Check(ctx, authInfo, CheckSpec{
-				CheckWarrantSpec: warrantSpec,
-				Debug:            warrantCheck.Debug,
-			})
-			if err != nil {
-				return nil, err
-			}
 
-			if warrantCheck.Debug {
-				checkResult.ProcessingTime = processingTime + time.Since(start).Milliseconds()
-				if len(decisionPath) > 0 {
-					checkResult.DecisionPath[warrantSpec.String()] = decisionPath
-				}
-			}
-
-			var eventMeta map[string]interface{}
-			if warrantSpec.Context != nil {
-				eventMeta = make(map[string]interface{})
-				eventMeta["context"] = warrantSpec.Context
-			}
-
-			if !match {
-				err = svc.EventSvc.TrackAccessDeniedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
+	e := svc.Env().DB().WithinConsistentRead(ctx, func(connCtx context.Context) error {
+		if warrantCheck.Op == objecttype.InheritIfAllOf {
+			var processingTime int64
+			for _, warrantSpec := range warrantCheck.Warrants {
+				match, decisionPath, err := svc.Check(connCtx, authInfo, CheckSpec{
+					CheckWarrantSpec: warrantSpec,
+					Debug:            warrantCheck.Debug,
+				})
 				if err != nil {
-					return nil, err
+					return err
 				}
 
-				checkResult.Code = http.StatusForbidden
-				checkResult.Result = NotAuthorized
-				return &checkResult, nil
+				if warrantCheck.Debug {
+					checkResult.ProcessingTime = processingTime + time.Since(start).Milliseconds()
+					if len(decisionPath) > 0 {
+						checkResult.DecisionPath[warrantSpec.String()] = decisionPath
+					}
+				}
+
+				var eventMeta map[string]interface{}
+				if warrantSpec.Context != nil {
+					eventMeta = make(map[string]interface{})
+					eventMeta["context"] = warrantSpec.Context
+				}
+
+				if !match {
+					err = svc.EventSvc.TrackAccessDeniedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
+					if err != nil {
+						return err
+					}
+
+					checkResult.Code = http.StatusForbidden
+					checkResult.Result = NotAuthorized
+					return nil
+				}
+
+				err = svc.EventSvc.TrackAccessAllowedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
+				if err != nil {
+					return err
+				}
 			}
 
-			err = svc.EventSvc.TrackAccessAllowedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
-			if err != nil {
-				return nil, err
+			checkResult.Code = http.StatusOK
+			checkResult.Result = Authorized
+			return nil
+		}
+
+		if warrantCheck.Op == objecttype.InheritIfAnyOf {
+			var processingTime int64
+			for _, warrantSpec := range warrantCheck.Warrants {
+				match, decisionPath, err := svc.Check(connCtx, authInfo, CheckSpec{
+					CheckWarrantSpec: warrantSpec,
+					Debug:            warrantCheck.Debug,
+				})
+				if err != nil {
+					return err
+				}
+
+				if warrantCheck.Debug {
+					checkResult.ProcessingTime = processingTime + time.Since(start).Milliseconds()
+					if len(decisionPath) > 0 {
+						checkResult.DecisionPath[warrantSpec.String()] = decisionPath
+					}
+				}
+
+				var eventMeta map[string]interface{}
+				if warrantSpec.Context != nil {
+					eventMeta = make(map[string]interface{})
+					eventMeta["context"] = warrantSpec.Context
+				}
+
+				if match {
+					err = svc.EventSvc.TrackAccessAllowedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
+					if err != nil {
+						return err
+					}
+
+					checkResult.Code = http.StatusOK
+					checkResult.Result = Authorized
+					return nil
+				}
+
+				if !match {
+					err := svc.EventSvc.TrackAccessDeniedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
+					if err != nil {
+						return err
+					}
+				}
+			}
+
+			checkResult.Code = http.StatusForbidden
+			checkResult.Result = NotAuthorized
+			return nil
+		}
+
+		if len(warrantCheck.Warrants) > 1 {
+			return service.NewInvalidParameterError("warrants", "must include operator when including multiple warrants")
+		}
+
+		warrantSpec := warrantCheck.Warrants[0]
+		match, decisionPath, err := svc.Check(connCtx, authInfo, CheckSpec{
+			CheckWarrantSpec: warrantSpec,
+			Debug:            warrantCheck.Debug,
+		})
+		if err != nil {
+			return err
+		}
+
+		if warrantCheck.Debug {
+			checkResult.ProcessingTime = time.Since(start).Milliseconds()
+			if len(decisionPath) > 0 {
+				checkResult.DecisionPath[warrantSpec.String()] = decisionPath
 			}
 		}
 
-		checkResult.Code = http.StatusOK
-		checkResult.Result = Authorized
-		return &checkResult, nil
-	}
+		var eventMeta map[string]interface{}
+		if warrantSpec.Context != nil {
+			eventMeta = make(map[string]interface{})
+			eventMeta["context"] = warrantSpec.Context
+		}
 
-	if warrantCheck.Op == objecttype.InheritIfAnyOf {
-		var processingTime int64
-		for _, warrantSpec := range warrantCheck.Warrants {
-			match, decisionPath, err := svc.Check(ctx, authInfo, CheckSpec{
-				CheckWarrantSpec: warrantSpec,
-				Debug:            warrantCheck.Debug,
-			})
+		if match {
+			err = svc.EventSvc.TrackAccessAllowedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
 			if err != nil {
-				return nil, err
+				return err
 			}
 
-			if warrantCheck.Debug {
-				checkResult.ProcessingTime = processingTime + time.Since(start).Milliseconds()
-				if len(decisionPath) > 0 {
-					checkResult.DecisionPath[warrantSpec.String()] = decisionPath
-				}
-			}
+			checkResult.Code = http.StatusOK
+			checkResult.Result = Authorized
+			return nil
+		}
 
-			var eventMeta map[string]interface{}
-			if warrantSpec.Context != nil {
-				eventMeta = make(map[string]interface{})
-				eventMeta["context"] = warrantSpec.Context
-			}
-
-			if match {
-				err = svc.EventSvc.TrackAccessAllowedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
-				if err != nil {
-					return nil, err
-				}
-
-				checkResult.Code = http.StatusOK
-				checkResult.Result = Authorized
-				return &checkResult, nil
-			}
-
-			if !match {
-				err := svc.EventSvc.TrackAccessDeniedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
-				if err != nil {
-					return nil, err
-				}
-			}
+		err = svc.EventSvc.TrackAccessDeniedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
+		if err != nil {
+			return err
 		}
 
 		checkResult.Code = http.StatusForbidden
 		checkResult.Result = NotAuthorized
-		return &checkResult, nil
-	}
-
-	if len(warrantCheck.Warrants) > 1 {
-		return nil, service.NewInvalidParameterError("warrants", "must include operator when including multiple warrants")
-	}
-
-	warrantSpec := warrantCheck.Warrants[0]
-	match, decisionPath, err := svc.Check(ctx, authInfo, CheckSpec{
-		CheckWarrantSpec: warrantSpec,
-		Debug:            warrantCheck.Debug,
+		return nil
 	})
-	if err != nil {
-		return nil, err
+
+	if e != nil {
+		return nil, e
 	}
-
-	if warrantCheck.Debug {
-		checkResult.ProcessingTime = time.Since(start).Milliseconds()
-		if len(decisionPath) > 0 {
-			checkResult.DecisionPath[warrantSpec.String()] = decisionPath
-		}
-	}
-
-	var eventMeta map[string]interface{}
-	if warrantSpec.Context != nil {
-		eventMeta = make(map[string]interface{})
-		eventMeta["context"] = warrantSpec.Context
-	}
-
-	if match {
-		err = svc.EventSvc.TrackAccessAllowedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
-		if err != nil {
-			return nil, err
-		}
-
-		checkResult.Code = http.StatusOK
-		checkResult.Result = Authorized
-		return &checkResult, nil
-	}
-
-	err = svc.EventSvc.TrackAccessDeniedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
-	if err != nil {
-		return nil, err
-	}
-
-	checkResult.Code = http.StatusForbidden
-	checkResult.Result = NotAuthorized
 	return &checkResult, nil
 }
 

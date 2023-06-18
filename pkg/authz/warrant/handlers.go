@@ -3,6 +3,7 @@ package authz
 import (
 	"net/http"
 
+	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -24,6 +25,7 @@ func (svc WarrantService) Routes() ([]service.Route, error) {
 			Method:  "GET",
 			Handler: service.ChainMiddleware(
 				service.NewRouteHandler(svc, ListHandler),
+				wookie.WookieMiddleware,
 				service.ListMiddleware[WarrantListParamParser],
 			),
 		},
