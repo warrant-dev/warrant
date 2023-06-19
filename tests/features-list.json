@@ -10,14 +10,14 @@
                 "url": "/v1/features",
                 "body": {
                     "featureId": "feature-1",
-                    "name": "Feature B"
+                    "name": "Feature A"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "featureId": "feature-1",
-                    "name": "Feature B",
+                    "name": "Feature A",
                     "description": null
                 }
             }
@@ -29,14 +29,14 @@
                 "url": "/v1/features",
                 "body": {
                     "featureId": "feature-2",
-                    "name": "Feature A"
+                    "name": ""
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "featureId": "feature-2",
-                    "name": "Feature A",
+                    "name": "",
                     "description": null
                 }
             }
@@ -48,14 +48,14 @@
                 "url": "/v1/features",
                 "body": {
                     "featureId": "feature-3",
-                    "name": ""
+                    "name": null
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "featureId": "feature-3",
-                    "name": "",
+                    "name": null,
                     "description": null
                 }
             }
@@ -98,7 +98,7 @@
             }
         },
         {
-            "name": "getFeaturesSortByCreatedAtDESC",
+            "name": "sortByCreatedAtDESC",
             "request": {
                 "method": "GET",
                 "url": "/v1/features?sortBy=createdAt&sortOrder=DESC"
@@ -118,24 +118,24 @@
                     },
                     {
                         "featureId": "feature-3",
-                        "name": "",
+                        "name": null,
                         "description": null
                     },
                     {
                         "featureId": "feature-2",
-                        "name": "Feature A",
+                        "name": "",
                         "description": null
                     },
                     {
                         "featureId": "feature-1",
-                        "name": "Feature B",
+                        "name": "Feature A",
                         "description": null
                     }
                 ]
             }
         },
         {
-            "name": "getFeaturesSortByCreatedAtASC",
+            "name": "sortByCreatedAtASC",
             "request": {
                 "method": "GET",
                 "url": "/v1/features?sortBy=createdAt&sortOrder=ASC"
@@ -145,17 +145,17 @@
                 "body": [
                     {
                         "featureId": "feature-1",
-                        "name": "Feature B",
-                        "description": null
-                    },
-                    {
-                        "featureId": "feature-2",
                         "name": "Feature A",
                         "description": null
                     },
                     {
-                        "featureId": "feature-3",
+                        "featureId": "feature-2",
                         "name": "",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-3",
+                        "name": null,
                         "description": null
                     },
                     {
@@ -172,7 +172,7 @@
             }
         },
         {
-            "name": "getFeaturesSortByNameDESC",
+            "name": "sortByNameDESC",
             "request": {
                 "method": "GET",
                 "url": "/v1/features?sortBy=name&sortOrder=DESC"
@@ -187,16 +187,11 @@
                     },
                     {
                         "featureId": "feature-1",
-                        "name": "Feature B",
-                        "description": null
-                    },
-                    {
-                        "featureId": "feature-2",
                         "name": "Feature A",
                         "description": null
                     },
                     {
-                        "featureId": "feature-3",
+                        "featureId": "feature-2",
                         "name": "",
                         "description": null
                     },
@@ -204,15 +199,47 @@
                         "featureId": "feature-4",
                         "name": null,
                         "description": null
+                    },
+                    {
+                        "featureId": "feature-3",
+                        "name": null,
+                        "description": null
                     }
                 ]
             }
         },
         {
-            "name": "getFeaturesSortByNameASC",
+            "name": "sortByNameDESCWithLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/features?sortBy=name&sortOrder=ASC"
+                "url": "/v1/features?sortBy=name&sortOrder=DESC&limit=3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-5",
+                        "name": "Feature C",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-1",
+                        "name": "Feature A",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-2",
+                        "name": "",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCAfterValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=DESC&limit=3&afterId=feature-2&afterValue="
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -224,17 +251,39 @@
                     },
                     {
                         "featureId": "feature-3",
-                        "name": "",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=ASC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-3",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-4",
+                        "name": null,
                         "description": null
                     },
                     {
                         "featureId": "feature-2",
-                        "name": "Feature A",
+                        "name": "",
                         "description": null
                     },
                     {
                         "featureId": "feature-1",
-                        "name": "Feature B",
+                        "name": "Feature A",
                         "description": null
                     },
                     {
@@ -246,10 +295,27 @@
             }
         },
         {
-            "name": "getFeaturesSortByNameASCLimit2",
+            "name": "sortByNameASCWithLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=2"
+                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=1"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-3",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCAfterValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=1&afterId=feature-3"
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -258,17 +324,112 @@
                         "featureId": "feature-4",
                         "name": null,
                         "description": null
-                    },
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCBeforeValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=1&beforeId=feature-4"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
                     {
                         "featureId": "feature-3",
-                        "name": "",
+                        "name": null,
                         "description": null
                     }
                 ]
             }
         },
         {
-            "name": "getFeaturesSortByCreatedAtASCLimit2",
+            "name": "sortByNameASCAfterValueNullNextValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=2&afterId=feature-4"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-2",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-1",
+                        "name": "Feature A",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCValidAfterValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=2&afterId=feature-1&afterValue=Feature%20A"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-5",
+                        "name": "Feature C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCValidBeforeValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=2&beforeId=feature-5&beforeValue=Feature%20C"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-2",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-1",
+                        "name": "Feature A",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCBeforeValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=2&beforeId=feature-2&beforeValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-3",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-4",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByCreatedAtASCWithLimit",
             "request": {
                 "method": "GET",
                 "url": "/v1/features?sortBy=createdAt&sortOrder=ASC&limit=2"
@@ -278,19 +439,19 @@
                 "body": [
                     {
                         "featureId": "feature-1",
-                        "name": "Feature B",
+                        "name": "Feature A",
                         "description": null
                     },
                     {
                         "featureId": "feature-2",
-                        "name": "Feature A",
+                        "name": "",
                         "description": null
                     }
                 ]
             }
         },
         {
-            "name": "getFeaturesLimit2",
+            "name": "noSortWithLimit2",
             "request": {
                 "method": "GET",
                 "url": "/v1/features?limit=2"
@@ -300,19 +461,19 @@
                 "body": [
                     {
                         "featureId": "feature-1",
-                        "name": "Feature B",
+                        "name": "Feature A",
                         "description": null
                     },
                     {
                         "featureId": "feature-2",
-                        "name": "Feature A",
+                        "name": "",
                         "description": null
                     }
                 ]
             }
         },
         {
-            "name": "getFeaturesLimit2AfterId1",
+            "name": "noSortWithLimitAndValidAfterId",
             "request": {
                 "method": "GET",
                 "url": "/v1/features?limit=2&afterId=feature-1"
@@ -322,31 +483,26 @@
                 "body": [
                     {
                         "featureId": "feature-2",
-                        "name": "Feature A",
+                        "name": "",
                         "description": null
                     },
                     {
                         "featureId": "feature-3",
-                        "name": "",
+                        "name": null,
                         "description": null
                     }
                 ]
             }
         },
         {
-            "name": "getFeaturesLimit2AfterId2",
+            "name": "noSortResultSmallerThanLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/features?limit=2&afterId=feature-3"
+                "url": "/v1/features?limit=2&afterId=feature-4"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
-                    {
-                        "featureId": "feature-4",
-                        "name": null,
-                        "description": null
-                    },
                     {
                         "featureId": "feature-5",
                         "name": "Feature C",

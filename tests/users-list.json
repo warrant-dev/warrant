@@ -213,7 +213,7 @@
             }
         },
         {
-            "name": "sortByEmailAfterValueEmptyString",
+            "name": "sortByEmailDESCAfterValueEmptyString",
             "request": {
                 "method": "GET",
                 "url": "/v1/users?sortBy=email&sortOrder=DESC&limit=3&afterId=user-2&afterValue="
