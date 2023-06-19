@@ -195,12 +195,34 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 		}
 	}
 
-	if listParams.SortBy != defaultSortBy {
-		query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, listParams.SortBy, listParams.SortOrder, defaultSortBy, listParams.SortOrder)
-		replacements = append(replacements, listParams.Limit)
+	if listParams.BeforeId != nil {
+		if listParams.SortBy != defaultSortBy {
+			if listParams.SortOrder == service.SortOrderAsc {
+				query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, listParams.SortBy, service.SortOrderDesc, defaultSortBy, service.SortOrderDesc)
+				replacements = append(replacements, listParams.Limit)
+			} else {
+				query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, listParams.SortBy, service.SortOrderAsc, defaultSortBy, service.SortOrderAsc)
+				replacements = append(replacements, listParams.Limit)
+			}
+			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s, %s %s", query, listParams.SortBy, listParams.SortOrder, defaultSortBy, listParams.SortOrder)
+		} else {
+			if listParams.SortOrder == service.SortOrderAsc {
+				query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, listParams.SortBy, service.SortOrderDesc)
+				replacements = append(replacements, listParams.Limit)
+			} else {
+				query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, listParams.SortBy, service.SortOrderAsc)
+				replacements = append(replacements, listParams.Limit)
+			}
+			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s", query, listParams.SortBy, listParams.SortOrder)
+		}
 	} else {
-		query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, defaultSortBy, listParams.SortOrder)
-		replacements = append(replacements, listParams.Limit)
+		if listParams.SortBy != defaultSortBy {
+			query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, listParams.SortBy, listParams.SortOrder, defaultSortBy, listParams.SortOrder)
+			replacements = append(replacements, listParams.Limit)
+		} else {
+			query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, defaultSortBy, listParams.SortOrder)
+			replacements = append(replacements, listParams.Limit)
+		}
 	}
 
 	err := repo.DB(ctx).SelectContext(
