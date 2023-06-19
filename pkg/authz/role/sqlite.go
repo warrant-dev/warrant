@@ -127,7 +127,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams service.ListPa
 	replacements := []interface{}{}
 
 	if listParams.Query != nil {
-		searchTermReplacement := fmt.Sprintf("%%%s%%", listParams.Query)
+		searchTermReplacement := fmt.Sprintf("%%%s%%", *listParams.Query)
 		query = fmt.Sprintf("%s AND (roleId LIKE ? OR name LIKE ?)", query)
 		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
 	}

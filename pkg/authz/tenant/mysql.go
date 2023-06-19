@@ -120,7 +120,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 	replacements := []interface{}{}
 
 	if listParams.Query != nil {
-		searchTermReplacement := fmt.Sprintf("%%%s%%", listParams.Query)
+		searchTermReplacement := fmt.Sprintf("%%%s%%", *listParams.Query)
 		query = fmt.Sprintf("%s AND (tenantId LIKE ? OR name LIKE ?)", query)
 		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
 	}

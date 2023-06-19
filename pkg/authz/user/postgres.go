@@ -119,7 +119,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 	sortBy := regexp.MustCompile("([A-Z])").ReplaceAllString(listParams.SortBy, `_$1`)
 
 	if listParams.Query != nil {
-		searchTermReplacement := fmt.Sprintf("%%%s%%", listParams.Query)
+		searchTermReplacement := fmt.Sprintf("%%%s%%", *listParams.Query)
 		query = fmt.Sprintf("%s AND (%s LIKE ? OR email LIKE ?)", query, defaultSort)
 		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
 	}

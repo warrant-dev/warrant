@@ -114,7 +114,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 	`
 
 	if listParams.Query != nil {
-		searchTermReplacement := fmt.Sprintf("%%%s%%", listParams.Query)
+		searchTermReplacement := fmt.Sprintf("%%%s%%", *listParams.Query)
 		query = fmt.Sprintf("%s AND typeId LIKE ?", query)
 		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
 	}

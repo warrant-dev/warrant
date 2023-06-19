@@ -122,7 +122,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 	replacements := []interface{}{}
 
 	if listParams.Query != nil {
-		searchTermReplacement := fmt.Sprintf("%%%s%%", listParams.Query)
+		searchTermReplacement := fmt.Sprintf("%%%s%%", *listParams.Query)
 		query = fmt.Sprintf("%s AND (pricing_tier_id LIKE ? OR name LIKE ?)", query)
 		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
 	}

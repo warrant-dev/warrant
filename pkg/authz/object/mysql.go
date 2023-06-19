@@ -119,7 +119,7 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 	}
 
 	if listParams.Query != nil {
-		searchTermReplacement := fmt.Sprintf("%%%s%%", listParams.Query)
+		searchTermReplacement := fmt.Sprintf("%%%s%%", *listParams.Query)
 		query = fmt.Sprintf("%s AND (objectType LIKE ? OR objectId LIKE ?)", query)
 		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
 	}
