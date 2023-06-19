@@ -6,10 +6,12 @@ import (
 	"time"
 )
 
+const defaultSortBy = "userId"
+
 type UserListParamParser struct{}
 
 func (parser UserListParamParser) GetDefaultSortBy() string {
-	return "userId"
+	return defaultSortBy
 }
 
 func (parser UserListParamParser) GetSupportedSortBys() []string {
@@ -24,7 +26,7 @@ func (parser UserListParamParser) ParseValue(val string, sortBy string) (interfa
 			return nil, fmt.Errorf("must be a valid time in the format %s", time.RFC3339)
 		}
 
-		return afterValue, nil
+		return &afterValue, nil
 	case "email":
 		if val == "" {
 			return "", nil
