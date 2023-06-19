@@ -140,7 +140,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 					listParams.AfterId,
 				)
 			}
-		case "":
+		default:
 			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, defaultSortBy, comparisonOp, listParams.SortBy)
 				replacements = append(replacements,
@@ -156,13 +156,6 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 					listParams.AfterValue,
 				)
 			}
-		default:
-			query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, defaultSortBy, comparisonOp, listParams.SortBy)
-			replacements = append(replacements,
-				listParams.AfterValue,
-				listParams.AfterId,
-				listParams.AfterValue,
-			)
 		}
 	}
 
@@ -183,7 +176,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 					listParams.BeforeId,
 				)
 			}
-		case "":
+		default:
 			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, listParams.SortBy, defaultSortBy, comparisonOp, listParams.SortBy)
 				replacements = append(replacements,
@@ -199,13 +192,6 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 					listParams.BeforeValue,
 				)
 			}
-		default:
-			query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, defaultSortBy, comparisonOp, listParams.SortBy)
-			replacements = append(replacements,
-				listParams.BeforeValue,
-				listParams.BeforeId,
-				listParams.BeforeValue,
-			)
 		}
 	}
 
