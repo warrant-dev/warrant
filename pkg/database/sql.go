@@ -485,7 +485,6 @@ func NewSQLRepository(db Database) SQLRepository {
 	}
 }
 
-// TODO: remove this method and revert SQLRepository back to providing access to *SQL instance
 func (d SQLRepository) DB(ctx context.Context) *SQL {
 	return d.db.DbHandler(ctx).(*SQL)
 }

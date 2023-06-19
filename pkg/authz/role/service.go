@@ -5,6 +5,7 @@ import (
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
+	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -115,14 +116,15 @@ func (svc RoleService) UpdateByRoleId(ctx context.Context, roleId string, roleSp
 	return updatedRoleSpec, nil
 }
 
-func (svc RoleService) DeleteByRoleId(ctx context.Context, roleId string) error {
+func (svc RoleService) DeleteByRoleId(ctx context.Context, roleId string) (*wookie.Token, error) {
+	var newWookie *wookie.Token
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		err := svc.Repository.DeleteByRoleId(txCtx, roleId)
 		if err != nil {
 			return err
 		}
 
-		err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypeRole, roleId)
+		newWookie, err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypeRole, roleId)
 		if err != nil {
 			return err
 		}
@@ -135,8 +137,8 @@ func (svc RoleService) DeleteByRoleId(ctx context.Context, roleId string) error 
 		return nil
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return newWookie, nil
 }

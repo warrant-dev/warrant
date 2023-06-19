@@ -25,7 +25,7 @@ func (svc WarrantService) Routes() ([]service.Route, error) {
 			Method:  "GET",
 			Handler: service.ChainMiddleware(
 				service.NewRouteHandler(svc, ListHandler),
-				wookie.WookieMiddleware,
+				wookie.ClientTokenMiddleware,
 				service.ListMiddleware[WarrantListParamParser],
 			),
 		},
@@ -56,9 +56,12 @@ func CreateHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 		}
 	}
 
-	createdWarrant, err := svc.Create(r.Context(), warrantSpec)
+	createdWarrant, newWookie, err := svc.Create(r.Context(), warrantSpec)
 	if err != nil {
 		return err
+	}
+	if newWookie != nil {
+		w.Header().Set("Warrant-Token", newWookie.AsString())
 	}
 
 	service.SendJSONResponse(w, createdWarrant)
@@ -99,9 +102,12 @@ func DeleteHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
-	err = svc.Delete(r.Context(), warrantSpec)
+	newWookie, err := svc.Delete(r.Context(), warrantSpec)
 	if err != nil {
 		return err
+	}
+	if newWookie != nil {
+		w.Header().Set("Warrant-Token", newWookie.AsString())
 	}
 
 	w.Header().Set("Content-type", "application/json")

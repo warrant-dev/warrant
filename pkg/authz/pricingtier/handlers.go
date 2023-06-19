@@ -114,9 +114,12 @@ func DeleteHandler(svc PricingTierService, w http.ResponseWriter, r *http.Reques
 		return service.NewMissingRequiredParameterError("pricingTierId")
 	}
 
-	err := svc.DeleteByPricingTierId(r.Context(), pricingTierId)
+	newWoookie, err := svc.DeleteByPricingTierId(r.Context(), pricingTierId)
 	if err != nil {
 		return err
+	}
+	if newWoookie != nil {
+		w.Header().Set("Warrant-Token", newWoookie.AsString())
 	}
 
 	return nil

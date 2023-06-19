@@ -109,9 +109,12 @@ func UpdateHandler(svc UserService, w http.ResponseWriter, r *http.Request) erro
 
 func DeleteHandler(svc UserService, w http.ResponseWriter, r *http.Request) error {
 	userId := mux.Vars(r)["userId"]
-	err := svc.DeleteByUserId(r.Context(), userId)
+	newWookie, err := svc.DeleteByUserId(r.Context(), userId)
 	if err != nil {
 		return err
+	}
+	if newWookie != nil {
+		w.Header().Set("Warrant-Token", newWookie.AsString())
 	}
 
 	w.Header().Set("Content-type", "application/json")

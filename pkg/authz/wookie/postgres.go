@@ -7,17 +7,17 @@ import (
 	"github.com/warrant-dev/warrant/pkg/database"
 )
 
-type MySQLRepository struct {
+type PostgresRepository struct {
 	database.SQLRepository
 }
 
-func NewMySQLRepository(db *database.MySQL) MySQLRepository {
-	return MySQLRepository{
+func NewPostgresRepository(db *database.Postgres) PostgresRepository {
+	return PostgresRepository{
 		database.NewSQLRepository(db),
 	}
 }
 
-func (repo MySQLRepository) Create(ctx context.Context, version int64) (int64, error) {
+func (repo PostgresRepository) Create(ctx context.Context, version int64) (int64, error) {
 	result, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
@@ -38,13 +38,13 @@ func (repo MySQLRepository) Create(ctx context.Context, version int64) (int64, e
 	return id, nil
 }
 
-func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error) {
+func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var wookie Wookie
 	err := repo.DB(ctx).GetContext(
 		ctx,
 		&wookie,
 		`
-			SELECT id, ver, createdAt
+			SELECT id, ver, created_at
 			FROM wookie
 			WHERE
 				id = ?
@@ -57,13 +57,13 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error
 	return &wookie, nil
 }
 
-func (repo MySQLRepository) GetLatest(ctx context.Context) (Model, error) {
+func (repo PostgresRepository) GetLatest(ctx context.Context) (Model, error) {
 	var wookie Wookie
 	err := repo.DB(ctx).GetContext(
 		ctx,
 		&wookie,
 		`
-			SELECT id, ver, createdAt
+			SELECT id, ver, created_at
 			FROM wookie
 			WHERE
 				id = (SELECT MAX(id) FROM wookie)

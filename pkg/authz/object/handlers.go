@@ -90,9 +90,12 @@ func GetHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) error
 func DeleteHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
 	objectType := mux.Vars(r)["objectType"]
 	objectId := mux.Vars(r)["objectId"]
-	err := svc.DeleteByObjectTypeAndId(r.Context(), objectType, objectId)
+	newWookie, err := svc.DeleteByObjectTypeAndId(r.Context(), objectType, objectId)
 	if err != nil {
 		return err
+	}
+	if newWookie != nil {
+		w.Header().Set("Warrant-Token", newWookie.AsString())
 	}
 
 	w.Header().Set("Content-type", "application/json")

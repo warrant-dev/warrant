@@ -5,6 +5,7 @@ import (
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
+	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -114,14 +115,15 @@ func (svc FeatureService) UpdateByFeatureId(ctx context.Context, featureId strin
 	return updatedFeatureSpec, nil
 }
 
-func (svc FeatureService) DeleteByFeatureId(ctx context.Context, featureId string) error {
+func (svc FeatureService) DeleteByFeatureId(ctx context.Context, featureId string) (*wookie.Token, error) {
+	var newWookie *wookie.Token
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		err := svc.Repository.DeleteByFeatureId(txCtx, featureId)
 		if err != nil {
 			return err
 		}
 
-		err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypeFeature, featureId)
+		newWookie, err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypeFeature, featureId)
 		if err != nil {
 			return err
 		}
@@ -134,8 +136,8 @@ func (svc FeatureService) DeleteByFeatureId(ctx context.Context, featureId strin
 		return nil
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return newWookie, nil
 }

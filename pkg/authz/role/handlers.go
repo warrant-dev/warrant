@@ -114,9 +114,12 @@ func DeleteHandler(svc RoleService, w http.ResponseWriter, r *http.Request) erro
 		return service.NewMissingRequiredParameterError("roleId")
 	}
 
-	err := svc.DeleteByRoleId(r.Context(), roleId)
+	newWookie, err := svc.DeleteByRoleId(r.Context(), roleId)
 	if err != nil {
 		return err
+	}
+	if newWookie != nil {
+		w.Header().Set("Warrant-Token", newWookie.AsString())
 	}
 
 	return nil

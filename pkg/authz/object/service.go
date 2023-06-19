@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
+	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -44,14 +45,15 @@ func (svc ObjectService) Create(ctx context.Context, objectSpec ObjectSpec) (*Ob
 	return newObject.ToObjectSpec(), nil
 }
 
-func (svc ObjectService) DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) error {
+func (svc ObjectService) DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (*wookie.Token, error) {
+	var newWookie *wookie.Token
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		err := svc.Repository.DeleteByObjectTypeAndId(txCtx, objectType, objectId)
 		if err != nil {
 			return err
 		}
 
-		err = svc.WarrantSvc.DeleteRelatedWarrants(txCtx, objectType, objectId)
+		newWookie, err = svc.WarrantSvc.DeleteRelatedWarrants(txCtx, objectType, objectId)
 		if err != nil {
 			return err
 		}
@@ -59,7 +61,10 @@ func (svc ObjectService) DeleteByObjectTypeAndId(ctx context.Context, objectType
 		return nil
 	})
 
-	return err
+	if err != nil {
+		return nil, err
+	}
+	return newWookie, nil
 }
 
 func (svc ObjectService) GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (*ObjectSpec, error) {

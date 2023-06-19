@@ -5,6 +5,7 @@ import (
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
+	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -115,14 +116,15 @@ func (svc PermissionService) UpdateByPermissionId(ctx context.Context, permissio
 	return updatedPermissionSpec, nil
 }
 
-func (svc PermissionService) DeleteByPermissionId(ctx context.Context, permissionId string) error {
+func (svc PermissionService) DeleteByPermissionId(ctx context.Context, permissionId string) (*wookie.Token, error) {
+	var newWookie *wookie.Token
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		err := svc.Repository.DeleteByPermissionId(txCtx, permissionId)
 		if err != nil {
 			return err
 		}
 
-		err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypePermission, permissionId)
+		newWookie, err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypePermission, permissionId)
 		if err != nil {
 			return err
 		}
@@ -135,8 +137,8 @@ func (svc PermissionService) DeleteByPermissionId(ctx context.Context, permissio
 		return nil
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return newWookie, nil
 }

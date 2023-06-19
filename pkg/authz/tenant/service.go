@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
+	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -130,14 +131,15 @@ func (svc TenantService) UpdateByTenantId(ctx context.Context, tenantId string, 
 	return updatedTenantSpec, nil
 }
 
-func (svc TenantService) DeleteByTenantId(ctx context.Context, tenantId string) error {
+func (svc TenantService) DeleteByTenantId(ctx context.Context, tenantId string) (*wookie.Token, error) {
+	var newWookie *wookie.Token
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		err := svc.Repository.DeleteByTenantId(txCtx, tenantId)
 		if err != nil {
 			return err
 		}
 
-		err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypeTenant, tenantId)
+		newWookie, err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypeTenant, tenantId)
 		if err != nil {
 			return err
 		}
@@ -150,8 +152,8 @@ func (svc TenantService) DeleteByTenantId(ctx context.Context, tenantId string) 
 		return nil
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return newWookie, nil
 }

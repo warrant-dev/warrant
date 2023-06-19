@@ -114,9 +114,12 @@ func DeleteHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) e
 		return service.NewMissingRequiredParameterError("featureId")
 	}
 
-	err := svc.DeleteByFeatureId(r.Context(), featureId)
+	newWookie, err := svc.DeleteByFeatureId(r.Context(), featureId)
 	if err != nil {
 		return err
+	}
+	if newWookie != nil {
+		w.Header().Set("Warrant-Token", newWookie.AsString())
 	}
 
 	return nil

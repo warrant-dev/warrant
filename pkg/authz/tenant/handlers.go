@@ -110,9 +110,12 @@ func UpdateHandler(svc TenantService, w http.ResponseWriter, r *http.Request) er
 
 func DeleteHandler(svc TenantService, w http.ResponseWriter, r *http.Request) error {
 	tenantId := mux.Vars(r)["tenantId"]
-	err := svc.DeleteByTenantId(r.Context(), tenantId)
+	newWookie, err := svc.DeleteByTenantId(r.Context(), tenantId)
 	if err != nil {
 		return err
+	}
+	if newWookie != nil {
+		w.Header().Set("Warrant-Token", newWookie.AsString())
 	}
 
 	w.Header().Set("Content-type", "application/json")

@@ -18,6 +18,7 @@ import (
 	tenant "github.com/warrant-dev/warrant/pkg/authz/tenant"
 	user "github.com/warrant-dev/warrant/pkg/authz/user"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
+	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/config"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/event"
@@ -25,11 +26,11 @@ import (
 )
 
 const (
-	MySQLDatastoreMigrationVersion     = 000004
+	MySQLDatastoreMigrationVersion     = 000005
 	MySQLEventstoreMigrationVersion    = 000003
-	PostgresDatastoreMigrationVersion  = 000005
+	PostgresDatastoreMigrationVersion  = 000006
 	PostgresEventstoreMigrationVersion = 000004
-	SQLiteDatastoreMigrationVersion    = 000004
+	SQLiteDatastoreMigrationVersion    = 000005
 	SQLiteEventstoreMigrationVersion   = 000003
 )
 
@@ -195,22 +196,29 @@ func main() {
 	}
 	eventSvc := event.NewService(svcEnv, eventRepository, cfg.Eventstore.SynchronizeEvents, nil)
 
+	// Init wookie repo and service
+	wookieRepository, err := wookie.NewRepository(svcEnv.DB())
+	if err != nil {
+		log.Fatal().Err(err).Msg("Could not initialize WookieRepository")
+	}
+	wookieSvc := wookie.NewService(svcEnv, wookieRepository)
+
 	// Init object type repo and service
 	objectTypeRepository, err := objecttype.NewRepository(svcEnv.DB())
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize ObjectTypeRepository")
 	}
-	objectTypeSvc := objecttype.NewService(svcEnv, objectTypeRepository, eventSvc)
+	objectTypeSvc := objecttype.NewService(svcEnv, objectTypeRepository, eventSvc, wookieSvc)
 
 	// Init warrant repo and service
 	warrantRepository, err := warrant.NewRepository(svcEnv.DB())
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize WarrantRepository")
 	}
-	warrantSvc := warrant.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc)
+	warrantSvc := warrant.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, wookieSvc)
 
 	// Init check service
-	checkSvc := check.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc)
+	checkSvc := check.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, wookieSvc)
 
 	// Init object repo and service
 	objectRepository, err := object.NewRepository(svcEnv.DB())

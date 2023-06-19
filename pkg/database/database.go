@@ -15,6 +15,5 @@ type Database interface {
 	Ping(ctx context.Context) error
 	WithinConsistentRead(ctx context.Context, connCallback func(ctx context.Context) error) error
 	WithinTransaction(ctx context.Context, txCallback func(ctx context.Context) error) error
-	// TODO: remove DbHandler
 	DbHandler(ctx context.Context) interface{}
 }

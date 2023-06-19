@@ -7,17 +7,17 @@ import (
 	"github.com/warrant-dev/warrant/pkg/database"
 )
 
-type MySQLRepository struct {
+type SQLiteRepository struct {
 	database.SQLRepository
 }
 
-func NewMySQLRepository(db *database.MySQL) MySQLRepository {
-	return MySQLRepository{
+func NewSQLiteRepository(db *database.SQLite) SQLiteRepository {
+	return SQLiteRepository{
 		database.NewSQLRepository(db),
 	}
 }
 
-func (repo MySQLRepository) Create(ctx context.Context, version int64) (int64, error) {
+func (repo SQLiteRepository) Create(ctx context.Context, version int64) (int64, error) {
 	result, err := repo.DB(ctx).ExecContext(
 		ctx,
 		`
@@ -38,7 +38,7 @@ func (repo MySQLRepository) Create(ctx context.Context, version int64) (int64, e
 	return id, nil
 }
 
-func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error) {
+func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var wookie Wookie
 	err := repo.DB(ctx).GetContext(
 		ctx,
@@ -57,7 +57,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error
 	return &wookie, nil
 }
 
-func (repo MySQLRepository) GetLatest(ctx context.Context) (Model, error) {
+func (repo SQLiteRepository) GetLatest(ctx context.Context) (Model, error) {
 	var wookie Wookie
 	err := repo.DB(ctx).GetContext(
 		ctx,

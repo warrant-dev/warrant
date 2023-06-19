@@ -3,17 +3,26 @@ package wookie
 import (
 	"context"
 	"net/http"
+
+	"github.com/rs/zerolog/hlog"
 )
 
-func WookieMiddleware(next http.Handler) http.Handler {
+const WarrantTokenHeaderName = "Warrant-Token"
+
+func ClientTokenMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		clientWookie, err := Deserialize(r.Header.Get("Warrant-Token"))
-		if err != nil {
-			next.ServeHTTP(w, r)
+		headerVal := r.Header.Get(WarrantTokenHeaderName)
+		if headerVal != "" {
+			clientWookie, err := FromString(headerVal)
+			if err != nil {
+				hlog.FromRequest(r).Warn().Msgf("invalid client-supplied wookie header: %s", headerVal)
+				next.ServeHTTP(w, r)
+				return
+			}
+			newContext := context.WithValue(r.Context(), TokenKey{}, clientWookie)
+			next.ServeHTTP(w, r.WithContext(newContext))
 			return
 		}
-		newContext := context.WithValue(r.Context(), TokenKey{}, clientWookie)
-		next.ServeHTTP(w, r.WithContext(newContext))
-		// TODO: also set the value as a response header
+		next.ServeHTTP(w, r)
 	})
 }

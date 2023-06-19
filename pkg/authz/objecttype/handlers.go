@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -23,6 +24,7 @@ func (svc ObjectTypeService) Routes() ([]service.Route, error) {
 			Method:  "GET",
 			Handler: service.ChainMiddleware(
 				service.NewRouteHandler(svc, ListHandler),
+				wookie.ClientTokenMiddleware,
 				service.ListMiddleware[ObjectTypeListParamParser],
 			),
 		},
@@ -31,7 +33,10 @@ func (svc ObjectTypeService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern: "/v1/object-types/{type}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, GetHandler),
+			Handler: service.ChainMiddleware(
+				service.NewRouteHandler(svc, GetHandler),
+				wookie.ClientTokenMiddleware,
+			),
 		},
 
 		// update
@@ -62,9 +67,12 @@ func CreateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 		return err
 	}
 
-	createdObjectTypeSpec, err := svc.Create(r.Context(), objectTypeSpec)
+	createdObjectTypeSpec, newWookie, err := svc.Create(r.Context(), objectTypeSpec)
 	if err != nil {
 		return err
+	}
+	if newWookie != nil {
+		w.Header().Set("Warrant-Token", newWookie.AsString())
 	}
 
 	service.SendJSONResponse(w, createdObjectTypeSpec)
@@ -101,9 +109,12 @@ func UpdateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 	}
 
 	typeId := mux.Vars(r)["type"]
-	updatedObjectTypeSpec, err := svc.UpdateByTypeId(r.Context(), typeId, objectTypeSpec)
+	updatedObjectTypeSpec, newWookie, err := svc.UpdateByTypeId(r.Context(), typeId, objectTypeSpec)
 	if err != nil {
 		return err
+	}
+	if newWookie != nil {
+		w.Header().Set("Warrant-Token", newWookie.AsString())
 	}
 
 	service.SendJSONResponse(w, updatedObjectTypeSpec)
@@ -112,9 +123,12 @@ func UpdateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 
 func DeleteHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	typeId := mux.Vars(r)["type"]
-	err := svc.DeleteByTypeId(r.Context(), typeId)
+	newWookie, err := svc.DeleteByTypeId(r.Context(), typeId)
 	if err != nil {
 		return err
+	}
+	if newWookie != nil {
+		w.Header().Set("Warrant-Token", newWookie.AsString())
 	}
 
 	w.Header().Set("Content-type", "application/json")

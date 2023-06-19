@@ -17,7 +17,7 @@ func (svc CheckService) Routes() ([]service.Route, error) {
 			Method:  "POST",
 			Handler: service.ChainMiddleware(
 				service.NewRouteHandler(svc, AuthorizeHandler),
-				wookie.WookieMiddleware,
+				wookie.ClientTokenMiddleware,
 			),
 			OverrideAuthMiddlewareFunc: service.ApiKeyAndSessionAuthMiddleware,
 		},

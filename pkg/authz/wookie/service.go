@@ -3,8 +3,11 @@ package wookie
 import (
 	"context"
 
+	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
+
+const currentWookieVersion = 1
 
 type WookieService struct {
 	service.BaseService
@@ -18,15 +21,39 @@ func NewService(env service.Env, repository WookieRepository) WookieService {
 	}
 }
 
-// Given a provided 'wookie',
-func (svc WookieService) Compare() error {
-	return nil
+func (svc WookieService) Create(ctx context.Context) (*Token, error) {
+	newWookieId, err := svc.Repository.Create(ctx, currentWookieVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	newWookie, err := svc.Repository.GetById(ctx, newWookieId)
+	if err != nil {
+		return nil, err
+	}
+
+	token := newWookie.ToToken()
+	return &token, nil
 }
 
-func (svc WookieService) Create(ctx context.Context) error {
-	return nil
-}
+func (svc WookieService) GetWookieContext(ctx context.Context) (context.Context, error) {
+	clientWookie, ok := ctx.Value(TokenKey{}).(Token)
+	// TODO: If no/invalid client wookie, use some smart, up-to-date value. But for now, be strict and default to writer.
+	if !ok {
+		return context.WithValue(ctx, database.UnsafeOp{}, true), nil
+	}
+	client, err := svc.Repository.GetById(ctx, clientWookie.ID)
+	if err != nil {
+		return context.WithValue(ctx, database.UnsafeOp{}, true), nil
+	}
+	latest, err := svc.Repository.GetLatest(ctx)
+	if err != nil {
+		return ctx, err
+	}
 
-func (svc WookieService) IsFresh(ctx context.Context, wookie BasicToken) bool {
-	return false
+	// If server not up-to-date, unsafe for read ops
+	if latest.GetID() < client.GetID() {
+		return context.WithValue(ctx, database.UnsafeOp{}, true), nil
+	}
+	return ctx, nil
 }
