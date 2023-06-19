@@ -266,8 +266,6 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 
 	if listParams.SortBy != "" {
 		query = fmt.Sprintf("%s ORDER BY %s %s", query, listParams.SortBy, listParams.SortOrder)
-	} else {
-		query = fmt.Sprintf("%s ORDER BY createdAt DESC, id DESC", query)
 	}
 
 	query = fmt.Sprintf("%s LIMIT ?, ?", query)

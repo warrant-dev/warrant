@@ -23,7 +23,7 @@ func (parser RoleListParamParser) ParseValue(val string, sortBy string) (interfa
 			return nil, fmt.Errorf("must be a valid time in the format %s", time.RFC3339)
 		}
 
-		return afterValue, nil
+		return &afterValue, nil
 	case "roleId":
 		if val == "" {
 			return nil, fmt.Errorf("must not be empty")

@@ -122,13 +122,13 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 	`
 	replacements := []interface{}{}
 
-	if listParams.Query != "" {
+	if listParams.Query != nil {
 		searchTermReplacement := fmt.Sprintf("%%%s%%", listParams.Query)
 		query = fmt.Sprintf("%s AND (roleId LIKE ? OR name LIKE ?)", query)
 		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
 	}
 
-	if listParams.AfterId != "" {
+	if listParams.AfterId != nil {
 		if listParams.AfterValue != nil {
 			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND (%s > ? OR (roleId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
@@ -156,7 +156,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 		}
 	}
 
-	if listParams.BeforeId != "" {
+	if listParams.BeforeId != nil {
 		if listParams.BeforeValue != nil {
 			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND (%s < ? OR (roleId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)

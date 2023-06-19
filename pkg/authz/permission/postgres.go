@@ -121,14 +121,14 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 	`
 	replacements := []interface{}{}
 
-	if listParams.Query != "" {
+	if listParams.Query != nil {
 		searchTermReplacement := fmt.Sprintf("%%%s%%", listParams.Query)
 		query = fmt.Sprintf("%s AND (permission_id LIKE ? OR name LIKE ?)", query)
 		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
 	}
 
 	sortBy := regexp.MustCompile("([A-Z])").ReplaceAllString(listParams.SortBy, `_$1`)
-	if listParams.AfterId != "" {
+	if listParams.AfterId != nil {
 		if listParams.AfterValue != nil {
 			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND (%s > ? OR (permission_id > ? AND %s = ?))", query, sortBy, sortBy)
@@ -156,7 +156,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 		}
 	}
 
-	if listParams.BeforeId != "" {
+	if listParams.BeforeId != nil {
 		if listParams.BeforeValue != nil {
 			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND (%s < ? OR (permission_id < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)

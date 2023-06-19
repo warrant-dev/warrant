@@ -122,13 +122,13 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 		replacements = append(replacements, filterOptions.ObjectType)
 	}
 
-	if listParams.Query != "" {
+	if listParams.Query != nil {
 		searchTermReplacement := fmt.Sprintf("%%%s%%", listParams.Query)
 		query = fmt.Sprintf("%s AND (objectType LIKE ? OR objectId LIKE ?)", query)
 		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
 	}
 
-	if listParams.AfterId != "" {
+	if listParams.AfterId != nil {
 		if listParams.AfterValue != nil {
 			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND (%s > ? OR (objectId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
@@ -156,7 +156,7 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 		}
 	}
 
-	if listParams.BeforeId != "" {
+	if listParams.BeforeId != nil {
 		if listParams.BeforeValue != nil {
 			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s AND (%s < ? OR (objectId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)

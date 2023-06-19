@@ -23,7 +23,7 @@ func (parser TenantListParamParser) ParseValue(val string, sortBy string) (inter
 			return nil, fmt.Errorf("must be a valid time in the format %s", time.RFC3339)
 		}
 
-		return afterValue, nil
+		return &afterValue, nil
 	case "name":
 		if val == "" {
 			return "", nil

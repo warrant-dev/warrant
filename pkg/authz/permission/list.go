@@ -23,7 +23,7 @@ func (parser PermissionListParamParser) ParseValue(val string, sortBy string) (i
 			return nil, fmt.Errorf("must be a valid time in the format %s", time.RFC3339)
 		}
 
-		return afterValue, nil
+		return &afterValue, nil
 	case "permissionId":
 		if val == "" {
 			return nil, fmt.Errorf("must not be empty")

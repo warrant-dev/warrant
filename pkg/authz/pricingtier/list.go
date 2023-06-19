@@ -23,7 +23,7 @@ func (parser PricingTierListParamParser) ParseValue(val string, sortBy string) (
 			return nil, fmt.Errorf("must be a valid time in the format %s", time.RFC3339)
 		}
 
-		return afterValue, nil
+		return &afterValue, nil
 	case "pricingTierId":
 		if val == "" {
 			return nil, fmt.Errorf("must not be empty")

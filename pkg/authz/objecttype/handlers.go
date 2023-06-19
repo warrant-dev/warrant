@@ -72,7 +72,7 @@ func CreateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 }
 
 func ListHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
-	listParams := service.GetListParamsFromContext(r.Context())
+	listParams := service.GetListParamsFromContext[ObjectTypeListParamParser](r.Context())
 	objectTypeSpecs, err := svc.List(r.Context(), listParams)
 	if err != nil {
 		return err

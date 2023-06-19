@@ -22,10 +22,12 @@ type SortOptions struct {
 	IsAscending bool
 }
 
+const defaultSortBy = "createdAt"
+
 type WarrantListParamParser struct{}
 
 func (parser WarrantListParamParser) GetDefaultSortBy() string {
-	return "createdAt"
+	return defaultSortBy
 }
 
 func (parser WarrantListParamParser) GetSupportedSortBys() []string {
@@ -40,7 +42,7 @@ func (parser WarrantListParamParser) ParseValue(val string, sortBy string) (inte
 			return nil, fmt.Errorf("must be a valid time in the format %s", time.RFC3339)
 		}
 
-		return afterValue, nil
+		return &afterValue, nil
 	default:
 		return nil, fmt.Errorf("must match type of selected sortBy attribute %s", sortBy)
 	}
