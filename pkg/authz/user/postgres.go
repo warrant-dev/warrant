@@ -136,10 +136,17 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 				query = fmt.Sprintf("%s AND %s %s ?", query, defaultSort, comparisonOp)
 				replacements = append(replacements, listParams.AfterId)
 			} else {
-				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, sortBy, defaultSort, comparisonOp, sortBy)
-				replacements = append(replacements,
-					listParams.AfterId,
-				)
+				if listParams.SortOrder == service.SortOrderAsc {
+					query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, sortBy, defaultSort, comparisonOp, sortBy)
+					replacements = append(replacements,
+						listParams.AfterId,
+					)
+				} else {
+					query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, defaultSort, comparisonOp, sortBy)
+					replacements = append(replacements,
+						listParams.AfterId,
+					)
+				}
 			}
 		default:
 			if listParams.SortOrder == service.SortOrderAsc {
@@ -172,10 +179,17 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 				query = fmt.Sprintf("%s AND %s %s ?", query, defaultSort, comparisonOp)
 				replacements = append(replacements, listParams.BeforeId)
 			} else {
-				query = fmt.Sprintf("%s AND (%s IS NULL OR (%s %s ? AND %s IS NOT NULL))", query, sortBy, defaultSort, comparisonOp, sortBy)
-				replacements = append(replacements,
-					listParams.BeforeId,
-				)
+				if listParams.SortOrder == service.SortOrderAsc {
+					query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, defaultSort, comparisonOp, sortBy)
+					replacements = append(replacements,
+						listParams.BeforeId,
+					)
+				} else {
+					query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, sortBy, defaultSort, comparisonOp, sortBy)
+					replacements = append(replacements,
+						listParams.BeforeId,
+					)
+				}
 			}
 		default:
 			if listParams.SortOrder == service.SortOrderAsc {

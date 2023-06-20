@@ -135,10 +135,17 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 				query = fmt.Sprintf("%s AND %s %s ?", query, defaultSortBy, comparisonOp)
 				replacements = append(replacements, listParams.AfterId)
 			} else {
-				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, listParams.SortBy, defaultSortBy, comparisonOp, listParams.SortBy)
-				replacements = append(replacements,
-					listParams.AfterId,
-				)
+				if listParams.SortOrder == service.SortOrderAsc {
+					query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, listParams.SortBy, defaultSortBy, comparisonOp, listParams.SortBy)
+					replacements = append(replacements,
+						listParams.AfterId,
+					)
+				} else {
+					query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, defaultSortBy, comparisonOp, listParams.SortBy)
+					replacements = append(replacements,
+						listParams.AfterId,
+					)
+				}
 			}
 		default:
 			if listParams.SortOrder == service.SortOrderAsc {
@@ -171,10 +178,17 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 				query = fmt.Sprintf("%s AND %s %s ?", query, defaultSortBy, comparisonOp)
 				replacements = append(replacements, listParams.BeforeId)
 			} else {
-				query = fmt.Sprintf("%s AND (%s IS NULL OR (%s %s ? AND %s IS NOT NULL))", query, listParams.SortBy, defaultSortBy, comparisonOp, listParams.SortBy)
-				replacements = append(replacements,
-					listParams.BeforeId,
-				)
+				if listParams.SortOrder == service.SortOrderAsc {
+					query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, defaultSortBy, comparisonOp, listParams.SortBy)
+					replacements = append(replacements,
+						listParams.BeforeId,
+					)
+				} else {
+					query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, listParams.SortBy, defaultSortBy, comparisonOp, listParams.SortBy)
+					replacements = append(replacements,
+						listParams.BeforeId,
+					)
+				}
 			}
 		default:
 			if listParams.SortOrder == service.SortOrderAsc {

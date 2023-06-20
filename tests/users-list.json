@@ -45,8 +45,7 @@
                 "method": "POST",
                 "url": "/v1/users",
                 "body": {
-                    "userId": "user-3",
-                    "email": null
+                    "userId": "user-3"
                 }
             },
             "expectedResponse": {
@@ -63,14 +62,15 @@
                 "method": "POST",
                 "url": "/v1/users",
                 "body": {
-                    "userId": "user-4"
+                    "userId": "user-4",
+                    "email": "user-c@warrant.dev"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "userId": "user-4",
-                    "email": null
+                    "email": "user-c@warrant.dev"
                 }
             }
         },
@@ -81,14 +81,31 @@
                 "url": "/v1/users",
                 "body": {
                     "userId": "user-5",
-                    "email": "user-c@warrant.dev"
+                    "email": ""
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "userId": "user-5",
-                    "email": "user-c@warrant.dev"
+                    "email": ""
+                }
+            }
+        },
+        {
+            "name": "createUser6",
+            "request": {
+                "method": "POST",
+                "url": "/v1/users",
+                "body": {
+                    "userId": "user-6"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "userId": "user-6",
+                    "email": null
                 }
             }
         },
@@ -102,12 +119,16 @@
                 "statusCode": 200,
                 "body": [
                     {
+                        "userId": "user-6",
+                        "email": null
+                    },
+                    {
                         "userId": "user-5",
-                        "email": "user-c@warrant.dev"
+                        "email": ""
                     },
                     {
                         "userId": "user-4",
-                        "email": null
+                        "email": "user-c@warrant.dev"
                     },
                     {
                         "userId": "user-3",
@@ -120,6 +141,30 @@
                     {
                         "userId": "user-1",
                         "email": "user-b@warrant.dev"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByCreatedAtDESCWithLimit",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?sortBy=createdAt&sortOrder=DESC&limit=3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-6",
+                        "email": null
+                    },
+                    {
+                        "userId": "user-5",
+                        "email": ""
+                    },
+                    {
+                        "userId": "user-4",
+                        "email": "user-c@warrant.dev"
                     }
                 ]
             }
@@ -147,242 +192,14 @@
                     },
                     {
                         "userId": "user-4",
-                        "email": null
-                    },
-                    {
-                        "userId": "user-5",
-                        "email": "user-c@warrant.dev"
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByEmailDESC",
-            "request": {
-                "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=DESC"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "userId": "user-5",
                         "email": "user-c@warrant.dev"
                     },
                     {
-                        "userId": "user-1",
-                        "email": "user-b@warrant.dev"
-                    },
-                    {
-                        "userId": "user-2",
-                        "email": ""
-                    },
-                    {
-                        "userId": "user-4",
-                        "email": null
-                    },
-                    {
-                        "userId": "user-3",
-                        "email": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByEmailDESCWithLimit",
-            "request": {
-                "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=DESC&limit=3"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
                         "userId": "user-5",
-                        "email": "user-c@warrant.dev"
-                    },
-                    {
-                        "userId": "user-1",
-                        "email": "user-b@warrant.dev"
-                    },
-                    {
-                        "userId": "user-2",
-                        "email": ""
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByEmailDESCAfterValueEmptyString",
-            "request": {
-                "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=DESC&limit=3&afterId=user-2&afterValue="
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "userId": "user-4",
-                        "email": null
-                    },
-                    {
-                        "userId": "user-3",
-                        "email": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByEmailASC",
-            "request": {
-                "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=ASC"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "userId": "user-3",
-                        "email": null
-                    },
-                    {
-                        "userId": "user-4",
-                        "email": null
-                    },
-                    {
-                        "userId": "user-2",
                         "email": ""
                     },
                     {
-                        "userId": "user-1",
-                        "email": "user-b@warrant.dev"
-                    },
-                    {
-                        "userId": "user-5",
-                        "email": "user-c@warrant.dev"
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByEmailASCWithLimit",
-            "request": {
-                "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=1"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "userId": "user-3",
-                        "email": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByEmailASCAfterValueNull",
-            "request": {
-                "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=1&afterId=user-3"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "userId": "user-4",
-                        "email": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByEmailASCBeforeValueNull",
-            "request": {
-                "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=1&beforeId=user-4"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "userId": "user-3",
-                        "email": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByEmailASCAfterValueNullNextValueEmptyString",
-            "request": {
-                "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=2&afterId=user-4"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "userId": "user-2",
-                        "email": ""
-                    },
-                    {
-                        "userId": "user-1",
-                        "email": "user-b@warrant.dev"
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByEmailASCValidAfterValue",
-            "request": {
-                "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=2&afterId=user-1&afterValue=user-b%40warrant.dev"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "userId": "user-5",
-                        "email": "user-c@warrant.dev"
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByEmailASCValidBeforeValue",
-            "request": {
-                "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=2&beforeId=user-5&beforeValue=user-c%40warrant.dev"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "userId": "user-2",
-                        "email": ""
-                    },
-                    {
-                        "userId": "user-1",
-                        "email": "user-b@warrant.dev"
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByEmailASCBeforeValueEmptyString",
-            "request": {
-                "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=2&beforeId=user-2&beforeValue="
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "userId": "user-3",
-                        "email": null
-                    },
-                    {
-                        "userId": "user-4",
+                        "userId": "user-6",
                         "email": null
                     }
                 ]
@@ -404,6 +221,338 @@
                     {
                         "userId": "user-2",
                         "email": ""
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByEmailDESC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?sortBy=email&sortOrder=DESC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-4",
+                        "email": "user-c@warrant.dev"
+                    },
+                    {
+                        "userId": "user-1",
+                        "email": "user-b@warrant.dev"
+                    },
+                    {
+                        "userId": "user-5",
+                        "email": ""
+                    },
+                    {
+                        "userId": "user-2",
+                        "email": ""
+                    },
+                    {
+                        "userId": "user-6",
+                        "email": null
+                    },
+                    {
+                        "userId": "user-3",
+                        "email": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByEmailDESCWithLimit",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?sortBy=email&sortOrder=DESC&limit=3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-4",
+                        "email": "user-c@warrant.dev"
+                    },
+                    {
+                        "userId": "user-1",
+                        "email": "user-b@warrant.dev"
+                    },
+                    {
+                        "userId": "user-5",
+                        "email": ""
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByEmailDESCBeforeValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?sortBy=email&sortOrder=DESC&limit=1&beforeId=user-3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-6",
+                        "email": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByEmailDESCAfterValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?sortBy=email&sortOrder=DESC&limit=1&afterId=user-6"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-3",
+                        "email": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByEmailDESCBeforeValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?sortBy=email&sortOrder=DESC&limit=1&beforeId=user-5&beforeValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-1",
+                        "email": "user-b@warrant.dev"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByEmailDESCAfterValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?sortBy=email&sortOrder=DESC&limit=3&afterId=user-5&afterValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-2",
+                        "email": ""
+                    },
+                    {
+                        "userId": "user-6",
+                        "email": null
+                    },
+                    {
+                        "userId": "user-3",
+                        "email": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByEmailDESCValidBeforeValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?sortBy=email&sortOrder=DESC&limit=1&beforeId=user-1&beforeValue=user-b%40warrant.dev"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-4",
+                        "email": "user-c@warrant.dev"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByEmailDESCValidAfterValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?sortBy=email&sortOrder=DESC&limit=2&afterId=user-4&afterValue=user-c%40warrant.dev"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-1",
+                        "email": "user-b@warrant.dev"
+                    },
+                    {
+                        "userId": "user-5",
+                        "email": ""
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByEmailASC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?sortBy=email&sortOrder=ASC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-3",
+                        "email": null
+                    },
+                    {
+                        "userId": "user-6",
+                        "email": null
+                    },
+                    {
+                        "userId": "user-2",
+                        "email": ""
+                    },
+                    {
+                        "userId": "user-5",
+                        "email": ""
+                    },
+                    {
+                        "userId": "user-1",
+                        "email": "user-b@warrant.dev"
+                    },
+                    {
+                        "userId": "user-4",
+                        "email": "user-c@warrant.dev"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByEmailASCWithLimit",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-3",
+                        "email": null
+                    },
+                    {
+                        "userId": "user-6",
+                        "email": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByEmailASCBeforeValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=1&beforeId=user-6"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-3",
+                        "email": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByEmailASCAfterValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=1&afterId=user-3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-6",
+                        "email": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByEmailASCBeforeValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=2&beforeId=user-5&beforeValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-6",
+                        "email": null
+                    },
+                    {
+                        "userId": "user-2",
+                        "email": ""
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByEmailASCAfterValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=2&afterId=user-2&afterValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-5",
+                        "email": ""
+                    },
+                    {
+                        "userId": "user-1",
+                        "email": "user-b@warrant.dev"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByEmailASCValidBeforeValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=2&beforeId=user-4&beforeValue=user-c%40warrant.dev"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-5",
+                        "email": ""
+                    },
+                    {
+                        "userId": "user-1",
+                        "email": "user-b@warrant.dev"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByEmailASCValidAfterValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=2&afterId=user-1&afterValue=user-b%40warrant.dev"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-4",
+                        "email": "user-c@warrant.dev"
                     }
                 ]
             }
@@ -443,7 +592,7 @@
                     },
                     {
                         "userId": "user-4",
-                        "email": null
+                        "email": "user-c@warrant.dev"
                     }
                 ]
             }
@@ -452,14 +601,18 @@
             "name": "noSortResultSmallerThanLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?limit=2&afterId=user-4"
+                "url": "/v1/users?limit=3&afterId=user-4"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
                         "userId": "user-5",
-                        "email": "user-c@warrant.dev"
+                        "email": ""
+                    },
+                    {
+                        "userId": "user-6",
+                        "email": null
                     }
                 ]
             }
@@ -509,6 +662,16 @@
             "request": {
                 "method": "DELETE",
                 "url": "/v1/users/user-5"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUser6",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/user-6"
             },
             "expectedResponse": {
                 "statusCode": 200
