@@ -79,24 +79,30 @@ type DatastoreConfig struct {
 }
 
 type MySQLConfig struct {
-	Username           string `mapstructure:"username"`
-	Password           string `mapstructure:"password"`
-	Hostname           string `mapstructure:"hostname"`
-	Database           string `mapstructure:"database"`
-	MigrationSource    string `mapstructure:"migrationSource"`
-	MaxIdleConnections int    `mapstructure:"maxIdleConnections"`
-	MaxOpenConnections int    `mapstructure:"maxOpenConnections"`
+	Username                 string `mapstructure:"username"`
+	Password                 string `mapstructure:"password"`
+	Hostname                 string `mapstructure:"hostname"`
+	Database                 string `mapstructure:"database"`
+	MigrationSource          string `mapstructure:"migrationSource"`
+	MaxIdleConnections       int    `mapstructure:"maxIdleConnections"`
+	MaxOpenConnections       int    `mapstructure:"maxOpenConnections"`
+	ReaderHostname           string `mapstructure:"readerHostname"`
+	ReaderMaxIdleConnections int    `mapstructure:"readerMaxIdleConnections"`
+	ReaderMaxOpenConnections int    `mapstructure:"readerMaxOpenConnections"`
 }
 
 type PostgresConfig struct {
-	Username           string `mapstructure:"username"`
-	Password           string `mapstructure:"password"`
-	Hostname           string `mapstructure:"hostname"`
-	Database           string `mapstructure:"database"`
-	SSLMode            string `mapstructure:"sslmode"`
-	MigrationSource    string `mapstructure:"migrationSource"`
-	MaxIdleConnections int    `mapstructure:"maxIdleConnections"`
-	MaxOpenConnections int    `mapstructure:"maxOpenConnections"`
+	Username                 string `mapstructure:"username"`
+	Password                 string `mapstructure:"password"`
+	Hostname                 string `mapstructure:"hostname"`
+	Database                 string `mapstructure:"database"`
+	SSLMode                  string `mapstructure:"sslmode"`
+	MigrationSource          string `mapstructure:"migrationSource"`
+	MaxIdleConnections       int    `mapstructure:"maxIdleConnections"`
+	MaxOpenConnections       int    `mapstructure:"maxOpenConnections"`
+	ReaderHostname           string `mapstructure:"readerHostname"`
+	ReaderMaxIdleConnections int    `mapstructure:"readerMaxIdleConnections"`
+	ReaderMaxOpenConnections int    `mapstructure:"readerMaxOpenConnections"`
 }
 
 type SQLiteConfig struct {

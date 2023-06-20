@@ -32,6 +32,85 @@ func newTxKey(databaseName string) txKey {
 	}
 }
 
+type UnsafeOp struct{}
+
+type readConnKey struct {
+	Database string
+}
+
+func newReadConnKey(databaseName string) readConnKey {
+	return readConnKey{
+		Database: databaseName,
+	}
+}
+
+// Encapsulates a sql connection to a 'read-only' db
+type ReadSqlConn struct {
+	Conn         *sqlx.Conn
+	Hostname     string
+	DatabaseName string
+}
+
+func (c ReadSqlConn) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
+	return nil, errors.New("op ExecContext not supported on ReadSqlConn")
+}
+
+func (c ReadSqlConn) GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
+	query = c.Conn.Rebind(query)
+	err := c.Conn.GetContext(ctx, dest, query, args...)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return err
+		default:
+			return errors.Wrap(err, "ReadSqlConn error")
+		}
+	}
+	return err
+}
+
+func (c ReadSqlConn) NamedExecContext(ctx context.Context, query string, arg interface{}) (sql.Result, error) {
+	return nil, errors.New("op NamedExecContext not supported on ReadSqlConn")
+}
+
+func (c ReadSqlConn) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
+	return nil, errors.New("op PrepareContext not supported on ReadSqlConn")
+}
+
+func (c ReadSqlConn) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+	query = c.Conn.Rebind(query)
+	rows, err := c.Conn.QueryContext(ctx, query, args...)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return rows, err
+		default:
+			return rows, errors.Wrap(err, "ReadSqlConn error")
+		}
+	}
+	return rows, err
+}
+
+func (c ReadSqlConn) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
+	query = c.Conn.Rebind(query)
+	return c.Conn.QueryRowContext(ctx, query, args...)
+}
+
+func (c ReadSqlConn) SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
+	query = c.Conn.Rebind(query)
+	err := c.Conn.SelectContext(ctx, dest, query, args...)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return err
+		default:
+			return errors.Wrap(err, "ReadSqlConn error")
+		}
+	}
+	return err
+}
+
+// Encapsulates a sql transaction for an atomic write op
 type SqlTx struct {
 	Tx           *sqlx.Tx
 	Hostname     string
@@ -39,8 +118,6 @@ type SqlTx struct {
 }
 
 func (q SqlTx) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
-	curr := time.Now()
-	defer recordQueryStat(ctx, q.Hostname, q.DatabaseName, "tx.write.ExecContext", time.Since(curr))
 	query = q.Tx.Rebind(query)
 	result, err := q.Tx.ExecContext(ctx, query, args...)
 	if err != nil {
@@ -48,15 +125,13 @@ func (q SqlTx) ExecContext(ctx context.Context, query string, args ...interface{
 		case sql.ErrNoRows:
 			return result, err
 		default:
-			return result, errors.Wrap(err, "sql error")
+			return result, errors.Wrap(err, "SqlTx error")
 		}
 	}
 	return result, err
 }
 
 func (q SqlTx) GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
-	curr := time.Now()
-	defer recordQueryStat(ctx, q.Hostname, q.DatabaseName, "tx.read.GetContext", time.Since(curr))
 	query = q.Tx.Rebind(query)
 	err := q.Tx.GetContext(ctx, dest, query, args...)
 	if err != nil {
@@ -64,15 +139,13 @@ func (q SqlTx) GetContext(ctx context.Context, dest interface{}, query string, a
 		case sql.ErrNoRows:
 			return err
 		default:
-			return errors.Wrap(err, "sql error")
+			return errors.Wrap(err, "SqlTx error")
 		}
 	}
 	return err
 }
 
 func (q SqlTx) NamedExecContext(ctx context.Context, query string, arg interface{}) (sql.Result, error) {
-	curr := time.Now()
-	defer recordQueryStat(ctx, q.Hostname, q.DatabaseName, "tx.write.NamedExec", time.Since(curr))
 	query = q.Tx.Rebind(query)
 	result, err := q.Tx.NamedExecContext(ctx, query, arg)
 	if err != nil {
@@ -80,26 +153,22 @@ func (q SqlTx) NamedExecContext(ctx context.Context, query string, arg interface
 		case sql.ErrNoRows:
 			return result, err
 		default:
-			return result, errors.Wrap(err, "sql error")
+			return result, errors.Wrap(err, "SqlTx error")
 		}
 	}
 	return result, err
 }
 
 func (q SqlTx) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
-	curr := time.Now()
-	defer recordQueryStat(ctx, q.Hostname, q.DatabaseName, "tx.Prepare", time.Since(curr))
 	query = q.Tx.Rebind(query)
 	stmt, err := q.Tx.PrepareContext(ctx, query)
 	if err != nil {
-		return stmt, errors.Wrap(err, "sql error")
+		return stmt, errors.Wrap(err, "SqlTx error")
 	}
 	return stmt, err
 }
 
 func (q SqlTx) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
-	curr := time.Now()
-	defer recordQueryStat(ctx, q.Hostname, q.DatabaseName, "tx.read.QueryRows", time.Since(curr))
 	query = q.Tx.Rebind(query)
 	rows, err := q.Tx.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -107,22 +176,18 @@ func (q SqlTx) QueryContext(ctx context.Context, query string, args ...interface
 		case sql.ErrNoRows:
 			return rows, err
 		default:
-			return rows, errors.Wrap(err, "sql error")
+			return rows, errors.Wrap(err, "SqlTx error")
 		}
 	}
 	return rows, err
 }
 
 func (q SqlTx) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
-	curr := time.Now()
-	defer recordQueryStat(ctx, q.Hostname, q.DatabaseName, "tx.read.QueryRow", time.Since(curr))
 	query = q.Tx.Rebind(query)
 	return q.Tx.QueryRowContext(ctx, query, args...)
 }
 
 func (q SqlTx) SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
-	curr := time.Now()
-	defer recordQueryStat(ctx, q.Hostname, q.DatabaseName, "tx.read.Select", time.Since(curr))
 	query = q.Tx.Rebind(query)
 	err := q.Tx.SelectContext(ctx, dest, query, args...)
 	if err != nil {
@@ -130,34 +195,79 @@ func (q SqlTx) SelectContext(ctx context.Context, dest interface{}, query string
 		case sql.ErrNoRows:
 			return err
 		default:
-			return errors.Wrap(err, "sql error")
+			return errors.Wrap(err, "SqlTx error")
 		}
 	}
 	return err
 }
 
+// Wrapper around a sql database with support for creating/managing transactions and 'read-only' connections to a 'reader' db
 type SQL struct {
-	DB           *sqlx.DB
-	Hostname     string
-	DatabaseName string
+	Writer         *sqlx.DB
+	Reader         *sqlx.DB
+	WriterHostname string
+	ReaderHostname string
+	DatabaseName   string
 }
 
-func NewSQL(db *sqlx.DB, hostname string, databaseName string) SQL {
+func NewSQL(writer *sqlx.DB, reader *sqlx.DB, writerHostname string, readerHostname string, databaseName string) SQL {
 	return SQL{
-		DB:           db,
-		Hostname:     hostname,
-		DatabaseName: databaseName,
+		Writer:         writer,
+		Reader:         reader,
+		WriterHostname: writerHostname,
+		ReaderHostname: readerHostname,
+		DatabaseName:   databaseName,
 	}
 }
 
+// Execute connCallback() within the context of a single connection to a 'reader' db instance if present
+func (ds SQL) WithinConsistentRead(ctx context.Context, connCallback func(connCtx context.Context) error) error {
+	_, hasReadConn := ctx.Value(newReadConnKey(ds.DatabaseName)).(*ReadSqlConn)
+	_, hasTx := ctx.Value(newTxKey(ds.DatabaseName)).(*SqlTx)
+
+	// Shouldn't have both an active readConn and active tx on the same ctx (coding error)
+	if hasReadConn && hasTx {
+		return errors.New("invalid state: cannot have both an open tx and open readConn")
+	}
+
+	// If active tx OR active readConn, use it
+	if hasTx || hasReadConn {
+		return connCallback(ctx)
+	}
+
+	// If there's no separate 'reader' db instance, db pool handles everything
+	if ds.Reader == nil {
+		return connCallback(ctx)
+	}
+
+	// Otherwise, start a new readConn and add it to ctx
+	conn, err := ds.Reader.Connx(ctx)
+	if err != nil {
+		return errors.Wrap(err, "error opening/retrieving readConn to reader")
+	}
+	defer conn.Close()
+	ctxWithConn := context.WithValue(ctx, newReadConnKey(ds.DatabaseName), &ReadSqlConn{
+		Conn:         conn,
+		Hostname:     ds.ReaderHostname,
+		DatabaseName: ds.DatabaseName,
+	})
+	return connCallback(ctxWithConn)
+}
+
+// Execute txFunc() within the context of a single write transaction
 func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.Context) error) error {
+	// Cannot start tx if a readConn is already open (coding error). Caller should wrap everything in WithinTransaction()
+	if _, ok := ctx.Value(newReadConnKey(ds.DatabaseName)).(*ReadSqlConn); ok {
+		return errors.New("invalid state: readConn already open. Wrap entire read + write WithinTransaction()")
+	}
+
 	// If transaction already started for this database, re-use it and
 	// let the top-level WithinTransaction call manage rollback/commit
 	if _, ok := ctx.Value(newTxKey(ds.DatabaseName)).(*SqlTx); ok {
 		return txFunc(ctx)
 	}
 
-	tx, err := ds.DB.BeginTxx(ctx, nil)
+	tx, err := ds.Writer.BeginTxx(ctx, nil)
 	if err != nil {
 		return errors.Wrap(err, "Error beginning sql transaction")
 	}
@@ -188,7 +298,7 @@ func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.C
 	// Add the newly created transaction for this database to txCtx
 	ctxWithTx := context.WithValue(ctx, newTxKey(ds.DatabaseName), &SqlTx{
 		Tx:           tx,
-		Hostname:     ds.Hostname,
+		Hostname:     ds.WriterHostname,
 		DatabaseName: ds.DatabaseName,
 	})
 	err = txFunc(ctxWithTx)
@@ -197,9 +307,9 @@ func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.C
 
 func (ds SQL) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
 	curr := time.Now()
-	defer recordQueryStat(ctx, ds.Hostname, ds.DatabaseName, "sql.write.ExecContext", time.Since(curr))
-	query = ds.DB.Rebind(query)
+	query = ds.Writer.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
+	defer ds.recordQueryStat(ctx, queryable, "ExecContext", time.Since(curr))
 	result, err := queryable.ExecContext(ctx, query, args...)
 	if err != nil {
 		switch err {
@@ -214,9 +324,9 @@ func (ds SQL) ExecContext(ctx context.Context, query string, args ...interface{}
 
 func (ds SQL) GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
 	curr := time.Now()
-	defer recordQueryStat(ctx, ds.Hostname, ds.DatabaseName, "sql.read.GetContext", time.Since(curr))
-	query = ds.DB.Rebind(query)
+	query = ds.Writer.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
+	defer ds.recordQueryStat(ctx, queryable, "GetContext", time.Since(curr))
 	err := queryable.GetContext(ctx, dest, query, args...)
 	if err != nil {
 		switch err {
@@ -231,9 +341,9 @@ func (ds SQL) GetContext(ctx context.Context, dest interface{}, query string, ar
 
 func (ds SQL) NamedExecContext(ctx context.Context, query string, arg interface{}) (sql.Result, error) {
 	curr := time.Now()
-	defer recordQueryStat(ctx, ds.Hostname, ds.DatabaseName, "sql.write.NamedExec", time.Since(curr))
-	query = ds.DB.Rebind(query)
+	query = ds.Writer.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
+	defer ds.recordQueryStat(ctx, queryable, "NamedExecContext", time.Since(curr))
 	result, err := queryable.NamedExecContext(ctx, query, arg)
 	if err != nil {
 		switch err {
@@ -248,9 +358,9 @@ func (ds SQL) NamedExecContext(ctx context.Context, query string, arg interface{
 
 func (ds SQL) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
 	curr := time.Now()
-	defer recordQueryStat(ctx, ds.Hostname, ds.DatabaseName, "sql.Prepare", time.Since(curr))
-	query = ds.DB.Rebind(query)
+	query = ds.Writer.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
+	defer ds.recordQueryStat(ctx, queryable, "PrepareContext", time.Since(curr))
 	stmt, err := queryable.PrepareContext(ctx, query)
 	if err != nil {
 		return stmt, errors.Wrap(err, "Error when calling sql PrepareContext")
@@ -260,9 +370,9 @@ func (ds SQL) PrepareContext(ctx context.Context, query string) (*sql.Stmt, erro
 
 func (ds SQL) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
 	curr := time.Now()
-	defer recordQueryStat(ctx, ds.Hostname, ds.DatabaseName, "sql.read.QueryRows", time.Since(curr))
-	query = ds.DB.Rebind(query)
+	query = ds.Writer.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
+	defer ds.recordQueryStat(ctx, queryable, "QueryContext", time.Since(curr))
 	rows, err := queryable.QueryContext(ctx, query, args...)
 	if err != nil {
 		switch err {
@@ -277,17 +387,17 @@ func (ds SQL) QueryContext(ctx context.Context, query string, args ...interface{
 
 func (ds SQL) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
 	curr := time.Now()
-	defer recordQueryStat(ctx, ds.Hostname, ds.DatabaseName, "sql.read.QueryRow", time.Since(curr))
-	query = ds.DB.Rebind(query)
+	query = ds.Writer.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
+	defer ds.recordQueryStat(ctx, queryable, "QueryRowContext", time.Since(curr))
 	return queryable.QueryRowContext(ctx, query, args...)
 }
 
 func (ds SQL) SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
 	curr := time.Now()
-	defer recordQueryStat(ctx, ds.Hostname, ds.DatabaseName, "sql.read.Select", time.Since(curr))
-	query = ds.DB.Rebind(query)
+	query = ds.Writer.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
+	defer ds.recordQueryStat(ctx, queryable, "SelectContext", time.Since(curr))
 	err := queryable.SelectContext(ctx, dest, query, args...)
 	if err != nil {
 		switch err {
@@ -300,20 +410,58 @@ func (ds SQL) SelectContext(ctx context.Context, dest interface{}, query string,
 	return err
 }
 
+// Get main db pool (writer), tx or an open readConn if one has been started
 func (ds SQL) getQueryableFromContext(ctx context.Context) SqlQueryable {
-	if tx, ok := ctx.Value(newTxKey(ds.DatabaseName)).(*SqlTx); ok {
-		return tx
-	} else {
-		return ds.DB
+	readConn, hasReadConn := ctx.Value(newReadConnKey(ds.DatabaseName)).(*ReadSqlConn)
+	unSafeOp := false
+	if ctx.Value(UnsafeOp{}) != nil {
+		unSafeOp = ctx.Value(UnsafeOp{}).(bool)
 	}
+
+	tx, hasTx := ctx.Value(newTxKey(ds.DatabaseName)).(*SqlTx)
+
+	// Shouldn't have both an active readConn and active tx on the same ctx (coding error)
+	if hasReadConn && hasTx {
+		log.Fatal().Msg("Invalid state: tx and readConn both open in ctx")
+	}
+
+	// If tx is already open, use it
+	if hasTx {
+		return tx
+	}
+
+	// If a readConn is already open and it's not an 'unsafeOp' use it
+	if hasReadConn && !unSafeOp {
+		return readConn
+	}
+
+	return ds.Writer
 }
 
-func recordQueryStat(ctx context.Context, hostname string, dbName string, queryType string, duration time.Duration) {
+func (ds SQL) recordQueryStat(ctx context.Context, queryable SqlQueryable, queryType string, duration time.Duration) {
+	prefix := ""
+	hostname := ""
+	db := ""
+	conn, isConn := queryable.(*ReadSqlConn)
+	tx, isTx := queryable.(*SqlTx)
+	if isConn {
+		prefix = "conn"
+		hostname = conn.Hostname
+		db = conn.DatabaseName
+	} else if isTx {
+		prefix = "tx"
+		hostname = tx.Hostname
+		db = tx.DatabaseName
+	} else {
+		prefix = "sql"
+		hostname = ds.WriterHostname
+		db = ds.DatabaseName
+	}
 	reqStats, ok := ctx.Value(stats.RequestStatsKey{}).(*stats.RequestStats)
 	if ok {
 		reqStats.RecordQuery(stats.QueryStat{
-			Store:     fmt.Sprintf("%s/%s", hostname, dbName),
-			QueryType: queryType,
+			Store:     fmt.Sprintf("%s/%s", hostname, db),
+			QueryType: fmt.Sprintf("%s.%s", prefix, queryType),
 			Duration:  duration,
 		})
 	}

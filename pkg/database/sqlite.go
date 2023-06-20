@@ -27,7 +27,7 @@ type SQLite struct {
 
 func NewSQLite(config config.SQLiteConfig) *SQLite {
 	return &SQLite{
-		SQL:    NewSQL(nil, "localhost", config.Database),
+		SQL:    NewSQL(nil, nil, "localhost", "", config.Database),
 		Config: config,
 	}
 }
@@ -70,7 +70,7 @@ func (ds *SQLite) Connect(ctx context.Context) error {
 	// map struct attributes to db column names
 	db.Mapper = reflectx.NewMapperFunc("sqlite", func(s string) string { return s })
 
-	ds.DB = db
+	ds.Writer = db
 	log.Info().Msgf("Connected to sqlite database %s", ds.Config.Database)
 	return nil
 }
@@ -78,7 +78,7 @@ func (ds *SQLite) Connect(ctx context.Context) error {
 func (ds SQLite) Migrate(ctx context.Context, toVersion uint) error {
 	log.Info().Msgf("Migrating sqlite database %s", ds.Config.Database)
 	// migrate database to latest schema
-	instance, err := sqlite3.WithInstance(ds.DB.DB, &sqlite3.Config{})
+	instance, err := sqlite3.WithInstance(ds.Writer.DB, &sqlite3.Config{})
 	if err != nil {
 		return errors.Wrap(err, "Error migrating sqlite database")
 	}
@@ -118,7 +118,7 @@ func (ds SQLite) Migrate(ctx context.Context, toVersion uint) error {
 }
 
 func (ds SQLite) Ping(ctx context.Context) error {
-	return ds.DB.PingContext(ctx)
+	return ds.Writer.PingContext(ctx)
 }
 
 func (ds SQLite) DbHandler(ctx context.Context) interface{} {
