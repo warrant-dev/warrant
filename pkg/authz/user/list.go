@@ -6,12 +6,12 @@ import (
 	"time"
 )
 
-const defaultSortBy = "userId"
+const DefaultSortBy = "userId"
 
 type UserListParamParser struct{}
 
 func (parser UserListParamParser) GetDefaultSortBy() string {
-	return defaultSortBy
+	return DefaultSortBy
 }
 
 func (parser UserListParamParser) GetSupportedSortBys() []string {

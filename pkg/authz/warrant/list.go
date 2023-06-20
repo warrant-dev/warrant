@@ -22,12 +22,12 @@ type SortOptions struct {
 	IsAscending bool
 }
 
-const defaultSortBy = "createdAt"
+const DefaultSortBy = "createdAt"
 
 type WarrantListParamParser struct{}
 
 func (parser WarrantListParamParser) GetDefaultSortBy() string {
-	return defaultSortBy
+	return DefaultSortBy
 }
 
 func (parser WarrantListParamParser) GetSupportedSortBys() []string {

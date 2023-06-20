@@ -117,7 +117,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 
 	`
 	replacements := []interface{}{}
-	defaultSort := regexp.MustCompile("([A-Z])").ReplaceAllString(defaultSortBy, `_$1`)
+	defaultSort := regexp.MustCompile("([A-Z])").ReplaceAllString(DefaultSortBy, `_$1`)
 	sortBy := regexp.MustCompile("([A-Z])").ReplaceAllString(listParams.SortBy, `_$1`)
 
 	if listParams.Query != nil {
@@ -134,7 +134,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 
 		switch listParams.AfterValue {
 		case nil:
-			if listParams.SortBy == defaultSortBy {
+			if listParams.SortBy == DefaultSortBy {
 				query = fmt.Sprintf("%s AND %s %s ?", query, defaultSort, comparisonOp)
 				replacements = append(replacements, listParams.AfterId)
 			} else if listParams.SortOrder == service.SortOrderAsc {
@@ -175,7 +175,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 
 		switch listParams.BeforeValue {
 		case nil:
-			if listParams.SortBy == defaultSortBy {
+			if listParams.SortBy == DefaultSortBy {
 				query = fmt.Sprintf("%s AND %s %s ?", query, defaultSort, comparisonOp)
 				replacements = append(replacements, listParams.BeforeId)
 			} else if listParams.SortOrder == service.SortOrderAsc {
@@ -216,7 +216,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 	}
 
 	if listParams.BeforeId != nil {
-		if listParams.SortBy != defaultSortBy {
+		if listParams.SortBy != DefaultSortBy {
 			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s ORDER BY %s %s %s, %s %s LIMIT ?", query, sortBy, service.SortOrderDesc, invertedNullSortClause, defaultSort, service.SortOrderDesc)
 				replacements = append(replacements, listParams.Limit)
@@ -236,7 +236,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s %s", query, sortBy, listParams.SortOrder, nullSortClause)
 		}
 	} else {
-		if listParams.SortBy != defaultSortBy {
+		if listParams.SortBy != DefaultSortBy {
 			query = fmt.Sprintf("%s ORDER BY %s %s %s, %s %s LIMIT ?", query, sortBy, listParams.SortOrder, nullSortClause, defaultSort, listParams.SortOrder)
 			replacements = append(replacements, listParams.Limit)
 		} else {

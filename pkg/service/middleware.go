@@ -213,9 +213,9 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 			return
 		}
 
-		defaultSortBy := listParamParser.GetDefaultSortBy()
-		if (urlQueryParams.Has(paramNameAfterValue) || urlQueryParams.Has(paramNameBeforeValue)) && sortBy == defaultSortBy {
-			SendErrorResponse(w, NewInvalidRequestError(fmt.Sprintf("cannot pass %s or %s when sorting by %s", paramNameAfterValue, paramNameBeforeValue, defaultSortBy)))
+		DefaultSortBy := listParamParser.GetDefaultSortBy()
+		if (urlQueryParams.Has(paramNameAfterValue) || urlQueryParams.Has(paramNameBeforeValue)) && sortBy == DefaultSortBy {
+			SendErrorResponse(w, NewInvalidRequestError(fmt.Sprintf("cannot pass %s or %s when sorting by %s", paramNameAfterValue, paramNameBeforeValue, DefaultSortBy)))
 			return
 		}
 
