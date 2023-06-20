@@ -29,7 +29,8 @@ func NewService(env service.Env, repository WarrantRepository, eventSvc event.Ev
 
 func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (*WarrantSpec, *wookie.Token, error) {
 	// Check that objectType is valid
-	objectTypeDef, err := svc.ObjectTypeSvc.GetByTypeId(ctx, warrantSpec.ObjectType)
+	// TODO: in the future we might want to compare the wookie returned by GetType() against a client-specified wookie (not an issue on single-master dbs)
+	objectTypeDef, _, err := svc.ObjectTypeSvc.GetByTypeId(ctx, warrantSpec.ObjectType)
 	if err != nil {
 		return nil, nil, service.NewInvalidParameterError("objectType", "The given object type does not exist.")
 	}
@@ -89,18 +90,30 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 	return createdWarrant.ToWarrantSpec(), newWookie, nil
 }
 
-func (svc WarrantService) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]*WarrantSpec, error) {
+func (svc WarrantService) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]*WarrantSpec, *wookie.Token, error) {
 	warrantSpecs := make([]*WarrantSpec, 0)
-	warrants, err := svc.Repository.List(ctx, filterOptions, listParams)
-	if err != nil {
-		return nil, err
-	}
+	var latestWookie *wookie.Token
+	e := svc.Env().DB().WithinConsistentRead(ctx, func(connCtx context.Context) error {
+		wookieCtx, token, err := svc.WookieSvc.GetWookieContext(connCtx)
+		if err != nil {
+			return err
+		}
+		latestWookie = token
+		warrants, err := svc.Repository.List(wookieCtx, filterOptions, listParams)
+		if err != nil {
+			return err
+		}
 
-	for _, warrant := range warrants {
-		warrantSpecs = append(warrantSpecs, warrant.ToWarrantSpec())
-	}
+		for _, warrant := range warrants {
+			warrantSpecs = append(warrantSpecs, warrant.ToWarrantSpec())
+		}
 
-	return warrantSpecs, nil
+		return nil
+	})
+	if e != nil {
+		return nil, latestWookie, e
+	}
+	return warrantSpecs, latestWookie, nil
 }
 
 func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) (*wookie.Token, error) {

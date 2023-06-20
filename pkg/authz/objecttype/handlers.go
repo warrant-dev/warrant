@@ -71,9 +71,7 @@ func CreateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return err
 	}
-	if newWookie != nil {
-		w.Header().Set("Warrant-Token", newWookie.AsString())
-	}
+	wookie.AddAsResponseHeader(w, newWookie)
 
 	service.SendJSONResponse(w, createdObjectTypeSpec)
 	return nil
@@ -81,10 +79,11 @@ func CreateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 
 func ListHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	listParams := service.GetListParamsFromContext[ObjectTypeListParamParser](r.Context())
-	objectTypeSpecs, err := svc.List(r.Context(), listParams)
+	objectTypeSpecs, updatedWookie, err := svc.List(r.Context(), listParams)
 	if err != nil {
 		return err
 	}
+	wookie.AddAsResponseHeader(w, updatedWookie)
 
 	service.SendJSONResponse(w, objectTypeSpecs)
 	return nil
@@ -92,10 +91,11 @@ func ListHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) 
 
 func GetHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	typeId := mux.Vars(r)["type"]
-	objectTypeSpec, err := svc.GetByTypeId(r.Context(), typeId)
+	objectTypeSpec, updatedWookie, err := svc.GetByTypeId(r.Context(), typeId)
 	if err != nil {
 		return err
 	}
+	wookie.AddAsResponseHeader(w, updatedWookie)
 
 	service.SendJSONResponse(w, objectTypeSpec)
 	return nil
@@ -113,9 +113,7 @@ func UpdateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return err
 	}
-	if newWookie != nil {
-		w.Header().Set("Warrant-Token", newWookie.AsString())
-	}
+	wookie.AddAsResponseHeader(w, newWookie)
 
 	service.SendJSONResponse(w, updatedObjectTypeSpec)
 	return nil
@@ -127,9 +125,7 @@ func DeleteHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return err
 	}
-	if newWookie != nil {
-		w.Header().Set("Warrant-Token", newWookie.AsString())
-	}
+	wookie.AddAsResponseHeader(w, newWookie)
 
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusOK)

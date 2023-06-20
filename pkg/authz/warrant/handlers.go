@@ -60,9 +60,7 @@ func CreateHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 	if err != nil {
 		return err
 	}
-	if newWookie != nil {
-		w.Header().Set("Warrant-Token", newWookie.AsString())
-	}
+	wookie.AddAsResponseHeader(w, newWookie)
 
 	service.SendJSONResponse(w, createdWarrant)
 	return nil
@@ -86,10 +84,11 @@ func ListHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) err
 		filters.Subject.Relation = subjectRelation
 	}
 
-	warrants, err := svc.List(r.Context(), &filters, listParams)
+	warrants, updatedWookie, err := svc.List(r.Context(), &filters, listParams)
 	if err != nil {
 		return err
 	}
+	wookie.AddAsResponseHeader(w, updatedWookie)
 
 	service.SendJSONResponse(w, warrants)
 	return nil
@@ -106,9 +105,7 @@ func DeleteHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 	if err != nil {
 		return err
 	}
-	if newWookie != nil {
-		w.Header().Set("Warrant-Token", newWookie.AsString())
-	}
+	wookie.AddAsResponseHeader(w, newWookie)
 
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusOK)

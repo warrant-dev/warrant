@@ -26,3 +26,9 @@ func ClientTokenMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func AddAsResponseHeader(w http.ResponseWriter, token *Token) {
+	if token != nil {
+		w.Header().Set(WarrantTokenHeaderName, token.AsString())
+	}
+}

@@ -73,13 +73,15 @@ func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTy
 	return newObjectTypeSpec, newWookie, nil
 }
 
-func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*ObjectTypeSpec, error) {
+func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*ObjectTypeSpec, *wookie.Token, error) {
 	var objectTypeSpec *ObjectTypeSpec
+	var latestWookie *wookie.Token
 	e := svc.Env().DB().WithinConsistentRead(ctx, func(connCtx context.Context) error {
-		wookieCtx, err := svc.WookieSvc.GetWookieContext(connCtx)
+		wookieCtx, token, err := svc.WookieSvc.GetWookieContext(connCtx)
 		if err != nil {
 			return err
 		}
+		latestWookie = token
 		objectType, err := svc.Repository.GetByTypeId(wookieCtx, typeId)
 		if err != nil {
 			return err
@@ -92,18 +94,20 @@ func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*O
 		return nil
 	})
 	if e != nil {
-		return nil, e
+		return nil, latestWookie, e
 	}
-	return objectTypeSpec, nil
+	return objectTypeSpec, latestWookie, nil
 }
 
-func (svc ObjectTypeService) List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, error) {
+func (svc ObjectTypeService) List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, *wookie.Token, error) {
 	objectTypeSpecs := make([]ObjectTypeSpec, 0)
+	var latestWookie *wookie.Token
 	e := svc.Env().DB().WithinConsistentRead(ctx, func(connCtx context.Context) error {
-		wookieCtx, err := svc.WookieSvc.GetWookieContext(connCtx)
+		wookieCtx, token, err := svc.WookieSvc.GetWookieContext(connCtx)
 		if err != nil {
 			return err
 		}
+		latestWookie = token
 		objectTypes, err := svc.Repository.List(wookieCtx, listParams)
 		if err != nil {
 			return err
@@ -121,9 +125,9 @@ func (svc ObjectTypeService) List(ctx context.Context, listParams service.ListPa
 		return nil
 	})
 	if e != nil {
-		return nil, e
+		return nil, latestWookie, e
 	}
-	return objectTypeSpecs, nil
+	return objectTypeSpecs, latestWookie, nil
 }
 
 func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, *wookie.Token, error) {
@@ -151,7 +155,7 @@ func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, 
 			return err
 		}
 
-		updatedObjectTypeSpec, err = svc.GetByTypeId(txCtx, typeId)
+		updatedObjectTypeSpec, _, err = svc.GetByTypeId(txCtx, typeId)
 		if err != nil {
 			return err
 		}

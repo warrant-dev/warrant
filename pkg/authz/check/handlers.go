@@ -53,10 +53,11 @@ func AuthorizeHandler(svc CheckService, w http.ResponseWriter, r *http.Request) 
 			Debug:    sessionCheckManySpec.Debug,
 		}
 
-		checkResult, err := svc.CheckMany(r.Context(), authInfo, &checkManySpec)
+		checkResult, updatedWookie, err := svc.CheckMany(r.Context(), authInfo, &checkManySpec)
 		if err != nil {
 			return err
 		}
+		wookie.AddAsResponseHeader(w, updatedWookie)
 
 		service.SendJSONResponse(w, checkResult)
 		return nil
@@ -68,10 +69,11 @@ func AuthorizeHandler(svc CheckService, w http.ResponseWriter, r *http.Request) 
 		return err
 	}
 
-	checkResult, err := svc.CheckMany(r.Context(), authInfo, &checkManySpec)
+	checkResult, updatedWookie, err := svc.CheckMany(r.Context(), authInfo, &checkManySpec)
 	if err != nil {
 		return err
 	}
+	wookie.AddAsResponseHeader(w, updatedWookie)
 
 	service.SendJSONResponse(w, checkResult)
 	return nil

@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/gorilla/mux"
+	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -94,9 +95,7 @@ func DeleteHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) er
 	if err != nil {
 		return err
 	}
-	if newWookie != nil {
-		w.Header().Set("Warrant-Token", newWookie.AsString())
-	}
+	wookie.AddAsResponseHeader(w, newWookie)
 
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
