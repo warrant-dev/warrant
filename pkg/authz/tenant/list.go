@@ -5,10 +5,12 @@ import (
 	"time"
 )
 
+const defaultSortBy = "tenantId"
+
 type TenantListParamParser struct{}
 
 func (parser TenantListParamParser) GetDefaultSortBy() string {
-	return "tenantId"
+	return defaultSortBy
 }
 
 func (parser TenantListParamParser) GetSupportedSortBys() []string {

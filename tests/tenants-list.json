@@ -28,14 +28,14 @@
                 "url": "/v1/tenants",
                 "body": {
                     "tenantId": "tenant-2",
-                    "name": "Tenant A"
+                    "name": ""
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "tenantId": "tenant-2",
-                    "name": "Tenant A"
+                    "name": ""
                 }
             }
         },
@@ -93,7 +93,24 @@
             }
         },
         {
-            "name": "getTenantsSortByCreatedAtDESC",
+            "name": "createTenant6",
+            "request": {
+                "method": "POST",
+                "url": "/v1/tenants",
+                "body": {
+                    "tenantId": "tenant-6"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "tenantId": "tenant-6",
+                    "name": null
+                }
+            }
+        },
+        {
+            "name": "sortByCreatedAtDESC",
             "request": {
                 "method": "GET",
                 "url": "/v1/tenants?sortBy=createdAt&sortOrder=DESC"
@@ -101,6 +118,10 @@
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
+                    {
+                        "tenantId": "tenant-6",
+                        "name": null
+                    },
                     {
                         "tenantId": "tenant-5",
                         "name": "Tenant C"
@@ -115,7 +136,7 @@
                     },
                     {
                         "tenantId": "tenant-2",
-                        "name": "Tenant A"
+                        "name": ""
                     },
                     {
                         "tenantId": "tenant-1",
@@ -125,7 +146,31 @@
             }
         },
         {
-            "name": "getTenantsSortByCreatedAtASC",
+            "name": "sortByCreatedAtDESCWithLimit",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?sortBy=createdAt&sortOrder=DESC&limit=3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "tenant-6",
+                        "name": null
+                    },
+                    {
+                        "tenantId": "tenant-5",
+                        "name": "Tenant C"
+                    },
+                    {
+                        "tenantId": "tenant-4",
+                        "name": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByCreatedAtASC",
             "request": {
                 "method": "GET",
                 "url": "/v1/tenants?sortBy=createdAt&sortOrder=ASC"
@@ -139,7 +184,7 @@
                     },
                     {
                         "tenantId": "tenant-2",
-                        "name": "Tenant A"
+                        "name": ""
                     },
                     {
                         "tenantId": "tenant-3",
@@ -152,12 +197,36 @@
                     {
                         "tenantId": "tenant-5",
                         "name": "Tenant C"
+                    },
+                    {
+                        "tenantId": "tenant-6",
+                        "name": null
                     }
                 ]
             }
         },
         {
-            "name": "getTenantsSortByNameDESC",
+            "name": "sortByCreatedAtASCWithLimit",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?sortBy=createdAt&sortOrder=ASC&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "tenant-1",
+                        "name": "Tenant B"
+                    },
+                    {
+                        "tenantId": "tenant-2",
+                        "name": ""
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESC",
             "request": {
                 "method": "GET",
                 "url": "/v1/tenants?sortBy=name&sortOrder=DESC"
@@ -174,12 +243,16 @@
                         "name": "Tenant B"
                     },
                     {
-                        "tenantId": "tenant-2",
-                        "name": "Tenant A"
-                    },
-                    {
                         "tenantId": "tenant-3",
                         "name": ""
+                    },
+                    {
+                        "tenantId": "tenant-2",
+                        "name": ""
+                    },
+                    {
+                        "tenantId": "tenant-6",
+                        "name": null
                     },
                     {
                         "tenantId": "tenant-4",
@@ -189,7 +262,139 @@
             }
         },
         {
-            "name": "getTenantsSortByNameASC",
+            "name": "sortByNameDESCWithLimit",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?sortBy=name&sortOrder=DESC&limit=3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "tenant-5",
+                        "name": "Tenant C"
+                    },
+                    {
+                        "tenantId": "tenant-1",
+                        "name": "Tenant B"
+                    },
+                    {
+                        "tenantId": "tenant-3",
+                        "name": ""
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCBeforeValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?sortBy=name&sortOrder=DESC&limit=1&beforeId=tenant-4"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "tenant-6",
+                        "name": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCAfterValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?sortBy=name&sortOrder=DESC&limit=1&afterId=tenant-6"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "tenant-4",
+                        "name": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCBeforeValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?sortBy=name&sortOrder=DESC&limit=1&beforeId=tenant-3&beforeValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "tenant-1",
+                        "name": "Tenant B"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCAfterValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?sortBy=name&sortOrder=DESC&limit=3&afterId=tenant-3&afterValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "tenant-2",
+                        "name": ""
+                    },
+                    {
+                        "tenantId": "tenant-6",
+                        "name": null
+                    },
+                    {
+                        "tenantId": "tenant-4",
+                        "name": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCValidBeforeValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?sortBy=name&sortOrder=DESC&limit=1&beforeId=tenant-1&beforeValue=Tenant%20B"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "tenant-5",
+                        "name": "Tenant C"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCValidAfterValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?sortBy=name&sortOrder=DESC&limit=2&afterId=tenant-5&afterValue=Tenant%20C"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "tenant-1",
+                        "name": "Tenant B"
+                    },
+                    {
+                        "tenantId": "tenant-3",
+                        "name": ""
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASC",
             "request": {
                 "method": "GET",
                 "url": "/v1/tenants?sortBy=name&sortOrder=ASC"
@@ -202,12 +407,16 @@
                         "name": null
                     },
                     {
-                        "tenantId": "tenant-3",
-                        "name": ""
+                        "tenantId": "tenant-6",
+                        "name": null
                     },
                     {
                         "tenantId": "tenant-2",
-                        "name": "Tenant A"
+                        "name": ""
+                    },
+                    {
+                        "tenantId": "tenant-3",
+                        "name": ""
                     },
                     {
                         "tenantId": "tenant-1",
@@ -221,10 +430,10 @@
             }
         },
         {
-            "name": "getTenantsSortByNameASCLimit2",
+            "name": "sortByNameASCWithLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/tenants?sortBy=name&sortOrder=ASC&limit=2"
+                "url": "/v1/tenants?sortBy=name&sortOrder=ASC&limit=1"
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -232,26 +441,74 @@
                     {
                         "tenantId": "tenant-4",
                         "name": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCBeforeValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?sortBy=name&sortOrder=ASC&limit=1&beforeId=tenant-6"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "tenant-4",
+                        "name": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCAfterValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?sortBy=name&sortOrder=ASC&limit=1&afterId=tenant-4"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "tenant-6",
+                        "name": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCBeforeValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?sortBy=name&sortOrder=ASC&limit=2&beforeId=tenant-3&beforeValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "tenant-6",
+                        "name": null
                     },
                     {
-                        "tenantId": "tenant-3",
+                        "tenantId": "tenant-2",
                         "name": ""
                     }
                 ]
             }
         },
         {
-            "name": "getTenantsSortByNameASCLimit2AfterIdAfterValue1",
+            "name": "sortByNameASCAfterValueEmptyString",
             "request": {
                 "method": "GET",
-                "url": "/v1/tenants?sortBy=name&sortOrder=ASC&limit=2&afterId=tenant-3&afterValue="
+                "url": "/v1/tenants?sortBy=name&sortOrder=ASC&limit=2&afterId=tenant-2&afterValue="
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "tenantId": "tenant-2",
-                        "name": "Tenant A"
+                        "tenantId": "tenant-3",
+                        "name": ""
                     },
                     {
                         "tenantId": "tenant-1",
@@ -261,7 +518,27 @@
             }
         },
         {
-            "name": "getTenantsSortByNameASCLimit2AfterIdAfterValue2",
+            "name": "sortByNameASCValidBeforeValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?sortBy=name&sortOrder=ASC&limit=2&beforeId=tenant-5&beforeValue=Tenant%20C"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "tenant-3",
+                        "name": ""
+                    },
+                    {
+                        "tenantId": "tenant-1",
+                        "name": "Tenant B"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCValidAfterValue",
             "request": {
                 "method": "GET",
                 "url": "/v1/tenants?sortBy=name&sortOrder=ASC&limit=2&afterId=tenant-1&afterValue=Tenant%20B"
@@ -277,27 +554,7 @@
             }
         },
         {
-            "name": "getTenantsSortByCreatedAtASCLimit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/tenants?sortBy=createdAt&sortOrder=ASC&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "tenantId": "tenant-1",
-                        "name": "Tenant B"
-                    },
-                    {
-                        "tenantId": "tenant-2",
-                        "name": "Tenant A"
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getTenantsLimit2",
+            "name": "noSortWithLimit",
             "request": {
                 "method": "GET",
                 "url": "/v1/tenants?limit=2"
@@ -311,13 +568,13 @@
                     },
                     {
                         "tenantId": "tenant-2",
-                        "name": "Tenant A"
+                        "name": ""
                     }
                 ]
             }
         },
         {
-            "name": "getTenantsLimit2AfterId1",
+            "name": "noSortWithLimitAndValidAfterId",
             "request": {
                 "method": "GET",
                 "url": "/v1/tenants?limit=2&afterId=tenant-2"
@@ -337,7 +594,7 @@
             }
         },
         {
-            "name": "getTenantsLimit2AfterId2",
+            "name": "noSortResultSmallerThanLimit",
             "request": {
                 "method": "GET",
                 "url": "/v1/tenants?limit=2&afterId=tenant-4"
@@ -348,6 +605,10 @@
                     {
                         "tenantId": "tenant-5",
                         "name": "Tenant C"
+                    },
+                    {
+                        "tenantId": "tenant-6",
+                        "name": null
                     }
                 ]
             }
@@ -397,6 +658,16 @@
             "request": {
                 "method": "DELETE",
                 "url": "/v1/tenants/tenant-5"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteTenant6",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/tenants/tenant-6"
             },
             "expectedResponse": {
                 "statusCode": 200
