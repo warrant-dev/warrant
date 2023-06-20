@@ -212,26 +212,28 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 	}
 
 	nullSortClause := "NULLS LAST"
+	invertedNullSortClause := "NULLS FIRST"
 	if listParams.SortOrder == service.SortOrderAsc {
 		nullSortClause = "NULLS FIRST"
+		invertedNullSortClause = "NULLS LAST"
 	}
 
 	if listParams.BeforeId != nil {
 		if listParams.SortBy != defaultSortBy {
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s ORDER BY %s %s %s, %s %s LIMIT ?", query, sortBy, service.SortOrderDesc, nullSortClause, defaultSortBy, service.SortOrderDesc)
+				query = fmt.Sprintf("%s ORDER BY %s %s %s, %s %s LIMIT ?", query, sortBy, service.SortOrderDesc, invertedNullSortClause, defaultSortBy, service.SortOrderDesc)
 				replacements = append(replacements, listParams.Limit)
 			} else {
-				query = fmt.Sprintf("%s ORDER BY %s %s %s, %s %s LIMIT ?", query, sortBy, service.SortOrderAsc, nullSortClause, defaultSortBy, service.SortOrderAsc)
+				query = fmt.Sprintf("%s ORDER BY %s %s %s, %s %s LIMIT ?", query, sortBy, service.SortOrderAsc, invertedNullSortClause, defaultSortBy, service.SortOrderAsc)
 				replacements = append(replacements, listParams.Limit)
 			}
 			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s, %s %s", query, sortBy, listParams.SortOrder, defaultSortBy, listParams.SortOrder)
 		} else {
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s ORDER BY %s %s %s LIMIT ?", query, sortBy, service.SortOrderDesc, nullSortClause)
+				query = fmt.Sprintf("%s ORDER BY %s %s %s LIMIT ?", query, sortBy, service.SortOrderDesc, invertedNullSortClause)
 				replacements = append(replacements, listParams.Limit)
 			} else {
-				query = fmt.Sprintf("%s ORDER BY %s %s %s LIMIT ?", query, sortBy, service.SortOrderAsc, nullSortClause)
+				query = fmt.Sprintf("%s ORDER BY %s %s %s LIMIT ?", query, sortBy, service.SortOrderAsc, invertedNullSortClause)
 				replacements = append(replacements, listParams.Limit)
 			}
 			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s %s", query, sortBy, listParams.SortOrder, nullSortClause)
