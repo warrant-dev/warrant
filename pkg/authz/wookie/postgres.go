@@ -18,24 +18,23 @@ func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 }
 
 func (repo PostgresRepository) Create(ctx context.Context, version int64) (int64, error) {
-	result, err := repo.DB(ctx).ExecContext(
+	var newWookieId int64
+	err := repo.DB(ctx).GetContext(
 		ctx,
+		&newWookieId,
 		`
 			INSERT INTO wookie (
 				ver
 			)
 			VALUES (?)
+			RETURNING id
 		`,
 		version,
 	)
 	if err != nil {
 		return -1, errors.Wrap(err, "error creating wookie")
 	}
-	id, err := result.LastInsertId()
-	if err != nil {
-		return -1, errors.Wrap(err, "error creating wookie")
-	}
-	return id, nil
+	return newWookieId, nil
 }
 
 func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, error) {
