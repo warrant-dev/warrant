@@ -81,7 +81,7 @@ func GetHandler(svc TenantService, w http.ResponseWriter, r *http.Request) error
 }
 
 func ListHandler(svc TenantService, w http.ResponseWriter, r *http.Request) error {
-	listParams := service.GetListParamsFromContext(r.Context())
+	listParams := service.GetListParamsFromContext[TenantListParamParser](r.Context())
 	tenants, err := svc.List(r.Context(), listParams)
 	if err != nil {
 		return err

@@ -5,10 +5,12 @@ import (
 	"time"
 )
 
+const defaultSortBy = "objectId"
+
 type ObjectListParamParser struct{}
 
 func (parser ObjectListParamParser) GetDefaultSortBy() string {
-	return "objectId"
+	return defaultSortBy
 }
 
 func (parser ObjectListParamParser) GetSupportedSortBys() []string {
@@ -23,7 +25,7 @@ func (parser ObjectListParamParser) ParseValue(val string, sortBy string) (inter
 			return nil, fmt.Errorf("must be a valid time in the %s", time.RFC3339)
 		}
 
-		return afterValue, nil
+		return &afterValue, nil
 	case "objectType", "objectId":
 		if val == "" {
 			return nil, fmt.Errorf("must not be empty")

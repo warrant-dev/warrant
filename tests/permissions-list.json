@@ -29,14 +29,14 @@
                 "url": "/v1/permissions",
                 "body": {
                     "permissionId": "permission-2",
-                    "name": "Permission A"
+                    "name": ""
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "permissionId": "permission-2",
-                    "name": "Permission A",
+                    "name": "",
                     "description": null
                 }
             }
@@ -47,15 +47,14 @@
                 "method": "POST",
                 "url": "/v1/permissions",
                 "body": {
-                    "permissionId": "permission-3",
-                    "name": ""
+                    "permissionId": "permission-3"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "permissionId": "permission-3",
-                    "name": "",
+                    "name": null,
                     "description": null
                 }
             }
@@ -66,14 +65,15 @@
                 "method": "POST",
                 "url": "/v1/permissions",
                 "body": {
-                    "permissionId": "permission-4"
+                    "permissionId": "permission-4",
+                    "name": "Permission C"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "permissionId": "permission-4",
-                    "name": null,
+                    "name": "Permission C",
                     "description": null
                 }
             }
@@ -85,20 +85,38 @@
                 "url": "/v1/permissions",
                 "body": {
                     "permissionId": "permission-5",
-                    "name": "Permission C"
+                    "name": ""
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "permissionId": "permission-5",
-                    "name": "Permission C",
+                    "name": "",
                     "description": null
                 }
             }
         },
         {
-            "name": "getPermissionsSortByCreatedAtDESC",
+            "name": "createPermission6",
+            "request": {
+                "method": "POST",
+                "url": "/v1/permissions",
+                "body": {
+                    "permissionId": "permission-6"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "permissionId": "permission-6",
+                    "name": null,
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "sortByCreatedAtDESC",
             "request": {
                 "method": "GET",
                 "url": "/v1/permissions?sortBy=createdAt&sortOrder=DESC"
@@ -107,23 +125,28 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-5",
-                        "name": "Permission C",
-                        "description": null
-                    },
-                    {
-                        "permissionId": "permission-4",
+                        "permissionId": "permission-6",
                         "name": null,
                         "description": null
                     },
                     {
-                        "permissionId": "permission-3",
+                        "permissionId": "permission-5",
                         "name": "",
                         "description": null
                     },
                     {
+                        "permissionId": "permission-4",
+                        "name": "Permission C",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-3",
+                        "name": null,
+                        "description": null
+                    },
+                    {
                         "permissionId": "permission-2",
-                        "name": "Permission A",
+                        "name": "",
                         "description": null
                     },
                     {
@@ -135,7 +158,34 @@
             }
         },
         {
-            "name": "getPermissionsSortByCreatedAtASC",
+            "name": "sortByCreatedAtDESCWithLimit",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=createdAt&sortOrder=DESC&limit=3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-6",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-5",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-4",
+                        "name": "Permission C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByCreatedAtASC",
             "request": {
                 "method": "GET",
                 "url": "/v1/permissions?sortBy=createdAt&sortOrder=ASC"
@@ -150,125 +200,34 @@
                     },
                     {
                         "permissionId": "permission-2",
-                        "name": "Permission A",
-                        "description": null
-                    },
-                    {
-                        "permissionId": "permission-3",
                         "name": "",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-4",
+                        "permissionId": "permission-3",
                         "name": null,
                         "description": null
                     },
                     {
-                        "permissionId": "permission-5",
-                        "name": "Permission C",
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getPermissionsSortByNameDESC",
-            "request": {
-                "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=DESC"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "permissionId": "permission-5",
+                        "permissionId": "permission-4",
                         "name": "Permission C",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-1",
-                        "name": "Permission B",
-                        "description": null
-                    },
-                    {
-                        "permissionId": "permission-2",
-                        "name": "Permission A",
-                        "description": null
-                    },
-                    {
-                        "permissionId": "permission-3",
-                        "name": "",
-                        "description": null
-                    },
-                    {
-                        "permissionId": "permission-4",
-                        "name": null,
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getPermissionsSortByNameASC",
-            "request": {
-                "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=ASC"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "permissionId": "permission-4",
-                        "name": null,
-                        "description": null
-                    },
-                    {
-                        "permissionId": "permission-3",
-                        "name": "",
-                        "description": null
-                    },
-                    {
-                        "permissionId": "permission-2",
-                        "name": "Permission A",
-                        "description": null
-                    },
-                    {
-                        "permissionId": "permission-1",
-                        "name": "Permission B",
-                        "description": null
-                    },
-                    {
                         "permissionId": "permission-5",
-                        "name": "Permission C",
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getPermissionsSortByNameASCLimit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=ASC&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "permissionId": "permission-4",
-                        "name": null,
+                        "name": "",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-3",
-                        "name": "",
+                        "permissionId": "permission-6",
+                        "name": null,
                         "description": null
                     }
                 ]
             }
         },
         {
-            "name": "getPermissionsSortByCreatedAtASCLimit2",
+            "name": "sortByCreatedAtASCWithLimit",
             "request": {
                 "method": "GET",
                 "url": "/v1/permissions?sortBy=createdAt&sortOrder=ASC&limit=2"
@@ -283,14 +242,381 @@
                     },
                     {
                         "permissionId": "permission-2",
-                        "name": "Permission A",
+                        "name": "",
                         "description": null
                     }
                 ]
             }
         },
         {
-            "name": "getPermissionsLimit2",
+            "name": "sortByNameDESC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=DESC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-4",
+                        "name": "Permission C",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-1",
+                        "name": "Permission B",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-5",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-2",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-6",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-3",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCWithLimit",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=DESC&limit=3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-4",
+                        "name": "Permission C",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-1",
+                        "name": "Permission B",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-5",
+                        "name": "",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCBeforeValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=DESC&limit=1&beforeId=permission-3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-6",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCAfterValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=DESC&limit=1&afterId=permission-6"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-3",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCBeforeValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=DESC&limit=1&beforeId=permission-5&beforeValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-1",
+                        "name": "Permission B",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCAfterValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=DESC&limit=3&afterId=permission-5&afterValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-2",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-6",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-3",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCValidBeforeValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=DESC&limit=1&beforeId=permission-1&beforeValue=Permission%20B"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-4",
+                        "name": "Permission C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCValidAfterValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=DESC&limit=2&afterId=permission-4&afterValue=Permission%20C"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-1",
+                        "name": "Permission B",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-5",
+                        "name": "",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=ASC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-3",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-6",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-2",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-5",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-1",
+                        "name": "Permission B",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-4",
+                        "name": "Permission C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCWithLimit",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=ASC&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-3",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-6",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCBeforeValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=ASC&limit=1&beforeId=permission-6"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-3",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCAfterValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=ASC&limit=1&afterId=permission-3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-6",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCBeforeValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=ASC&limit=2&beforeId=permission-5&beforeValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-6",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-2",
+                        "name": "",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCAfterValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=ASC&limit=2&afterId=permission-2&afterValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-5",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-1",
+                        "name": "Permission B",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCValidBeforeValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=ASC&limit=2&beforeId=permission-4&beforeValue=Permission%20C"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-5",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-1",
+                        "name": "Permission B",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCValidAfterValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/permissions?sortBy=name&sortOrder=ASC&limit=2&afterId=permission-1&afterValue=Permission%20B"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "permissionId": "permission-4",
+                        "name": "Permission C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "noSortWithLimit",
             "request": {
                 "method": "GET",
                 "url": "/v1/permissions?limit=2"
@@ -305,14 +631,14 @@
                     },
                     {
                         "permissionId": "permission-2",
-                        "name": "Permission A",
+                        "name": "",
                         "description": null
                     }
                 ]
             }
         },
         {
-            "name": "getPermissionsLimit2AfterId1",
+            "name": "noSortWithLimitAndValidAfterId",
             "request": {
                 "method": "GET",
                 "url": "/v1/permissions?limit=2&afterId=permission-2"
@@ -322,29 +648,34 @@
                 "body": [
                     {
                         "permissionId": "permission-3",
-                        "name": "",
+                        "name": null,
                         "description": null
                     },
                     {
                         "permissionId": "permission-4",
-                        "name": null,
+                        "name": "Permission C",
                         "description": null
                     }
                 ]
             }
         },
         {
-            "name": "getPermissionsLimit2AfterId2",
+            "name": "noSortResultSmallerThanLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?limit=2&afterId=permission-4"
+                "url": "/v1/permissions?limit=3&afterId=permission-4"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
                         "permissionId": "permission-5",
-                        "name": "Permission C",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-6",
+                        "name": null,
                         "description": null
                     }
                 ]
@@ -395,6 +726,16 @@
             "request": {
                 "method": "DELETE",
                 "url": "/v1/permissions/permission-5"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePermission6",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/permissions/permission-6"
             },
             "expectedResponse": {
                 "statusCode": 200

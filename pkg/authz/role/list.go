@@ -5,10 +5,12 @@ import (
 	"time"
 )
 
+const defaultSortBy = "roleId"
+
 type RoleListParamParser struct{}
 
 func (parser RoleListParamParser) GetDefaultSortBy() string {
-	return "roleId"
+	return defaultSortBy
 }
 
 func (parser RoleListParamParser) GetSupportedSortBys() []string {
@@ -23,14 +25,13 @@ func (parser RoleListParamParser) ParseValue(val string, sortBy string) (interfa
 			return nil, fmt.Errorf("must be a valid time in the format %s", time.RFC3339)
 		}
 
-		return afterValue, nil
+		return &afterValue, nil
 	case "roleId":
 		if val == "" {
 			return nil, fmt.Errorf("must not be empty")
 		}
 
 		return val, nil
-
 	case "name":
 		if val == "" {
 			return "", nil

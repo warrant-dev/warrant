@@ -5,10 +5,12 @@ import (
 	"time"
 )
 
+const defaultSortBy = "featureId"
+
 type FeatureListParamParser struct{}
 
 func (parser FeatureListParamParser) GetDefaultSortBy() string {
-	return "featureId"
+	return defaultSortBy
 }
 
 func (parser FeatureListParamParser) GetSupportedSortBys() []string {
@@ -23,14 +25,13 @@ func (parser FeatureListParamParser) ParseValue(val string, sortBy string) (inte
 			return nil, fmt.Errorf("must be a valid time in the format %s", time.RFC3339)
 		}
 
-		return afterValue, nil
+		return &afterValue, nil
 	case "featureId":
 		if val == "" {
 			return nil, fmt.Errorf("must not be empty")
 		}
 
 		return val, nil
-
 	case "name":
 		if val == "" {
 			return "", nil

@@ -81,7 +81,7 @@ func GetHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) erro
 }
 
 func ListHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
-	listParams := service.GetListParamsFromContext(r.Context())
+	listParams := service.GetListParamsFromContext[FeatureListParamParser](r.Context())
 	features, err := svc.List(r.Context(), listParams)
 	if err != nil {
 		return err

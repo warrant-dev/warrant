@@ -262,8 +262,6 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 	if listParams.SortBy != "" {
 		sortBy := regexp.MustCompile("([A-Z])").ReplaceAllString(listParams.SortBy, `_$1`)
 		query = fmt.Sprintf(`%s ORDER BY %s %s`, query, sortBy, listParams.SortOrder)
-	} else {
-		query = fmt.Sprintf(`%s ORDER BY created_at DESC, id DESC`, query)
 	}
 
 	query = fmt.Sprintf(`%s LIMIT ? OFFSET ?`, query)

@@ -261,8 +261,6 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 
 	if listParams.SortBy != "" {
 		query = fmt.Sprintf("%s ORDER BY %s %s", query, listParams.SortBy, listParams.SortOrder)
-	} else {
-		query = fmt.Sprintf("%s ORDER BY createdAt DESC, id DESC", query)
 	}
 
 	offset := (listParams.Page - 1) * listParams.Limit

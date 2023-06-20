@@ -117,74 +117,122 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams service.ListPa
 			deletedAt IS NULL
 	`
 
-	if listParams.Query != "" {
-		searchTermReplacement := fmt.Sprintf("%%%s%%", listParams.Query)
-		query = fmt.Sprintf("%s AND typeId LIKE ?", query)
+	if listParams.Query != nil {
+		searchTermReplacement := fmt.Sprintf("%%%s%%", *listParams.Query)
+		query = fmt.Sprintf("%s AND %s LIKE ?", query, defaultSortByColumn)
 		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
 	}
 
-	if listParams.AfterId != "" {
-		if listParams.AfterValue != nil {
+	if listParams.AfterId != nil {
+		comparisonOp := "<"
+		if listParams.SortOrder == service.SortOrderAsc {
+			comparisonOp = ">"
+		}
+
+		switch listParams.AfterValue {
+		case nil:
+			if listParams.SortBy == defaultSortBy {
+				query = fmt.Sprintf("%s AND %s %s ?", query, defaultSortBy, comparisonOp)
+				replacements = append(replacements, listParams.AfterId)
+			} else if listParams.SortOrder == service.SortOrderAsc {
+				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, listParams.SortBy, defaultSortBy, comparisonOp, listParams.SortBy)
+				replacements = append(replacements,
+					listParams.AfterId,
+				)
+			} else {
+				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, defaultSortBy, comparisonOp, listParams.SortBy)
+				replacements = append(replacements,
+					listParams.AfterId,
+				)
+			}
+		default:
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s > ? OR (typeId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, defaultSortBy, comparisonOp, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.AfterValue,
 					listParams.AfterId,
 					listParams.AfterValue,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s < ? OR (typeId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, listParams.SortBy, defaultSortBy, comparisonOp, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.AfterValue,
 					listParams.AfterId,
 					listParams.AfterValue,
 				)
 			}
-		} else {
-			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND typeId > ?", query)
-				replacements = append(replacements, listParams.AfterId)
-			} else {
-				query = fmt.Sprintf("%s AND typeId < ?", query)
-				replacements = append(replacements, listParams.AfterId)
-			}
 		}
 	}
 
-	if listParams.BeforeId != "" {
-		if listParams.BeforeValue != nil {
+	if listParams.BeforeId != nil {
+		comparisonOp := ">"
+		if listParams.SortOrder == service.SortOrderAsc {
+			comparisonOp = "<"
+		}
+
+		switch listParams.BeforeValue {
+		case nil:
+			if listParams.SortBy == defaultSortBy {
+				query = fmt.Sprintf("%s AND %s %s ?", query, defaultSortByColumn, comparisonOp)
+				replacements = append(replacements, listParams.BeforeId)
+			} else if listParams.SortOrder == service.SortOrderAsc {
+				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, defaultSortByColumn, comparisonOp, listParams.SortBy)
+				replacements = append(replacements,
+					listParams.BeforeId,
+				)
+			} else {
+				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, listParams.SortBy, defaultSortByColumn, comparisonOp, listParams.SortBy)
+				replacements = append(replacements,
+					listParams.BeforeId,
+				)
+			}
+		default:
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s < ? OR (typeId < ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, listParams.SortBy, defaultSortByColumn, comparisonOp, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.BeforeValue,
 					listParams.BeforeId,
 					listParams.BeforeValue,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s > ? OR (typeId > ? AND %s = ?))", query, listParams.SortBy, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, defaultSortByColumn, comparisonOp, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.BeforeValue,
 					listParams.BeforeId,
 					listParams.BeforeValue,
 				)
 			}
-		} else {
-			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND typeId < ?", query)
-				replacements = append(replacements, listParams.AfterId)
-			} else {
-				query = fmt.Sprintf("%s AND typeId > ?", query)
-				replacements = append(replacements, listParams.AfterId)
-			}
 		}
 	}
 
-	if listParams.SortBy != "objectType" {
-		query = fmt.Sprintf("%s ORDER BY %s %s, typeId %s LIMIT ?", query, listParams.SortBy, listParams.SortOrder, listParams.SortOrder)
-		replacements = append(replacements, listParams.Limit)
+	if listParams.BeforeId != nil {
+		if listParams.SortBy != defaultSortBy {
+			if listParams.SortOrder == service.SortOrderAsc {
+				query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, listParams.SortBy, service.SortOrderDesc, defaultSortByColumn, service.SortOrderDesc)
+				replacements = append(replacements, listParams.Limit)
+			} else {
+				query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, listParams.SortBy, service.SortOrderAsc, defaultSortByColumn, service.SortOrderAsc)
+				replacements = append(replacements, listParams.Limit)
+			}
+			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s, %s %s", query, listParams.SortBy, listParams.SortOrder, defaultSortByColumn, listParams.SortOrder)
+		} else {
+			if listParams.SortOrder == service.SortOrderAsc {
+				query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, listParams.SortBy, service.SortOrderDesc)
+				replacements = append(replacements, listParams.Limit)
+			} else {
+				query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, listParams.SortBy, service.SortOrderAsc)
+				replacements = append(replacements, listParams.Limit)
+			}
+			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s", query, listParams.SortBy, listParams.SortOrder)
+		}
 	} else {
-		query = fmt.Sprintf("%s ORDER BY typeId %s LIMIT ?", query, listParams.SortOrder)
-		replacements = append(replacements, listParams.Limit)
+		if listParams.SortBy != defaultSortBy {
+			query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, listParams.SortBy, listParams.SortOrder, defaultSortByColumn, listParams.SortOrder)
+			replacements = append(replacements, listParams.Limit)
+		} else {
+			query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, defaultSortByColumn, listParams.SortOrder)
+			replacements = append(replacements, listParams.Limit)
+		}
 	}
 
 	err := repo.DB(ctx).SelectContext(

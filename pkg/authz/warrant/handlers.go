@@ -64,7 +64,7 @@ func CreateHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 }
 
 func ListHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
-	listParams := service.GetListParamsFromContext(r.Context())
+	listParams := service.GetListParamsFromContext[WarrantListParamParser](r.Context())
 	queryParams := r.URL.Query()
 	filters := FilterOptions{
 		ObjectType: queryParams.Get("objectType"),

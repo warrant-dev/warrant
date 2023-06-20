@@ -81,7 +81,7 @@ func GetHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error {
 }
 
 func ListHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error {
-	listParams := service.GetListParamsFromContext(r.Context())
+	listParams := service.GetListParamsFromContext[RoleListParamParser](r.Context())
 	roles, err := svc.List(r.Context(), listParams)
 	if err != nil {
 		return err

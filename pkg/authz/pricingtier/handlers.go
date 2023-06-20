@@ -81,7 +81,7 @@ func GetHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request) 
 }
 
 func ListHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
-	listParams := service.GetListParamsFromContext(r.Context())
+	listParams := service.GetListParamsFromContext[PricingTierListParamParser](r.Context())
 	pricingTiers, err := svc.List(r.Context(), listParams)
 	if err != nil {
 		return err

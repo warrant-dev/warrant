@@ -58,7 +58,7 @@ func CreateHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) er
 }
 
 func ListHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
-	listParams := service.GetListParamsFromContext(r.Context())
+	listParams := service.GetListParamsFromContext[ObjectListParamParser](r.Context())
 	queryParams := r.URL.Query()
 	objectType, err := url.QueryUnescape(queryParams.Get("objectType"))
 	if err != nil {

@@ -120,7 +120,7 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-5"
+                            "resourceId": "user-6"
                         }
                     ],
                     "lastId": "{{ listResourceEventsFilterByType.lastId }}"
@@ -157,6 +157,12 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
+                            "resourceId": "user-6"
+                        },
+                        {
+                            "type": "deleted",
+                            "source": "api",
+                            "resourceType": "user",
                             "resourceId": "user-5"
                         },
                         {
@@ -164,12 +170,6 @@
                             "source": "api",
                             "resourceType": "user",
                             "resourceId": "user-4"
-                        },
-                        {
-                            "type": "deleted",
-                            "source": "api",
-                            "resourceType": "user",
-                            "resourceId": "user-3"
                         }
                     ],
                     "lastId": "{{ listResourceEventsFilterByResourceType.lastId }}"

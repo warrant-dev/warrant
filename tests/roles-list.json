@@ -29,14 +29,14 @@
                 "url": "/v1/roles",
                 "body": {
                     "roleId": "role-2",
-                    "name": "Role A"
+                    "name": ""
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "roleId": "role-2",
-                    "name": "Role A",
+                    "name": "",
                     "description": null
                 }
             }
@@ -47,15 +47,14 @@
                 "method": "POST",
                 "url": "/v1/roles",
                 "body": {
-                    "roleId": "role-3",
-                    "name": ""
+                    "roleId": "role-3"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "roleId": "role-3",
-                    "name": "",
+                    "name": null,
                     "description": null
                 }
             }
@@ -66,14 +65,15 @@
                 "method": "POST",
                 "url": "/v1/roles",
                 "body": {
-                    "roleId": "role-4"
+                    "roleId": "role-4",
+                    "name": "Role C"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "roleId": "role-4",
-                    "name": null,
+                    "name": "Role C",
                     "description": null
                 }
             }
@@ -85,20 +85,38 @@
                 "url": "/v1/roles",
                 "body": {
                     "roleId": "role-5",
-                    "name": "Role C"
+                    "name": ""
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "roleId": "role-5",
-                    "name": "Role C",
+                    "name": "",
                     "description": null
                 }
             }
         },
         {
-            "name": "getRolesSortByCreatedAtDESC",
+            "name": "createRole6",
+            "request": {
+                "method": "POST",
+                "url": "/v1/roles",
+                "body": {
+                    "roleId": "role-6"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "roleId": "role-6",
+                    "name": null,
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "sortByCreatedAtDESC",
             "request": {
                 "method": "GET",
                 "url": "/v1/roles?sortBy=createdAt&sortOrder=DESC"
@@ -107,23 +125,28 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "roleId": "role-5",
-                        "name": "Role C",
-                        "description": null
-                    },
-                    {
-                        "roleId": "role-4",
+                        "roleId": "role-6",
                         "name": null,
                         "description": null
                     },
                     {
-                        "roleId": "role-3",
+                        "roleId": "role-5",
                         "name": "",
                         "description": null
                     },
                     {
+                        "roleId": "role-4",
+                        "name": "Role C",
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-3",
+                        "name": null,
+                        "description": null
+                    },
+                    {
                         "roleId": "role-2",
-                        "name": "Role A",
+                        "name": "",
                         "description": null
                     },
                     {
@@ -135,7 +158,34 @@
             }
         },
         {
-            "name": "getRolesSortByCreatedAtASC",
+            "name": "sortByCreatedAtDESCWithLimit",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?sortBy=createdAt&sortOrder=DESC&limit=3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-6",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-5",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-4",
+                        "name": "Role C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByCreatedAtASC",
             "request": {
                 "method": "GET",
                 "url": "/v1/roles?sortBy=createdAt&sortOrder=ASC"
@@ -150,125 +200,34 @@
                     },
                     {
                         "roleId": "role-2",
-                        "name": "Role A",
-                        "description": null
-                    },
-                    {
-                        "roleId": "role-3",
                         "name": "",
                         "description": null
                     },
                     {
-                        "roleId": "role-4",
+                        "roleId": "role-3",
                         "name": null,
                         "description": null
                     },
                     {
-                        "roleId": "role-5",
-                        "name": "Role C",
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getRolesSortByNameDESC",
-            "request": {
-                "method": "GET",
-                "url": "/v1/roles?sortBy=name&sortOrder=DESC"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "roleId": "role-5",
+                        "roleId": "role-4",
                         "name": "Role C",
                         "description": null
                     },
                     {
-                        "roleId": "role-1",
-                        "name": "Role B",
-                        "description": null
-                    },
-                    {
-                        "roleId": "role-2",
-                        "name": "Role A",
-                        "description": null
-                    },
-                    {
-                        "roleId": "role-3",
-                        "name": "",
-                        "description": null
-                    },
-                    {
-                        "roleId": "role-4",
-                        "name": null,
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getRolesSortByNameASC",
-            "request": {
-                "method": "GET",
-                "url": "/v1/roles?sortBy=name&sortOrder=ASC"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "roleId": "role-4",
-                        "name": null,
-                        "description": null
-                    },
-                    {
-                        "roleId": "role-3",
-                        "name": "",
-                        "description": null
-                    },
-                    {
-                        "roleId": "role-2",
-                        "name": "Role A",
-                        "description": null
-                    },
-                    {
-                        "roleId": "role-1",
-                        "name": "Role B",
-                        "description": null
-                    },
-                    {
                         "roleId": "role-5",
-                        "name": "Role C",
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getRolesSortByNameASCLimit2",
-            "request": {
-                "method": "GET",
-                "url": "/v1/roles?sortBy=name&sortOrder=ASC&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "roleId": "role-4",
-                        "name": null,
+                        "name": "",
                         "description": null
                     },
                     {
-                        "roleId": "role-3",
-                        "name": "",
+                        "roleId": "role-6",
+                        "name": null,
                         "description": null
                     }
                 ]
             }
         },
         {
-            "name": "getRolesSortByCreatedAtASCLimit2",
+            "name": "sortByCreatedAtASCWithLimit",
             "request": {
                 "method": "GET",
                 "url": "/v1/roles?sortBy=createdAt&sortOrder=ASC&limit=2"
@@ -283,14 +242,381 @@
                     },
                     {
                         "roleId": "role-2",
-                        "name": "Role A",
+                        "name": "",
                         "description": null
                     }
                 ]
             }
         },
         {
-            "name": "getRolesLimit2",
+            "name": "sortByNameDESC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?sortBy=name&sortOrder=DESC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-4",
+                        "name": "Role C",
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-1",
+                        "name": "Role B",
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-5",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-2",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-6",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-3",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCWithLimit",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?sortBy=name&sortOrder=DESC&limit=3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-4",
+                        "name": "Role C",
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-1",
+                        "name": "Role B",
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-5",
+                        "name": "",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCBeforeValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?sortBy=name&sortOrder=DESC&limit=1&beforeId=role-3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-6",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCAfterValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?sortBy=name&sortOrder=DESC&limit=1&afterId=role-6"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-3",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCBeforeValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?sortBy=name&sortOrder=DESC&limit=1&beforeId=role-5&beforeValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-1",
+                        "name": "Role B",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCAfterValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?sortBy=name&sortOrder=DESC&limit=3&afterId=role-5&afterValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-2",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-6",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-3",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCValidBeforeValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?sortBy=name&sortOrder=DESC&limit=1&beforeId=role-1&beforeValue=Role%20B"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-4",
+                        "name": "Role C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCValidAfterValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?sortBy=name&sortOrder=DESC&limit=2&afterId=role-4&afterValue=Role%20C"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-1",
+                        "name": "Role B",
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-5",
+                        "name": "",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASC",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?sortBy=name&sortOrder=ASC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-3",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-6",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-2",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-5",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-1",
+                        "name": "Role B",
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-4",
+                        "name": "Role C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCWithLimit",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?sortBy=name&sortOrder=ASC&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-3",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-6",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCBeforeValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?sortBy=name&sortOrder=ASC&limit=1&beforeId=role-6"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-3",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCAfterValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?sortBy=name&sortOrder=ASC&limit=1&afterId=role-3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-6",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCBeforeValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?sortBy=name&sortOrder=ASC&limit=2&beforeId=role-5&beforeValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-6",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-2",
+                        "name": "",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCAfterValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?sortBy=name&sortOrder=ASC&limit=2&afterId=role-2&afterValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-5",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-1",
+                        "name": "Role B",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCValidBeforeValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?sortBy=name&sortOrder=ASC&limit=2&beforeId=role-4&beforeValue=Role%20C"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-5",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-1",
+                        "name": "Role B",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCValidAfterValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?sortBy=name&sortOrder=ASC&limit=2&afterId=role-1&afterValue=Role%20B"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-4",
+                        "name": "Role C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "noSortWithLimit",
             "request": {
                 "method": "GET",
                 "url": "/v1/roles?limit=2"
@@ -305,28 +631,6 @@
                     },
                     {
                         "roleId": "role-2",
-                        "name": "Role A",
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "getRolesLimit2AfterId1",
-            "request": {
-                "method": "GET",
-                "url": "/v1/roles?limit=2&afterId=role-1"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "roleId": "role-2",
-                        "name": "Role A",
-                        "description": null
-                    },
-                    {
-                        "roleId": "role-3",
                         "name": "",
                         "description": null
                     }
@@ -334,22 +638,44 @@
             }
         },
         {
-            "name": "getRolesLimit2AfterId2",
+            "name": "noSortWithLimitAndValidAfterId",
             "request": {
                 "method": "GET",
-                "url": "/v1/roles?limit=2&afterId=role-3"
+                "url": "/v1/roles?limit=2&afterId=role-2"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "roleId": "role-4",
+                        "roleId": "role-3",
                         "name": null,
                         "description": null
                     },
                     {
-                        "roleId": "role-5",
+                        "roleId": "role-4",
                         "name": "Role C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "noSortResultSmallerThanLimit",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?limit=3&afterId=role-4"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-5",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-6",
+                        "name": null,
                         "description": null
                     }
                 ]
@@ -400,6 +726,16 @@
             "request": {
                 "method": "DELETE",
                 "url": "/v1/roles/role-5"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteRole6",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/roles/role-6"
             },
             "expectedResponse": {
                 "statusCode": 200
