@@ -209,7 +209,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 		}
 
 		if (urlQueryParams.Has(paramNameBeforeId) || urlQueryParams.Has(paramNameBeforeValue)) && (urlQueryParams.Has(paramNameAfterId) || urlQueryParams.Has(paramNameAfterValue)) {
-			SendErrorResponse(w, NewInvalidRequestError(fmt.Sprintf("cannot pass both %s or %s along with %s or %s", paramNameBeforeId, paramNameBeforeValue, paramNameAfterId, paramNameAfterValue)))
+			SendErrorResponse(w, NewInvalidRequestError(fmt.Sprintf("cannot pass %s and/or %s with %s and/or %s", paramNameBeforeId, paramNameBeforeValue, paramNameAfterId, paramNameAfterValue)))
 			return
 		}
 
