@@ -143,12 +143,15 @@ func (ds MySQL) Migrate(ctx context.Context, toVersion uint) error {
 func (ds MySQL) Ping(ctx context.Context) error {
 	err := ds.Writer.PingContext(ctx)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Error while attempting to ping mysql database")
 	}
 	if ds.Reader != nil {
 		err = ds.Reader.PingContext(ctx)
+		if err != nil {
+			return errors.Wrap(err, "Error while attempting to ping mysql reader")
+		}
 	}
-	return err
+	return nil
 }
 
 func (ds MySQL) DbHandler(ctx context.Context) interface{} {

@@ -152,12 +152,15 @@ func (ds Postgres) Migrate(ctx context.Context, toVersion uint) error {
 func (ds Postgres) Ping(ctx context.Context) error {
 	err := ds.Writer.PingContext(ctx)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Error while attempting to ping postgres database")
 	}
 	if ds.Reader != nil {
 		err = ds.Reader.PingContext(ctx)
+		if err != nil {
+			return errors.Wrap(err, "Error while attempting to ping postgres reader")
+		}
 	}
-	return err
+	return nil
 }
 
 func (ds Postgres) DbHandler(ctx context.Context) interface{} {
