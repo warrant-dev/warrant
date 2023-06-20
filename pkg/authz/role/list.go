@@ -5,12 +5,12 @@ import (
 	"time"
 )
 
-const defaultSortBy = "roleId"
+const DefaultSortBy = "roleId"
 
 type RoleListParamParser struct{}
 
 func (parser RoleListParamParser) GetDefaultSortBy() string {
-	return defaultSortBy
+	return DefaultSortBy
 }
 
 func (parser RoleListParamParser) GetSupportedSortBys() []string {

@@ -5,13 +5,13 @@ import (
 	"time"
 )
 
-const defaultSortBy = "objectType"
-const defaultSortByColumn = "typeId"
+const DefaultSortBy = "objectType"
+const DefaultSortByColumn = "typeId"
 
 type ObjectTypeListParamParser struct{}
 
 func (parser ObjectTypeListParamParser) GetDefaultSortBy() string {
-	return defaultSortBy
+	return DefaultSortBy
 }
 
 func (parser ObjectTypeListParamParser) GetSupportedSortBys() []string {
