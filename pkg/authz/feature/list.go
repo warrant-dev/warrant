@@ -5,10 +5,12 @@ import (
 	"time"
 )
 
+const defaultSortBy = "featureId"
+
 type FeatureListParamParser struct{}
 
 func (parser FeatureListParamParser) GetDefaultSortBy() string {
-	return "featureId"
+	return defaultSortBy
 }
 
 func (parser FeatureListParamParser) GetSupportedSortBys() []string {
@@ -30,7 +32,6 @@ func (parser FeatureListParamParser) ParseValue(val string, sortBy string) (inte
 		}
 
 		return val, nil
-
 	case "name":
 		if val == "" {
 			return "", nil

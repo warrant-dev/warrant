@@ -10,14 +10,14 @@
                 "url": "/v1/features",
                 "body": {
                     "featureId": "feature-1",
-                    "name": "Feature A"
+                    "name": "Feature B"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "featureId": "feature-1",
-                    "name": "Feature A",
+                    "name": "Feature B",
                     "description": null
                 }
             }
@@ -47,8 +47,7 @@
                 "method": "POST",
                 "url": "/v1/features",
                 "body": {
-                    "featureId": "feature-3",
-                    "name": null
+                    "featureId": "feature-3"
                 }
             },
             "expectedResponse": {
@@ -66,14 +65,15 @@
                 "method": "POST",
                 "url": "/v1/features",
                 "body": {
-                    "featureId": "feature-4"
+                    "featureId": "feature-4",
+                    "name": "Feature C"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "featureId": "feature-4",
-                    "name": null,
+                    "name": "Feature C",
                     "description": null
                 }
             }
@@ -85,14 +85,32 @@
                 "url": "/v1/features",
                 "body": {
                     "featureId": "feature-5",
-                    "name": "Feature C"
+                    "name": ""
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "featureId": "feature-5",
-                    "name": "Feature C",
+                    "name": "",
+                    "description": null
+                }
+            }
+        },
+        {
+            "name": "createFeature6",
+            "request": {
+                "method": "POST",
+                "url": "/v1/features",
+                "body": {
+                    "featureId": "feature-6"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "featureId": "feature-6",
+                    "name": null,
                     "description": null
                 }
             }
@@ -107,13 +125,18 @@
                 "statusCode": 200,
                 "body": [
                     {
+                        "featureId": "feature-6",
+                        "name": null,
+                        "description": null
+                    },
+                    {
                         "featureId": "feature-5",
-                        "name": "Feature C",
+                        "name": "",
                         "description": null
                     },
                     {
                         "featureId": "feature-4",
-                        "name": null,
+                        "name": "Feature C",
                         "description": null
                     },
                     {
@@ -128,7 +151,34 @@
                     },
                     {
                         "featureId": "feature-1",
-                        "name": "Feature A",
+                        "name": "Feature B",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByCreatedAtDESCWithLimit",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=createdAt&sortOrder=DESC&limit=3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-6",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-5",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-4",
+                        "name": "Feature C",
                         "description": null
                     }
                 ]
@@ -145,7 +195,7 @@
                 "body": [
                     {
                         "featureId": "feature-1",
-                        "name": "Feature A",
+                        "name": "Feature B",
                         "description": null
                     },
                     {
@@ -160,12 +210,39 @@
                     },
                     {
                         "featureId": "feature-4",
-                        "name": null,
+                        "name": "Feature C",
                         "description": null
                     },
                     {
                         "featureId": "feature-5",
-                        "name": "Feature C",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-6",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByCreatedAtASCWithLimit",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=createdAt&sortOrder=ASC&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-1",
+                        "name": "Feature B",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-2",
+                        "name": "",
                         "description": null
                     }
                 ]
@@ -181,13 +258,18 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "featureId": "feature-5",
+                        "featureId": "feature-4",
                         "name": "Feature C",
                         "description": null
                     },
                     {
                         "featureId": "feature-1",
-                        "name": "Feature A",
+                        "name": "Feature B",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-5",
+                        "name": "",
                         "description": null
                     },
                     {
@@ -196,7 +278,7 @@
                         "description": null
                     },
                     {
-                        "featureId": "feature-4",
+                        "featureId": "feature-6",
                         "name": null,
                         "description": null
                     },
@@ -218,18 +300,69 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "featureId": "feature-5",
+                        "featureId": "feature-4",
                         "name": "Feature C",
                         "description": null
                     },
                     {
                         "featureId": "feature-1",
-                        "name": "Feature A",
+                        "name": "Feature B",
                         "description": null
                     },
                     {
-                        "featureId": "feature-2",
+                        "featureId": "feature-5",
                         "name": "",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCBeforeValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=DESC&limit=1&beforeId=feature-3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-6",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCAfterValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=DESC&limit=1&afterId=feature-6"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-3",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCBeforeValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=DESC&limit=1&beforeId=feature-5&beforeValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-1",
+                        "name": "Feature B",
                         "description": null
                     }
                 ]
@@ -239,19 +372,63 @@
             "name": "sortByNameDESCAfterValueEmptyString",
             "request": {
                 "method": "GET",
-                "url": "/v1/features?sortBy=name&sortOrder=DESC&limit=3&afterId=feature-2&afterValue="
+                "url": "/v1/features?sortBy=name&sortOrder=DESC&limit=3&afterId=feature-5&afterValue="
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "featureId": "feature-4",
+                        "featureId": "feature-2",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-6",
                         "name": null,
                         "description": null
                     },
                     {
                         "featureId": "feature-3",
                         "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCValidBeforeValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=DESC&limit=1&beforeId=feature-1&beforeValue=Feature%20B"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-4",
+                        "name": "Feature C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameDESCValidAfterValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=DESC&limit=2&afterId=feature-4&afterValue=Feature%20C"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-1",
+                        "name": "Feature B",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-5",
+                        "name": "",
                         "description": null
                     }
                 ]
@@ -272,7 +449,7 @@
                         "description": null
                     },
                     {
-                        "featureId": "feature-4",
+                        "featureId": "feature-6",
                         "name": null,
                         "description": null
                     },
@@ -282,12 +459,17 @@
                         "description": null
                     },
                     {
-                        "featureId": "feature-1",
-                        "name": "Feature A",
+                        "featureId": "feature-5",
+                        "name": "",
                         "description": null
                     },
                     {
-                        "featureId": "feature-5",
+                        "featureId": "feature-1",
+                        "name": "Feature B",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-4",
                         "name": "Feature C",
                         "description": null
                     }
@@ -298,7 +480,29 @@
             "name": "sortByNameASCWithLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=1"
+                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-3",
+                        "name": null,
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-6",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCBeforeValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=1&beforeId=feature-6"
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -321,86 +525,8 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "featureId": "feature-4",
+                        "featureId": "feature-6",
                         "name": null,
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByNameASCBeforeValueNull",
-            "request": {
-                "method": "GET",
-                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=1&beforeId=feature-4"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "featureId": "feature-3",
-                        "name": null,
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByNameASCAfterValueNullNextValueEmptyString",
-            "request": {
-                "method": "GET",
-                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=2&afterId=feature-4"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "featureId": "feature-2",
-                        "name": "",
-                        "description": null
-                    },
-                    {
-                        "featureId": "feature-1",
-                        "name": "Feature A",
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByNameASCValidAfterValue",
-            "request": {
-                "method": "GET",
-                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=2&afterId=feature-1&afterValue=Feature%20A"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "featureId": "feature-5",
-                        "name": "Feature C",
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByNameASCValidBeforeValue",
-            "request": {
-                "method": "GET",
-                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=2&beforeId=feature-5&beforeValue=Feature%20C"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "featureId": "feature-2",
-                        "name": "",
-                        "description": null
-                    },
-                    {
-                        "featureId": "feature-1",
-                        "name": "Feature A",
                         "description": null
                     }
                 ]
@@ -410,36 +536,14 @@
             "name": "sortByNameASCBeforeValueEmptyString",
             "request": {
                 "method": "GET",
-                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=2&beforeId=feature-2&beforeValue="
+                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=2&beforeId=feature-5&beforeValue="
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "featureId": "feature-3",
+                        "featureId": "feature-6",
                         "name": null,
-                        "description": null
-                    },
-                    {
-                        "featureId": "feature-4",
-                        "name": null,
-                        "description": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByCreatedAtASCWithLimit",
-            "request": {
-                "method": "GET",
-                "url": "/v1/features?sortBy=createdAt&sortOrder=ASC&limit=2"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "featureId": "feature-1",
-                        "name": "Feature A",
                         "description": null
                     },
                     {
@@ -451,7 +555,68 @@
             }
         },
         {
-            "name": "noSortWithLimit2",
+            "name": "sortByNameASCAfterValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=2&afterId=feature-2&afterValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-5",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-1",
+                        "name": "Feature B",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCValidBeforeValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=2&beforeId=feature-4&beforeValue=Feature%20C"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-5",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-1",
+                        "name": "Feature B",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCValidAfterValue",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?sortBy=name&sortOrder=ASC&limit=2&afterId=feature-1&afterValue=Feature%20B"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-4",
+                        "name": "Feature C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "noSortWithLimit",
             "request": {
                 "method": "GET",
                 "url": "/v1/features?limit=2"
@@ -461,7 +626,7 @@
                 "body": [
                     {
                         "featureId": "feature-1",
-                        "name": "Feature A",
+                        "name": "Feature B",
                         "description": null
                     },
                     {
@@ -476,19 +641,19 @@
             "name": "noSortWithLimitAndValidAfterId",
             "request": {
                 "method": "GET",
-                "url": "/v1/features?limit=2&afterId=feature-1"
+                "url": "/v1/features?limit=2&afterId=feature-2"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "featureId": "feature-2",
-                        "name": "",
+                        "featureId": "feature-3",
+                        "name": null,
                         "description": null
                     },
                     {
-                        "featureId": "feature-3",
-                        "name": null,
+                        "featureId": "feature-4",
+                        "name": "Feature C",
                         "description": null
                     }
                 ]
@@ -498,14 +663,19 @@
             "name": "noSortResultSmallerThanLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/features?limit=2&afterId=feature-4"
+                "url": "/v1/features?limit=3&afterId=feature-4"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
                         "featureId": "feature-5",
-                        "name": "Feature C",
+                        "name": "",
+                        "description": null
+                    },
+                    {
+                        "featureId": "feature-6",
+                        "name": null,
                         "description": null
                     }
                 ]
@@ -556,6 +726,16 @@
             "request": {
                 "method": "DELETE",
                 "url": "/v1/features/feature-5"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteFeature6",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/features/feature-6"
             },
             "expectedResponse": {
                 "statusCode": 200
