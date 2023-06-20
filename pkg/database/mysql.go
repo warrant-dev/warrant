@@ -23,7 +23,7 @@ type MySQL struct {
 
 func NewMySQL(config config.MySQLConfig) *MySQL {
 	return &MySQL{
-		SQL:    NewSQL(nil, config.Hostname, config.Database),
+		SQL:    NewSQL(nil, nil, config.Hostname, config.ReaderHostname, config.Database),
 		Config: config,
 	}
 }
@@ -72,8 +72,34 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 	// map struct attributes to db column names
 	db.Mapper = reflectx.NewMapperFunc("mysql", func(s string) string { return s })
 
-	ds.DB = db
+	ds.Writer = db
 	log.Info().Msgf("Connected to mysql database %s", ds.Config.Database)
+
+	// connect to reader if provided
+	if ds.Config.ReaderHostname != "" {
+		reader, err := sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", ds.Config.Username, ds.Config.Password, ds.Config.ReaderHostname, ds.Config.Database))
+		if err != nil {
+			return errors.Wrap(err, "Unable to establish connection to mysql reader. Shutting down server.")
+		}
+
+		err = reader.PingContext(ctx)
+		if err != nil {
+			return errors.Wrap(err, "Unable to ping mysql reader. Shutting down server.")
+		}
+
+		if ds.Config.ReaderMaxIdleConnections != 0 {
+			reader.SetMaxIdleConns(ds.Config.ReaderMaxIdleConnections)
+		}
+
+		if ds.Config.ReaderMaxOpenConnections != 0 {
+			reader.SetMaxOpenConns(ds.Config.ReaderMaxOpenConnections)
+		}
+		// map struct attributes to db column names
+		reader.Mapper = reflectx.NewMapperFunc("mysql", func(s string) string { return s })
+		ds.Reader = reader
+		log.Info().Msgf("Connected to mysql reader database %s", ds.Config.Database)
+	}
+
 	return nil
 }
 
@@ -115,7 +141,17 @@ func (ds MySQL) Migrate(ctx context.Context, toVersion uint) error {
 }
 
 func (ds MySQL) Ping(ctx context.Context) error {
-	return ds.DB.PingContext(ctx)
+	err := ds.Writer.PingContext(ctx)
+	if err != nil {
+		return errors.Wrap(err, "Error while attempting to ping mysql database")
+	}
+	if ds.Reader != nil {
+		err = ds.Reader.PingContext(ctx)
+		if err != nil {
+			return errors.Wrap(err, "Error while attempting to ping mysql reader")
+		}
+	}
+	return nil
 }
 
 func (ds MySQL) DbHandler(ctx context.Context) interface{} {

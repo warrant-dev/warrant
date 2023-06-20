@@ -25,7 +25,7 @@ type Postgres struct {
 
 func NewPostgres(config config.PostgresConfig) *Postgres {
 	return &Postgres{
-		SQL:    NewSQL(nil, config.Hostname, config.Database),
+		SQL:    NewSQL(nil, nil, config.Hostname, config.ReaderHostname, config.Database),
 		Config: config,
 	}
 }
@@ -78,8 +78,36 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 	// map struct attributes to db column names
 	db.Mapper = reflectx.NewMapperFunc("postgres", func(s string) string { return s })
 
-	ds.DB = db
+	ds.Writer = db
 	log.Info().Msgf("Connected to postgres database %s", ds.Config.Database)
+
+	// connect to reader if provided
+	if ds.Config.ReaderHostname != "" {
+		reader, err := sqlx.Open("postgres", fmt.Sprintf("postgres://%s@%s/%s?sslmode=%s", usernamePassword, ds.Config.ReaderHostname, ds.Config.Database, ds.Config.SSLMode))
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("Unable to establish connection to postgres reader %s. Shutting down server.", ds.Config.Database))
+		}
+
+		err = reader.PingContext(ctx)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("Unable to ping postgres reader %s. Shutting down server.", ds.Config.Database))
+		}
+
+		if ds.Config.ReaderMaxIdleConnections != 0 {
+			reader.SetMaxIdleConns(ds.Config.ReaderMaxIdleConnections)
+		}
+
+		if ds.Config.ReaderMaxOpenConnections != 0 {
+			reader.SetMaxOpenConns(ds.Config.ReaderMaxOpenConnections)
+		}
+
+		// map struct attributes to db column names
+		reader.Mapper = reflectx.NewMapperFunc("postgres", func(s string) string { return s })
+
+		ds.Reader = reader
+		log.Info().Msgf("Connected to postgres reader %s", ds.Config.Database)
+	}
+
 	return nil
 }
 
@@ -122,7 +150,17 @@ func (ds Postgres) Migrate(ctx context.Context, toVersion uint) error {
 }
 
 func (ds Postgres) Ping(ctx context.Context) error {
-	return ds.DB.PingContext(ctx)
+	err := ds.Writer.PingContext(ctx)
+	if err != nil {
+		return errors.Wrap(err, "Error while attempting to ping postgres database")
+	}
+	if ds.Reader != nil {
+		err = ds.Reader.PingContext(ctx)
+		if err != nil {
+			return errors.Wrap(err, "Error while attempting to ping postgres reader")
+		}
+	}
+	return nil
 }
 
 func (ds Postgres) DbHandler(ctx context.Context) interface{} {
