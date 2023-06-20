@@ -130,18 +130,16 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 			if listParams.SortBy == defaultSortBy {
 				query = fmt.Sprintf("%s AND %s %s ?", query, defaultSortBy, comparisonOp)
 				replacements = append(replacements, listParams.AfterId)
+			} else if listParams.SortOrder == service.SortOrderAsc {
+				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, listParams.SortBy, defaultSortBy, comparisonOp, listParams.SortBy)
+				replacements = append(replacements,
+					listParams.AfterId,
+				)
 			} else {
-				if listParams.SortOrder == service.SortOrderAsc {
-					query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, listParams.SortBy, defaultSortBy, comparisonOp, listParams.SortBy)
-					replacements = append(replacements,
-						listParams.AfterId,
-					)
-				} else {
-					query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, defaultSortBy, comparisonOp, listParams.SortBy)
-					replacements = append(replacements,
-						listParams.AfterId,
-					)
-				}
+				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, defaultSortBy, comparisonOp, listParams.SortBy)
+				replacements = append(replacements,
+					listParams.AfterId,
+				)
 			}
 		default:
 			if listParams.SortOrder == service.SortOrderAsc {
@@ -173,18 +171,16 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 			if listParams.SortBy == defaultSortBy {
 				query = fmt.Sprintf("%s AND %s %s ?", query, defaultSortByColumn, comparisonOp)
 				replacements = append(replacements, listParams.BeforeId)
+			} else if listParams.SortOrder == service.SortOrderAsc {
+				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, defaultSortByColumn, comparisonOp, listParams.SortBy)
+				replacements = append(replacements,
+					listParams.BeforeId,
+				)
 			} else {
-				if listParams.SortOrder == service.SortOrderAsc {
-					query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, defaultSortByColumn, comparisonOp, listParams.SortBy)
-					replacements = append(replacements,
-						listParams.BeforeId,
-					)
-				} else {
-					query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, listParams.SortBy, defaultSortByColumn, comparisonOp, listParams.SortBy)
-					replacements = append(replacements,
-						listParams.BeforeId,
-					)
-				}
+				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, listParams.SortBy, defaultSortByColumn, comparisonOp, listParams.SortBy)
+				replacements = append(replacements,
+					listParams.BeforeId,
+				)
 			}
 		default:
 			if listParams.SortOrder == service.SortOrderAsc {
