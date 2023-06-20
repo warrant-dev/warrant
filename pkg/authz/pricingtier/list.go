@@ -5,10 +5,12 @@ import (
 	"time"
 )
 
+const defaultSortBy = "pricingTierId"
+
 type PricingTierListParamParser struct{}
 
 func (parser PricingTierListParamParser) GetDefaultSortBy() string {
-	return "pricingTierId"
+	return defaultSortBy
 }
 
 func (parser PricingTierListParamParser) GetSupportedSortBys() []string {
