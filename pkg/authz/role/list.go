@@ -5,10 +5,12 @@ import (
 	"time"
 )
 
+const defaultSortBy = "roleId"
+
 type RoleListParamParser struct{}
 
 func (parser RoleListParamParser) GetDefaultSortBy() string {
-	return "roleId"
+	return defaultSortBy
 }
 
 func (parser RoleListParamParser) GetSupportedSortBys() []string {
@@ -30,7 +32,6 @@ func (parser RoleListParamParser) ParseValue(val string, sortBy string) (interfa
 		}
 
 		return val, nil
-
 	case "name":
 		if val == "" {
 			return "", nil
