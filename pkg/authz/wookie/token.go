@@ -20,7 +20,7 @@ type Token struct {
 }
 
 // Get string representation of token (to set as header)
-func (t Token) AsString() string {
+func (t Token) String() string {
 	s := fmt.Sprintf("%d;%d;%d", t.ID, t.Version, t.Timestamp.UnixMicro())
 	return base64.StdEncoding.EncodeToString([]byte(s))
 }

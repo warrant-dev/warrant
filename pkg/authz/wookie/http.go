@@ -29,6 +29,6 @@ func ClientTokenMiddleware(next http.Handler) http.Handler {
 
 func AddAsResponseHeader(w http.ResponseWriter, token *Token) {
 	if token != nil {
-		w.Header().Set(WarrantTokenHeaderName, token.AsString())
+		w.Header().Set(WarrantTokenHeaderName, token.String())
 	}
 }

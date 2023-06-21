@@ -59,7 +59,6 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType stri
 	log.Ctx(ctx).Debug().Msgf("Getting matching subjects for %s:%s#%s@___%s", objectType, objectId, relation, checkCtx)
 
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
-	// TODO: caller should pass this objectTypeSpec
 	objectTypeSpec, _, err := svc.ObjectTypeSvc.GetByTypeId(ctx, objectType)
 	if err != nil {
 		return warrantSpecs, err
@@ -100,7 +99,6 @@ func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, ob
 	log.Ctx(ctx).Debug().Msgf("Getting matching subjects for %s:%s#%s@%s:___%s", objectType, objectId, relation, subjectType, checkCtx)
 
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
-	// TODO: caller should pass this objectTypeSpec
 	objectTypeSpec, _, err := svc.ObjectTypeSvc.GetByTypeId(ctx, objectType)
 	if err != nil {
 		return warrantSpecs, err

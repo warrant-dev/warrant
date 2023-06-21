@@ -13,7 +13,7 @@ func TestBasicSerialization(t *testing.T) {
 		Version:   1,
 		Timestamp: ts,
 	}
-	tokenString := token.AsString()
+	tokenString := token.String()
 	expectedString := "MjU7MTsxNjg3Mzc1MDgzODU0"
 	if tokenString != expectedString {
 		t.Fatalf("expected token string: %s, actual token string: %s", expectedString, tokenString)
