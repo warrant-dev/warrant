@@ -128,29 +128,29 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 		switch listParams.AfterValue {
 		case nil:
 			if listParams.SortBy == DefaultSortBy {
-				query = fmt.Sprintf("%s AND %s %s ?", query, DefaultSortBy, comparisonOp)
+				query = fmt.Sprintf("%s AND %s %s ?", query, DefaultSortByColumn, comparisonOp)
 				replacements = append(replacements, listParams.AfterId)
 			} else if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, listParams.SortBy, DefaultSortBy, comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, listParams.SortBy, DefaultSortByColumn, comparisonOp, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.AfterId,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, DefaultSortBy, comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, DefaultSortByColumn, comparisonOp, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.AfterId,
 				)
 			}
 		default:
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, DefaultSortBy, comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, DefaultSortByColumn, comparisonOp, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.AfterValue,
 					listParams.AfterId,
 					listParams.AfterValue,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, listParams.SortBy, DefaultSortBy, comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, listParams.SortBy, DefaultSortByColumn, comparisonOp, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.AfterValue,
 					listParams.AfterId,
