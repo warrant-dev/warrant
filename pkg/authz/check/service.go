@@ -192,7 +192,7 @@ func (svc CheckService) checkRule(ctx context.Context, authInfo *service.AuthInf
 		return true, decisionPath, nil
 	default:
 		if rule.OfType == "" && rule.WithRelation == "" {
-			return svc.Check(ctx, authInfo, CheckSpec{
+			match, decisionPath, _, err := svc.Check(ctx, authInfo, CheckSpec{
 				CheckWarrantSpec: CheckWarrantSpec{
 					ObjectType: warrantSpec.ObjectType,
 					ObjectId:   warrantSpec.ObjectId,
@@ -202,6 +202,7 @@ func (svc CheckService) checkRule(ctx context.Context, authInfo *service.AuthInf
 				},
 				Debug: warrantCheck.Debug,
 			})
+			return match, decisionPath, err
 		}
 
 		matchingWarrants, err := svc.getMatchingSubjectsBySubjectType(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, rule.WithRelation, rule.OfType, warrantSpec.Context)
@@ -210,7 +211,7 @@ func (svc CheckService) checkRule(ctx context.Context, authInfo *service.AuthInf
 		}
 
 		for _, matchingWarrant := range matchingWarrants {
-			match, decisionPath, err := svc.Check(ctx, authInfo, CheckSpec{
+			match, decisionPath, _, err := svc.Check(ctx, authInfo, CheckSpec{
 				CheckWarrantSpec: CheckWarrantSpec{
 					ObjectType: matchingWarrant.Subject.ObjectType,
 					ObjectId:   matchingWarrant.Subject.ObjectId,
@@ -247,7 +248,7 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 		if warrantCheck.Op == objecttype.InheritIfAllOf {
 			var processingTime int64
 			for _, warrantSpec := range warrantCheck.Warrants {
-				match, decisionPath, err := svc.Check(wkCtx, authInfo, CheckSpec{
+				match, decisionPath, _, err := svc.Check(wkCtx, authInfo, CheckSpec{
 					CheckWarrantSpec: warrantSpec,
 					Debug:            warrantCheck.Debug,
 				})
@@ -293,7 +294,7 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 		if warrantCheck.Op == objecttype.InheritIfAnyOf {
 			var processingTime int64
 			for _, warrantSpec := range warrantCheck.Warrants {
-				match, decisionPath, err := svc.Check(wkCtx, authInfo, CheckSpec{
+				match, decisionPath, _, err := svc.Check(wkCtx, authInfo, CheckSpec{
 					CheckWarrantSpec: warrantSpec,
 					Debug:            warrantCheck.Debug,
 				})
@@ -343,7 +344,7 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 		}
 
 		warrantSpec := warrantCheck.Warrants[0]
-		match, decisionPath, err := svc.Check(wkCtx, authInfo, CheckSpec{
+		match, decisionPath, _, err := svc.Check(wkCtx, authInfo, CheckSpec{
 			CheckWarrantSpec: warrantSpec,
 			Debug:            warrantCheck.Debug,
 		})
@@ -390,9 +391,8 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 	return &checkResult, newWookie, nil
 }
 
-// TODO: wrap in WookieSafeRead
 // Check returns true if the subject has a warrant (explicitly or implicitly) for given objectType:objectId#relation and context
-func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, warrantCheck CheckSpec) (match bool, decisionPath []warrant.WarrantSpec, err error) {
+func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, warrantCheck CheckSpec) (bool, []warrant.WarrantSpec, *wookie.Token, error) {
 	log.Ctx(ctx).Debug().Msgf("Checking for warrant %s", warrantCheck.String())
 
 	// Used to automatically append tenant context for session token w/ tenantId checks
@@ -400,64 +400,76 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 		svc.appendTenantContext(&warrantCheck, authInfo.TenantId)
 	}
 
-	// Check for direct warrant match -> doc:readme#viewer@[10]
-	matchedWarrant, err := svc.getWithPolicyMatch(ctx, warrantCheck.CheckWarrantSpec)
-	if err != nil {
-		return false, decisionPath, err
-	}
-
-	if matchedWarrant != nil {
-		return true, []warrant.WarrantSpec{*matchedWarrant}, nil
-	}
-
-	// Check against indirectly related warrants
-	matchingWarrants, err := svc.getMatchingSubjects(ctx, warrantCheck.ObjectType, warrantCheck.ObjectId, warrantCheck.Relation, warrantCheck.Context)
-	if err != nil {
-		return false, decisionPath, err
-	}
-
-	for _, matchingWarrant := range matchingWarrants {
-		if matchingWarrant.Subject.Relation == "" {
-			continue
+	var match bool
+	decisionPath := make([]warrant.WarrantSpec, 0)
+	var newWookie *wookie.Token
+	newWookie, e := svc.WookieSvc.WookieSafeRead(ctx, func(wkCtx context.Context) error {
+		// Check for direct warrant match -> doc:readme#viewer@[10]
+		matchedWarrant, err := svc.getWithPolicyMatch(ctx, warrantCheck.CheckWarrantSpec)
+		if err != nil {
+			return err
 		}
 
-		match, decisionPath, err := svc.Check(ctx, authInfo, CheckSpec{
-			CheckWarrantSpec: CheckWarrantSpec{
-				ObjectType: matchingWarrant.Subject.ObjectType,
-				ObjectId:   matchingWarrant.Subject.ObjectId,
-				Relation:   matchingWarrant.Subject.Relation,
-				Subject:    warrantCheck.Subject,
-				Context:    warrantCheck.Context,
-			},
-			Debug: warrantCheck.Debug,
-		})
+		if matchedWarrant != nil {
+			match = true
+			decisionPath = []warrant.WarrantSpec{*matchedWarrant}
+			return nil
+		}
+
+		// Check against indirectly related warrants
+		matchingWarrants, err := svc.getMatchingSubjects(ctx, warrantCheck.ObjectType, warrantCheck.ObjectId, warrantCheck.Relation, warrantCheck.Context)
 		if err != nil {
-			return false, decisionPath, err
+			return err
+		}
+
+		for _, matchingWarrant := range matchingWarrants {
+			if matchingWarrant.Subject.Relation == "" {
+				continue
+			}
+
+			match, decisionPath, _, err = svc.Check(ctx, authInfo, CheckSpec{
+				CheckWarrantSpec: CheckWarrantSpec{
+					ObjectType: matchingWarrant.Subject.ObjectType,
+					ObjectId:   matchingWarrant.Subject.ObjectId,
+					Relation:   matchingWarrant.Subject.Relation,
+					Subject:    warrantCheck.Subject,
+					Context:    warrantCheck.Context,
+				},
+				Debug: warrantCheck.Debug,
+			})
+			if err != nil {
+				return err
+			}
+
+			if match {
+				decisionPath = append(decisionPath, matchingWarrant)
+				return nil
+			}
+		}
+
+		// Attempt to match against defined rules for target relation
+		objectTypeSpec, _, err := svc.ObjectTypeSvc.GetByTypeId(ctx, warrantCheck.ObjectType)
+		if err != nil {
+			return err
+		}
+
+		relationRule := objectTypeSpec.Relations[warrantCheck.Relation]
+		match, decisionPath, err = svc.checkRule(ctx, authInfo, warrantCheck, &relationRule)
+		if err != nil {
+			return err
 		}
 
 		if match {
-			decisionPath = append(decisionPath, matchingWarrant)
-			return true, decisionPath, nil
+			return nil
 		}
-	}
 
-	// Attempt to match against defined rules for target relation
-	objectTypeSpec, _, err := svc.ObjectTypeSvc.GetByTypeId(ctx, warrantCheck.ObjectType)
-	if err != nil {
-		return false, decisionPath, err
+		match = false
+		return nil
+	})
+	if e != nil {
+		return false, decisionPath, nil, e
 	}
-
-	relationRule := objectTypeSpec.Relations[warrantCheck.Relation]
-	match, decisionPath, err = svc.checkRule(ctx, authInfo, warrantCheck, &relationRule)
-	if err != nil {
-		return false, decisionPath, err
-	}
-
-	if match {
-		return true, decisionPath, nil
-	}
-
-	return false, decisionPath, nil
+	return match, decisionPath, newWookie, nil
 }
 
 func (svc CheckService) appendTenantContext(warrantCheck *CheckSpec, tenantId string) {
