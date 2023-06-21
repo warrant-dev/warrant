@@ -6,7 +6,7 @@ type Model interface {
 	GetID() int64
 	GetVersion() int64
 	GetCreatedAt() time.Time
-	ToToken() Token
+	ToToken() *Token
 }
 
 type Wookie struct {
@@ -27,8 +27,8 @@ func (w Wookie) GetCreatedAt() time.Time {
 	return w.CreatedAt
 }
 
-func (w Wookie) ToToken() Token {
-	return Token{
+func (w Wookie) ToToken() *Token {
+	return &Token{
 		ID:        w.ID,
 		Version:   w.Version,
 		Timestamp: w.CreatedAt,

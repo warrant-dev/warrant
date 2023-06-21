@@ -19,7 +19,7 @@ func ClientTokenMiddleware(next http.Handler) http.Handler {
 				next.ServeHTTP(w, r)
 				return
 			}
-			newContext := context.WithValue(r.Context(), TokenKey{}, clientWookie)
+			newContext := context.WithValue(r.Context(), ClientTokenKey{}, clientWookie)
 			next.ServeHTTP(w, r.WithContext(newContext))
 			return
 		}

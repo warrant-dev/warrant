@@ -10,8 +10,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Context key
-type TokenKey struct{}
+// ClientToken context key
+type ClientTokenKey struct{}
 
 type Token struct {
 	ID        int64
