@@ -22,7 +22,7 @@ func (parser ObjectListParamParser) ParseValue(val string, sortBy string) (inter
 	case "createdAt":
 		afterValue, err := time.Parse(time.RFC3339, val)
 		if err != nil || afterValue.Equal(time.Time{}) {
-			return nil, fmt.Errorf("must be a valid time in the %s", time.RFC3339)
+			return nil, fmt.Errorf("must be a valid time in the format %s", time.RFC3339)
 		}
 
 		return &afterValue, nil
