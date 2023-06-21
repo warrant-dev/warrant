@@ -21,23 +21,47 @@ func NewService(env service.Env, repository WookieRepository) WookieService {
 	}
 }
 
-func (svc WookieService) Create(ctx context.Context) (*Token, error) {
-	newWookieId, err := svc.Repository.Create(ctx, currentWookieVersion)
-	if err != nil {
-		return nil, err
+// Apply given updateFunc() and create a new wookie for this update. Returns the new wookie token.
+func (svc WookieService) WithWookieUpdate(ctx context.Context, updateFunc func(txCtx context.Context) error) (*Token, error) {
+	var newWookie Token
+	e := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+		// First, apply given update within tx
+		err := updateFunc(txCtx)
+		if err != nil {
+			return err
+		}
+		// Create new wookie in same tx
+		newWookieId, err := svc.Repository.Create(txCtx, currentWookieVersion)
+		if err != nil {
+			return err
+		}
+		token, err := svc.Repository.GetById(txCtx, newWookieId)
+		if err != nil {
+			return err
+		}
+		newWookie = token.ToToken()
+		return nil
+	})
+	if e != nil {
+		return nil, e
 	}
+	return &newWookie, nil
+}
 
-	newWookie, err := svc.Repository.GetById(ctx, newWookieId)
-	if err != nil {
-		return nil, err
-	}
+func (svc WookieService) WookieSafeRead(ctx context.Context, readFunc func(wkCtx context.Context) error) (*Token, error) {
+	return nil, nil
+	// The wookie in this ctx has already been checked so rely on that value
+	// if ctx.Value(database.UnsafeOp{}) != nil {
+	// 	isUnsafe := ctx.Value(database.UnsafeOp{}).(bool)
+	// 	err := readFunc(ctx)
 
-	token := newWookie.ToToken()
-	return &token, nil
+	// }
+
+	// ctx.Value(database.UnsafeOp{})
 }
 
 // TODO: this is making too many requests to check for wookie
-func (svc WookieService) GetWookieContext(ctx context.Context) (context.Context, *Token, error) {
+func (svc WookieService) getWookieContext(ctx context.Context) (context.Context, *Token, error) {
 	latest, err := svc.Repository.GetLatest(ctx)
 	if err != nil {
 		return ctx, nil, err

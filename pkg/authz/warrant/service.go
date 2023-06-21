@@ -29,7 +29,6 @@ func NewService(env service.Env, repository WarrantRepository, eventSvc event.Ev
 
 func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (*WarrantSpec, *wookie.Token, error) {
 	// Check that objectType is valid
-	// TODO: in the future we might want to compare the wookie returned by GetType() against a client-specified wookie (not an issue on single-master dbs)
 	objectTypeDef, _, err := svc.ObjectTypeSvc.GetByTypeId(ctx, warrantSpec.ObjectType)
 	if err != nil {
 		return nil, nil, service.NewInvalidParameterError("objectType", "The given object type does not exist.")
@@ -48,8 +47,7 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 	}
 
 	var createdWarrant Model
-	var newWookie *wookie.Token
-	err = svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+	newWookie, e := svc.WookieSvc.WithWookieUpdate(ctx, func(txCtx context.Context) error {
 		warrant, err := warrantSpec.ToWarrant()
 		if err != nil {
 			return err
@@ -61,11 +59,6 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 		}
 
 		createdWarrant, err = svc.Repository.GetByID(txCtx, createdWarrantId)
-		if err != nil {
-			return err
-		}
-
-		newWookie, err = svc.WookieSvc.Create(txCtx)
 		if err != nil {
 			return err
 		}
@@ -83,8 +76,8 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 
 		return nil
 	})
-	if err != nil {
-		return nil, nil, err
+	if e != nil {
+		return nil, nil, e
 	}
 
 	return createdWarrant.ToWarrantSpec(), newWookie, nil
@@ -92,14 +85,8 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 
 func (svc WarrantService) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]*WarrantSpec, *wookie.Token, error) {
 	warrantSpecs := make([]*WarrantSpec, 0)
-	var latestWookie *wookie.Token
-	e := svc.Env().DB().WithinConsistentRead(ctx, func(connCtx context.Context) error {
-		wookieCtx, token, err := svc.WookieSvc.GetWookieContext(connCtx)
-		if err != nil {
-			return err
-		}
-		latestWookie = token
-		warrants, err := svc.Repository.List(wookieCtx, filterOptions, listParams)
+	newWookie, e := svc.WookieSvc.WookieSafeRead(ctx, func(wkCtx context.Context) error {
+		warrants, err := svc.Repository.List(wkCtx, filterOptions, listParams)
 		if err != nil {
 			return err
 		}
@@ -111,14 +98,13 @@ func (svc WarrantService) List(ctx context.Context, filterOptions *FilterOptions
 		return nil
 	})
 	if e != nil {
-		return nil, latestWookie, e
+		return nil, nil, e
 	}
-	return warrantSpecs, latestWookie, nil
+	return warrantSpecs, newWookie, nil
 }
 
 func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) (*wookie.Token, error) {
-	var newWookie *wookie.Token
-	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+	newWookie, e := svc.WookieSvc.WithWookieUpdate(ctx, func(txCtx context.Context) error {
 		warrantToDelete, err := warrantSpec.ToWarrant()
 		if err != nil {
 			return nil
@@ -130,11 +116,6 @@ func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) (
 		}
 
 		err = svc.Repository.DeleteById(txCtx, warrant.GetID())
-		if err != nil {
-			return err
-		}
-
-		newWookie, err = svc.WookieSvc.Create(txCtx)
 		if err != nil {
 			return err
 		}
@@ -152,16 +133,15 @@ func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) (
 
 		return nil
 	})
-	if err != nil {
-		return nil, err
+	if e != nil {
+		return nil, e
 	}
 
 	return newWookie, nil
 }
 
 func (svc WarrantService) DeleteRelatedWarrants(ctx context.Context, objectType string, objectId string) (*wookie.Token, error) {
-	var newWookie *wookie.Token
-	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+	newWookie, e := svc.WookieSvc.WithWookieUpdate(ctx, func(txCtx context.Context) error {
 		err := svc.Repository.DeleteAllByObject(txCtx, objectType, objectId)
 		if err != nil {
 			return err
@@ -172,15 +152,10 @@ func (svc WarrantService) DeleteRelatedWarrants(ctx context.Context, objectType 
 			return err
 		}
 
-		newWookie, err = svc.WookieSvc.Create(txCtx)
-		if err != nil {
-			return err
-		}
-
 		return nil
 	})
-	if err != nil {
-		return nil, err
+	if e != nil {
+		return nil, e
 	}
 
 	return newWookie, nil
