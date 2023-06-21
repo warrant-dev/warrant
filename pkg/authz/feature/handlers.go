@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -114,10 +115,11 @@ func DeleteHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) e
 		return service.NewMissingRequiredParameterError("featureId")
 	}
 
-	err := svc.DeleteByFeatureId(r.Context(), featureId)
+	newWookie, err := svc.DeleteByFeatureId(r.Context(), featureId)
 	if err != nil {
 		return err
 	}
+	wookie.AddAsResponseHeader(w, newWookie)
 
 	return nil
 }

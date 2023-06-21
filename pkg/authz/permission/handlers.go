@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -114,10 +115,11 @@ func DeleteHandler(svc PermissionService, w http.ResponseWriter, r *http.Request
 		return service.NewMissingRequiredParameterError("permissionId")
 	}
 
-	err := svc.DeleteByPermissionId(r.Context(), permissionId)
+	newWookie, err := svc.DeleteByPermissionId(r.Context(), permissionId)
 	if err != nil {
 		return err
 	}
+	wookie.AddAsResponseHeader(w, newWookie)
 
 	return nil
 }

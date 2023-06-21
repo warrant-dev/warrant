@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -23,6 +24,7 @@ func (svc ObjectTypeService) Routes() ([]service.Route, error) {
 			Method:  "GET",
 			Handler: service.ChainMiddleware(
 				service.NewRouteHandler(svc, ListHandler),
+				wookie.ClientTokenMiddleware,
 				service.ListMiddleware[ObjectTypeListParamParser],
 			),
 		},
@@ -31,7 +33,10 @@ func (svc ObjectTypeService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern: "/v1/object-types/{type}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, GetHandler),
+			Handler: service.ChainMiddleware(
+				service.NewRouteHandler(svc, GetHandler),
+				wookie.ClientTokenMiddleware,
+			),
 		},
 
 		// update
@@ -62,10 +67,11 @@ func CreateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 		return err
 	}
 
-	createdObjectTypeSpec, err := svc.Create(r.Context(), objectTypeSpec)
+	createdObjectTypeSpec, newWookie, err := svc.Create(r.Context(), objectTypeSpec)
 	if err != nil {
 		return err
 	}
+	wookie.AddAsResponseHeader(w, newWookie)
 
 	service.SendJSONResponse(w, createdObjectTypeSpec)
 	return nil
@@ -73,10 +79,11 @@ func CreateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 
 func ListHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	listParams := service.GetListParamsFromContext[ObjectTypeListParamParser](r.Context())
-	objectTypeSpecs, err := svc.List(r.Context(), listParams)
+	objectTypeSpecs, updatedWookie, err := svc.List(r.Context(), listParams)
 	if err != nil {
 		return err
 	}
+	wookie.AddAsResponseHeader(w, updatedWookie)
 
 	service.SendJSONResponse(w, objectTypeSpecs)
 	return nil
@@ -84,10 +91,11 @@ func ListHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) 
 
 func GetHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	typeId := mux.Vars(r)["type"]
-	objectTypeSpec, err := svc.GetByTypeId(r.Context(), typeId)
+	objectTypeSpec, updatedWookie, err := svc.GetByTypeId(r.Context(), typeId)
 	if err != nil {
 		return err
 	}
+	wookie.AddAsResponseHeader(w, updatedWookie)
 
 	service.SendJSONResponse(w, objectTypeSpec)
 	return nil
@@ -101,10 +109,11 @@ func UpdateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 	}
 
 	typeId := mux.Vars(r)["type"]
-	updatedObjectTypeSpec, err := svc.UpdateByTypeId(r.Context(), typeId, objectTypeSpec)
+	updatedObjectTypeSpec, newWookie, err := svc.UpdateByTypeId(r.Context(), typeId, objectTypeSpec)
 	if err != nil {
 		return err
 	}
+	wookie.AddAsResponseHeader(w, newWookie)
 
 	service.SendJSONResponse(w, updatedObjectTypeSpec)
 	return nil
@@ -112,10 +121,11 @@ func UpdateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 
 func DeleteHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	typeId := mux.Vars(r)["type"]
-	err := svc.DeleteByTypeId(r.Context(), typeId)
+	newWookie, err := svc.DeleteByTypeId(r.Context(), typeId)
 	if err != nil {
 		return err
 	}
+	wookie.AddAsResponseHeader(w, newWookie)
 
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusOK)

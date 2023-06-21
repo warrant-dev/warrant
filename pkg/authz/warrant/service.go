@@ -4,6 +4,7 @@ import (
 	"context"
 
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
+	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -13,38 +14,40 @@ type WarrantService struct {
 	Repository    WarrantRepository
 	EventSvc      event.EventService
 	ObjectTypeSvc objecttype.ObjectTypeService
+	WookieSvc     wookie.WookieService
 }
 
-func NewService(env service.Env, repository WarrantRepository, eventSvc event.EventService, objectTypeSvc objecttype.ObjectTypeService) WarrantService {
+func NewService(env service.Env, repository WarrantRepository, eventSvc event.EventService, objectTypeSvc objecttype.ObjectTypeService, wookieService wookie.WookieService) WarrantService {
 	return WarrantService{
 		BaseService:   service.NewBaseService(env),
 		Repository:    repository,
 		EventSvc:      eventSvc,
 		ObjectTypeSvc: objectTypeSvc,
+		WookieSvc:     wookieService,
 	}
 }
 
-func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (*WarrantSpec, error) {
+func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (*WarrantSpec, *wookie.Token, error) {
 	// Check that objectType is valid
-	objectTypeDef, err := svc.ObjectTypeSvc.GetByTypeId(ctx, warrantSpec.ObjectType)
+	objectTypeDef, _, err := svc.ObjectTypeSvc.GetByTypeId(ctx, warrantSpec.ObjectType)
 	if err != nil {
-		return nil, service.NewInvalidParameterError("objectType", "The given object type does not exist.")
+		return nil, nil, service.NewInvalidParameterError("objectType", "The given object type does not exist.")
 	}
 
 	// Check that relation is valid for objectType
 	_, exists := objectTypeDef.Relations[warrantSpec.Relation]
 	if !exists {
-		return nil, service.NewInvalidParameterError("relation", "An object type with the given relation does not exist.")
+		return nil, nil, service.NewInvalidParameterError("relation", "An object type with the given relation does not exist.")
 	}
 
 	// Check that warrant does not already exist
 	_, err = svc.Repository.Get(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Policy.Hash())
 	if err == nil {
-		return nil, service.NewDuplicateRecordError("Warrant", warrantSpec, "A warrant with the given objectType, objectId, relation, subject, and policy already exists")
+		return nil, nil, service.NewDuplicateRecordError("Warrant", warrantSpec, "A warrant with the given objectType, objectId, relation, subject, and policy already exists")
 	}
 
 	var createdWarrant Model
-	err = svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+	newWookie, e := svc.WookieSvc.WithWookieUpdate(ctx, func(txCtx context.Context) error {
 		warrant, err := warrantSpec.ToWarrant()
 		if err != nil {
 			return err
@@ -73,29 +76,35 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 
 		return nil
 	})
-	if err != nil {
-		return nil, err
+	if e != nil {
+		return nil, nil, e
 	}
 
-	return createdWarrant.ToWarrantSpec(), nil
+	return createdWarrant.ToWarrantSpec(), newWookie, nil
 }
 
-func (svc WarrantService) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]*WarrantSpec, error) {
+func (svc WarrantService) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]*WarrantSpec, *wookie.Token, error) {
 	warrantSpecs := make([]*WarrantSpec, 0)
-	warrants, err := svc.Repository.List(ctx, filterOptions, listParams)
-	if err != nil {
-		return nil, err
-	}
+	newWookie, e := svc.WookieSvc.WookieSafeRead(ctx, func(wkCtx context.Context) error {
+		warrants, err := svc.Repository.List(wkCtx, filterOptions, listParams)
+		if err != nil {
+			return err
+		}
 
-	for _, warrant := range warrants {
-		warrantSpecs = append(warrantSpecs, warrant.ToWarrantSpec())
-	}
+		for _, warrant := range warrants {
+			warrantSpecs = append(warrantSpecs, warrant.ToWarrantSpec())
+		}
 
-	return warrantSpecs, nil
+		return nil
+	})
+	if e != nil {
+		return nil, nil, e
+	}
+	return warrantSpecs, newWookie, nil
 }
 
-func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) error {
-	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) (*wookie.Token, error) {
+	newWookie, e := svc.WookieSvc.WithWookieUpdate(ctx, func(txCtx context.Context) error {
 		warrantToDelete, err := warrantSpec.ToWarrant()
 		if err != nil {
 			return nil
@@ -124,15 +133,15 @@ func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) e
 
 		return nil
 	})
-	if err != nil {
-		return err
+	if e != nil {
+		return nil, e
 	}
 
-	return nil
+	return newWookie, nil
 }
 
-func (svc WarrantService) DeleteRelatedWarrants(ctx context.Context, objectType string, objectId string) error {
-	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+func (svc WarrantService) DeleteRelatedWarrants(ctx context.Context, objectType string, objectId string) (*wookie.Token, error) {
+	newWookie, e := svc.WookieSvc.WithWookieUpdate(ctx, func(txCtx context.Context) error {
 		err := svc.Repository.DeleteAllByObject(txCtx, objectType, objectId)
 		if err != nil {
 			return err
@@ -145,9 +154,9 @@ func (svc WarrantService) DeleteRelatedWarrants(ctx context.Context, objectType 
 
 		return nil
 	})
-	if err != nil {
-		return err
+	if e != nil {
+		return nil, e
 	}
 
-	return nil
+	return newWookie, nil
 }
