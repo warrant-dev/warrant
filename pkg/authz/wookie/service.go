@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -80,43 +81,70 @@ func (svc WookieService) WookieSafeRead(ctx context.Context, readFunc func(wkCtx
 		return queryWookie, nil
 	}
 
-	// If client didn't pass a wookie, run readFunc() without any checks
+	// If client didn't pass a wookie, run readFunc() with existing ctx and return latest wookie if present
 	clientWookie, hasClientWookie := ctx.Value(ClientTokenKey{}).(Token)
 	if !hasClientWookie {
 		// TODO: Ideally the server should default to some trailing wookie value here. For now, default to 'unsafe' op to always use up-to-date db.
 		unsafeCtx := context.WithValue(ctx, database.UnsafeOp{}, true)
-		latest, e := svc.Repository.GetLatest(unsafeCtx)
+		writerLatest, e := svc.Repository.GetLatest(unsafeCtx)
+		var latestWookieToReturn *Token
 		if e != nil {
-			return nil, e
+			log.Ctx(ctx).Warn().Err(e).Msg("error getting writer latest wookie")
+			latestWookieToReturn = nil
 		}
-		latestWookie := latest.ToToken()
-		wkCtx := context.WithValue(unsafeCtx, wookieQueryContextKey{}, latestWookie)
+		var wkCtx context.Context
+		if writerLatest != nil {
+			latestWookieToReturn = writerLatest.ToToken()
+			wkCtx = context.WithValue(unsafeCtx, wookieQueryContextKey{}, latestWookieToReturn)
+		} else {
+			wkCtx = unsafeCtx
+		}
 		e = readFunc(wkCtx)
 		if e != nil {
 			return nil, e
 		}
-		return latestWookie, nil
+		return latestWookieToReturn, nil
 	}
 
-	// Otherwise, compare client wookie to a reader to see if we can use it
-	var latestWookie *Token
+	// Otherwise, compare client wookie to a reader's latest wookie to see if we can use it
+	var latestWookieToReturn *Token
 	e := svc.Env().DB().WithinConsistentRead(ctx, func(connCtx context.Context) error {
+		unsafe := false
+
+		// First, get the reader's latest wookie
 		readerLatest, err := svc.Repository.GetLatest(connCtx)
 		if err != nil {
-			return err
+			log.Ctx(ctx).Warn().Err(err).Msg("error getting reader latest wookie")
+			unsafe = true
 		}
-		var wkCtx context.Context
-		if readerLatest.GetID() < clientWookie.ID {
-			wkCtx = context.WithValue(connCtx, database.UnsafeOp{}, true)
-		} else {
-			wkCtx = context.WithValue(connCtx, database.UnsafeOp{}, false)
+
+		// Compare reader wookie against client-provided wookie
+		if readerLatest != nil {
+			if readerLatest.GetID() < clientWookie.ID {
+				// Reader is behind so op is unsafe
+				unsafe = true
+			} else {
+				// Reader is up-to-date or ahead so is safe to use
+				unsafe = false
+				latestWookieToReturn = readerLatest.ToToken()
+			}
 		}
-		latest, err := svc.Repository.GetLatest(wkCtx)
-		if err != nil {
-			return err
+
+		wkCtx := context.WithValue(connCtx, database.UnsafeOp{}, unsafe)
+		if unsafe {
+			// Get writer's latest wookie
+			writerLatest, err := svc.Repository.GetLatest(wkCtx)
+			if err != nil {
+				log.Ctx(ctx).Warn().Err(err).Msg("error getting writer latest wookie")
+				latestWookieToReturn = nil
+			}
+			if writerLatest != nil {
+				latestWookieToReturn = writerLatest.ToToken()
+			}
 		}
-		latestWookie = latest.ToToken()
-		readCtx := context.WithValue(wkCtx, wookieQueryContextKey{}, latestWookie)
+
+		// Execute read
+		readCtx := context.WithValue(wkCtx, wookieQueryContextKey{}, latestWookieToReturn)
 		err = readFunc(readCtx)
 		if err != nil {
 			return err
@@ -126,5 +154,5 @@ func (svc WookieService) WookieSafeRead(ctx context.Context, readFunc func(wkCtx
 	if e != nil {
 		return nil, e
 	}
-	return latestWookie, nil
+	return latestWookieToReturn, nil
 }
