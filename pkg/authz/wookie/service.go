@@ -70,11 +70,6 @@ func (svc WookieService) WithWookieUpdate(ctx context.Context, updateFunc func(t
 }
 
 func (svc WookieService) WookieSafeRead(ctx context.Context, readFunc func(wkCtx context.Context) error) (*Token, error) {
-	_, hasUpdateWookie := ctx.Value(updateWookieKey{}).(*Token)
-	if hasUpdateWookie {
-		return nil, errors.New("invalid state: can't call WookieSafeRead() within WookieUpdate()")
-	}
-
 	// A read is already in progress so continue with that ctx
 	queryWookie, hasQueryWookie := ctx.Value(wookieQueryContextKey{}).(*Token)
 	if hasQueryWookie {
