@@ -12,12 +12,12 @@ import (
 type WarrantService struct {
 	service.BaseService
 	Repository    WarrantRepository
-	EventSvc      event.EventService
+	EventSvc      event.Service
 	ObjectTypeSvc objecttype.ObjectTypeService
 	WookieSvc     wookie.WookieService
 }
 
-func NewService(env service.Env, repository WarrantRepository, eventSvc event.EventService, objectTypeSvc objecttype.ObjectTypeService, wookieService wookie.WookieService) WarrantService {
+func NewService(env service.Env, repository WarrantRepository, eventSvc event.Service, objectTypeSvc objecttype.ObjectTypeService, wookieService wookie.WookieService) WarrantService {
 	return WarrantService{
 		BaseService:   service.NewBaseService(env),
 		Repository:    repository,
