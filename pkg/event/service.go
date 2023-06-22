@@ -150,9 +150,21 @@ func (svc EventService) TrackResourceEvents(ctx context.Context, resourceEventSp
 
 func (svc EventService) ListResourceEvents(ctx context.Context, listParams ListResourceEventParams) ([]ResourceEventSpec, string, error) {
 	resourceEventSpecs := make([]ResourceEventSpec, 0)
-	resourceEvents, lastId, err := svc.Repository.ListResourceEvents(ctx, listParams)
+
+	var resourceEvents []ResourceEventModel
+	var lastId string
+	var err error
+	if !svc.synchronizeEvents {
+		err = svc.Env().EventDB().WithinConsistentRead(ctx, func(connCtx context.Context) error {
+			resourceEvents, lastId, err = svc.Repository.ListResourceEvents(connCtx, listParams)
+			return err
+		})
+	} else {
+		resourceEvents, lastId, err = svc.Repository.ListResourceEvents(ctx, listParams)
+	}
+
 	if err != nil {
-		return resourceEventSpecs, lastId, err
+		return resourceEventSpecs, "", err
 	}
 
 	for _, resourceEvent := range resourceEvents {
@@ -293,9 +305,21 @@ func (svc EventService) TrackAccessEvents(ctx context.Context, accessEventSpecs 
 
 func (svc EventService) ListAccessEvents(ctx context.Context, listParams ListAccessEventParams) ([]AccessEventSpec, string, error) {
 	accessEventSpecs := make([]AccessEventSpec, 0)
-	accessEvents, lastId, err := svc.Repository.ListAccessEvents(ctx, listParams)
+
+	var accessEvents []AccessEventModel
+	var lastId string
+	var err error
+	if !svc.synchronizeEvents {
+		err = svc.Env().EventDB().WithinConsistentRead(ctx, func(connCtx context.Context) error {
+			accessEvents, lastId, err = svc.Repository.ListAccessEvents(connCtx, listParams)
+			return err
+		})
+	} else {
+		accessEvents, lastId, err = svc.Repository.ListAccessEvents(ctx, listParams)
+	}
+
 	if err != nil {
-		return accessEventSpecs, lastId, err
+		return accessEventSpecs, "", err
 	}
 
 	for _, accessEvent := range accessEvents {
