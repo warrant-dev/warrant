@@ -15,11 +15,11 @@ const ResourceTypePricingTier = "pricing-tier"
 type PricingTierService struct {
 	service.BaseService
 	Repository PricingTierRepository
-	EventSvc   event.EventService
+	EventSvc   event.Service
 	ObjectSvc  object.ObjectService
 }
 
-func NewService(env service.Env, repository PricingTierRepository, eventSvc event.EventService, objectSvc object.ObjectService) PricingTierService {
+func NewService(env service.Env, repository PricingTierRepository, eventSvc event.Service, objectSvc object.ObjectService) PricingTierService {
 	return PricingTierService{
 		BaseService: service.NewBaseService(env),
 		Repository:  repository,

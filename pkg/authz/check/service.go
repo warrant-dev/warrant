@@ -16,12 +16,12 @@ import (
 type CheckService struct {
 	service.BaseService
 	WarrantRepository warrant.WarrantRepository
-	EventSvc          event.EventService
+	EventSvc          event.Service
 	ObjectTypeSvc     objecttype.ObjectTypeService
 	WookieSvc         wookie.WookieService
 }
 
-func NewService(env service.Env, warrantRepo warrant.WarrantRepository, eventSvc event.EventService, objectTypeSvc objecttype.ObjectTypeService, wookieSvc wookie.WookieService) CheckService {
+func NewService(env service.Env, warrantRepo warrant.WarrantRepository, eventSvc event.Service, objectTypeSvc objecttype.ObjectTypeService, wookieSvc wookie.WookieService) CheckService {
 	return CheckService{
 		BaseService:       service.NewBaseService(env),
 		WarrantRepository: warrantRepo,

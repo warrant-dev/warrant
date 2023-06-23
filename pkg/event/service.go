@@ -18,6 +18,22 @@ const (
 	EventTypeUpdated       = "updated"
 )
 
+type Service interface {
+	TrackResourceCreated(ctx context.Context, resourceType string, resourceId string, meta interface{}) error
+	TrackResourceUpdated(ctx context.Context, resourceType string, resourceId string, meta interface{}) error
+	TrackResourceDeleted(ctx context.Context, resourceType string, resourceId string, meta interface{}) error
+	TrackResourceEvent(ctx context.Context, resourceEventSpec CreateResourceEventSpec) error
+	TrackResourceEvents(ctx context.Context, resourceEventSpecs []CreateResourceEventSpec) error
+	ListResourceEvents(ctx context.Context, listParams ListResourceEventParams) ([]ResourceEventSpec, string, error)
+	TrackAccessGrantedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, meta interface{}) error
+	TrackAccessRevokedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, meta interface{}) error
+	TrackAccessAllowedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, meta interface{}) error
+	TrackAccessDeniedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, meta interface{}) error
+	TrackAccessEvent(ctx context.Context, accessEventSpec CreateAccessEventSpec) error
+	TrackAccessEvents(ctx context.Context, accessEventSpecs []CreateAccessEventSpec) error
+	ListAccessEvents(ctx context.Context, listParams ListAccessEventParams) ([]AccessEventSpec, string, error)
+}
+
 type EventContextFunc func(ctx context.Context, synchronizeEvents bool) (context.Context, error)
 
 type EventService struct {

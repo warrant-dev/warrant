@@ -15,11 +15,11 @@ const ResourceTypePermission = "permission"
 type PermissionService struct {
 	service.BaseService
 	Repository PermissionRepository
-	EventSvc   event.EventService
+	EventSvc   event.Service
 	ObjectSvc  object.ObjectService
 }
 
-func NewService(env service.Env, repository PermissionRepository, eventSvc event.EventService, objectSvc object.ObjectService) PermissionService {
+func NewService(env service.Env, repository PermissionRepository, eventSvc event.Service, objectSvc object.ObjectService) PermissionService {
 	return PermissionService{
 		BaseService: service.NewBaseService(env),
 		Repository:  repository,
