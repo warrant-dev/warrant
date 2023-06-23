@@ -108,7 +108,7 @@ func (svc WookieService) WookieSafeRead(ctx context.Context, readFunc func(wkCtx
 
 	// Otherwise, compare client wookie to a reader's latest wookie to see if we can use it
 	var latestWookieToReturn *Token
-	e := svc.Env().DB().WithinConsistentRead(ctx, func(connCtx context.Context) error {
+	e := svc.Env().DB().ReplicaSafeRead(ctx, func(connCtx context.Context) error {
 		unsafe := false
 
 		// First, get the reader's latest wookie

@@ -221,7 +221,7 @@ func NewSQL(writer *sqlx.DB, reader *sqlx.DB, writerHostname string, readerHostn
 }
 
 // Execute connCallback() within the context of a single connection to a 'reader' db instance if present
-func (ds SQL) WithinConsistentRead(ctx context.Context, connCallback func(connCtx context.Context) error) error {
+func (ds SQL) ReplicaSafeRead(ctx context.Context, connCallback func(connCtx context.Context) error) error {
 	_, hasReadConn := ctx.Value(newReadConnKey(ds.DatabaseName)).(*ReadSqlConn)
 	_, hasTx := ctx.Value(newTxKey(ds.DatabaseName)).(*SqlTx)
 

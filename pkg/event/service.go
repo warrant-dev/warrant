@@ -155,7 +155,7 @@ func (svc EventService) ListResourceEvents(ctx context.Context, listParams ListR
 	var lastId string
 	var err error
 	if !svc.synchronizeEvents {
-		err = svc.Env().EventDB().WithinConsistentRead(ctx, func(connCtx context.Context) error {
+		err = svc.Env().EventDB().ReplicaSafeRead(ctx, func(connCtx context.Context) error {
 			resourceEvents, lastId, err = svc.Repository.ListResourceEvents(connCtx, listParams)
 			return err
 		})
@@ -310,7 +310,7 @@ func (svc EventService) ListAccessEvents(ctx context.Context, listParams ListAcc
 	var lastId string
 	var err error
 	if !svc.synchronizeEvents {
-		err = svc.Env().EventDB().WithinConsistentRead(ctx, func(connCtx context.Context) error {
+		err = svc.Env().EventDB().ReplicaSafeRead(ctx, func(connCtx context.Context) error {
 			accessEvents, lastId, err = svc.Repository.ListAccessEvents(connCtx, listParams)
 			return err
 		})
