@@ -39,8 +39,8 @@ type EventContextFunc func(ctx context.Context, synchronizeEvents bool) (context
 type EventService struct {
 	service.BaseService
 	Repository         EventRepository
-	synchronizeEvents  bool
-	createEventContext EventContextFunc
+	SynchronizeEvents  bool
+	CreateEventContext EventContextFunc
 }
 
 func defaultCreateEventContext(ctx context.Context, synchronizeEvents bool) (context.Context, error) {
@@ -55,12 +55,12 @@ func NewService(env service.Env, repository EventRepository, synchronizeEvents b
 	svc := EventService{
 		BaseService:        service.NewBaseService(env),
 		Repository:         repository,
-		synchronizeEvents:  synchronizeEvents,
-		createEventContext: createEventContext,
+		SynchronizeEvents:  synchronizeEvents,
+		CreateEventContext: createEventContext,
 	}
 
 	if createEventContext == nil {
-		svc.createEventContext = defaultCreateEventContext
+		svc.CreateEventContext = defaultCreateEventContext
 	}
 
 	return svc
@@ -97,12 +97,12 @@ func (svc EventService) TrackResourceDeleted(ctx context.Context, resourceType s
 }
 
 func (svc EventService) TrackResourceEvent(ctx context.Context, resourceEventSpec CreateResourceEventSpec) error {
-	eventCtx, err := svc.createEventContext(ctx, svc.synchronizeEvents)
+	eventCtx, err := svc.CreateEventContext(ctx, svc.SynchronizeEvents)
 	if err != nil {
 		return err
 	}
 
-	if !svc.synchronizeEvents {
+	if !svc.SynchronizeEvents {
 		go func() {
 			resourceEvent, err := resourceEventSpec.ToResourceEvent()
 			if err != nil {
@@ -126,12 +126,12 @@ func (svc EventService) TrackResourceEvent(ctx context.Context, resourceEventSpe
 }
 
 func (svc EventService) TrackResourceEvents(ctx context.Context, resourceEventSpecs []CreateResourceEventSpec) error {
-	eventCtx, err := svc.createEventContext(ctx, svc.synchronizeEvents)
+	eventCtx, err := svc.CreateEventContext(ctx, svc.SynchronizeEvents)
 	if err != nil {
 		return err
 	}
 
-	if !svc.synchronizeEvents {
+	if !svc.SynchronizeEvents {
 		go func() {
 			resourceEvents := make([]ResourceEventModel, 0)
 			for _, resourceEventSpec := range resourceEventSpecs {
@@ -170,7 +170,7 @@ func (svc EventService) ListResourceEvents(ctx context.Context, listParams ListR
 	var resourceEvents []ResourceEventModel
 	var lastId string
 	var err error
-	if !svc.synchronizeEvents {
+	if !svc.SynchronizeEvents {
 		err = svc.Env().EventDB().ReplicaSafeRead(ctx, func(connCtx context.Context) error {
 			resourceEvents, lastId, err = svc.Repository.ListResourceEvents(connCtx, listParams)
 			return err
@@ -252,12 +252,12 @@ func (svc EventService) TrackAccessDeniedEvent(ctx context.Context, objectType s
 }
 
 func (svc EventService) TrackAccessEvent(ctx context.Context, accessEventSpec CreateAccessEventSpec) error {
-	eventCtx, err := svc.createEventContext(ctx, svc.synchronizeEvents)
+	eventCtx, err := svc.CreateEventContext(ctx, svc.SynchronizeEvents)
 	if err != nil {
 		return err
 	}
 
-	if !svc.synchronizeEvents {
+	if !svc.SynchronizeEvents {
 		go func() {
 			accessEvent, err := accessEventSpec.ToAccessEvent()
 			if err != nil {
@@ -281,12 +281,12 @@ func (svc EventService) TrackAccessEvent(ctx context.Context, accessEventSpec Cr
 }
 
 func (svc EventService) TrackAccessEvents(ctx context.Context, accessEventSpecs []CreateAccessEventSpec) error {
-	eventCtx, err := svc.createEventContext(ctx, svc.synchronizeEvents)
+	eventCtx, err := svc.CreateEventContext(ctx, svc.SynchronizeEvents)
 	if err != nil {
 		return err
 	}
 
-	if !svc.synchronizeEvents {
+	if !svc.SynchronizeEvents {
 		go func() {
 			accessEvents := make([]AccessEventModel, 0)
 			for _, accessEventSpec := range accessEventSpecs {
@@ -325,7 +325,7 @@ func (svc EventService) ListAccessEvents(ctx context.Context, listParams ListAcc
 	var accessEvents []AccessEventModel
 	var lastId string
 	var err error
-	if !svc.synchronizeEvents {
+	if !svc.SynchronizeEvents {
 		err = svc.Env().EventDB().ReplicaSafeRead(ctx, func(connCtx context.Context) error {
 			accessEvents, lastId, err = svc.Repository.ListAccessEvents(connCtx, listParams)
 			return err
