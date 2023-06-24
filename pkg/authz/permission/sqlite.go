@@ -17,14 +17,14 @@ type SQLiteRepository struct {
 
 func NewSQLiteRepository(db *database.SQLite) SQLiteRepository {
 	return SQLiteRepository{
-		database.NewSQLRepository(db),
+		database.NewSQLRepository(&db.SQL),
 	}
 }
 
 func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newPermissionId int64
 	now := time.Now().UTC()
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&newPermissionId,
 		`
@@ -65,7 +65,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 
 func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var permission Permission
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&permission,
 		`
@@ -91,7 +91,7 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, erro
 
 func (repo SQLiteRepository) GetByPermissionId(ctx context.Context, permissionId string) (Model, error) {
 	var permission Permission
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&permission,
 		`
@@ -244,7 +244,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams service.ListPa
 		}
 	}
 
-	err := repo.DB(ctx).SelectContext(
+	err := repo.DB.SelectContext(
 		ctx,
 		&permissions,
 		query,
@@ -267,7 +267,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams service.ListPa
 }
 
 func (repo SQLiteRepository) UpdateByPermissionId(ctx context.Context, permissionId string, model Model) error {
-	_, err := repo.DB(ctx).ExecContext(
+	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE permission
@@ -292,7 +292,7 @@ func (repo SQLiteRepository) UpdateByPermissionId(ctx context.Context, permissio
 }
 
 func (repo SQLiteRepository) DeleteByPermissionId(ctx context.Context, permissionId string) error {
-	_, err := repo.DB(ctx).ExecContext(
+	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE permission

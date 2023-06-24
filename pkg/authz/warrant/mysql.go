@@ -17,12 +17,12 @@ type MySQLRepository struct {
 
 func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	return MySQLRepository{
-		database.NewSQLRepository(db),
+		database.NewSQLRepository(&db.SQL),
 	}
 }
 
 func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, error) {
-	result, err := repo.DB(ctx).ExecContext(
+	result, err := repo.DB.ExecContext(
 		ctx,
 		`
 			INSERT INTO warrant (
@@ -61,7 +61,7 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 }
 
 func (repo MySQLRepository) DeleteById(ctx context.Context, id int64) error {
-	_, err := repo.DB(ctx).ExecContext(
+	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE warrant
@@ -86,7 +86,7 @@ func (repo MySQLRepository) DeleteById(ctx context.Context, id int64) error {
 }
 
 func (repo MySQLRepository) DeleteAllByObject(ctx context.Context, objectType string, objectId string) error {
-	_, err := repo.DB(ctx).ExecContext(
+	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE warrant
@@ -114,7 +114,7 @@ func (repo MySQLRepository) DeleteAllByObject(ctx context.Context, objectType st
 }
 
 func (repo MySQLRepository) DeleteAllBySubject(ctx context.Context, subjectType string, subjectId string) error {
-	_, err := repo.DB(ctx).ExecContext(
+	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE warrant
@@ -143,7 +143,7 @@ func (repo MySQLRepository) DeleteAllBySubject(ctx context.Context, subjectType 
 
 func (repo MySQLRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) (Model, error) {
 	var warrant Warrant
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&warrant,
 		`
@@ -189,7 +189,7 @@ func (repo MySQLRepository) Get(ctx context.Context, objectType string, objectId
 
 func (repo MySQLRepository) GetByID(ctx context.Context, id int64) (Model, error) {
 	var warrant Warrant
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&warrant,
 		`
@@ -266,7 +266,7 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 	offset := (listParams.Page - 1) * listParams.Limit
 	query = fmt.Sprintf("%s LIMIT ?, ?", query)
 	replacements = append(replacements, offset, listParams.Limit)
-	err := repo.DB(ctx).SelectContext(
+	err := repo.DB.SelectContext(
 		ctx,
 		&warrants,
 		query,
@@ -291,7 +291,7 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 func (repo MySQLRepository) GetAllMatchingObjectRelationAndSubject(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
-	err := repo.DB(ctx).SelectContext(
+	err := repo.DB.SelectContext(
 		ctx,
 		&warrants,
 		`
@@ -332,7 +332,7 @@ func (repo MySQLRepository) GetAllMatchingObjectRelationAndSubject(ctx context.C
 func (repo MySQLRepository) GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
-	err := repo.DB(ctx).SelectContext(
+	err := repo.DB.SelectContext(
 		ctx,
 		&warrants,
 		`
@@ -368,7 +368,7 @@ func (repo MySQLRepository) GetAllMatchingObjectAndRelation(ctx context.Context,
 func (repo MySQLRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
-	err := repo.DB(ctx).SelectContext(
+	err := repo.DB.SelectContext(
 		ctx,
 		&warrants,
 		`

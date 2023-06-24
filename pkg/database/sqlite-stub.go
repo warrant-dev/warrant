@@ -34,7 +34,3 @@ func (ds SQLite) Migrate(ctx context.Context, toVersion uint) error {
 func (ds SQLite) Ping(ctx context.Context) error {
 	return errors.New("sqlite not supported")
 }
-
-func (ds SQLite) DbHandler(ctx context.Context) interface{} {
-	return errors.New("sqlite not supported")
-}

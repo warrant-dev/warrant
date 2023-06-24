@@ -13,12 +13,12 @@ type SQLiteRepository struct {
 
 func NewSQLiteRepository(db *database.SQLite) SQLiteRepository {
 	return SQLiteRepository{
-		database.NewSQLRepository(db),
+		database.NewSQLRepository(&db.SQL),
 	}
 }
 
 func (repo SQLiteRepository) Create(ctx context.Context, version int64) (int64, error) {
-	result, err := repo.DB(ctx).ExecContext(
+	result, err := repo.DB.ExecContext(
 		ctx,
 		`
 			INSERT INTO wookie (
@@ -40,7 +40,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, version int64) (int64, 
 
 func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var wookie Wookie
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&wookie,
 		`
@@ -59,7 +59,7 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, erro
 
 func (repo SQLiteRepository) GetLatest(ctx context.Context) (Model, error) {
 	var wookie Wookie
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&wookie,
 		`

@@ -18,13 +18,13 @@ type PostgresRepository struct {
 
 func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	return PostgresRepository{
-		database.NewSQLRepository(db),
+		database.NewSQLRepository(&db.SQL),
 	}
 }
 
 func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newTenantId int64
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&newTenantId,
 		`
@@ -56,7 +56,7 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 
 func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var tenant Tenant
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&tenant,
 		`
@@ -82,7 +82,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, er
 
 func (repo PostgresRepository) GetByTenantId(ctx context.Context, tenantId string) (Model, error) {
 	var tenant Tenant
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&tenant,
 		`
@@ -245,7 +245,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 		}
 	}
 
-	err := repo.DB(ctx).SelectContext(
+	err := repo.DB.SelectContext(
 		ctx,
 		&tenants,
 		query,
@@ -268,7 +268,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 }
 
 func (repo PostgresRepository) UpdateByTenantId(ctx context.Context, tenantId string, model Model) error {
-	_, err := repo.DB(ctx).ExecContext(
+	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE tenant
@@ -289,7 +289,7 @@ func (repo PostgresRepository) UpdateByTenantId(ctx context.Context, tenantId st
 }
 
 func (repo PostgresRepository) DeleteByTenantId(ctx context.Context, tenantId string) error {
-	_, err := repo.DB(ctx).ExecContext(
+	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE tenant

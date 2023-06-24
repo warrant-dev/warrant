@@ -13,13 +13,13 @@ type PostgresRepository struct {
 
 func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	return PostgresRepository{
-		database.NewSQLRepository(db),
+		database.NewSQLRepository(&db.SQL),
 	}
 }
 
 func (repo PostgresRepository) Create(ctx context.Context, version int64) (int64, error) {
 	var newWookieId int64
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&newWookieId,
 		`
@@ -39,7 +39,7 @@ func (repo PostgresRepository) Create(ctx context.Context, version int64) (int64
 
 func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var wookie Wookie
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&wookie,
 		`
@@ -58,7 +58,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, er
 
 func (repo PostgresRepository) GetLatest(ctx context.Context) (Model, error) {
 	var wookie Wookie
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&wookie,
 		`

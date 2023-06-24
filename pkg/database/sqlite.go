@@ -120,7 +120,3 @@ func (ds SQLite) Migrate(ctx context.Context, toVersion uint) error {
 func (ds SQLite) Ping(ctx context.Context) error {
 	return ds.Writer.PingContext(ctx)
 }
-
-func (ds SQLite) DbHandler(ctx context.Context) interface{} {
-	return &ds.SQL
-}

@@ -17,7 +17,7 @@ type SQLiteRepository struct {
 
 func NewSQLiteRepository(db *database.SQLite) SQLiteRepository {
 	return SQLiteRepository{
-		database.NewSQLRepository(db),
+		database.NewSQLRepository(&db.SQL),
 	}
 }
 
@@ -31,7 +31,7 @@ func (repo SQLiteRepository) TrackResourceEvents(ctx context.Context, models []R
 		resourceEvents = append(resourceEvents, *NewResourceEventFromModel(model))
 	}
 
-	result, err := repo.DB(ctx).NamedExecContext(
+	result, err := repo.DB.NamedExecContext(
 		ctx,
 		`
 		   INSERT INTO resourceEvent (
@@ -114,7 +114,7 @@ func (repo SQLiteRepository) ListResourceEvents(ctx context.Context, listParams 
 
 	query = fmt.Sprintf("%s %s ORDER BY createdAt DESC, id DESC LIMIT ?", query, strings.Join(conditions, " AND "))
 	replacements = append(replacements, listParams.Limit)
-	err := repo.DB(ctx).SelectContext(
+	err := repo.DB.SelectContext(
 		ctx,
 		&resourceEvents,
 		query,
@@ -159,7 +159,7 @@ func (repo SQLiteRepository) TrackAccessEvents(ctx context.Context, models []Acc
 		accessEvents = append(accessEvents, *NewAccessEventFromModel(model))
 	}
 
-	result, err := repo.DB(ctx).NamedExecContext(
+	result, err := repo.DB.NamedExecContext(
 		ctx,
 		`
 		   INSERT INTO accessEvent (
@@ -270,7 +270,7 @@ func (repo SQLiteRepository) ListAccessEvents(ctx context.Context, listParams Li
 
 	query = fmt.Sprintf("%s %s ORDER BY createdAt DESC, id DESC LIMIT ?", query, strings.Join(conditions, " AND "))
 	replacements = append(replacements, listParams.Limit)
-	err := repo.DB(ctx).SelectContext(
+	err := repo.DB.SelectContext(
 		ctx,
 		&accessEvents,
 		query,

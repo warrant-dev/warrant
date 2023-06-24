@@ -17,12 +17,12 @@ type MySQLRepository struct {
 
 func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	return MySQLRepository{
-		database.NewSQLRepository(db),
+		database.NewSQLRepository(&db.SQL),
 	}
 }
 
 func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, error) {
-	result, err := repo.DB(ctx).ExecContext(
+	result, err := repo.DB.ExecContext(
 		ctx,
 		`
 			INSERT INTO permission (
@@ -61,7 +61,7 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 
 func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var permission Permission
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&permission,
 		`
@@ -87,7 +87,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error
 
 func (repo MySQLRepository) GetByPermissionId(ctx context.Context, permissionId string) (Model, error) {
 	var permission Permission
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&permission,
 		`
@@ -240,7 +240,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 		}
 	}
 
-	err := repo.DB(ctx).SelectContext(
+	err := repo.DB.SelectContext(
 		ctx,
 		&permissions,
 		query,
@@ -263,7 +263,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 }
 
 func (repo MySQLRepository) UpdateByPermissionId(ctx context.Context, permissionId string, model Model) error {
-	_, err := repo.DB(ctx).ExecContext(
+	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE permission
@@ -286,7 +286,7 @@ func (repo MySQLRepository) UpdateByPermissionId(ctx context.Context, permission
 }
 
 func (repo MySQLRepository) DeleteByPermissionId(ctx context.Context, permissionId string) error {
-	_, err := repo.DB(ctx).ExecContext(
+	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE permission

@@ -18,13 +18,13 @@ type PostgresRepository struct {
 
 func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	return PostgresRepository{
-		database.NewSQLRepository(db),
+		database.NewSQLRepository(&db.SQL),
 	}
 }
 
 func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newObjectId int64
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&newObjectId,
 		`
@@ -49,7 +49,7 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 
 func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var object Object
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&object,
 		`
@@ -75,7 +75,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, er
 
 func (repo PostgresRepository) GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (Model, error) {
 	var object Object
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&object,
 		`
@@ -243,7 +243,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 			replacements = append(replacements, listParams.Limit)
 		}
 	}
-	err := repo.DB(ctx).SelectContext(
+	err := repo.DB.SelectContext(
 		ctx,
 		&objects,
 		query,
@@ -266,7 +266,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 }
 
 func (repo PostgresRepository) DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) error {
-	_, err := repo.DB(ctx).ExecContext(
+	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE object
