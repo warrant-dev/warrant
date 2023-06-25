@@ -17,14 +17,14 @@ type SQLiteRepository struct {
 
 func NewSQLiteRepository(db *database.SQLite) SQLiteRepository {
 	return SQLiteRepository{
-		database.NewSQLRepository(db),
+		database.NewSQLRepository(&db.SQL),
 	}
 }
 
 func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newPricingTierId int64
 	now := time.Now().UTC()
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&newPricingTierId,
 		`
@@ -65,7 +65,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 
 func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var pricingTier PricingTier
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&pricingTier,
 		`
@@ -91,7 +91,7 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, erro
 
 func (repo SQLiteRepository) GetByPricingTierId(ctx context.Context, pricingTierId string) (Model, error) {
 	var pricingTier PricingTier
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&pricingTier,
 		`
@@ -244,7 +244,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams service.ListPa
 		}
 	}
 
-	err := repo.DB(ctx).SelectContext(
+	err := repo.DB.SelectContext(
 		ctx,
 		&pricingTiers,
 		query,
@@ -267,7 +267,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams service.ListPa
 }
 
 func (repo SQLiteRepository) UpdateByPricingTierId(ctx context.Context, pricingTierId string, model Model) error {
-	_, err := repo.DB(ctx).ExecContext(
+	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE pricingTier
@@ -292,7 +292,7 @@ func (repo SQLiteRepository) UpdateByPricingTierId(ctx context.Context, pricingT
 }
 
 func (repo SQLiteRepository) DeleteByPricingTierId(ctx context.Context, pricingTierId string) error {
-	_, err := repo.DB(ctx).ExecContext(
+	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE pricingTier

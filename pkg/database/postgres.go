@@ -162,7 +162,3 @@ func (ds Postgres) Ping(ctx context.Context) error {
 	}
 	return nil
 }
-
-func (ds Postgres) DbHandler(ctx context.Context) interface{} {
-	return &ds.SQL
-}

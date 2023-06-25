@@ -17,12 +17,12 @@ type MySQLRepository struct {
 
 func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	return MySQLRepository{
-		database.NewSQLRepository(db),
+		database.NewSQLRepository(&db.SQL),
 	}
 }
 
 func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, error) {
-	result, err := repo.DB(ctx).ExecContext(
+	result, err := repo.DB.ExecContext(
 		ctx,
 		`
 			INSERT INTO feature (
@@ -61,7 +61,7 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 
 func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var feature Feature
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&feature,
 		`
@@ -87,7 +87,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error
 
 func (repo MySQLRepository) GetByFeatureId(ctx context.Context, featureId string) (Model, error) {
 	var feature Feature
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&feature,
 		`
@@ -240,7 +240,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 		}
 	}
 
-	err := repo.DB(ctx).SelectContext(
+	err := repo.DB.SelectContext(
 		ctx,
 		&features,
 		query,
@@ -263,7 +263,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 }
 
 func (repo MySQLRepository) UpdateByFeatureId(ctx context.Context, featureId string, model Model) error {
-	_, err := repo.DB(ctx).ExecContext(
+	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE feature
@@ -286,7 +286,7 @@ func (repo MySQLRepository) UpdateByFeatureId(ctx context.Context, featureId str
 }
 
 func (repo MySQLRepository) DeleteByFeatureId(ctx context.Context, featureId string) error {
-	_, err := repo.DB(ctx).ExecContext(
+	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE feature

@@ -13,12 +13,12 @@ type MySQLRepository struct {
 
 func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	return MySQLRepository{
-		database.NewSQLRepository(db),
+		database.NewSQLRepository(&db.SQL),
 	}
 }
 
 func (repo MySQLRepository) Create(ctx context.Context, version int64) (int64, error) {
-	result, err := repo.DB(ctx).ExecContext(
+	result, err := repo.DB.ExecContext(
 		ctx,
 		`
 			INSERT INTO wookie (
@@ -40,7 +40,7 @@ func (repo MySQLRepository) Create(ctx context.Context, version int64) (int64, e
 
 func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var wookie Wookie
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&wookie,
 		`
@@ -59,7 +59,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error
 
 func (repo MySQLRepository) GetLatest(ctx context.Context) (Model, error) {
 	var wookie Wookie
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&wookie,
 		`

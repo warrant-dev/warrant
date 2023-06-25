@@ -17,12 +17,12 @@ type MySQLRepository struct {
 
 func NewMySQLRepository(db *database.MySQL) MySQLRepository {
 	return MySQLRepository{
-		database.NewSQLRepository(db),
+		database.NewSQLRepository(&db.SQL),
 	}
 }
 
 func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, error) {
-	result, err := repo.DB(ctx).ExecContext(
+	result, err := repo.DB.ExecContext(
 		ctx,
 		`
 			INSERT INTO objectType (
@@ -52,7 +52,7 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 
 func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error) {
 	var objectType ObjectType
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&objectType,
 		`
@@ -78,7 +78,7 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error
 
 func (repo MySQLRepository) GetByTypeId(ctx context.Context, typeId string) (Model, error) {
 	var objectType ObjectType
-	err := repo.DB(ctx).GetContext(
+	err := repo.DB.GetContext(
 		ctx,
 		&objectType,
 		`
@@ -231,7 +231,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 		}
 	}
 
-	err := repo.DB(ctx).SelectContext(
+	err := repo.DB.SelectContext(
 		ctx,
 		&objectTypes,
 		query,
@@ -254,7 +254,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 }
 
 func (repo MySQLRepository) UpdateByTypeId(ctx context.Context, typeId string, model Model) error {
-	_, err := repo.DB(ctx).ExecContext(
+	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE objectType
@@ -275,7 +275,7 @@ func (repo MySQLRepository) UpdateByTypeId(ctx context.Context, typeId string, m
 }
 
 func (repo MySQLRepository) DeleteByTypeId(ctx context.Context, typeId string) error {
-	_, err := repo.DB(ctx).ExecContext(
+	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE objectType

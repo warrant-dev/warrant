@@ -19,7 +19,7 @@ type PostgresRepository struct {
 
 func NewPostgresRepository(db *database.Postgres) PostgresRepository {
 	return PostgresRepository{
-		database.NewSQLRepository(db),
+		database.NewSQLRepository(&db.SQL),
 	}
 }
 
@@ -33,7 +33,7 @@ func (repo PostgresRepository) TrackResourceEvents(ctx context.Context, models [
 		resourceEvents = append(resourceEvents, *NewResourceEventFromModel(model))
 	}
 
-	result, err := repo.DB(ctx).NamedExecContext(
+	result, err := repo.DB.NamedExecContext(
 		ctx,
 		`
 		   INSERT INTO resource_event (
@@ -114,7 +114,7 @@ func (repo PostgresRepository) ListResourceEvents(ctx context.Context, listParam
 
 	query = fmt.Sprintf("%s %s ORDER BY created_at DESC, id DESC LIMIT ?", query, strings.Join(conditions, " AND "))
 	replacements = append(replacements, listParams.Limit)
-	err := repo.DB(ctx).SelectContext(
+	err := repo.DB.SelectContext(
 		ctx,
 		&resourceEvents,
 		query,
@@ -159,7 +159,7 @@ func (repo PostgresRepository) TrackAccessEvents(ctx context.Context, models []A
 		accessEvents = append(accessEvents, *NewAccessEventFromModel(model))
 	}
 
-	result, err := repo.DB(ctx).NamedExecContext(
+	result, err := repo.DB.NamedExecContext(
 		ctx,
 		`
 		   INSERT INTO access_event (
@@ -268,7 +268,7 @@ func (repo PostgresRepository) ListAccessEvents(ctx context.Context, listParams 
 
 	query = fmt.Sprintf("%s %s ORDER BY created_at DESC, id DESC LIMIT ?", query, strings.Join(conditions, " AND "))
 	replacements = append(replacements, listParams.Limit)
-	err := repo.DB(ctx).SelectContext(
+	err := repo.DB.SelectContext(
 		ctx,
 		&accessEvents,
 		query,

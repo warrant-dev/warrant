@@ -153,7 +153,3 @@ func (ds MySQL) Ping(ctx context.Context) error {
 	}
 	return nil
 }
-
-func (ds MySQL) DbHandler(ctx context.Context) interface{} {
-	return &ds.SQL
-}

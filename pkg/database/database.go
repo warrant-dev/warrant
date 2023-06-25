@@ -15,5 +15,4 @@ type Database interface {
 	Ping(ctx context.Context) error
 	ReplicaSafeRead(ctx context.Context, connCallback func(ctx context.Context) error) error
 	WithinTransaction(ctx context.Context, txCallback func(ctx context.Context) error) error
-	DbHandler(ctx context.Context) interface{}
 }
