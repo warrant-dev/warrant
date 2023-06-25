@@ -18,17 +18,27 @@ type wookieQueryContextKey struct{}
 type WookieService struct {
 	service.BaseService
 	Repository WookieRepository
+	Enabled    bool
 }
 
-func NewService(env service.Env, repository WookieRepository) WookieService {
+func NewService(env service.Env, repository WookieRepository, enabled bool) WookieService {
 	return WookieService{
 		BaseService: service.NewBaseService(env),
 		Repository:  repository,
+		Enabled:     enabled,
 	}
 }
 
 // Apply given updateFunc() and create a new wookie for this update. Returns the new wookie token.
 func (svc WookieService) WithWookieUpdate(ctx context.Context, updateFunc func(txCtx context.Context) error) (*Token, error) {
+	// If wookies are explicitly disabled, just run the updateFunc() in a tx
+	if !svc.Enabled {
+		e := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+			return updateFunc(txCtx)
+		})
+		return nil, e
+	}
+
 	_, hasQueryWookie := ctx.Value(wookieQueryContextKey{}).(*Token)
 	if hasQueryWookie {
 		return nil, errors.New("invalid state: can't call WookieUpdate() within WookieSafeRead()")
@@ -71,6 +81,11 @@ func (svc WookieService) WithWookieUpdate(ctx context.Context, updateFunc func(t
 }
 
 func (svc WookieService) WookieSafeRead(ctx context.Context, readFunc func(wkCtx context.Context) error) (*Token, error) {
+	// If wookies are explicitly disabled, just run the readFunc() without any wookie validation
+	if !svc.Enabled {
+		return nil, readFunc(ctx)
+	}
+
 	// A read is already in progress so continue with that ctx
 	queryWookie, hasQueryWookie := ctx.Value(wookieQueryContextKey{}).(*Token)
 	if hasQueryWookie {

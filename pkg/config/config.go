@@ -35,13 +35,14 @@ type Config interface {
 }
 
 type WarrantConfig struct {
-	Port            int               `mapstructure:"port"`
-	LogLevel        int8              `mapstructure:"logLevel"`
-	EnableAccessLog bool              `mapstructure:"enableAccessLog"`
-	AutoMigrate     bool              `mapstructure:"autoMigrate"`
-	Datastore       *DatastoreConfig  `mapstructure:"datastore"`
-	Eventstore      *EventstoreConfig `mapstructure:"eventstore"`
-	Authentication  *AuthConfig       `mapstructure:"authentication"`
+	Port                int               `mapstructure:"port"`
+	LogLevel            int8              `mapstructure:"logLevel"`
+	EnableAccessLog     bool              `mapstructure:"enableAccessLog"`
+	AutoMigrate         bool              `mapstructure:"autoMigrate"`
+	Datastore           *DatastoreConfig  `mapstructure:"datastore"`
+	Eventstore          *EventstoreConfig `mapstructure:"eventstore"`
+	Authentication      *AuthConfig       `mapstructure:"authentication"`
+	EnableWarrantTokens bool              `mapstructure:"enableWarrantTokens"`
 }
 
 func (warrantConfig WarrantConfig) GetPort() int {
@@ -138,6 +139,7 @@ func NewConfig() WarrantConfig {
 	viper.SetDefault("logLevel", zerolog.DebugLevel)
 	viper.SetDefault("enableAccessLog", true)
 	viper.SetDefault("autoMigrate", false)
+	viper.SetDefault("enableWarrantTokens", false)
 	viper.SetDefault("datastore.mysql.migrationSource", DefaultMySQLDatastoreMigrationSource)
 	viper.SetDefault("datastore.postgres.migrationSource", DefaultPostgresDatastoreMigrationSource)
 	viper.SetDefault("datastore.sqlite.migrationSource", DefaultSQLiteDatastoreMigrationSource)

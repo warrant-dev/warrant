@@ -201,7 +201,7 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize WookieRepository")
 	}
-	wookieSvc := wookie.NewService(svcEnv, wookieRepository)
+	wookieSvc := wookie.NewService(svcEnv, wookieRepository, cfg.EnableWarrantTokens)
 
 	// Init object type repo and service
 	objectTypeRepository, err := objecttype.NewRepository(svcEnv.DB())
