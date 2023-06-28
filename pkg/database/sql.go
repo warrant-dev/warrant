@@ -438,33 +438,22 @@ func (ds SQL) getQueryableFromContext(ctx context.Context) SqlQueryable {
 	return ds.Writer
 }
 
-func (ds SQL) recordQueryStat(ctx context.Context, queryable SqlQueryable, queryType string, duration time.Duration) {
-	prefix := ""
-	hostname := ""
-	db := ""
+func (ds SQL) recordQueryStat(ctx context.Context, queryable SqlQueryable, query string, duration time.Duration) {
+	sqlType := "sql.pool"
+	hostname := ds.WriterHostname
+	db := ds.DatabaseName
 	conn, isConn := queryable.(*ReadSqlConn)
 	tx, isTx := queryable.(*SqlTx)
 	if isConn {
-		prefix = "conn"
+		sqlType = "sql.conn"
 		hostname = conn.Hostname
 		db = conn.DatabaseName
 	} else if isTx {
-		prefix = "tx"
+		sqlType = "sql.tx"
 		hostname = tx.Hostname
 		db = tx.DatabaseName
-	} else {
-		prefix = "sql"
-		hostname = ds.WriterHostname
-		db = ds.DatabaseName
 	}
-	reqStats, ok := ctx.Value(stats.RequestStatsKey{}).(*stats.RequestStats)
-	if ok {
-		reqStats.RecordQuery(stats.QueryStat{
-			Store:     fmt.Sprintf("%s/%s", hostname, db),
-			QueryType: fmt.Sprintf("%s.%s", prefix, queryType),
-			Duration:  duration,
-		})
-	}
+	stats.RecordQueryStat(ctx, fmt.Sprintf("%s/%s", hostname, db), fmt.Sprintf("%s.%s", sqlType, query), duration)
 }
 
 type SQLRepository struct {
