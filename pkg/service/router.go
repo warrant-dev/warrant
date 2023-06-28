@@ -1,7 +1,6 @@
 package service
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -60,7 +59,7 @@ func NewRouter(config config.Config, pathPrefix string, routes []Route, authMidd
 		logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 	router.Use(hlog.NewHandler(logger))
-	router.Use(requestStatsMiddleware)
+	router.Use(stats.RequestStatsMiddleware)
 	if config.GetEnableAccessLog() {
 		router.Use(accessLogMiddleware)
 	}
@@ -101,17 +100,6 @@ func NewRouter(config config.Config, pathPrefix string, routes []Route, authMidd
 	return router, nil
 }
 
-// Create & inject a 'per-request' stats object into request context
-func requestStatsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		reqStats := stats.RequestStats{
-			Queries: make([]stats.QueryStat, 0),
-		}
-		newContext := context.WithValue(r.Context(), stats.RequestStatsKey{}, &reqStats)
-		next.ServeHTTP(w, r.WithContext(newContext))
-	})
-}
-
 func accessLogMiddleware(next http.Handler) http.Handler {
 	return hlog.AccessHandler(func(r *http.Request, status, size int, duration time.Duration) {
 		logger := hlog.FromRequest(r)
@@ -130,18 +118,6 @@ func accessLogMiddleware(next http.Handler) http.Handler {
 
 		if userAgent := r.UserAgent(); userAgent != "" {
 			logEvent = logEvent.Str("userAgent", userAgent)
-		}
-
-		if duration.Milliseconds() >= 500 {
-			logEvent = logEvent.Bool("slow", true)
-		}
-
-		reqStats, ok := r.Context().Value(stats.RequestStatsKey{}).(*stats.RequestStats)
-		if ok {
-			logEvent = logEvent.Int("numQueries", reqStats.NumQueries)
-			if logger.GetLevel() <= zerolog.DebugLevel {
-				logEvent.Object("requestStats", reqStats)
-			}
 		}
 
 		logEvent.Msg("ACCESS")

@@ -1,38 +1,75 @@
 package stats
 
 import (
+	"context"
+	"net/http"
 	"time"
 
 	"github.com/rs/zerolog"
 )
 
-type RequestStatsKey struct{}
-
-type QueryStat struct {
-	Store     string
-	QueryType string
-	Duration  time.Duration
+type Stat struct {
+	Store    string
+	Tag      string
+	Duration time.Duration
 }
 
-func (q QueryStat) MarshalZerologObject(e *zerolog.Event) {
-	e.Str("store", q.Store).Str("type", q.QueryType).Dur("duration", q.Duration)
+func (s Stat) MarshalZerologObject(e *zerolog.Event) {
+	e.Str("store", s.Store).Str("tag", s.Tag).Dur("duration", s.Duration)
 }
 
 type RequestStats struct {
-	NumQueries int
-	Queries    []QueryStat
-}
-
-func (s *RequestStats) RecordQuery(stat QueryStat) {
-	s.Queries = append(s.Queries, stat)
-	s.NumQueries++
+	Stats []Stat
 }
 
 func (s *RequestStats) MarshalZerologObject(e *zerolog.Event) {
-	e.Int("numQueries", s.NumQueries)
 	arr := zerolog.Arr()
-	for _, query := range s.Queries {
-		arr.Object(query)
+	for _, stat := range s.Stats {
+		arr.Object(stat)
 	}
-	e.Array("queries", arr)
+	e.Array("stats", arr)
+}
+
+type requestStatsKey struct{}
+type statTagKey struct{}
+
+// Create & inject a 'per-request' stats object into request context
+func RequestStatsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		reqStats := RequestStats{
+			Stats: make([]Stat, 0),
+		}
+		ctxWithReqStats := context.WithValue(r.Context(), requestStatsKey{}, &reqStats)
+		next.ServeHTTP(w, r.WithContext(ctxWithReqStats))
+	})
+}
+
+// Get RequestStats from ctx, if present
+func GetRequestStatsFromContext(ctx context.Context) *RequestStats {
+	if reqStats, ok := ctx.Value(requestStatsKey{}).(*RequestStats); ok {
+		return reqStats
+	}
+	return nil
+}
+
+// Append a new Stat to the RequestStats obj in provided context, if present
+func RecordStat(ctx context.Context, store string, tag string, duration time.Duration) {
+	if reqStats, ok := ctx.Value(requestStatsKey{}).(*RequestStats); ok {
+		if tagPrefix, ctxHasTag := ctx.Value(statTagKey{}).(string); ctxHasTag {
+			tag = tagPrefix + "." + tag
+		}
+		reqStats.Stats = append(reqStats.Stats, Stat{
+			Store:    store,
+			Tag:      tag,
+			Duration: duration,
+		})
+	}
+}
+
+// Returns a new context with given crumb appended to existing tag, if present. Otherwise, tracks the new tag in returned context. Useful for adding breadcrumbs to a Stat prior to a recording it.
+func ContextWithTagCrumb(ctx context.Context, crumb string) context.Context {
+	if tag, ok := ctx.Value(statTagKey{}).(string); ok {
+		return context.WithValue(ctx, statTagKey{}, tag+"."+crumb)
+	}
+	return context.WithValue(ctx, statTagKey{}, crumb)
 }
