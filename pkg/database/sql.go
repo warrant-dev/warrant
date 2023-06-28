@@ -453,7 +453,7 @@ func (ds SQL) recordQueryStat(ctx context.Context, queryable SqlQueryable, query
 		hostname = tx.Hostname
 		db = tx.DatabaseName
 	}
-	stats.RecordQueryStat(ctx, fmt.Sprintf("%s/%s", hostname, db), fmt.Sprintf("%s.%s", sqlType, query), duration)
+	stats.RecordStat(ctx, fmt.Sprintf("%s/%s", hostname, db), fmt.Sprintf("%s.%s", sqlType, query), duration)
 }
 
 type SQLRepository struct {
