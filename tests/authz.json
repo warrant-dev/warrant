@@ -729,7 +729,7 @@
             }
         },
         {
-            "name": "removeRoleSeniorAccountantFromUserWithContext",
+            "name": "removeRoleSeniorAccountantFromUserAInTenantA",
             "request": {
                 "method": "DELETE",
                 "url": "/v1/warrants",
@@ -742,6 +742,26 @@
                         "objectId": "user-a"
                     },
                     "policy": "tenant == \"tenant-a\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeRoleAdminFromUserBInTenantB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "admin",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-b"
+                    },
+                    "policy": "tenant == \"tenant-b\""
                 }
             },
             "expectedResponse": {

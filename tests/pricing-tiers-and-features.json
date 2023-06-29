@@ -4,69 +4,69 @@
     ],
     "tests": [
         {
-            "name": "createUser1ForTenant1",
+            "name": "createUser1",
             "request": {
                 "method": "POST",
                 "url": "/v1/users",
                 "body": {
-                    "userId": "user1-t1"
+                    "userId": "user1"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "userId": "user1-t1",
+                    "userId": "user1",
                     "email": null
                 }
             }
         },
         {
-            "name": "createUser2ForTenant2",
+            "name": "createUser2",
             "request": {
                 "method": "POST",
                 "url": "/v1/users",
                 "body": {
-                    "userId": "user2-t2"
+                    "userId": "user2"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "userId": "user2-t2",
+                    "userId": "user2",
                     "email": null
                 }
             }
         },
         {
-            "name": "createTenant1Free",
+            "name": "createTenant1",
             "request": {
                 "method": "POST",
                 "url": "/v1/tenants",
                 "body": {
-                    "tenantId": "tenant1-free"
+                    "tenantId": "tenant1"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "tenantId": "tenant1-free",
+                    "tenantId": "tenant1",
                     "name": null
                 }
             }
         },
         {
-            "name": "createTenant2Enterprise",
+            "name": "createTenant2",
             "request": {
                 "method": "POST",
                 "url": "/v1/tenants",
                 "body": {
-                    "tenantId": "tenant2-enterprise"
+                    "tenantId": "tenant2"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "tenantId": "tenant2-enterprise",
+                    "tenantId": "tenant2",
                     "name": null
                 }
             }
@@ -78,11 +78,11 @@
                 "url": "/v1/warrants",
                 "body": {
                     "objectType": "tenant",
-                    "objectId": "tenant1-free",
+                    "objectId": "tenant1",
                     "relation": "member",
                     "subject": {
                         "objectType": "user",
-                        "objectId": "user1-t1"
+                        "objectId": "user1"
                     }
                 }
             },
@@ -90,11 +90,11 @@
                 "statusCode": 200,
                 "body": {
                     "objectType": "tenant",
-                    "objectId": "tenant1-free",
+                    "objectId": "tenant1",
                     "relation": "member",
                     "subject": {
                         "objectType": "user",
-                        "objectId": "user1-t1"
+                        "objectId": "user1"
                     }
                 }
             }
@@ -106,11 +106,11 @@
                 "url": "/v1/warrants",
                 "body": {
                     "objectType": "tenant",
-                    "objectId": "tenant2-enterprise",
+                    "objectId": "tenant2",
                     "relation": "member",
                     "subject": {
                         "objectType": "user",
-                        "objectId": "user2-t2"
+                        "objectId": "user2"
                     }
                 }
             },
@@ -118,11 +118,11 @@
                 "statusCode": 200,
                 "body": {
                     "objectType": "tenant",
-                    "objectId": "tenant2-enterprise",
+                    "objectId": "tenant2",
                     "relation": "member",
                     "subject": {
                         "objectType": "user",
-                        "objectId": "user2-t2"
+                        "objectId": "user2"
                     }
                 }
             }
@@ -298,7 +298,7 @@
                     "relation": "member",
                     "subject": {
                         "objectType": "tenant",
-                        "objectId": "tenant1-free"
+                        "objectId": "tenant1"
                     }
                 }
             },
@@ -310,7 +310,7 @@
                     "relation": "member",
                     "subject": {
                         "objectType": "tenant",
-                        "objectId": "tenant1-free"
+                        "objectId": "tenant1"
                     }
                 }
             }
@@ -326,7 +326,7 @@
                     "relation": "member",
                     "subject": {
                         "objectType": "tenant",
-                        "objectId": "tenant2-enterprise"
+                        "objectId": "tenant2"
                     }
                 }
             },
@@ -338,7 +338,7 @@
                     "relation": "member",
                     "subject": {
                         "objectType": "tenant",
-                        "objectId": "tenant2-enterprise"
+                        "objectId": "tenant2"
                     }
                 }
             }
@@ -357,7 +357,7 @@
                             "relation": "member",
                             "subject": {
                                 "objectType": "tenant",
-                                "objectId": "tenant1-free"
+                                "objectId": "tenant1"
                             }
                         }
                     ]
@@ -385,7 +385,7 @@
                             "relation": "member",
                             "subject": {
                                 "objectType": "tenant",
-                                "objectId": "tenant1-free"
+                                "objectId": "tenant1"
                             }
                         }
                     ]
@@ -413,7 +413,7 @@
                             "relation": "member",
                             "subject": {
                                 "objectType": "user",
-                                "objectId": "user1-t1"
+                                "objectId": "user1"
                             }
                         }
                     ]
@@ -441,7 +441,7 @@
                             "relation": "member",
                             "subject": {
                                 "objectType": "user",
-                                "objectId": "user1-t1"
+                                "objectId": "user1"
                             }
                         }
                     ]
@@ -469,7 +469,7 @@
                             "relation": "member",
                             "subject": {
                                 "objectType": "tenant",
-                                "objectId": "tenant2-enterprise"
+                                "objectId": "tenant2"
                             }
                         }
                     ]
@@ -497,7 +497,7 @@
                             "relation": "member",
                             "subject": {
                                 "objectType": "tenant",
-                                "objectId": "tenant2-enterprise"
+                                "objectId": "tenant2"
                             }
                         }
                     ]
@@ -525,7 +525,7 @@
                             "relation": "member",
                             "subject": {
                                 "objectType": "user",
-                                "objectId": "user2-t2"
+                                "objectId": "user2"
                             }
                         }
                     ]
@@ -553,7 +553,7 @@
                             "relation": "member",
                             "subject": {
                                 "objectType": "user",
-                                "objectId": "user2-t2"
+                                "objectId": "user2"
                             }
                         }
                     ]
@@ -568,30 +568,76 @@
             }
         },
         {
-            "name": "deleteFreePricingTier",
+            "name": "removeEnterpriseTierFromTenant2",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/pricing-tiers/free"
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "pricing-tier",
+                    "objectId": "enterprise",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "tenant",
+                        "objectId": "tenant2"
+                    }
+                }
             },
             "expectedResponse": {
                 "statusCode": 200
             }
         },
         {
-            "name": "deleteEnterprisePricingTier",
+            "name": "removeFreeTierFromTenant1",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/pricing-tiers/enterprise"
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "pricing-tier",
+                    "objectId": "free",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "tenant",
+                        "objectId": "tenant1"
+                    }
+                }
             },
             "expectedResponse": {
                 "statusCode": 200
             }
         },
         {
-            "name": "deleteDashboardFeature",
+            "name": "removeEnterpriseTierImpliesFreeTier",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/features/dashboard"
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "pricing-tier",
+                    "objectId": "free",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "pricing-tier",
+                        "objectId": "enterprise"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeDashboardFeatureFromFreeTier",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "feature",
+                    "objectId": "dashboard",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "pricing-tier",
+                        "objectId": "free"
+                    }
+                }
             },
             "expectedResponse": {
                 "statusCode": 200
@@ -608,10 +654,68 @@
             }
         },
         {
-            "name": "deleteTenant1",
+            "name": "deleteDashboardFeature",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/tenants/tenant1-free"
+                "url": "/v1/features/dashboard"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteEnterprisePricingTier",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/pricing-tiers/enterprise"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteFreePricingTier",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/pricing-tiers/free"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeUser2FromTenant2",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "tenant",
+                    "objectId": "tenant2",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user2"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeUser1FromTenant1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "tenant",
+                    "objectId": "tenant1",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user1"
+                    }
+                }
             },
             "expectedResponse": {
                 "statusCode": 200
@@ -621,17 +725,27 @@
             "name": "deleteTenant2",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/tenants/tenant2-enterprise"
+                "url": "/v1/tenants/tenant2"
             },
             "expectedResponse": {
                 "statusCode": 200
             }
         },
         {
-            "name": "deleteUser1",
+            "name": "deleteTenant1",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/users/user1-t1"
+                "url": "/v1/tenants/tenant1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteTenant2",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/tenants/tenant2"
             },
             "expectedResponse": {
                 "statusCode": 200
@@ -641,7 +755,17 @@
             "name": "deleteUser2",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/users/user2-t2"
+                "url": "/v1/users/user2"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUser1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/user1"
             },
             "expectedResponse": {
                 "statusCode": 200

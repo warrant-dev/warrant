@@ -229,7 +229,7 @@
                         "objectType": "user",
                         "objectId": "user-a"
                     },
-                    "policy": "clientIp matches \"192\\.168\\..*\\..*\""
+                    "policy": "clientIp matches \"192\\\\.168\\\\..*\\\\..*\""
                 }
             },
             "expectedResponse": {

@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -111,11 +110,10 @@ func UpdateHandler(svc TenantService, w http.ResponseWriter, r *http.Request) er
 
 func DeleteHandler(svc TenantService, w http.ResponseWriter, r *http.Request) error {
 	tenantId := mux.Vars(r)["tenantId"]
-	newWookie, err := svc.DeleteByTenantId(r.Context(), tenantId)
+	err := svc.DeleteByTenantId(r.Context(), tenantId)
 	if err != nil {
 		return err
 	}
-	wookie.AddAsResponseHeader(w, newWookie)
 
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusOK)

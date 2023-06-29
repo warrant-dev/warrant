@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -110,11 +109,10 @@ func UpdateHandler(svc UserService, w http.ResponseWriter, r *http.Request) erro
 
 func DeleteHandler(svc UserService, w http.ResponseWriter, r *http.Request) error {
 	userId := mux.Vars(r)["userId"]
-	newWookie, err := svc.DeleteByUserId(r.Context(), userId)
+	err := svc.DeleteByUserId(r.Context(), userId)
 	if err != nil {
 		return err
 	}
-	wookie.AddAsResponseHeader(w, newWookie)
 
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusOK)

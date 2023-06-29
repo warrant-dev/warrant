@@ -139,24 +139,3 @@ func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) (
 
 	return newWookie, nil
 }
-
-func (svc WarrantService) DeleteRelatedWarrants(ctx context.Context, objectType string, objectId string) (*wookie.Token, error) {
-	newWookie, e := svc.WookieSvc.WithWookieUpdate(ctx, func(txCtx context.Context) error {
-		err := svc.Repository.DeleteAllByObject(txCtx, objectType, objectId)
-		if err != nil {
-			return err
-		}
-
-		err = svc.Repository.DeleteAllBySubject(txCtx, objectType, objectId)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-	if e != nil {
-		return nil, e
-	}
-
-	return newWookie, nil
-}
