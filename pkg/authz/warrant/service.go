@@ -193,11 +193,11 @@ func (svc WarrantService) DeleteRelatedWarrants(ctx context.Context, objectType 
 			if err != nil {
 				return err
 			}
-		}
 
-		err = svc.EventSvc.TrackAccessEvents(ctx, accessRevokedEvents)
-		if err != nil {
-			return err
+			err = svc.EventSvc.TrackAccessEvents(ctx, accessRevokedEvents)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
