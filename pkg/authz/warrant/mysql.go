@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -60,32 +61,39 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 	return newWarrantId, nil
 }
 
-func (repo MySQLRepository) DeleteById(ctx context.Context, id int64) error {
-	_, err := repo.DB.ExecContext(
-		ctx,
+func (repo MySQLRepository) DeleteById(ctx context.Context, ids []int64) error {
+	query, args, err := sqlx.In(
 		`
 			UPDATE warrant
 			SET deletedAt = ?
 			WHERE
-				id = ? AND
+				id IN (?) AND
 				deletedAt IS NULL
 		`,
 		time.Now().UTC(),
-		id,
+		ids,
+	)
+	if err != nil {
+		return errors.Wrapf(err, "error deleting warrants %v", ids)
+	}
+	_, err = repo.DB.ExecContext(
+		ctx,
+		query,
+		args...,
 	)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return service.NewRecordNotFoundError("Warrant", id)
+			return nil
 		default:
-			return errors.Wrapf(err, "error deleting warrant %d", id)
+			return errors.Wrapf(err, "error deleting warrants %v", ids)
 		}
 	}
 
 	return nil
 }
 
-func (repo MySQLRepository) DeleteAllByObject(ctx context.Context, objectType string, objectId string) error {
+func (repo MySQLRepository) Delete(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -95,50 +103,106 @@ func (repo MySQLRepository) DeleteAllByObject(ctx context.Context, objectType st
 			WHERE
 				objectType = ? AND
 				objectId = ? AND
+				relation = ? AND
+				subjectType = ? AND
+				subjectId = ? AND
+				subjectRelation = ? AND
+				policyHash = ? AND
 				deletedAt IS NULL
 		`,
 		time.Now().UTC(),
 		objectType,
 		objectId,
+		relation,
+		subjectType,
+		subjectId,
+		subjectRelation,
+		policyHash,
 	)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return nil
+			wntErrorId := fmt.Sprintf("%s:%s#%s@%s:%s", objectType, objectId, relation, subjectType, subjectId)
+			if subjectRelation != "" {
+				wntErrorId = fmt.Sprintf("%s#%s", wntErrorId, subjectRelation)
+			}
+			if policyHash != "" {
+				wntErrorId = fmt.Sprintf("%s[%s]", wntErrorId, policyHash)
+			}
+
+			return service.NewRecordNotFoundError("Warrant", wntErrorId)
 		default:
-			return errors.Wrapf(err, "error deleting warrants with object %s:%s", objectType, objectId)
+			return errors.Wrap(err, "error deleting warrant")
 		}
 	}
 
 	return nil
 }
 
-func (repo MySQLRepository) DeleteAllBySubject(ctx context.Context, subjectType string, subjectId string) error {
-	_, err := repo.DB.ExecContext(
+func (repo MySQLRepository) GetAllMatchingObject(ctx context.Context, objectType string, objectId string) ([]Model, error) {
+	models := make([]Model, 0)
+	warrants := make([]Warrant, 0)
+	err := repo.DB.SelectContext(
 		ctx,
+		&warrants,
 		`
-			UPDATE warrant
-			SET
-				deletedAt = ?
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, policy, createdAt, updatedAt, deletedAt
+			FROM warrant
+			WHERE
+				objectType = ? AND
+				objectId = ? AND
+				deletedAt IS NULL
+		`,
+		objectType,
+		objectId,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return models, nil
+		default:
+			return models, errors.Wrapf(err, "error deleting warrants with object %s:%s", objectType, objectId)
+		}
+	}
+
+	for i := range warrants {
+		models = append(models, &warrants[i])
+	}
+
+	return models, nil
+}
+
+func (repo MySQLRepository) GetAllMatchingSubject(ctx context.Context, subjectType string, subjectId string) ([]Model, error) {
+	models := make([]Model, 0)
+	warrants := make([]Warrant, 0)
+	err := repo.DB.SelectContext(
+		ctx,
+		&warrants,
+		`
+			SELECT id, objectType, objectId, relation, subjectType, subjectId, subjectRelation, policy, createdAt, updatedAt, deletedAt
+			FROM warrant
 			WHERE
 				subjectType = ? AND
 				subjectId = ? AND
 				deletedAt IS NULL
 		`,
-		time.Now().UTC(),
 		subjectType,
 		subjectId,
 	)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return nil
+			return models, nil
 		default:
-			return errors.Wrapf(err, "error deleting warrants with subject %s:%s", subjectType, subjectId)
+			return models, errors.Wrapf(err, "error deleting warrants with subject %s:%s", subjectType, subjectId)
 		}
 	}
 
-	return nil
+	for i := range warrants {
+		models = append(models, &warrants[i])
+	}
+
+	return models, nil
 }
 
 func (repo MySQLRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) (Model, error) {

@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -59,32 +60,39 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 	return newWarrantId, nil
 }
 
-func (repo PostgresRepository) DeleteById(ctx context.Context, id int64) error {
-	_, err := repo.DB.ExecContext(
-		ctx,
+func (repo PostgresRepository) DeleteById(ctx context.Context, ids []int64) error {
+	query, args, err := sqlx.In(
 		`
 			UPDATE warrant
 			SET deleted_at = ?
 			WHERE
-				id = ? AND
+				id IN (?) AND
 				deleted_at IS NULL
 		`,
 		time.Now().UTC(),
-		id,
+		ids,
+	)
+	if err != nil {
+		return errors.Wrapf(err, "error deleting warrants %v", ids)
+	}
+	_, err = repo.DB.ExecContext(
+		ctx,
+		query,
+		args...,
 	)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return service.NewRecordNotFoundError("Warrant", id)
+			return nil
 		default:
-			return errors.Wrapf(err, "error deleting warrant %d", id)
+			return errors.Wrapf(err, "error deleting warrants %v", ids)
 		}
 	}
 
 	return nil
 }
 
-func (repo PostgresRepository) DeleteAllByObject(ctx context.Context, objectType string, objectId string) error {
+func (repo PostgresRepository) Delete(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) error {
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -94,50 +102,106 @@ func (repo PostgresRepository) DeleteAllByObject(ctx context.Context, objectType
 			WHERE
 				object_type = ? AND
 				object_id = ? AND
+				relation = ? AND
+				subject_type = ? AND
+				subject_id = ? AND
+				subject_relation = ? AND
+				policy_hash = ? AND
 				deleted_at IS NULL
 		`,
 		time.Now().UTC(),
 		objectType,
 		objectId,
+		relation,
+		subjectType,
+		subjectId,
+		subjectRelation,
+		policyHash,
 	)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return nil
+			wntErrorId := fmt.Sprintf("%s:%s#%s@%s:%s", objectType, objectId, relation, subjectType, subjectId)
+			if subjectRelation != "" {
+				wntErrorId = fmt.Sprintf("%s#%s", wntErrorId, subjectRelation)
+			}
+			if policyHash != "" {
+				wntErrorId = fmt.Sprintf("%s[%s]", wntErrorId, policyHash)
+			}
+
+			return service.NewRecordNotFoundError("Warrant", wntErrorId)
 		default:
-			return errors.Wrapf(err, "error deleting warrants with object %s:%s", objectType, objectId)
+			return errors.Wrap(err, "error deleting warrant")
 		}
 	}
 
 	return nil
 }
 
-func (repo PostgresRepository) DeleteAllBySubject(ctx context.Context, subjectType string, subjectId string) error {
-	_, err := repo.DB.ExecContext(
+func (repo PostgresRepository) GetAllMatchingObject(ctx context.Context, objectType string, objectId string) ([]Model, error) {
+	models := make([]Model, 0)
+	warrants := make([]Warrant, 0)
+	err := repo.DB.SelectContext(
 		ctx,
+		&warrants,
 		`
-			UPDATE warrant
-			SET
-				deleted_at = ?
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, policy, created_at, updated_at, deleted_at
+			FROM warrant
+			WHERE
+				object_type = ? AND
+				object_id = ? AND
+				deleted_at IS NULL
+		`,
+		objectType,
+		objectId,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return models, nil
+		default:
+			return models, errors.Wrapf(err, "error deleting warrants with object %s:%s", objectType, objectId)
+		}
+	}
+
+	for i := range warrants {
+		models = append(models, &warrants[i])
+	}
+
+	return models, nil
+}
+
+func (repo PostgresRepository) GetAllMatchingSubject(ctx context.Context, subjectType string, subjectId string) ([]Model, error) {
+	models := make([]Model, 0)
+	warrants := make([]Warrant, 0)
+	err := repo.DB.SelectContext(
+		ctx,
+		&warrants,
+		`
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, policy, created_at, updated_at, deleted_at
+			FROM warrant
 			WHERE
 				subject_type = ? AND
 				subject_id = ? AND
 				deleted_at IS NULL
 		`,
-		time.Now().UTC(),
 		subjectType,
 		subjectId,
 	)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
-			return nil
+			return models, nil
 		default:
-			return errors.Wrapf(err, "error deleting warrants with subject %s:%s", subjectType, subjectId)
+			return models, errors.Wrapf(err, "error deleting warrants with subject %s:%s", subjectType, subjectId)
 		}
 	}
 
-	return nil
+	for i := range warrants {
+		models = append(models, &warrants[i])
+	}
+
+	return models, nil
 }
 
 func (repo PostgresRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) (Model, error) {
