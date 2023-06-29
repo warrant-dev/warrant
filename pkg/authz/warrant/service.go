@@ -110,12 +110,12 @@ func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) (
 			return nil
 		}
 
-		warrant, err := svc.Repository.Get(txCtx, warrantToDelete.GetObjectType(), warrantToDelete.GetObjectId(), warrantToDelete.GetRelation(), warrantToDelete.GetSubjectType(), warrantToDelete.GetSubjectId(), warrantToDelete.GetSubjectRelation(), warrantToDelete.GetPolicyHash())
+		_, err = svc.Repository.Get(txCtx, warrantToDelete.GetObjectType(), warrantToDelete.GetObjectId(), warrantToDelete.GetRelation(), warrantToDelete.GetSubjectType(), warrantToDelete.GetSubjectId(), warrantToDelete.GetSubjectRelation(), warrantToDelete.GetPolicyHash())
 		if err != nil {
 			return err
 		}
 
-		err = svc.Repository.DeleteById(txCtx, warrant.GetID())
+		err = svc.Repository.Delete(txCtx, warrantToDelete.GetObjectType(), warrantToDelete.GetObjectId(), warrantToDelete.GetRelation(), warrantToDelete.GetSubjectType(), warrantToDelete.GetSubjectId(), warrantToDelete.GetSubjectRelation(), warrantToDelete.GetPolicyHash())
 		if err != nil {
 			return err
 		}
@@ -142,12 +142,60 @@ func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) (
 
 func (svc WarrantService) DeleteRelatedWarrants(ctx context.Context, objectType string, objectId string) (*wookie.Token, error) {
 	newWookie, e := svc.WookieSvc.WithWookieUpdate(ctx, func(txCtx context.Context) error {
-		err := svc.Repository.DeleteAllByObject(txCtx, objectType, objectId)
+		warrantIdsToDelete := make([]int64, 0)
+		accessRevokedEvents := make([]event.CreateAccessEventSpec, 0)
+		warrantsMatchingObject, err := svc.Repository.GetAllMatchingObject(txCtx, objectType, objectId)
 		if err != nil {
 			return err
 		}
 
-		err = svc.Repository.DeleteAllBySubject(txCtx, objectType, objectId)
+		for _, warrant := range warrantsMatchingObject {
+			warrantIdsToDelete = append(warrantIdsToDelete, warrant.GetID())
+			accessRevokedEvents = append(accessRevokedEvents, event.CreateAccessEventSpec{
+				Type:            event.EventTypeAccessRevoked,
+				Source:          event.EventSourceApi,
+				ObjectType:      warrant.GetObjectType(),
+				ObjectId:        warrant.GetObjectId(),
+				Relation:        warrant.GetRelation(),
+				SubjectType:     warrant.GetSubjectType(),
+				SubjectId:       warrant.GetSubjectId(),
+				SubjectRelation: warrant.GetSubjectRelation(),
+				Meta: map[string]interface{}{
+					"policy": warrant.GetPolicy(),
+				},
+			})
+		}
+
+		warrantsMatchingSubject, err := svc.Repository.GetAllMatchingSubject(txCtx, objectType, objectId)
+		if err != nil {
+			return err
+		}
+
+		for _, warrant := range warrantsMatchingSubject {
+			warrantIdsToDelete = append(warrantIdsToDelete, warrant.GetID())
+			accessRevokedEvents = append(accessRevokedEvents, event.CreateAccessEventSpec{
+				Type:            event.EventTypeAccessRevoked,
+				Source:          event.EventSourceApi,
+				ObjectType:      warrant.GetObjectType(),
+				ObjectId:        warrant.GetObjectId(),
+				Relation:        warrant.GetRelation(),
+				SubjectType:     warrant.GetSubjectType(),
+				SubjectId:       warrant.GetSubjectId(),
+				SubjectRelation: warrant.GetSubjectRelation(),
+				Meta: map[string]interface{}{
+					"policy": warrant.GetPolicy(),
+				},
+			})
+		}
+
+		if len(warrantIdsToDelete) > 0 {
+			err = svc.Repository.DeleteById(ctx, warrantIdsToDelete)
+			if err != nil {
+				return err
+			}
+		}
+
+		err = svc.EventSvc.TrackAccessEvents(ctx, accessRevokedEvents)
 		if err != nil {
 			return err
 		}
