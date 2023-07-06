@@ -40,6 +40,14 @@ Note: You must use 2 different databases for `datastore` and `eventstore`. You c
 
 The `synchronizeEvents` attribute in the eventstore section is false by default. Setting it to true means that all events will be tracked in order within the same transaction (helpful for testing locally).
 
+You may also customize your database or eventstore connection by providing a [DSN (Data Source Name)](https://github.com/go-sql-driver/mysql#dsn-data-source-name). If provided, this string is used to open the given database rather using the individual variables, i.e. `user`, `password`, `hostname`.
+
+```yaml
+datastore:
+  mysql:
+    dsn: root:@tcp(127.0.0.1:3306)/warrant
+```
+
 ## Running db migrations
 
 Warrant uses [golang-migrate](https://github.com/golang-migrate/migrate) to manage sql db migrations. If the `autoMigrate` config flag is set to true, the server will automatically run migrations on start. If you prefer managing migrations and upgrades manually, please set the `autoMigrate` flag to false.
