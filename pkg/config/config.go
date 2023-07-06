@@ -91,6 +91,7 @@ type MySQLConfig struct {
 	ReaderMaxIdleConnections int    `mapstructure:"readerMaxIdleConnections"`
 	ReaderMaxOpenConnections int    `mapstructure:"readerMaxOpenConnections"`
 	DSN                      string `mapstructure:"dsn"`
+	ReaderDSN                string `mapstructure:"readerDsn"`
 }
 
 type PostgresConfig struct {

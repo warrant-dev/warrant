@@ -68,8 +68,8 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 	// connect to reader if provided
 	if ds.Config.ReaderHostname != "" {
 		var reader *sqlx.DB
-		if ds.Config.DSN != "" {
-			reader, err = sqlx.Open("mysql", ds.Config.DSN)
+		if ds.Config.ReaderDSN != "" {
+			reader, err = sqlx.Open("mysql", ds.Config.ReaderDSN)
 		} else {
 			reader, err = sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", ds.Config.Username, ds.Config.Password, ds.Config.ReaderHostname, ds.Config.Database))
 		}
