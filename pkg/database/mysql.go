@@ -36,7 +36,12 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 	var db *sqlx.DB
 	var err error
 
-	db, err = sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.Database))
+	if ds.Config.DSN != "" {
+		log.Debug().Msgf("DSN: %+v", ds.Config.DSN)
+		db, err = sqlx.Open("mysql", ds.Config.DSN)
+	} else {
+		db, err = sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.Database))
+	}
 	if err != nil {
 		return errors.Wrap(err, "Unable to establish connection to mysql. Shutting down server.")
 	}
@@ -62,7 +67,12 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 
 	// connect to reader if provided
 	if ds.Config.ReaderHostname != "" {
-		reader, err := sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", ds.Config.Username, ds.Config.Password, ds.Config.ReaderHostname, ds.Config.Database))
+		var reader *sqlx.DB
+		if ds.Config.DSN != "" {
+			reader, err = sqlx.Open("mysql", ds.Config.DSN)
+		} else {
+			reader, err = sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", ds.Config.Username, ds.Config.Password, ds.Config.ReaderHostname, ds.Config.Database))
+		}
 		if err != nil {
 			return errors.Wrap(err, "Unable to establish connection to mysql reader. Shutting down server.")
 		}
