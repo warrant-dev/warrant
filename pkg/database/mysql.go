@@ -36,21 +36,6 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 	var db *sqlx.DB
 	var err error
 
-	// open new database connection without specifying the database name
-	db, err = sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/?parseTime=true", ds.Config.Username, ds.Config.Password, ds.Config.Hostname))
-	if err != nil {
-		return errors.Wrap(err, "Unable to establish connection to mysql. Shutting down server.")
-	}
-
-	// create database if it does not already exist
-	_, err = db.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", ds.Config.Database))
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to create database %s in mysql", ds.Config.Database))
-	}
-
-	db.Close()
-
-	// open new database connection, this time specifying the database name
 	db, err = sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.Database))
 	if err != nil {
 		return errors.Wrap(err, "Unable to establish connection to mysql. Shutting down server.")
