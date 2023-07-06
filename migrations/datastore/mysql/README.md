@@ -45,8 +45,9 @@ You may also customize your database or eventstore connection by providing a [DS
 ```yaml
 datastore:
   mysql:
-    dsn: root:@tcp(127.0.0.1:3306)/warrant
+    dsn: root:@tcp(127.0.0.1:3306)/warrant?parseTime=true
 ```
+Note: `parseTime=true` must be included when providing a DSN to parse `DATE` and `DATETIME` values to `time.Time`.
 
 ## Running db migrations
 
