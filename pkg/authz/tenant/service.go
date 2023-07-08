@@ -18,11 +18,11 @@ type TenantService struct {
 	service.BaseService
 	Repository TenantRepository
 	EventSvc   event.Service
-	ObjectSvc  object.ObjectService
+	ObjectSvc  *object.ObjectService
 }
 
-func NewService(env service.Env, repository TenantRepository, eventSvc event.Service, objectSvc object.ObjectService) TenantService {
-	return TenantService{
+func NewService(env service.Env, repository TenantRepository, eventSvc event.Service, objectSvc *object.ObjectService) *TenantService {
+	return &TenantService{
 		BaseService: service.NewBaseService(env),
 		Repository:  repository,
 		EventSvc:    eventSvc,

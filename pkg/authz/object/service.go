@@ -14,11 +14,11 @@ type ObjectService struct {
 	service.BaseService
 	Repository ObjectRepository
 	EventSvc   event.Service
-	WarrantSvc warrant.WarrantService
+	WarrantSvc *warrant.WarrantService
 }
 
-func NewService(env service.Env, repository ObjectRepository, eventSvc event.Service, warrantSvc warrant.WarrantService) ObjectService {
-	return ObjectService{
+func NewService(env service.Env, repository ObjectRepository, eventSvc event.Service, warrantSvc *warrant.WarrantService) *ObjectService {
+	return &ObjectService{
 		BaseService: service.NewBaseService(env),
 		Repository:  repository,
 		EventSvc:    eventSvc,

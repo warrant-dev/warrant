@@ -17,12 +17,12 @@ type CheckService struct {
 	service.BaseService
 	WarrantRepository warrant.WarrantRepository
 	EventSvc          event.Service
-	ObjectTypeSvc     objecttype.ObjectTypeService
-	WookieSvc         wookie.WookieService
+	ObjectTypeSvc     *objecttype.ObjectTypeService
+	WookieSvc         *wookie.WookieService
 }
 
-func NewService(env service.Env, warrantRepo warrant.WarrantRepository, eventSvc event.Service, objectTypeSvc objecttype.ObjectTypeService, wookieSvc wookie.WookieService) CheckService {
-	return CheckService{
+func NewService(env service.Env, warrantRepo warrant.WarrantRepository, eventSvc event.Service, objectTypeSvc *objecttype.ObjectTypeService, wookieSvc *wookie.WookieService) *CheckService {
+	return &CheckService{
 		BaseService:       service.NewBaseService(env),
 		WarrantRepository: warrantRepo,
 		EventSvc:          eventSvc,

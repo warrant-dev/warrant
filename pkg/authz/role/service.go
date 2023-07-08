@@ -16,11 +16,11 @@ type RoleService struct {
 	service.BaseService
 	Repository RoleRepository
 	EventSvc   event.Service
-	ObjectSvc  object.ObjectService
+	ObjectSvc  *object.ObjectService
 }
 
-func NewService(env service.Env, repository RoleRepository, eventSvc event.Service, objectSvc object.ObjectService) RoleService {
-	return RoleService{
+func NewService(env service.Env, repository RoleRepository, eventSvc event.Service, objectSvc *object.ObjectService) *RoleService {
+	return &RoleService{
 		BaseService: service.NewBaseService(env),
 		Repository:  repository,
 		EventSvc:    eventSvc,

@@ -14,11 +14,11 @@ type ObjectTypeService struct {
 	service.BaseService
 	Repository ObjectTypeRepository
 	EventSvc   event.Service
-	WookieSvc  wookie.WookieService
+	WookieSvc  *wookie.WookieService
 }
 
-func NewService(env service.Env, repository ObjectTypeRepository, eventSvc event.Service, wookieSvc wookie.WookieService) ObjectTypeService {
-	return ObjectTypeService{
+func NewService(env service.Env, repository ObjectTypeRepository, eventSvc event.Service, wookieSvc *wookie.WookieService) *ObjectTypeService {
+	return &ObjectTypeService{
 		BaseService: service.NewBaseService(env),
 		Repository:  repository,
 		EventSvc:    eventSvc,
