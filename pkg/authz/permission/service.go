@@ -16,11 +16,11 @@ type PermissionService struct {
 	service.BaseService
 	Repository PermissionRepository
 	EventSvc   event.Service
-	ObjectSvc  object.ObjectService
+	ObjectSvc  *object.ObjectService
 }
 
-func NewService(env service.Env, repository PermissionRepository, eventSvc event.Service, objectSvc object.ObjectService) PermissionService {
-	return PermissionService{
+func NewService(env service.Env, repository PermissionRepository, eventSvc event.Service, objectSvc *object.ObjectService) *PermissionService {
+	return &PermissionService{
 		BaseService: service.NewBaseService(env),
 		Repository:  repository,
 		EventSvc:    eventSvc,

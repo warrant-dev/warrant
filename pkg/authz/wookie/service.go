@@ -21,8 +21,8 @@ type WookieService struct {
 	Enabled    bool
 }
 
-func NewService(env service.Env, repository WookieRepository, enabled bool) WookieService {
-	return WookieService{
+func NewService(env service.Env, repository WookieRepository, enabled bool) *WookieService {
+	return &WookieService{
 		BaseService: service.NewBaseService(env),
 		Repository:  repository,
 		Enabled:     enabled,

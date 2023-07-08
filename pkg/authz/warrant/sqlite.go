@@ -16,8 +16,8 @@ type SQLiteRepository struct {
 	database.SQLRepository
 }
 
-func NewSQLiteRepository(db *database.SQLite) SQLiteRepository {
-	return SQLiteRepository{
+func NewSQLiteRepository(db *database.SQLite) *SQLiteRepository {
+	return &SQLiteRepository{
 		database.NewSQLRepository(&db.SQL),
 	}
 }

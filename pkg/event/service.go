@@ -51,8 +51,8 @@ func defaultCreateEventContext(ctx context.Context, synchronizeEvents bool) (con
 	return context.Background(), nil
 }
 
-func NewService(env service.Env, repository EventRepository, synchronizeEvents bool, createEventContext EventContextFunc) EventService {
-	svc := EventService{
+func NewService(env service.Env, repository EventRepository, synchronizeEvents bool, createEventContext EventContextFunc) *EventService {
+	svc := &EventService{
 		BaseService:        service.NewBaseService(env),
 		Repository:         repository,
 		SynchronizeEvents:  synchronizeEvents,

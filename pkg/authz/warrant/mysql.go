@@ -16,8 +16,8 @@ type MySQLRepository struct {
 	database.SQLRepository
 }
 
-func NewMySQLRepository(db *database.MySQL) MySQLRepository {
-	return MySQLRepository{
+func NewMySQLRepository(db *database.MySQL) *MySQLRepository {
+	return &MySQLRepository{
 		database.NewSQLRepository(&db.SQL),
 	}
 }
