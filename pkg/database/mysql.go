@@ -37,7 +37,6 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 	var err error
 
 	if ds.Config.DSN != "" {
-		log.Debug().Msgf("DSN: %+v", ds.Config.DSN)
 		db, err = sqlx.Open("mysql", ds.Config.DSN)
 	} else {
 		db, err = sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true", ds.Config.Username, ds.Config.Password, ds.Config.Hostname, ds.Config.Database))
@@ -66,7 +65,7 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 	log.Info().Msgf("Connected to mysql database %s", ds.Config.Database)
 
 	// connect to reader if provided
-	if ds.Config.ReaderHostname != "" {
+	if ds.Config.ReaderHostname != "" || ds.Config.ReaderDSN != "" {
 		var reader *sqlx.DB
 		if ds.Config.ReaderDSN != "" {
 			reader, err = sqlx.Open("mysql", ds.Config.ReaderDSN)
