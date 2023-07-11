@@ -51,7 +51,7 @@ func (env *ServiceEnv) InitDB(cfg config.Config) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFunc()
 
-	if cfg.GetDatastore().MySQL.Hostname != "" {
+	if cfg.GetDatastore().MySQL.Hostname != "" || cfg.GetDatastore().MySQL.DSN != "" {
 		db := database.NewMySQL(*cfg.GetDatastore().MySQL)
 		err := db.Connect(ctx)
 		if err != nil {
