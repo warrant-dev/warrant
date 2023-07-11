@@ -77,4 +77,4 @@ linters-settings:
   lll:
     line-length: 270
 issues:
-  new: true
+  new-from-rev: HEAD~1
