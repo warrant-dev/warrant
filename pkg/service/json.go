@@ -243,27 +243,7 @@ func primitiveTypeToDisplayName(primitiveType reflect.Type) string {
 		return "true or false"
 	case "string":
 		return "a string"
-	case "int":
-		fallthrough
-	case "int8":
-		fallthrough
-	case "int16":
-		fallthrough
-	case "int32":
-		fallthrough
-	case "int64":
-		fallthrough
-	case "uint":
-		fallthrough
-	case "uint8":
-		fallthrough
-	case "uint16":
-		fallthrough
-	case "uint32":
-		fallthrough
-	case "uint64":
-		fallthrough
-	case "uintptr":
+	case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64", "uintptr":
 		return "a number"
 	case "float32":
 		return "a decimal"

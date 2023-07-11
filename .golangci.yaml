@@ -1,3 +1,7 @@
+run:
+  skip-dirs:
+    - migrations
+    - tests
 linters:
   enable-all: true
   disable:
