@@ -1,4 +1,4 @@
-name: "Go Lint/Test/Checks"
+name: "Go Build/Test/Checks"
 
 on:
   push:
@@ -21,11 +21,6 @@ jobs:
         run: go mod verify
       - name: Run unit tests
         run: go test -v ./...
-      - name: Go Staticcheck
-        uses: dominikh/staticcheck-action@v1.3.0
-        with:
-          version: "2023.1.2"
-          install-go: false
       - name: Goreleaser check
         uses: goreleaser/goreleaser-action@v4
         with:
