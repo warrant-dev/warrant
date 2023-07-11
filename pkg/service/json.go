@@ -30,6 +30,7 @@ import (
 
 var validate *validator.Validate
 
+//nolint:errcheck
 func init() {
 	validate = validator.New()
 	validate.RegisterValidation("required_if_oneof", requiredIfOneOf)
@@ -216,6 +217,7 @@ func ValidateStruct(obj interface{}) error {
 func SendJSONResponse(res http.ResponseWriter, body interface{}) {
 	res.Header().Set("Content-type", "application/json")
 	res.WriteHeader(http.StatusOK)
+	//nolint:errcheck,errchkjson
 	json.NewEncoder(res).Encode(body)
 }
 
@@ -231,6 +233,7 @@ func SendErrorResponse(res http.ResponseWriter, err error) {
 
 	res.Header().Set("Content-type", "application/json")
 	res.WriteHeader(status)
+	//nolint:errcheck,errchkjson
 	json.NewEncoder(res).Encode(apiError)
 }
 
@@ -240,27 +243,7 @@ func primitiveTypeToDisplayName(primitiveType reflect.Type) string {
 		return "true or false"
 	case "string":
 		return "a string"
-	case "int":
-		return "a number"
-	case "int8":
-		return "a number"
-	case "int16":
-		return "a number"
-	case "int32":
-		return "a number"
-	case "int64":
-		return "a number"
-	case "uint":
-		return "a number"
-	case "uint8":
-		return "a number"
-	case "uint16":
-		return "a number"
-	case "uint32":
-		return "a number"
-	case "uint64":
-		return "a number"
-	case "uintptr":
+	case "int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64", "uintptr":
 		return "a number"
 	case "float32":
 		return "a decimal"

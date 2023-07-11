@@ -125,7 +125,12 @@ func ApiKeyAndSessionAuthMiddleware(cfg config.Config, next http.Handler) (http.
 					return
 				}
 
-				json.Unmarshal(contents, &publicKeys)
+				err = json.Unmarshal(contents, &publicKeys)
+				if err != nil {
+					SendErrorResponse(w, NewInternalError("Error validating token"))
+					logger.Err(err).Msg("Error unmarshalling Firebase public keys")
+					return
+				}
 			default:
 				publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(warrantCfg.GetAuthentication().Provider.PublicKey))
 				if err != nil {
