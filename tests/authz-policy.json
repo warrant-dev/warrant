@@ -65,6 +65,31 @@
             }
         },
         {
+            "name": "failToCreateWarrantWithInvalidPolicy",
+            "request": {
+                "method": "POST",
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "cluster",
+                    "objectId": "us-east-1",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "element = \"115\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 400,
+                "body": {
+                    "code": "invalid_parameter",
+                    "message": "error validating policy 'element = \"115\"': unexpected token Operator(\"=\") (1:9)\n | element = \"115\"\n | ........^",
+                    "parameter": "policy"
+                }
+            }
+        },
+        {
             "name": "failToCreateWarrantWithPolicyAndContext",
             "request": {
                 "method": "POST",

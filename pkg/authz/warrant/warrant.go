@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/warrant-dev/warrant/pkg/service"
 )
 
 type WarrantSpec struct {
@@ -60,7 +61,7 @@ func (spec *WarrantSpec) ToWarrant() (*Warrant, error) {
 	if spec.Policy != "" {
 		err := spec.Policy.Validate()
 		if err != nil {
-			return nil, err
+			return nil, service.NewInvalidParameterError("policy", err.Error())
 		}
 
 		warrant.Policy = spec.Policy
