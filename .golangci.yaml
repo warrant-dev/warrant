@@ -51,12 +51,12 @@ linters:
     # - reassign
     # Revive needs config:
     - revive
-    # - stylecheck
+    - stylecheck
     # - tagalign
     # - testpackage
     # - unconvert
     # - varnamelen
-    # - wrapcheck
+    - wrapcheck
     # - wsl
 linters-settings:
   goheader:
@@ -76,5 +76,7 @@ linters-settings:
       limitations under the License.
   lll:
     line-length: 270
+  nestif:
+    min-complexity: 7
 issues:
   new-from-rev: HEAD~1
