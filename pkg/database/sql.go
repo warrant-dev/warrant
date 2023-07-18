@@ -323,7 +323,7 @@ func (ds SQL) ExecContext(ctx context.Context, query string, args ...interface{}
 	curr := time.Now()
 	query = ds.Writer.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
-	defer ds.recordQueryStat(ctx, queryable, "ExecContext", time.Since(curr))
+	defer ds.recordQueryStat(ctx, queryable, "ExecContext", curr)
 	result, err := queryable.ExecContext(ctx, query, args...)
 	if err != nil {
 		switch err {
@@ -340,7 +340,7 @@ func (ds SQL) GetContext(ctx context.Context, dest interface{}, query string, ar
 	curr := time.Now()
 	query = ds.Writer.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
-	defer ds.recordQueryStat(ctx, queryable, "GetContext", time.Since(curr))
+	defer ds.recordQueryStat(ctx, queryable, "GetContext", curr)
 	err := queryable.GetContext(ctx, dest, query, args...)
 	if err != nil {
 		switch err {
@@ -357,7 +357,7 @@ func (ds SQL) NamedExecContext(ctx context.Context, query string, arg interface{
 	curr := time.Now()
 	query = ds.Writer.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
-	defer ds.recordQueryStat(ctx, queryable, "NamedExecContext", time.Since(curr))
+	defer ds.recordQueryStat(ctx, queryable, "NamedExecContext", curr)
 	result, err := queryable.NamedExecContext(ctx, query, arg)
 	if err != nil {
 		switch err {
@@ -374,7 +374,7 @@ func (ds SQL) PrepareContext(ctx context.Context, query string) (*sql.Stmt, erro
 	curr := time.Now()
 	query = ds.Writer.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
-	defer ds.recordQueryStat(ctx, queryable, "PrepareContext", time.Since(curr))
+	defer ds.recordQueryStat(ctx, queryable, "PrepareContext", curr)
 	stmt, err := queryable.PrepareContext(ctx, query)
 	if err != nil {
 		return stmt, errors.Wrap(err, "Error when calling sql PrepareContext")
@@ -386,7 +386,7 @@ func (ds SQL) QueryContext(ctx context.Context, query string, args ...interface{
 	curr := time.Now()
 	query = ds.Writer.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
-	defer ds.recordQueryStat(ctx, queryable, "QueryContext", time.Since(curr))
+	defer ds.recordQueryStat(ctx, queryable, "QueryContext", curr)
 	rows, err := queryable.QueryContext(ctx, query, args...)
 	if err != nil {
 		switch err {
@@ -403,7 +403,7 @@ func (ds SQL) QueryRowContext(ctx context.Context, query string, args ...interfa
 	curr := time.Now()
 	query = ds.Writer.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
-	defer ds.recordQueryStat(ctx, queryable, "QueryRowContext", time.Since(curr))
+	defer ds.recordQueryStat(ctx, queryable, "QueryRowContext", curr)
 	return queryable.QueryRowContext(ctx, query, args...)
 }
 
@@ -411,7 +411,7 @@ func (ds SQL) SelectContext(ctx context.Context, dest interface{}, query string,
 	curr := time.Now()
 	query = ds.Writer.Rebind(query)
 	queryable := ds.getQueryableFromContext(ctx)
-	defer ds.recordQueryStat(ctx, queryable, "SelectContext", time.Since(curr))
+	defer ds.recordQueryStat(ctx, queryable, "SelectContext", curr)
 	err := queryable.SelectContext(ctx, dest, query, args...)
 	if err != nil {
 		switch err {
@@ -452,7 +452,7 @@ func (ds SQL) getQueryableFromContext(ctx context.Context) SqlQueryable {
 	return ds.Writer
 }
 
-func (ds SQL) recordQueryStat(ctx context.Context, queryable SqlQueryable, query string, duration time.Duration) {
+func (ds SQL) recordQueryStat(ctx context.Context, queryable SqlQueryable, query string, start time.Time) {
 	sqlType := "sql.pool"
 	hostname := ds.WriterHostname
 	db := ds.DatabaseName
@@ -467,7 +467,7 @@ func (ds SQL) recordQueryStat(ctx context.Context, queryable SqlQueryable, query
 		hostname = tx.Hostname
 		db = tx.DatabaseName
 	}
-	stats.RecordStat(ctx, fmt.Sprintf("%s/%s", hostname, db), fmt.Sprintf("%s.%s", sqlType, query), duration)
+	stats.RecordStat(ctx, fmt.Sprintf("%s/%s", hostname, db), fmt.Sprintf("%s.%s", sqlType, query), time.Since(start))
 }
 
 type SQLRepository struct {

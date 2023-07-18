@@ -16,7 +16,9 @@ package authz
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -26,6 +28,27 @@ import (
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
+
+type ObjectTypeMap struct {
+	types map[string]objecttype.ObjectTypeSpec
+}
+
+func (m ObjectTypeMap) GetByTypeId(typeId string) *objecttype.ObjectTypeSpec {
+	if val, ok := m.types[typeId]; ok {
+		return &val
+	}
+	return nil
+}
+
+func buildObjectTypeMap(types []objecttype.ObjectTypeSpec) *ObjectTypeMap {
+	typeMap := make(map[string]objecttype.ObjectTypeSpec)
+	for _, t := range types {
+		typeMap[t.Type] = t
+	}
+	return &ObjectTypeMap{
+		types: typeMap,
+	}
+}
 
 type CheckService struct {
 	service.BaseService
@@ -69,13 +92,13 @@ func (svc CheckService) getWithPolicyMatch(ctx context.Context, spec CheckWarran
 	return nil, nil
 }
 
-func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType string, objectId string, relation string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
-	log.Ctx(ctx).Debug().Msgf("Getting matching subjects for %s:%s#%s@___%s", objectType, objectId, relation, checkCtx)
+func (svc CheckService) getMatchingSubjects(ctx context.Context, objectTypeMap *ObjectTypeMap, objectType string, objectId string, relation string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
+	//log.Ctx(ctx).Debug().Msgf("Getting matching subjects for %s:%s#%s@___%s", objectType, objectId, relation, checkCtx)
 
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
-	objectTypeSpec, _, err := svc.ObjectTypeSvc.GetByTypeId(ctx, objectType)
-	if err != nil {
-		return warrantSpecs, err
+	objectTypeSpec := objectTypeMap.GetByTypeId(objectType)
+	if objectTypeSpec == nil {
+		return warrantSpecs, fmt.Errorf("object type %s not found", objectType)
 	}
 
 	if _, ok := objectTypeSpec.Relations[relation]; !ok {
@@ -109,13 +132,13 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, objectType stri
 	return warrantSpecs, nil
 }
 
-func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
-	log.Ctx(ctx).Debug().Msgf("Getting matching subjects for %s:%s#%s@%s:___%s", objectType, objectId, relation, subjectType, checkCtx)
+func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, objectTypeMap *ObjectTypeMap, objectType string, objectId string, relation string, subjectType string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
+	// log.Ctx(ctx).Debug().Msgf("Getting matching subjects for %s:%s#%s@%s:___%s", objectType, objectId, relation, subjectType, checkCtx)
 
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
-	objectTypeSpec, _, err := svc.ObjectTypeSvc.GetByTypeId(ctx, objectType)
-	if err != nil {
-		return warrantSpecs, err
+	objectTypeSpec := objectTypeMap.GetByTypeId(objectType)
+	if objectTypeSpec == nil {
+		return warrantSpecs, fmt.Errorf("object type %s not found", objectType)
 	}
 
 	if _, ok := objectTypeSpec.Relations[relation]; !ok {
@@ -148,103 +171,6 @@ func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, ob
 	}
 
 	return warrantSpecs, nil
-}
-
-func (svc CheckService) checkRule(ctx context.Context, authInfo *service.AuthInfo, warrantCheck CheckSpec, rule *objecttype.RelationRule) (match bool, decisionPath []warrant.WarrantSpec, err error) {
-	warrantSpec := warrantCheck.CheckWarrantSpec
-	if rule == nil {
-		return false, decisionPath, nil
-	}
-
-	switch rule.InheritIf {
-	case "":
-		// No match found
-		return false, decisionPath, nil
-	case objecttype.InheritIfAllOf:
-		for _, r := range rule.Rules {
-			isMatch, matchedPath, err := svc.checkRule(ctx, authInfo, warrantCheck, &r)
-			if err != nil {
-				return false, decisionPath, err
-			}
-
-			decisionPath = append(decisionPath, matchedPath...)
-			if !isMatch {
-				return false, decisionPath, nil
-			}
-		}
-
-		return true, decisionPath, nil
-	case objecttype.InheritIfAnyOf:
-		for _, r := range rule.Rules {
-			isMatch, matchedPath, err := svc.checkRule(ctx, authInfo, warrantCheck, &r)
-			if err != nil {
-				return false, decisionPath, err
-			}
-
-			decisionPath = append(decisionPath, matchedPath...)
-			if isMatch {
-				return true, decisionPath, nil
-			}
-		}
-
-		return false, decisionPath, nil
-	case objecttype.InheritIfNoneOf:
-		for _, r := range rule.Rules {
-			isMatch, matchedPath, err := svc.checkRule(ctx, authInfo, warrantCheck, &r)
-			if err != nil {
-				return false, decisionPath, err
-			}
-
-			decisionPath = append(decisionPath, matchedPath...)
-			if isMatch {
-				return false, decisionPath, nil
-			}
-		}
-
-		return true, decisionPath, nil
-	default:
-		if rule.OfType == "" && rule.WithRelation == "" {
-			match, decisionPath, _, err := svc.Check(ctx, authInfo, CheckSpec{
-				CheckWarrantSpec: CheckWarrantSpec{
-					ObjectType: warrantSpec.ObjectType,
-					ObjectId:   warrantSpec.ObjectId,
-					Relation:   rule.InheritIf,
-					Subject:    warrantSpec.Subject,
-					Context:    warrantSpec.Context,
-				},
-				Debug: warrantCheck.Debug,
-			})
-			return match, decisionPath, err
-		}
-
-		matchingWarrants, err := svc.getMatchingSubjectsBySubjectType(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, rule.WithRelation, rule.OfType, warrantSpec.Context)
-		if err != nil {
-			return false, decisionPath, err
-		}
-
-		for _, matchingWarrant := range matchingWarrants {
-			match, decisionPath, _, err := svc.Check(ctx, authInfo, CheckSpec{
-				CheckWarrantSpec: CheckWarrantSpec{
-					ObjectType: matchingWarrant.Subject.ObjectType,
-					ObjectId:   matchingWarrant.Subject.ObjectId,
-					Relation:   rule.InheritIf,
-					Subject:    warrantSpec.Subject,
-					Context:    warrantSpec.Context,
-				},
-				Debug: warrantCheck.Debug,
-			})
-			if err != nil {
-				return false, decisionPath, err
-			}
-
-			if match {
-				decisionPath = append(decisionPath, matchingWarrant)
-				return true, decisionPath, nil
-			}
-		}
-
-		return false, decisionPath, nil
-	}
 }
 
 func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInfo, warrantCheck *CheckManySpec) (*CheckResultSpec, *wookie.Token, error) {
@@ -405,93 +331,77 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 
 // Check returns true if the subject has a warrant (explicitly or implicitly) for given objectType:objectId#relation and context
 func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, warrantCheck CheckSpec) (bool, []warrant.WarrantSpec, *wookie.Token, error) {
-	log.Ctx(ctx).Debug().Msgf("Checking for warrant %s", warrantCheck.String())
-
 	// Used to automatically append tenant context for session token w/ tenantId checks
 	if authInfo != nil && authInfo.TenantId != "" {
-		svc.appendTenantContext(&warrantCheck, authInfo.TenantId)
+		if warrantCheck.CheckWarrantSpec.Context == nil {
+			warrantCheck.CheckWarrantSpec.Context = warrant.PolicyContext{
+				"tenant": authInfo.TenantId,
+			}
+		} else {
+			warrantCheck.CheckWarrantSpec.Context["tenant"] = authInfo.TenantId
+		}
 	}
 
-	var match bool
-	decisionPath := make([]warrant.WarrantSpec, 0)
-	var newWookie *wookie.Token
-	newWookie, e := svc.WookieSvc.WookieSafeRead(ctx, func(wkCtx context.Context) error {
-		// Check for direct warrant match -> doc:readme#viewer@[10]
-		matchedWarrant, err := svc.getWithPolicyMatch(ctx, warrantCheck.CheckWarrantSpec)
-		if err != nil {
-			return err
-		}
+	doneC := make(chan struct{})
+	defer close(doneC)
+	resultsC := make(chan Result)
+	// TODO: should the tasksC be buffered up to numWorkers? should close it?
+	tasksC := make(chan Task)
 
-		if matchedWarrant != nil {
-			match = true
-			decisionPath = []warrant.WarrantSpec{*matchedWarrant}
-			return nil
-		}
-
-		// Check against indirectly related warrants
-		matchingWarrants, err := svc.getMatchingSubjects(ctx, warrantCheck.ObjectType, warrantCheck.ObjectId, warrantCheck.Relation, warrantCheck.Context)
-		if err != nil {
-			return err
-		}
-
-		for _, matchingWarrant := range matchingWarrants {
-			if matchingWarrant.Subject.Relation == "" {
-				continue
-			}
-
-			match, decisionPath, _, err = svc.Check(ctx, authInfo, CheckSpec{
-				CheckWarrantSpec: CheckWarrantSpec{
-					ObjectType: matchingWarrant.Subject.ObjectType,
-					ObjectId:   matchingWarrant.Subject.ObjectId,
-					Relation:   matchingWarrant.Subject.Relation,
-					Subject:    warrantCheck.Subject,
-					Context:    warrantCheck.Context,
-				},
-				Debug: warrantCheck.Debug,
-			})
-			if err != nil {
-				return err
-			}
-
-			if match {
-				decisionPath = append(decisionPath, matchingWarrant)
-				return nil
-			}
-		}
-
-		// Attempt to match against defined rules for target relation
-		objectTypeSpec, _, err := svc.ObjectTypeSvc.GetByTypeId(ctx, warrantCheck.ObjectType)
-		if err != nil {
-			return err
-		}
-
-		relationRule := objectTypeSpec.Relations[warrantCheck.Relation]
-		match, decisionPath, err = svc.checkRule(ctx, authInfo, warrantCheck, &relationRule)
-		if err != nil {
-			return err
-		}
-
-		if match {
-			return nil
-		}
-
-		match = false
-		return nil
+	types, _, err := svc.ObjectTypeSvc.List(ctx, service.ListParams{
+		Page:  1,
+		Limit: 100,
 	})
-	if e != nil {
-		return false, decisionPath, nil, e
+	if err != nil {
+		return false, nil, nil, err
 	}
-	return match, decisionPath, newWookie, nil
-}
+	typeMap := buildObjectTypeMap(types)
 
-func (svc CheckService) appendTenantContext(warrantCheck *CheckSpec, tenantId string) {
-	if warrantCheck.CheckWarrantSpec.Context == nil {
-		warrantCheck.CheckWarrantSpec.Context = warrant.PolicyContext{
-			"tenant": tenantId,
-		}
-	} else {
-		warrantCheck.CheckWarrantSpec.Context["tenant"] = tenantId
+	// Start workers
+	// TODO: Should do wookieSafeRead
+	// TODO: figure out numWorkers value
+	numWorkers := 4
+	var wg sync.WaitGroup
+	wg.Add(numWorkers)
+	for i := 0; i < numWorkers; i++ {
+		id := i
+		go func() {
+			log.Ctx(ctx).Debug().Msgf("worker %d started", id)
+			execute(id, ctx, doneC, tasksC)
+			wg.Done()
+			log.Ctx(ctx).Debug().Msgf("worker %d stopped", id)
+		}()
 	}
+	go func() {
+		log.Debug().Msgf("main watcher started")
+		wg.Wait()
+		close(resultsC)
+		log.Debug().Msgf("main watcher stopped")
+	}()
+
+	// TODO: should use a cancellable ctx here to cancel if timeout reached childCtx, cancelFunc := context.WithCancel(ctx)
+	tasksC <- CheckTask{
+		Level:       0,
+		Ctx:         ctx,
+		CheckSpec:   &warrantCheck,
+		CurrentPath: make([]warrant.WarrantSpec, 0),
+		ResultC:     resultsC,
+		TaskC:       tasksC,
+		Svc:         &svc,
+		TypesMap:    typeMap,
+	}
+
+	// Block until result
+	result := <-resultsC
+	//cancelFunc()
+	log.Ctx(ctx).Debug().Msgf("RESULT: %s", result.Matched)
+	if result.Err != nil {
+		return false, nil, nil, result.Err
+	}
+	if result.Matched {
+		return true, result.DecisionPath, nil, nil
+	}
+	return false, nil, nil, nil
 }
 
 func evalWarrantPolicy(w warrant.Model, policyCtx warrant.PolicyContext) bool {

@@ -75,10 +75,12 @@ func (ds *SQLite) Connect(ctx context.Context) error {
 
 	if ds.Config.MaxIdleConnections != 0 {
 		db.SetMaxIdleConns(ds.Config.MaxIdleConnections)
+		db.SetConnMaxIdleTime(1 * time.Hour)
 	}
 
 	if ds.Config.MaxOpenConnections != 0 {
 		db.SetMaxOpenConns(ds.Config.MaxOpenConnections)
+		db.SetConnMaxLifetime(5 * time.Hour)
 	}
 
 	// map struct attributes to db column names
