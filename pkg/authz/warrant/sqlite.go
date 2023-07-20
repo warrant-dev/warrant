@@ -322,19 +322,24 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 		replacements = append(replacements, filterOptions.Relation)
 	}
 
-	if filterOptions.Subject.ObjectType != "" {
-		query = fmt.Sprintf("%s AND subjectType = ?", query)
-		replacements = append(replacements, filterOptions.Subject.ObjectType)
-	}
+	if filterOptions.Subject != nil {
+		if filterOptions.Subject.ObjectType != "" {
+			query = fmt.Sprintf("%s AND subjectType = ?", query)
 
-	if filterOptions.Subject.ObjectId != "" {
-		query = fmt.Sprintf("%s AND subjectId = ?", query)
-		replacements = append(replacements, filterOptions.Subject.ObjectId)
-	}
+			replacements = append(replacements, filterOptions.Subject.ObjectType)
+		}
 
-	if filterOptions.Subject.Relation != "" {
-		query = fmt.Sprintf("%s AND subjectRelation = ?", query)
-		replacements = append(replacements, filterOptions.Subject.Relation)
+		if filterOptions.Subject.ObjectId != "" {
+			query = fmt.Sprintf("%s AND subjectId = ?", query)
+
+			replacements = append(replacements, filterOptions.Subject.ObjectId)
+		}
+
+		if filterOptions.Subject.Relation != "" {
+			query = fmt.Sprintf("%s AND subjectRelation = ?", query)
+
+			replacements = append(replacements, filterOptions.Subject.Relation)
+		}
 	}
 
 	if filterOptions.Policy != "" {
