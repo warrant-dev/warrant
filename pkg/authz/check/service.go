@@ -16,9 +16,7 @@ package authz
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -28,27 +26,6 @@ import (
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
-
-type ObjectTypeMap struct {
-	types map[string]objecttype.ObjectTypeSpec
-}
-
-func (m ObjectTypeMap) GetByTypeId(typeId string) *objecttype.ObjectTypeSpec {
-	if val, ok := m.types[typeId]; ok {
-		return &val
-	}
-	return nil
-}
-
-func buildObjectTypeMap(types []objecttype.ObjectTypeSpec) *ObjectTypeMap {
-	typeMap := make(map[string]objecttype.ObjectTypeSpec)
-	for _, t := range types {
-		typeMap[t.Type] = t
-	}
-	return &ObjectTypeMap{
-		types: typeMap,
-	}
-}
 
 type CheckService struct {
 	service.BaseService
@@ -68,7 +45,9 @@ func NewService(env service.Env, warrantRepo warrant.WarrantRepository, eventSvc
 	}
 }
 
-func (svc CheckService) getWithPolicyMatch(ctx context.Context, spec CheckWarrantSpec) (*warrant.WarrantSpec, error) {
+func (svc CheckService) getWithPolicyMatch(ctx context.Context, sema *Semaphore, spec CheckWarrantSpec) (*warrant.WarrantSpec, error) {
+	sema.Acquire()
+	defer sema.Release()
 	warrants, err := svc.WarrantRepository.GetAllMatchingObjectRelationAndSubject(ctx, spec.ObjectType, spec.ObjectId, spec.Relation, spec.Subject.ObjectType, spec.Subject.ObjectId, spec.Subject.Relation)
 	if err != nil || len(warrants) == 0 {
 		return nil, err
@@ -92,13 +71,15 @@ func (svc CheckService) getWithPolicyMatch(ctx context.Context, spec CheckWarran
 	return nil, nil
 }
 
-func (svc CheckService) getMatchingSubjects(ctx context.Context, objectTypeMap *ObjectTypeMap, objectType string, objectId string, relation string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
+func (svc CheckService) getMatchingSubjects(ctx context.Context, sema *Semaphore, objectTypeMap *objecttype.ObjectTypeMap, objectType string, objectId string, relation string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
+	sema.Acquire()
+	defer sema.Release()
 	//log.Ctx(ctx).Debug().Msgf("Getting matching subjects for %s:%s#%s@___%s", objectType, objectId, relation, checkCtx)
 
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
-	objectTypeSpec := objectTypeMap.GetByTypeId(objectType)
-	if objectTypeSpec == nil {
-		return warrantSpecs, fmt.Errorf("object type %s not found", objectType)
+	objectTypeSpec, err := objectTypeMap.GetByTypeId(objectType)
+	if err != nil {
+		return warrantSpecs, err
 	}
 
 	if _, ok := objectTypeSpec.Relations[relation]; !ok {
@@ -132,13 +113,16 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, objectTypeMap *
 	return warrantSpecs, nil
 }
 
-func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, objectTypeMap *ObjectTypeMap, objectType string, objectId string, relation string, subjectType string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
+func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, sema *Semaphore, objectTypeMap *objecttype.ObjectTypeMap, objectType string, objectId string, relation string, subjectType string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
 	// log.Ctx(ctx).Debug().Msgf("Getting matching subjects for %s:%s#%s@%s:___%s", objectType, objectId, relation, subjectType, checkCtx)
 
+	sema.Acquire()
+	defer sema.Release()
+
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
-	objectTypeSpec := objectTypeMap.GetByTypeId(objectType)
-	if objectTypeSpec == nil {
-		return warrantSpecs, fmt.Errorf("object type %s not found", objectType)
+	objectTypeSpec, err := objectTypeMap.GetByTypeId(objectType)
+	if err != nil {
+		return warrantSpecs, err
 	}
 
 	if _, ok := objectTypeSpec.Relations[relation]; !ok {
@@ -342,59 +326,18 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 		}
 	}
 
-	doneC := make(chan struct{})
-	defer close(doneC)
-	resultsC := make(chan Result)
-	// TODO: should the tasksC be buffered up to numWorkers? should close it?
-	tasksC := make(chan Task)
-
-	types, _, err := svc.ObjectTypeSvc.List(ctx, service.ListParams{
-		Page:  1,
-		Limit: 100,
-	})
+	typeMap, _, err := svc.ObjectTypeSvc.GetTypeMap(ctx)
 	if err != nil {
 		return false, nil, nil, err
 	}
-	typeMap := buildObjectTypeMap(types)
-
-	// Start workers
+	resultsC := make(chan Result)
+	sema := NewSema(8)
+	// TODO: should use a cancellable ctx here (with timeout)
 	// TODO: Should do wookieSafeRead
-	// TODO: figure out numWorkers value
-	numWorkers := 4
-	var wg sync.WaitGroup
-	wg.Add(numWorkers)
-	for i := 0; i < numWorkers; i++ {
-		id := i
-		go func() {
-			log.Ctx(ctx).Debug().Msgf("worker %d started", id)
-			execute(id, ctx, doneC, tasksC)
-			wg.Done()
-			log.Ctx(ctx).Debug().Msgf("worker %d stopped", id)
-		}()
-	}
 	go func() {
-		log.Debug().Msgf("main watcher started")
-		wg.Wait()
-		close(resultsC)
-		log.Debug().Msgf("main watcher stopped")
+		check(0, sema, ctx, warrantCheck, make([]warrant.WarrantSpec, 0), resultsC, &svc, typeMap)
 	}()
-
-	// TODO: should use a cancellable ctx here to cancel if timeout reached childCtx, cancelFunc := context.WithCancel(ctx)
-	tasksC <- CheckTask{
-		Level:       0,
-		Ctx:         ctx,
-		CheckSpec:   &warrantCheck,
-		CurrentPath: make([]warrant.WarrantSpec, 0),
-		ResultC:     resultsC,
-		TaskC:       tasksC,
-		Svc:         &svc,
-		TypesMap:    typeMap,
-	}
-
-	// Block until result
 	result := <-resultsC
-	//cancelFunc()
-	log.Ctx(ctx).Debug().Msgf("RESULT: %s", result.Matched)
 	if result.Err != nil {
 		return false, nil, nil, result.Err
 	}

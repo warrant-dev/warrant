@@ -75,12 +75,24 @@ func (ds *SQLite) Connect(ctx context.Context) error {
 
 	if ds.Config.MaxIdleConnections != 0 {
 		db.SetMaxIdleConns(ds.Config.MaxIdleConnections)
-		db.SetConnMaxIdleTime(1 * time.Hour)
+	}
+	if ds.Config.ConnMaxIdleTime != "" {
+		idleTime, err := time.ParseDuration(ds.Config.ConnMaxIdleTime)
+		if err != nil {
+			return errors.Wrap(err, "Invalid ConnMaxIdleTime provided in config.")
+		}
+		db.SetConnMaxIdleTime(idleTime)
 	}
 
 	if ds.Config.MaxOpenConnections != 0 {
 		db.SetMaxOpenConns(ds.Config.MaxOpenConnections)
-		db.SetConnMaxLifetime(5 * time.Hour)
+	}
+	if ds.Config.ConnMaxLifetime != "" {
+		connMaxLifetime, err := time.ParseDuration(ds.Config.ConnMaxLifetime)
+		if err != nil {
+			return errors.Wrap(err, "Invalid ConnMaxLifetime provided in config.")
+		}
+		db.SetConnMaxLifetime(connMaxLifetime)
 	}
 
 	// map struct attributes to db column names

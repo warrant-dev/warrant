@@ -100,7 +100,9 @@ type MySQLConfig struct {
 	Database                 string `mapstructure:"database"`
 	MigrationSource          string `mapstructure:"migrationSource"`
 	MaxIdleConnections       int    `mapstructure:"maxIdleConnections"`
+	ConnMaxIdleTime          string `mapstructure:"connMaxIdleTime"`
 	MaxOpenConnections       int    `mapstructure:"maxOpenConnections"`
+	ConnMaxLifetime          string `mapstructure:"connMaxLifetime"`
 	ReaderHostname           string `mapstructure:"readerHostname"`
 	ReaderMaxIdleConnections int    `mapstructure:"readerMaxIdleConnections"`
 	ReaderMaxOpenConnections int    `mapstructure:"readerMaxOpenConnections"`
@@ -116,7 +118,9 @@ type PostgresConfig struct {
 	SSLMode                  string `mapstructure:"sslmode"`
 	MigrationSource          string `mapstructure:"migrationSource"`
 	MaxIdleConnections       int    `mapstructure:"maxIdleConnections"`
+	ConnMaxIdleTime          string `mapstructure:"connMaxIdleTime"`
 	MaxOpenConnections       int    `mapstructure:"maxOpenConnections"`
+	ConnMaxLifetime          string `mapstructure:"connMaxLifetime"`
 	ReaderHostname           string `mapstructure:"readerHostname"`
 	ReaderMaxIdleConnections int    `mapstructure:"readerMaxIdleConnections"`
 	ReaderMaxOpenConnections int    `mapstructure:"readerMaxOpenConnections"`
@@ -127,7 +131,9 @@ type SQLiteConfig struct {
 	InMemory           bool   `mapstructure:"inMemory"`
 	MigrationSource    string `mapstructure:"migrationSource"`
 	MaxIdleConnections int    `mapstructure:"maxIdleConnections"`
+	ConnMaxIdleTime    string `mapstructure:"connMaxIdleTime"`
 	MaxOpenConnections int    `mapstructure:"maxOpenConnections"`
+	ConnMaxLifetime    string `mapstructure:"connMaxLifetime"`
 }
 
 type EventstoreConfig struct {

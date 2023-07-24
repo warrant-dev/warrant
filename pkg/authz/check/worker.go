@@ -16,161 +16,29 @@ package authz
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"github.com/rs/zerolog/log"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 )
 
-// TODO: remove doneC from arg? do we need to check both doneC in arg and task.doneC?
-func execute(id int, ctx context.Context, doneC <-chan struct{}, tasksC <-chan Task) {
-	for task := range tasksC {
-		select {
-		case _, ok := <-doneC:
-			if !ok {
-				log.Ctx(ctx).Debug().Msgf("worker %d exited", id)
-				return
-			}
-			log.Ctx(ctx).Debug().Msgf("worker %d received some value from doneC", id)
-		case _, ok := <-task.Done():
-			if !ok {
-				log.Ctx(ctx).Debug().Msgf("worker %d skipped [%s]", id, task)
-				continue
-			}
-			log.Ctx(ctx).Debug().Msgf("worker %d did not skip", id)
-		default:
-			start := time.Now()
-			task.Execute()
-			log.Ctx(ctx).Debug().Msgf("worker %d executed [%s] [%s]", id, task, time.Since(start))
-		}
+type Semaphore struct {
+	semaphore chan struct{}
+}
+
+func NewSema(maxConcurrency int) *Semaphore {
+	return &Semaphore{
+		semaphore: make(chan struct{}, maxConcurrency),
 	}
 }
 
-// TODO: confirm this doesn't add tasks if doneC is closed (maybe replace with context check)
-func addTasks(doneC <-chan struct{}, tasksC chan<- Task, tasks ...Task) {
-	go func() {
-		select {
-		case _, ok := <-doneC:
-			if !ok {
-				log.Debug().Msgf("addTasks skipped adding %d tasks", len(tasks))
-				return
-			}
-			log.Debug().Msgf("addTasks did not skip adding tasks")
-		default:
-			for _, t := range tasks {
-				tasksC <- t
-				//log.Debug().Msgf("addTasks added [%s]", t)
-			}
-		}
-	}()
+func (s *Semaphore) Acquire() {
+	s.semaphore <- struct{}{}
 }
 
-// TODO: should childResultC be len of totalTasks? Probably
-// TODO: should we close child channels?
-func anyOfChan(resultC chan<- Result, totalTasks int) (chan Result, chan struct{}) {
-	childResultC := make(chan Result)
-	childDoneC := make(chan struct{})
-	//log.Debug().Msgf("START anyOf chan")
-	go func() {
-		defer close(childDoneC)
-		resultsReceived := 0
-		for result := range childResultC {
-			if result.Err != nil {
-				//log.Debug().Err(result.Err).Msgf("ERR anyOf")
-				resultC <- result
-				return
-			}
-			if result.Matched {
-				//log.Debug().Msgf("MATCH anyOf")
-				resultC <- result
-				return
-			}
-			resultsReceived++
-			if resultsReceived == totalTasks {
-				//log.Debug().Msgf("NO MATCH anyOf")
-				resultC <- Result{
-					Matched:      false,
-					DecisionPath: result.DecisionPath,
-					Err:          nil,
-				}
-				return
-			}
-		}
-	}()
-	return childResultC, childDoneC
+func (s *Semaphore) Release() {
+	<-s.semaphore
 }
-
-func allOfChan(resultC chan<- Result, totalTasks int) (chan Result, chan struct{}) {
-	childResultC := make(chan Result)
-	childDoneC := make(chan struct{})
-	go func() {
-		defer close(childDoneC)
-		resultsReceived := 0
-		for result := range childResultC {
-			if result.Err != nil {
-				log.Debug().Err(result.Err).Msgf("ERR allOf")
-				resultC <- result
-				return
-			}
-			if !result.Matched {
-				resultC <- result
-				return
-			}
-			resultsReceived++
-			if resultsReceived == totalTasks {
-				resultC <- Result{
-					Matched:      true,
-					DecisionPath: result.DecisionPath,
-					Err:          nil,
-				}
-				return
-			}
-		}
-	}()
-	return childResultC, childDoneC
-}
-
-func noneOfChan(resultC chan<- Result, totalTasks int) (chan Result, chan struct{}) {
-	childResultC := make(chan Result)
-	childDoneC := make(chan struct{})
-	go func() {
-		defer close(childDoneC)
-		resultsReceived := 0
-		for result := range childResultC {
-			if result.Err != nil {
-				log.Debug().Err(result.Err).Msgf("ERR noneOf")
-				resultC <- result
-				return
-			}
-			if result.Matched {
-				resultC <- Result{
-					Matched:      false,
-					DecisionPath: result.DecisionPath,
-					Err:          nil,
-				}
-				return
-			}
-			resultsReceived++
-			if resultsReceived == totalTasks {
-				resultC <- Result{
-					Matched:      true,
-					DecisionPath: result.DecisionPath,
-					Err:          nil,
-				}
-				return
-			}
-		}
-	}()
-	return childResultC, childDoneC
-}
-
-const (
-	ResultMatched    = "ResultMatched"
-	ResultNotMatched = "ResultNotMatched"
-	ResultErr        = "ResultError"
-)
 
 type Result struct {
 	Matched      bool
@@ -178,392 +46,328 @@ type Result struct {
 	Err          error
 }
 
-// TODO: replace Done() with ctx?
-type Task interface {
-	Execute()
-	Done() <-chan struct{}
+func anyOfBlocking(ctx context.Context, tasks []func(execCtx context.Context, resultC chan<- Result)) Result {
+	childContext, childCtxCancelFunc := context.WithCancel(ctx)
+	defer childCtxCancelFunc()
+	childResultC := make(chan Result, len(tasks))
+
+	for _, t := range tasks {
+		task := t
+		go func() {
+			task(childContext, childResultC)
+		}()
+	}
+
+	resultsReceived := 0
+	for result := range childResultC {
+		resultsReceived++
+		if result.Err != nil {
+			return result
+		}
+		if result.Matched {
+			return result
+		}
+		if resultsReceived == len(tasks) {
+			return Result{
+				Matched:      false,
+				DecisionPath: result.DecisionPath,
+				Err:          nil,
+			}
+		}
+	}
+	// TODO: should prob return an err here
+	return Result{
+		Matched:      false,
+		DecisionPath: nil,
+		Err:          nil,
+	}
 }
 
-type CheckTask struct {
-	Level       int
-	Ctx         context.Context
-	CheckSpec   *CheckSpec
-	CurrentPath []warrant.WarrantSpec
-	ResultC     chan<- Result
-	TaskC       chan<- Task
-	DoneC       <-chan struct{}
-	Svc         *CheckService
-	TypesMap    *ObjectTypeMap
+func allOfBlocking(ctx context.Context, tasks []func(execCtx context.Context, resultC chan<- Result)) Result {
+	childContext, childCtxCancelFunc := context.WithCancel(ctx)
+	defer childCtxCancelFunc()
+	childResultC := make(chan Result)
+
+	for _, t := range tasks {
+		task := t
+		go func() {
+			task(childContext, childResultC)
+		}()
+	}
+
+	resultsReceived := 0
+	for result := range childResultC {
+		resultsReceived++
+		if result.Err != nil {
+			return result
+		}
+		if !result.Matched {
+			return result
+		}
+		if resultsReceived == len(tasks) {
+			return Result{
+				Matched:      true,
+				DecisionPath: result.DecisionPath,
+				Err:          nil,
+			}
+		}
+	}
+	// TODO: should prob return an err here
+	return Result{
+		Matched:      false,
+		DecisionPath: nil,
+		Err:          nil,
+	}
 }
 
-func (c CheckTask) Done() <-chan struct{} {
-	return c.DoneC
+func noneOfBlocking(ctx context.Context, tasks []func(execCtx context.Context, resultC chan<- Result)) Result {
+	childContext, childCtxCancelFunc := context.WithCancel(ctx)
+	defer childCtxCancelFunc()
+	childResultC := make(chan Result)
+
+	for _, t := range tasks {
+		task := t
+		go func() {
+			task(childContext, childResultC)
+		}()
+	}
+
+	resultsReceived := 0
+	for result := range childResultC {
+		resultsReceived++
+		if result.Err != nil {
+			return result
+		}
+		if result.Matched {
+			return Result{
+				Matched:      false,
+				DecisionPath: result.DecisionPath,
+				Err:          nil,
+			}
+		}
+		if resultsReceived == len(tasks) {
+			return Result{
+				Matched:      true,
+				DecisionPath: result.DecisionPath,
+				Err:          nil,
+			}
+		}
+	}
+	// TODO: should prob return an err here
+	return Result{
+		Matched:      false,
+		DecisionPath: nil,
+		Err:          nil,
+	}
 }
 
-func (c CheckTask) String() string {
-	return fmt.Sprintf("CheckTask -> level:%d, checkSpec:%s", c.Level, c.CheckSpec)
-}
-
-// TODO: cancel context if a path has been exhausted (or mark it as done)
 // TODO: fix decisionPath
-// TODO: put a semaphore (n concurrent calls) on top of db calls
-func (c CheckTask) Execute() {
-
-	// 1. Check for direct warrant match
-	matchedWarrant, err := c.Svc.getWithPolicyMatch(c.Ctx, c.CheckSpec.CheckWarrantSpec)
-	if err != nil {
-		log.Ctx(c.Ctx).Err(err).Msgf("ERR CheckTask getWithPolicyMatch")
-		c.ResultC <- Result{
-			Matched:      false,
-			DecisionPath: c.CurrentPath,
-			Err:          err,
-		}
+func check(level int, sema *Semaphore, ctx context.Context, checkSpec CheckSpec, currentPath []warrant.WarrantSpec, resultC chan<- Result, svc *CheckService, typesMap *objecttype.ObjectTypeMap) {
+	select {
+	case <-ctx.Done():
+		log.Ctx(ctx).Debug().Msgf("canceled check[%d] [%s]", level, checkSpec)
 		return
-	}
-	if matchedWarrant != nil {
-		c.ResultC <- Result{
-			Matched:      true,
-			DecisionPath: append(c.CurrentPath, *matchedWarrant),
-			Err:          nil,
-		}
-		return
-	}
-
-	objectTypeSpec := c.TypesMap.GetByTypeId(c.CheckSpec.ObjectType)
-	if objectTypeSpec == nil {
-		err := fmt.Errorf("objecttype %s not found", c.CheckSpec.ObjectType)
-		log.Ctx(c.Ctx).Err(err).Msgf("ERR CheckTask GetByTypeId")
-		c.ResultC <- Result{
-			Matched:      false,
-			DecisionPath: c.CurrentPath,
-			Err:          err,
-		}
-		return
-	}
-
-	// 2. Check through indirect/group warrants
-	// 3. And/or defined rules for target relation
-	if relationRule, ok := objectTypeSpec.Relations[c.CheckSpec.Relation]; ok {
-		anyOfResultsC, anyOfDoneC := anyOfChan(c.ResultC, 2)
-		addTasks(anyOfDoneC, c.TaskC, GroupCheckTask{
-			Level:       c.Level + 1,
-			Ctx:         c.Ctx,
-			CheckSpec:   c.CheckSpec,
-			CurrentPath: c.CurrentPath,
-			ResultC:     anyOfResultsC,
-			TaskC:       c.TaskC,
-			DoneC:       anyOfDoneC,
-			Svc:         c.Svc,
-			TypesMap:    c.TypesMap,
-		}, CheckRuleTask{
-			Level:       c.Level + 1,
-			Ctx:         c.Ctx,
-			CheckSpec:   c.CheckSpec,
-			CurrentPath: c.CurrentPath,
-			ResultC:     anyOfResultsC,
-			TaskC:       c.TaskC,
-			DoneC:       anyOfDoneC,
-			Svc:         c.Svc,
-			TypesMap:    c.TypesMap,
-			Rule:        &relationRule,
-		})
-	} else {
-		addTasks(c.DoneC, c.TaskC, GroupCheckTask{
-			Level:       c.Level + 1,
-			Ctx:         c.Ctx,
-			CheckSpec:   c.CheckSpec,
-			CurrentPath: c.CurrentPath,
-			ResultC:     c.ResultC,
-			TaskC:       c.TaskC,
-			DoneC:       c.DoneC,
-			Svc:         c.Svc,
-			TypesMap:    c.TypesMap,
-		})
-	}
-}
-
-type GroupCheckTask struct {
-	Level       int
-	Ctx         context.Context
-	CheckSpec   *CheckSpec
-	CurrentPath []warrant.WarrantSpec
-	ResultC     chan<- Result
-	TaskC       chan<- Task
-	DoneC       <-chan struct{}
-	Svc         *CheckService
-	TypesMap    *ObjectTypeMap
-}
-
-func (c GroupCheckTask) Done() <-chan struct{} {
-	return c.DoneC
-}
-
-func (c GroupCheckTask) String() string {
-	return fmt.Sprintf("GroupCheckTask -> level:%d, checkSpec:%s", c.Level, c.CheckSpec)
-}
-
-func (c GroupCheckTask) Execute() {
-	warrants, err := c.Svc.getMatchingSubjects(c.Ctx, c.TypesMap, c.CheckSpec.ObjectType, c.CheckSpec.ObjectId, c.CheckSpec.Relation, c.CheckSpec.Context)
-	if err != nil {
-		log.Ctx(c.Ctx).Err(err).Msgf("ERR GroupCheckTask getMatchingSubjects")
-		c.ResultC <- Result{
-			Matched:      false,
-			DecisionPath: c.CurrentPath,
-			Err:          err,
-		}
-		return
-	}
-
-	var matchingWarrants []warrant.WarrantSpec
-	for _, w := range warrants {
-		if w.Subject.Relation == "" {
-			continue
-		}
-		matchingWarrants = append(matchingWarrants, w)
-	}
-	if len(matchingWarrants) == 0 {
-		c.ResultC <- Result{
-			Matched:      false,
-			DecisionPath: c.CurrentPath,
-			Err:          nil,
-		}
-	} else if len(matchingWarrants) == 1 {
-		matchingWarrant := matchingWarrants[0]
-		addTasks(c.DoneC, c.TaskC, CheckTask{
-			Level: c.Level + 1,
-			Ctx:   c.Ctx,
-			CheckSpec: &CheckSpec{
-				CheckWarrantSpec: CheckWarrantSpec{
-					ObjectType: matchingWarrant.Subject.ObjectType,
-					ObjectId:   matchingWarrant.Subject.ObjectId,
-					Relation:   matchingWarrant.Subject.Relation,
-					Subject:    c.CheckSpec.Subject,
-					Context:    c.CheckSpec.Context,
-				},
-				Debug: c.CheckSpec.Debug,
-			},
-			CurrentPath: append(c.CurrentPath, matchingWarrant),
-			ResultC:     c.ResultC,
-			TaskC:       c.TaskC,
-			DoneC:       c.DoneC,
-			Svc:         c.Svc,
-			TypesMap:    c.TypesMap,
-		})
-	} else {
-		anyOfResultsC, anyOfDoneC := anyOfChan(c.ResultC, len(matchingWarrants))
-		var additionalTasks []Task
-		for _, matchingWarrant := range matchingWarrants {
-			additionalTasks = append(additionalTasks, CheckTask{
-				Level: c.Level + 1,
-				Ctx:   c.Ctx,
-				CheckSpec: &CheckSpec{
-					CheckWarrantSpec: CheckWarrantSpec{
-						ObjectType: matchingWarrant.Subject.ObjectType,
-						ObjectId:   matchingWarrant.Subject.ObjectId,
-						Relation:   matchingWarrant.Subject.Relation,
-						Subject:    c.CheckSpec.Subject,
-						Context:    c.CheckSpec.Context,
-					},
-					Debug: c.CheckSpec.Debug,
-				},
-				CurrentPath: append(c.CurrentPath, matchingWarrant),
-				ResultC:     anyOfResultsC,
-				TaskC:       c.TaskC,
-				DoneC:       anyOfDoneC,
-				Svc:         c.Svc,
-				TypesMap:    c.TypesMap,
-			})
-		}
-		addTasks(c.DoneC, c.TaskC, additionalTasks...)
-	}
-}
-
-type CheckRuleTask struct {
-	Level       int
-	Ctx         context.Context
-	CheckSpec   *CheckSpec
-	CurrentPath []warrant.WarrantSpec
-	ResultC     chan<- Result
-	TaskC       chan<- Task
-	DoneC       <-chan struct{}
-	Svc         *CheckService
-	TypesMap    *ObjectTypeMap
-	Rule        *objecttype.RelationRule
-}
-
-func (t CheckRuleTask) Done() <-chan struct{} {
-	return t.DoneC
-}
-
-func (t CheckRuleTask) String() string {
-	return fmt.Sprintf("CheckRuleTask -> level:%d, checkSpec:%s, rule:%s", t.Level, t.CheckSpec, t.Rule)
-}
-
-func (t CheckRuleTask) Execute() {
-	warrantSpec := t.CheckSpec.CheckWarrantSpec
-	if t.Rule == nil {
-		t.ResultC <- Result{
-			Matched:      false,
-			DecisionPath: t.CurrentPath,
-			Err:          nil,
-		}
-		return
-	}
-	switch t.Rule.InheritIf {
-	case "":
-		// No match found
-		t.ResultC <- Result{
-			Matched:      false,
-			DecisionPath: t.CurrentPath,
-			Err:          nil,
-		}
-	case objecttype.InheritIfAllOf:
-		allOfResultC, allOfDoneC := allOfChan(t.ResultC, len(t.Rule.Rules))
-		var allOfTasks []Task
-		for _, r := range t.Rule.Rules {
-			rule := r
-			allOfTasks = append(allOfTasks, CheckRuleTask{
-				Level:       t.Level + 1,
-				Ctx:         t.Ctx,
-				CheckSpec:   t.CheckSpec,
-				CurrentPath: t.CurrentPath,
-				ResultC:     allOfResultC,
-				TaskC:       t.TaskC,
-				DoneC:       allOfDoneC,
-				Svc:         t.Svc,
-				TypesMap:    t.TypesMap,
-				Rule:        &rule,
-			})
-		}
-		addTasks(t.DoneC, t.TaskC, allOfTasks...)
-	case objecttype.InheritIfAnyOf:
-		anyOfResultC, anyOfDoneC := anyOfChan(t.ResultC, len(t.Rule.Rules))
-		var anyOfTasks []Task
-		for _, r := range t.Rule.Rules {
-			rule := r
-			anyOfTasks = append(anyOfTasks, CheckRuleTask{
-				Level:       t.Level + 1,
-				Ctx:         t.Ctx,
-				CheckSpec:   t.CheckSpec,
-				CurrentPath: t.CurrentPath,
-				ResultC:     anyOfResultC,
-				TaskC:       t.TaskC,
-				DoneC:       anyOfDoneC,
-				Svc:         t.Svc,
-				TypesMap:    t.TypesMap,
-				Rule:        &rule,
-			})
-		}
-		addTasks(t.DoneC, t.TaskC, anyOfTasks...)
-	case objecttype.InheritIfNoneOf:
-		noneOfResultC, noneOfDoneC := noneOfChan(t.ResultC, len(t.Rule.Rules))
-		var noneOfTasks []Task
-		for _, r := range t.Rule.Rules {
-			rule := r
-			noneOfTasks = append(noneOfTasks, CheckRuleTask{
-				Level:       t.Level + 1,
-				Ctx:         t.Ctx,
-				CheckSpec:   t.CheckSpec,
-				CurrentPath: t.CurrentPath,
-				ResultC:     noneOfResultC,
-				TaskC:       t.TaskC,
-				DoneC:       noneOfDoneC,
-				Svc:         t.Svc,
-				TypesMap:    t.TypesMap,
-				Rule:        &rule,
-			})
-		}
-		addTasks(t.DoneC, t.TaskC, noneOfTasks...)
 	default:
-		if t.Rule.OfType == "" && t.Rule.WithRelation == "" {
-			addTasks(t.DoneC, t.TaskC, CheckTask{
-				Level: t.Level + 1,
-				Ctx:   t.Ctx,
-				CheckSpec: &CheckSpec{
-					CheckWarrantSpec: CheckWarrantSpec{
-						ObjectType: warrantSpec.ObjectType,
-						ObjectId:   warrantSpec.ObjectId,
-						Relation:   t.Rule.InheritIf,
-						Subject:    warrantSpec.Subject,
-						Context:    warrantSpec.Context,
-					},
-					Debug: t.CheckSpec.Debug,
-				},
-				CurrentPath: t.CurrentPath,
-				ResultC:     t.ResultC,
-				TaskC:       t.TaskC,
-				DoneC:       t.DoneC,
-				Svc:         t.Svc,
-				TypesMap:    t.TypesMap,
-			})
+		log.Ctx(ctx).Debug().Msgf("exec check[%d] [%s]", level, checkSpec)
+		// 1. Check for direct warrant match
+		matchedWarrant, err := svc.getWithPolicyMatch(ctx, sema, checkSpec.CheckWarrantSpec)
+		if err != nil {
+			// log.Ctx(ctx).Err(err).Msgf("ERR CheckTask getWithPolicyMatch")
+			resultC <- Result{
+				Matched:      false,
+				DecisionPath: currentPath,
+				Err:          err,
+			}
+			return
+		}
+		if matchedWarrant != nil {
+			resultC <- Result{
+				Matched:      true,
+				DecisionPath: append(currentPath, *matchedWarrant),
+				Err:          nil,
+			}
 			return
 		}
 
-		matchingWarrants, err := t.Svc.getMatchingSubjectsBySubjectType(t.Ctx, t.TypesMap, warrantSpec.ObjectType, warrantSpec.ObjectId, t.Rule.WithRelation, t.Rule.OfType, warrantSpec.Context)
+		// 2. Check through indirect/group warrants
+		var additionalTasks []func(execCtx context.Context, resultC chan<- Result)
+		additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- Result) {
+			checkGroup(level+1, sema, execCtx, checkSpec, currentPath, resultC, svc, typesMap)
+		})
+
+		// 3. And/or defined rules for target relation
+		objectTypeSpec, err := typesMap.GetByTypeId(checkSpec.ObjectType)
 		if err != nil {
-			log.Ctx(t.Ctx).Err(err).Msgf("ERR CheckRuleTask getMatchingSubjectsBySubjectType")
-			t.ResultC <- Result{
+			//log.Ctx(ctx).Err(err).Msgf("ERR CheckTask GetByTypeId")
+			resultC <- Result{
 				Matched:      false,
-				DecisionPath: t.CurrentPath,
+				DecisionPath: currentPath,
+				Err:          err,
+			}
+			return
+		}
+		if relationRule, ok := objectTypeSpec.Relations[checkSpec.Relation]; ok {
+			additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- Result) {
+				checkRule(level+1, sema, execCtx, checkSpec, currentPath, resultC, svc, typesMap, &relationRule)
+			})
+		}
+
+		resultC <- anyOfBlocking(ctx, additionalTasks)
+	}
+}
+
+func checkGroup(level int, sema *Semaphore, ctx context.Context, checkSpec CheckSpec, currentPath []warrant.WarrantSpec, resultC chan<- Result, svc *CheckService, typesMap *objecttype.ObjectTypeMap) {
+	select {
+	case <-ctx.Done():
+		log.Ctx(ctx).Debug().Msgf("canceled checkGroup[%d] [%s]", level, checkSpec)
+		return
+	default:
+		log.Ctx(ctx).Debug().Msgf("exec checkGroup[%d] [%s]", level, checkSpec)
+		warrants, err := svc.getMatchingSubjects(ctx, sema, typesMap, checkSpec.ObjectType, checkSpec.ObjectId, checkSpec.Relation, checkSpec.Context)
+		if err != nil {
+			//log.Ctx(ctx).Err(err).Msgf("ERR GroupCheckTask getMatchingSubjects")
+			resultC <- Result{
+				Matched:      false,
+				DecisionPath: currentPath,
 				Err:          err,
 			}
 			return
 		}
 
+		var matchingWarrants []warrant.WarrantSpec
+		for _, w := range warrants {
+			if w.Subject.Relation == "" {
+				continue
+			}
+			matchingWarrants = append(matchingWarrants, w)
+		}
 		if len(matchingWarrants) == 0 {
-			t.ResultC <- Result{
+			resultC <- Result{
 				Matched:      false,
-				DecisionPath: t.CurrentPath,
+				DecisionPath: currentPath,
 				Err:          nil,
 			}
-		} else if len(matchingWarrants) == 1 {
-			matchingWarrant := matchingWarrants[0]
-			addTasks(t.DoneC, t.TaskC, CheckTask{
-				Level: t.Level + 1,
-				Ctx:   t.Ctx,
-				CheckSpec: &CheckSpec{
+		}
+		var additionalTasks []func(execCtx context.Context, resultC chan<- Result)
+		for _, w := range matchingWarrants {
+			matchingWarrant := w
+			additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- Result) {
+				check(level+1, sema, execCtx, CheckSpec{
 					CheckWarrantSpec: CheckWarrantSpec{
 						ObjectType: matchingWarrant.Subject.ObjectType,
 						ObjectId:   matchingWarrant.Subject.ObjectId,
-						Relation:   t.Rule.InheritIf,
+						Relation:   matchingWarrant.Subject.Relation,
+						Subject:    checkSpec.Subject,
+						Context:    checkSpec.Context,
+					},
+					Debug: checkSpec.Debug,
+				}, append(currentPath, matchingWarrant), resultC, svc, typesMap)
+			})
+		}
+		resultC <- anyOfBlocking(ctx, additionalTasks)
+	}
+}
+
+func checkRule(level int, sema *Semaphore, ctx context.Context, checkSpec CheckSpec, currentPath []warrant.WarrantSpec, resultC chan<- Result, svc *CheckService, typesMap *objecttype.ObjectTypeMap, rule *objecttype.RelationRule) {
+	select {
+	case <-ctx.Done():
+		log.Ctx(ctx).Debug().Msgf("canceled checkRule[%d] [%s] [%s]", level, checkSpec, rule)
+		return
+	default:
+		log.Ctx(ctx).Debug().Msgf("exec checkRule[%d] [%s] [%s]", level, checkSpec, rule)
+		warrantSpec := checkSpec.CheckWarrantSpec
+		if rule == nil {
+			resultC <- Result{
+				Matched:      false,
+				DecisionPath: currentPath,
+				Err:          nil,
+			}
+			return
+		}
+		switch rule.InheritIf {
+		case "":
+			// No match found
+			resultC <- Result{
+				Matched:      false,
+				DecisionPath: currentPath,
+				Err:          nil,
+			}
+		case objecttype.InheritIfAllOf:
+			var additionalTasks []func(execCtx context.Context, resultC chan<- Result)
+			for _, r := range rule.Rules {
+				subRule := r
+				additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- Result) {
+					checkRule(level+1, sema, execCtx, checkSpec, currentPath, resultC, svc, typesMap, &subRule)
+				})
+			}
+			resultC <- allOfBlocking(ctx, additionalTasks)
+		case objecttype.InheritIfAnyOf:
+			var additionalTasks []func(execCtx context.Context, resultC chan<- Result)
+			for _, r := range rule.Rules {
+				subRule := r
+				additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- Result) {
+					checkRule(level+1, sema, execCtx, checkSpec, currentPath, resultC, svc, typesMap, &subRule)
+				})
+			}
+			resultC <- anyOfBlocking(ctx, additionalTasks)
+		case objecttype.InheritIfNoneOf:
+			var additionalTasks []func(execCtx context.Context, resultC chan<- Result)
+			for _, r := range rule.Rules {
+				subRule := r
+				additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- Result) {
+					checkRule(level+1, sema, execCtx, checkSpec, currentPath, resultC, svc, typesMap, &subRule)
+				})
+			}
+			resultC <- noneOfBlocking(ctx, additionalTasks)
+		default:
+			if rule.OfType == "" && rule.WithRelation == "" {
+				check(level+1, sema, ctx, CheckSpec{
+					CheckWarrantSpec: CheckWarrantSpec{
+						ObjectType: warrantSpec.ObjectType,
+						ObjectId:   warrantSpec.ObjectId,
+						Relation:   rule.InheritIf,
 						Subject:    warrantSpec.Subject,
 						Context:    warrantSpec.Context,
 					},
-					Debug: t.CheckSpec.Debug,
-				},
-				CurrentPath: append(t.CurrentPath, matchingWarrant),
-				ResultC:     t.ResultC,
-				TaskC:       t.TaskC,
-				DoneC:       t.DoneC,
-				Svc:         t.Svc,
-				TypesMap:    t.TypesMap,
-			})
-		} else {
-			subResultsC, subDoneC := anyOfChan(t.ResultC, len(matchingWarrants))
-			var additionalTasks []Task
-			for _, matchingWarrant := range matchingWarrants {
-				additionalTasks = append(additionalTasks, CheckTask{
-					Level: t.Level + 1,
-					Ctx:   t.Ctx,
-					CheckSpec: &CheckSpec{
+					Debug: checkSpec.Debug,
+				}, currentPath, resultC, svc, typesMap)
+				return
+			}
+
+			matchingWarrants, err := svc.getMatchingSubjectsBySubjectType(ctx, sema, typesMap, warrantSpec.ObjectType, warrantSpec.ObjectId, rule.WithRelation, rule.OfType, warrantSpec.Context)
+			if err != nil {
+				//log.Ctx(ctx).Err(err).Msgf("ERR CheckRuleTask getMatchingSubjectsBySubjectType")
+				resultC <- Result{
+					Matched:      false,
+					DecisionPath: currentPath,
+					Err:          err,
+				}
+				return
+			}
+			if len(matchingWarrants) == 0 {
+				resultC <- Result{
+					Matched:      false,
+					DecisionPath: currentPath,
+					Err:          nil,
+				}
+			}
+			var additionalTasks []func(execCtx context.Context, resultC chan<- Result)
+			for _, w := range matchingWarrants {
+				matchingWarrant := w
+				additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- Result) {
+					check(level+1, sema, execCtx, CheckSpec{
 						CheckWarrantSpec: CheckWarrantSpec{
 							ObjectType: matchingWarrant.Subject.ObjectType,
 							ObjectId:   matchingWarrant.Subject.ObjectId,
-							Relation:   t.Rule.InheritIf,
+							Relation:   rule.InheritIf,
 							Subject:    warrantSpec.Subject,
 							Context:    warrantSpec.Context,
 						},
-						Debug: t.CheckSpec.Debug,
-					},
-					CurrentPath: append(t.CurrentPath, matchingWarrant),
-					ResultC:     subResultsC,
-					TaskC:       t.TaskC,
-					DoneC:       subDoneC,
-					Svc:         t.Svc,
-					TypesMap:    t.TypesMap,
+						Debug: checkSpec.Debug,
+					}, append(currentPath, matchingWarrant), resultC, svc, typesMap)
 				})
 			}
-			addTasks(t.DoneC, t.TaskC, additionalTasks...)
+			resultC <- anyOfBlocking(ctx, additionalTasks)
 		}
 	}
 }

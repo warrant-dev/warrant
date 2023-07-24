@@ -16,6 +16,7 @@ package authz
 
 import (
 	"context"
+	"fmt"
 
 	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/event"
@@ -23,6 +24,17 @@ import (
 )
 
 const ResourceTypeObjectType = "object-type"
+
+type ObjectTypeMap struct {
+	objectTypes map[string]ObjectTypeSpec
+}
+
+func (m ObjectTypeMap) GetByTypeId(typeId string) (*ObjectTypeSpec, error) {
+	if val, ok := m.objectTypes[typeId]; ok {
+		return &val, nil
+	}
+	return nil, fmt.Errorf("no object type with typeId %s exists", typeId)
+}
 
 type ObjectTypeService struct {
 	service.BaseService
@@ -99,6 +111,23 @@ func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*O
 		return nil, nil, e
 	}
 	return objectTypeSpec, newWookie, e
+}
+
+func (svc ObjectTypeService) GetTypeMap(ctx context.Context) (*ObjectTypeMap, *wookie.Token, error) {
+	types, wookie, err := svc.List(ctx, service.ListParams{
+		Page:  1,
+		Limit: 1000,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	typeMap := make(map[string]ObjectTypeSpec)
+	for _, t := range types {
+		typeMap[t.Type] = t
+	}
+	return &ObjectTypeMap{
+		objectTypes: typeMap,
+	}, wookie, nil
 }
 
 func (svc ObjectTypeService) List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, *wookie.Token, error) {
