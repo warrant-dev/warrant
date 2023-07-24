@@ -17,138 +17,118 @@ package authz
 import (
 	"context"
 
-	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
+	"github.com/rs/zerolog/log"
 )
 
-type Semaphore struct {
-	semaphore chan struct{}
+type Pipeline struct {
+	serviceSemaphore chan struct{}
+	subtaskSemaphore chan struct{}
 }
 
-func NewSema(maxConcurrency int) *Semaphore {
-	return &Semaphore{
-		semaphore: make(chan struct{}, maxConcurrency),
+func NewPipeline(maxServiceConcurrency int, maxSubtaskConcurrency int) *Pipeline {
+	return &Pipeline{
+		serviceSemaphore: make(chan struct{}, maxServiceConcurrency),
+		subtaskSemaphore: make(chan struct{}, maxSubtaskConcurrency),
 	}
 }
 
-func (s *Semaphore) Acquire() {
-	s.semaphore <- struct{}{}
+func (p *Pipeline) AcquireServiceLock() {
+	p.serviceSemaphore <- struct{}{}
 }
 
-func (s *Semaphore) Release() {
-	<-s.semaphore
+func (p *Pipeline) ReleaseServiceLock() {
+	<-p.serviceSemaphore
 }
 
-type Result struct {
-	Matched      bool
-	DecisionPath []warrant.WarrantSpec
-	Err          error
+func (p *Pipeline) AnyOf(ctx context.Context, tasks []func(execCtx context.Context, resultC chan<- Result)) Result {
+	return p.execTasks(ctx, tasks, func(r Result, isLastExpected bool) (*Result, bool) {
+		// Short-circuit - pick this result if it's a match
+		if r.Matched {
+			return &r, true
+		}
+		// Last result AND it's not a match due to prev condition -> return not matched
+		if isLastExpected {
+			return &Result{
+				Matched:      false,
+				DecisionPath: r.DecisionPath,
+				Err:          nil,
+			}, true
+		}
+		// Not a match, keep looking
+		return nil, false
+	})
 }
 
-func anyOfBlocking(ctx context.Context, tasks []func(execCtx context.Context, resultC chan<- Result)) Result {
+func (p *Pipeline) AllOf(ctx context.Context, tasks []func(execCtx context.Context, resultC chan<- Result)) Result {
+	return p.execTasks(ctx, tasks, func(r Result, isLastExpected bool) (*Result, bool) {
+		// Short-circuit - return not matched if any sub-result is not matched
+		if !r.Matched {
+			return &r, true
+		}
+		// Last result AND it's a match due to prev condition -> return matched
+		if isLastExpected {
+			return &Result{
+				Matched:      true,
+				DecisionPath: r.DecisionPath,
+				Err:          nil,
+			}, true
+		}
+		// Keep looking
+		return nil, false
+	})
+}
+
+func (p *Pipeline) NoneOf(ctx context.Context, tasks []func(execCtx context.Context, resultC chan<- Result)) Result {
+	return p.execTasks(ctx, tasks, func(r Result, isLastExpected bool) (*Result, bool) {
+		// Short-circuit - return not matched
+		if r.Matched {
+			return &Result{
+				Matched:      false,
+				DecisionPath: r.DecisionPath,
+				Err:          nil,
+			}, true
+		}
+		// Last result AND it's not a match due to prev condition -> return matched
+		if isLastExpected {
+			return &Result{
+				Matched:      true,
+				DecisionPath: r.DecisionPath,
+				Err:          nil,
+			}, true
+		}
+		// Keep looking
+		return nil, false
+	})
+}
+
+func (p *Pipeline) execTasks(ctx context.Context, tasks []func(execCtx context.Context, resultC chan<- Result), checkResultFunc func(r Result, isLastExpected bool) (*Result, bool)) Result {
 	childContext, childCtxCancelFunc := context.WithCancel(ctx)
 	defer childCtxCancelFunc()
 	childResultC := make(chan Result, len(tasks))
 
+	// Exec each task
 	for _, t := range tasks {
 		task := t
+		p.subtaskSemaphore <- struct{}{}
+		log.Ctx(ctx).Debug().Msgf("creating goroutine!")
 		go func() {
+			defer func() {
+				<-p.subtaskSemaphore
+			}()
 			task(childContext, childResultC)
 		}()
 	}
 
+	// Monitor results, short-circuit ret as needed
 	resultsReceived := 0
 	for result := range childResultC {
-		resultsReceived++
 		if result.Err != nil {
 			return result
 		}
-		if result.Matched {
-			return result
-		}
-		if resultsReceived == len(tasks) {
-			return Result{
-				Matched:      false,
-				DecisionPath: result.DecisionPath,
-				Err:          nil,
-			}
-		}
-	}
-	// TODO: should prob return an err here
-	return Result{
-		Matched:      false,
-		DecisionPath: nil,
-		Err:          nil,
-	}
-}
-
-func allOfBlocking(ctx context.Context, tasks []func(execCtx context.Context, resultC chan<- Result)) Result {
-	childContext, childCtxCancelFunc := context.WithCancel(ctx)
-	defer childCtxCancelFunc()
-	childResultC := make(chan Result)
-
-	for _, t := range tasks {
-		task := t
-		go func() {
-			task(childContext, childResultC)
-		}()
-	}
-
-	resultsReceived := 0
-	for result := range childResultC {
 		resultsReceived++
-		if result.Err != nil {
-			return result
-		}
-		if !result.Matched {
-			return result
-		}
-		if resultsReceived == len(tasks) {
-			return Result{
-				Matched:      true,
-				DecisionPath: result.DecisionPath,
-				Err:          nil,
-			}
-		}
-	}
-	// TODO: should prob return an err here
-	return Result{
-		Matched:      false,
-		DecisionPath: nil,
-		Err:          nil,
-	}
-}
-
-func noneOfBlocking(ctx context.Context, tasks []func(execCtx context.Context, resultC chan<- Result)) Result {
-	childContext, childCtxCancelFunc := context.WithCancel(ctx)
-	defer childCtxCancelFunc()
-	childResultC := make(chan Result)
-
-	for _, t := range tasks {
-		task := t
-		go func() {
-			task(childContext, childResultC)
-		}()
-	}
-
-	resultsReceived := 0
-	for result := range childResultC {
-		resultsReceived++
-		if result.Err != nil {
-			return result
-		}
-		if result.Matched {
-			return Result{
-				Matched:      false,
-				DecisionPath: result.DecisionPath,
-				Err:          nil,
-			}
-		}
-		if resultsReceived == len(tasks) {
-			return Result{
-				Matched:      true,
-				DecisionPath: result.DecisionPath,
-				Err:          nil,
-			}
+		r, returnResult := checkResultFunc(result, resultsReceived == len(tasks))
+		if returnResult {
+			return *r
 		}
 	}
 	// TODO: should prob return an err here
