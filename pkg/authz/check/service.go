@@ -45,9 +45,9 @@ func NewService(env service.Env, warrantRepo warrant.WarrantRepository, eventSvc
 	}
 }
 
-func (svc CheckService) getWithPolicyMatch(ctx context.Context, pipeline *Pipeline, spec CheckWarrantSpec) (*warrant.WarrantSpec, error) {
-	pipeline.AcquireServiceLock()
-	defer pipeline.ReleaseServiceLock()
+func (svc CheckService) getWithPolicyMatch(ctx context.Context, p *pipeline, spec CheckWarrantSpec) (*warrant.WarrantSpec, error) {
+	p.AcquireServiceLock()
+	defer p.ReleaseServiceLock()
 
 	warrants, err := svc.WarrantRepository.GetAllMatchingObjectRelationAndSubject(ctx, spec.ObjectType, spec.ObjectId, spec.Relation, spec.Subject.ObjectType, spec.Subject.ObjectId, spec.Subject.Relation)
 	if err != nil || len(warrants) == 0 {
@@ -72,9 +72,9 @@ func (svc CheckService) getWithPolicyMatch(ctx context.Context, pipeline *Pipeli
 	return nil, nil
 }
 
-func (svc CheckService) getMatchingSubjects(ctx context.Context, pipeline *Pipeline, objectTypeMap *objecttype.ObjectTypeMap, objectType string, objectId string, relation string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
-	pipeline.AcquireServiceLock()
-	defer pipeline.ReleaseServiceLock()
+func (svc CheckService) getMatchingSubjects(ctx context.Context, p *pipeline, objectTypeMap *objecttype.ObjectTypeMap, objectType string, objectId string, relation string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
+	p.AcquireServiceLock()
+	defer p.ReleaseServiceLock()
 
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
 	objectTypeSpec, err := objectTypeMap.GetByTypeId(objectType)
@@ -113,9 +113,9 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, pipeline *Pipel
 	return warrantSpecs, nil
 }
 
-func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, pipeline *Pipeline, objectTypeMap *objecttype.ObjectTypeMap, objectType string, objectId string, relation string, subjectType string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
-	pipeline.AcquireServiceLock()
-	defer pipeline.ReleaseServiceLock()
+func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, p *pipeline, objectTypeMap *objecttype.ObjectTypeMap, objectType string, objectId string, relation string, subjectType string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
+	p.AcquireServiceLock()
+	defer p.ReleaseServiceLock()
 
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
 	objectTypeSpec, err := objectTypeMap.GetByTypeId(objectType)
@@ -325,18 +325,19 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 	}
 
 	// Fetch object types upfront
-	typeMap, _, err := svc.ObjectTypeSvc.GetTypeMap(ctx)
+	typesMap, _, err := svc.ObjectTypeSvc.GetTypeMap(ctx)
 	if err != nil {
 		return false, nil, nil, err
 	}
 
 	// TODO: Should do wookieSafeRead
-	resultsC := make(chan Result, 1)
-	pipeline := NewPipeline(4, 10)
-	childCtx, cancelFunc := context.WithTimeout(ctx, 1*time.Minute)
+	// TODO: Set some 'dynamic' upper-bound for maxSubtaskConcurrency & cancelable-context
+	resultsC := make(chan result, 1)
+	pipeline := NewPipeline(4, 1000)
+	childCtx, cancelFunc := context.WithTimeout(ctx, 3*time.Minute)
 	defer cancelFunc()
 	go func() {
-		svc.check(0, pipeline, childCtx, warrantCheck, make([]warrant.WarrantSpec, 0), resultsC, typeMap)
+		svc.check(0, pipeline, childCtx, warrantCheck, make([]warrant.WarrantSpec, 0), resultsC, typesMap)
 	}()
 	result := <-resultsC
 	if result.Err != nil {
@@ -348,24 +349,27 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 	return false, nil, nil, nil
 }
 
-type Result struct {
+type result struct {
 	Matched      bool
 	DecisionPath []warrant.WarrantSpec
 	Err          error
 }
 
-func (svc CheckService) check(level int, pipeline *Pipeline, ctx context.Context, checkSpec CheckSpec, currentPath []warrant.WarrantSpec, resultC chan<- Result, typesMap *objecttype.ObjectTypeMap) {
+func (svc CheckService) check(level int, p *pipeline, ctx context.Context, checkSpec CheckSpec, currentPath []warrant.WarrantSpec, resultC chan<- result, typesMap *objecttype.ObjectTypeMap) {
 	select {
 	case <-ctx.Done():
 		log.Ctx(ctx).Debug().Msgf("canceled check[%d] [%s]", level, checkSpec)
 		return
 	default:
-		log.Ctx(ctx).Debug().Msgf("exec check[%d] [%s]", level, checkSpec)
+		start := time.Now()
+		defer func() {
+			log.Ctx(ctx).Debug().Msgf("exec check[%d] [%s] [%s]", level, checkSpec, time.Since(start))
+		}()
+
 		// 1. Check for direct warrant match
-		matchedWarrant, err := svc.getWithPolicyMatch(ctx, pipeline, checkSpec.CheckWarrantSpec)
+		matchedWarrant, err := svc.getWithPolicyMatch(ctx, p, checkSpec.CheckWarrantSpec)
 		if err != nil {
-			// log.Ctx(ctx).Err(err).Msgf("ERR CheckTask getWithPolicyMatch")
-			resultC <- Result{
+			resultC <- result{
 				Matched:      false,
 				DecisionPath: currentPath,
 				Err:          err,
@@ -373,7 +377,7 @@ func (svc CheckService) check(level int, pipeline *Pipeline, ctx context.Context
 			return
 		}
 		if matchedWarrant != nil {
-			resultC <- Result{
+			resultC <- result{
 				Matched:      true,
 				DecisionPath: append(currentPath, *matchedWarrant),
 				Err:          nil,
@@ -382,16 +386,15 @@ func (svc CheckService) check(level int, pipeline *Pipeline, ctx context.Context
 		}
 
 		// 2. Check through indirect/group warrants
-		var additionalTasks []func(execCtx context.Context, resultC chan<- Result)
-		additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- Result) {
-			svc.checkGroup(level+1, pipeline, execCtx, checkSpec, currentPath, resultC, typesMap)
+		var additionalTasks []func(execCtx context.Context, resultC chan<- result)
+		additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- result) {
+			svc.checkGroup(level+1, p, execCtx, checkSpec, currentPath, resultC, typesMap)
 		})
 
 		// 3. And/or defined rules for target relation
 		objectTypeSpec, err := typesMap.GetByTypeId(checkSpec.ObjectType)
 		if err != nil {
-			//log.Ctx(ctx).Err(err).Msgf("ERR CheckTask GetByTypeId")
-			resultC <- Result{
+			resultC <- result{
 				Matched:      false,
 				DecisionPath: currentPath,
 				Err:          err,
@@ -399,26 +402,29 @@ func (svc CheckService) check(level int, pipeline *Pipeline, ctx context.Context
 			return
 		}
 		if relationRule, ok := objectTypeSpec.Relations[checkSpec.Relation]; ok {
-			additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- Result) {
-				svc.checkRule(level+1, pipeline, execCtx, checkSpec, currentPath, resultC, typesMap, &relationRule)
+			additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- result) {
+				svc.checkRule(level+1, p, execCtx, checkSpec, currentPath, resultC, typesMap, &relationRule)
 			})
 		}
 
-		resultC <- pipeline.AnyOf(ctx, additionalTasks)
+		p.AnyOf(ctx, resultC, additionalTasks)
 	}
 }
 
-func (svc CheckService) checkGroup(level int, pipeline *Pipeline, ctx context.Context, checkSpec CheckSpec, currentPath []warrant.WarrantSpec, resultC chan<- Result, typesMap *objecttype.ObjectTypeMap) {
+func (svc CheckService) checkGroup(level int, p *pipeline, ctx context.Context, checkSpec CheckSpec, currentPath []warrant.WarrantSpec, resultC chan<- result, typesMap *objecttype.ObjectTypeMap) {
 	select {
 	case <-ctx.Done():
 		log.Ctx(ctx).Debug().Msgf("canceled checkGroup[%d] [%s]", level, checkSpec)
 		return
 	default:
-		log.Ctx(ctx).Debug().Msgf("exec checkGroup[%d] [%s]", level, checkSpec)
-		warrants, err := svc.getMatchingSubjects(ctx, pipeline, typesMap, checkSpec.ObjectType, checkSpec.ObjectId, checkSpec.Relation, checkSpec.Context)
+		start := time.Now()
+		defer func() {
+			log.Ctx(ctx).Debug().Msgf("exec checkGroup[%d] [%s] [%s]", level, checkSpec, time.Since(start))
+		}()
+
+		warrants, err := svc.getMatchingSubjects(ctx, p, typesMap, checkSpec.ObjectType, checkSpec.ObjectId, checkSpec.Relation, checkSpec.Context)
 		if err != nil {
-			//log.Ctx(ctx).Err(err).Msgf("ERR GroupCheckTask getMatchingSubjects")
-			resultC <- Result{
+			resultC <- result{
 				Matched:      false,
 				DecisionPath: currentPath,
 				Err:          err,
@@ -434,18 +440,18 @@ func (svc CheckService) checkGroup(level int, pipeline *Pipeline, ctx context.Co
 			matchingWarrants = append(matchingWarrants, w)
 		}
 		if len(matchingWarrants) == 0 {
-			resultC <- Result{
+			resultC <- result{
 				Matched:      false,
 				DecisionPath: currentPath,
 				Err:          nil,
 			}
 			return
 		}
-		var additionalTasks []func(execCtx context.Context, resultC chan<- Result)
+		var additionalTasks []func(execCtx context.Context, resultC chan<- result)
 		for _, w := range matchingWarrants {
 			matchingWarrant := w
-			additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- Result) {
-				svc.check(level+1, pipeline, execCtx, CheckSpec{
+			additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- result) {
+				svc.check(level+1, p, execCtx, CheckSpec{
 					CheckWarrantSpec: CheckWarrantSpec{
 						ObjectType: matchingWarrant.Subject.ObjectType,
 						ObjectId:   matchingWarrant.Subject.ObjectId,
@@ -457,20 +463,24 @@ func (svc CheckService) checkGroup(level int, pipeline *Pipeline, ctx context.Co
 				}, append(currentPath, matchingWarrant), resultC, typesMap)
 			})
 		}
-		resultC <- pipeline.AnyOf(ctx, additionalTasks)
+		p.AnyOf(ctx, resultC, additionalTasks)
 	}
 }
 
-func (svc CheckService) checkRule(level int, pipeline *Pipeline, ctx context.Context, checkSpec CheckSpec, currentPath []warrant.WarrantSpec, resultC chan<- Result, typesMap *objecttype.ObjectTypeMap, rule *objecttype.RelationRule) {
+func (svc CheckService) checkRule(level int, p *pipeline, ctx context.Context, checkSpec CheckSpec, currentPath []warrant.WarrantSpec, resultC chan<- result, typesMap *objecttype.ObjectTypeMap, rule *objecttype.RelationRule) {
 	select {
 	case <-ctx.Done():
 		log.Ctx(ctx).Debug().Msgf("canceled checkRule[%d] [%s] [%s]", level, checkSpec, rule)
 		return
 	default:
-		log.Ctx(ctx).Debug().Msgf("exec checkRule[%d] [%s] [%s]", level, checkSpec, rule)
+		start := time.Now()
+		defer func() {
+			log.Ctx(ctx).Debug().Msgf("exec checkRule[%d] [%s] [%s] [%s]", level, checkSpec, rule, time.Since(start))
+		}()
+
 		warrantSpec := checkSpec.CheckWarrantSpec
 		if rule == nil {
-			resultC <- Result{
+			resultC <- result{
 				Matched:      false,
 				DecisionPath: currentPath,
 				Err:          nil,
@@ -480,41 +490,41 @@ func (svc CheckService) checkRule(level int, pipeline *Pipeline, ctx context.Con
 		switch rule.InheritIf {
 		case "":
 			// No match found
-			resultC <- Result{
+			resultC <- result{
 				Matched:      false,
 				DecisionPath: currentPath,
 				Err:          nil,
 			}
 		case objecttype.InheritIfAllOf:
-			var additionalTasks []func(execCtx context.Context, resultC chan<- Result)
+			var additionalTasks []func(execCtx context.Context, resultC chan<- result)
 			for _, r := range rule.Rules {
 				subRule := r
-				additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- Result) {
-					svc.checkRule(level+1, pipeline, execCtx, checkSpec, currentPath, resultC, typesMap, &subRule)
+				additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- result) {
+					svc.checkRule(level+1, p, execCtx, checkSpec, currentPath, resultC, typesMap, &subRule)
 				})
 			}
-			resultC <- pipeline.AllOf(ctx, additionalTasks)
+			p.AllOf(ctx, resultC, additionalTasks)
 		case objecttype.InheritIfAnyOf:
-			var additionalTasks []func(execCtx context.Context, resultC chan<- Result)
+			var additionalTasks []func(execCtx context.Context, resultC chan<- result)
 			for _, r := range rule.Rules {
 				subRule := r
-				additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- Result) {
-					svc.checkRule(level+1, pipeline, execCtx, checkSpec, currentPath, resultC, typesMap, &subRule)
+				additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- result) {
+					svc.checkRule(level+1, p, execCtx, checkSpec, currentPath, resultC, typesMap, &subRule)
 				})
 			}
-			resultC <- pipeline.AnyOf(ctx, additionalTasks)
+			p.AnyOf(ctx, resultC, additionalTasks)
 		case objecttype.InheritIfNoneOf:
-			var additionalTasks []func(execCtx context.Context, resultC chan<- Result)
+			var additionalTasks []func(execCtx context.Context, resultC chan<- result)
 			for _, r := range rule.Rules {
 				subRule := r
-				additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- Result) {
-					svc.checkRule(level+1, pipeline, execCtx, checkSpec, currentPath, resultC, typesMap, &subRule)
+				additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- result) {
+					svc.checkRule(level+1, p, execCtx, checkSpec, currentPath, resultC, typesMap, &subRule)
 				})
 			}
-			resultC <- pipeline.NoneOf(ctx, additionalTasks)
+			p.NoneOf(ctx, resultC, additionalTasks)
 		default:
 			if rule.OfType == "" && rule.WithRelation == "" {
-				svc.check(level+1, pipeline, ctx, CheckSpec{
+				svc.check(level+1, p, ctx, CheckSpec{
 					CheckWarrantSpec: CheckWarrantSpec{
 						ObjectType: warrantSpec.ObjectType,
 						ObjectId:   warrantSpec.ObjectId,
@@ -527,10 +537,9 @@ func (svc CheckService) checkRule(level int, pipeline *Pipeline, ctx context.Con
 				return
 			}
 
-			matchingWarrants, err := svc.getMatchingSubjectsBySubjectType(ctx, pipeline, typesMap, warrantSpec.ObjectType, warrantSpec.ObjectId, rule.WithRelation, rule.OfType, warrantSpec.Context)
+			matchingWarrants, err := svc.getMatchingSubjectsBySubjectType(ctx, p, typesMap, warrantSpec.ObjectType, warrantSpec.ObjectId, rule.WithRelation, rule.OfType, warrantSpec.Context)
 			if err != nil {
-				//log.Ctx(ctx).Err(err).Msgf("ERR CheckRuleTask getMatchingSubjectsBySubjectType")
-				resultC <- Result{
+				resultC <- result{
 					Matched:      false,
 					DecisionPath: currentPath,
 					Err:          err,
@@ -538,18 +547,18 @@ func (svc CheckService) checkRule(level int, pipeline *Pipeline, ctx context.Con
 				return
 			}
 			if len(matchingWarrants) == 0 {
-				resultC <- Result{
+				resultC <- result{
 					Matched:      false,
 					DecisionPath: currentPath,
 					Err:          nil,
 				}
 				return
 			}
-			var additionalTasks []func(execCtx context.Context, resultC chan<- Result)
+			var additionalTasks []func(execCtx context.Context, resultC chan<- result)
 			for _, w := range matchingWarrants {
 				matchingWarrant := w
-				additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- Result) {
-					svc.check(level+1, pipeline, execCtx, CheckSpec{
+				additionalTasks = append(additionalTasks, func(execCtx context.Context, resultC chan<- result) {
+					svc.check(level+1, p, execCtx, CheckSpec{
 						CheckWarrantSpec: CheckWarrantSpec{
 							ObjectType: matchingWarrant.Subject.ObjectType,
 							ObjectId:   matchingWarrant.Subject.ObjectId,
@@ -561,7 +570,127 @@ func (svc CheckService) checkRule(level int, pipeline *Pipeline, ctx context.Con
 					}, append(currentPath, matchingWarrant), resultC, typesMap)
 				})
 			}
-			resultC <- pipeline.AnyOf(ctx, additionalTasks)
+			p.AnyOf(ctx, resultC, additionalTasks)
+		}
+	}
+}
+
+type pipeline struct {
+	serviceSemaphore chan struct{}
+	subtaskSemaphore chan struct{}
+}
+
+func NewPipeline(maxServiceConcurrency int, maxSubtaskConcurrency int) *pipeline {
+	return &pipeline{
+		serviceSemaphore: make(chan struct{}, maxServiceConcurrency),
+		subtaskSemaphore: make(chan struct{}, maxSubtaskConcurrency),
+	}
+}
+
+func (p *pipeline) AcquireServiceLock() {
+	p.serviceSemaphore <- struct{}{}
+}
+
+func (p *pipeline) ReleaseServiceLock() {
+	<-p.serviceSemaphore
+}
+
+func (p *pipeline) AnyOf(ctx context.Context, parentResultC chan<- result, tasks []func(execCtx context.Context, resultC chan<- result)) {
+	p.execTasks(ctx, parentResultC, tasks, func(r result, isLastExpected bool) (*result, bool) {
+		// Short-circuit - pick this result if it's a match
+		if r.Matched {
+			return &r, true
+		}
+		// Last result AND it's not a match due to prev condition -> return not matched
+		if isLastExpected {
+			return &result{
+				Matched:      false,
+				DecisionPath: r.DecisionPath,
+				Err:          nil,
+			}, true
+		}
+		// Not a match, keep looking
+		return nil, false
+	})
+}
+
+func (p *pipeline) AllOf(ctx context.Context, parentResultC chan<- result, tasks []func(execCtx context.Context, resultC chan<- result)) {
+	p.execTasks(ctx, parentResultC, tasks, func(r result, isLastExpected bool) (*result, bool) {
+		// Short-circuit - return not matched if any sub-result is not matched
+		if !r.Matched {
+			return &r, true
+		}
+		// Last result AND it's a match due to prev condition -> return matched
+		if isLastExpected {
+			return &result{
+				Matched:      true,
+				DecisionPath: r.DecisionPath,
+				Err:          nil,
+			}, true
+		}
+		// Keep looking
+		return nil, false
+	})
+}
+
+func (p *pipeline) NoneOf(ctx context.Context, parentResultC chan<- result, tasks []func(execCtx context.Context, resultC chan<- result)) {
+	p.execTasks(ctx, parentResultC, tasks, func(r result, isLastExpected bool) (*result, bool) {
+		// Short-circuit - return not matched
+		if r.Matched {
+			return &result{
+				Matched:      false,
+				DecisionPath: r.DecisionPath,
+				Err:          nil,
+			}, true
+		}
+		// Last result AND it's not a match due to prev condition -> return matched
+		if isLastExpected {
+			return &result{
+				Matched:      true,
+				DecisionPath: r.DecisionPath,
+				Err:          nil,
+			}, true
+		}
+		// Keep looking
+		return nil, false
+	})
+}
+
+func (p *pipeline) execTasks(ctx context.Context, parentResultC chan<- result, tasks []func(execCtx context.Context, resultC chan<- result), checkResultFunc func(r result, isLastExpected bool) (*result, bool)) {
+	childContext, childCtxCancelFunc := context.WithCancel(ctx)
+	childResultC := make(chan result, len(tasks))
+
+	go func() {
+		// Monitor task results, short-circuit as needed
+		defer childCtxCancelFunc()
+		resultsReceived := 0
+		for result := range childResultC {
+			if result.Err != nil {
+				parentResultC <- result
+				return
+			}
+			resultsReceived++
+			r, returnResult := checkResultFunc(result, resultsReceived == len(tasks))
+			if returnResult {
+				parentResultC <- *r
+				return
+			}
+		}
+	}()
+
+	for _, t := range tasks {
+		task := t
+		// Exec each task on new goroutine unless at capacity. In that case, run task(s) locally
+		select {
+		case p.subtaskSemaphore <- struct{}{}:
+			go func() {
+				defer func() {
+					<-p.subtaskSemaphore
+				}()
+				task(childContext, childResultC)
+			}()
+		default:
+			task(childContext, childResultC)
 		}
 	}
 }
