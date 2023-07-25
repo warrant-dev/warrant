@@ -115,7 +115,6 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, checkPipeline *
 
 func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, checkPipeline *pipeline, objectTypeMap *objecttype.ObjectTypeMap, objectType string,
 	objectId string, relation string, subjectType string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
-
 	checkPipeline.AcquireServiceLock()
 	defer checkPipeline.ReleaseServiceLock()
 
@@ -334,10 +333,13 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 
 	// TODO: Should do wookieSafeRead
 	// TODO: Set some 'dynamic' upper-bound for maxSubtaskConcurrency & cancelable-context
+	maxServiceConcurrency := 4
+	maxSubtaskConcurrency := 1000
+	pipelineTimeout := 3 * time.Minute
 	resultsC := make(chan result, 1)
-	pipeline := NewPipeline(4, 1000)
+	pipeline := NewPipeline(maxServiceConcurrency, maxSubtaskConcurrency)
 
-	childCtx, cancelFunc := context.WithTimeout(ctx, 3*time.Minute)
+	childCtx, cancelFunc := context.WithTimeout(ctx, pipelineTimeout)
 	defer cancelFunc()
 
 	go func() {
@@ -605,16 +607,16 @@ func (p *pipeline) ReleaseServiceLock() {
 }
 
 func (p *pipeline) AnyOf(ctx context.Context, parentResultC chan<- result, tasks []func(execCtx context.Context, resultC chan<- result)) {
-	p.execTasks(ctx, parentResultC, tasks, func(r result, isLastExpected bool) (*result, bool) {
+	p.execTasks(ctx, parentResultC, tasks, func(res result, isLastExpected bool) (*result, bool) {
 		// Short-circuit - pick this result if it's a match
-		if r.Matched {
-			return &r, true
+		if res.Matched {
+			return &res, true
 		}
 		// Last result AND it's not a match due to prev condition -> return not matched
 		if isLastExpected {
 			return &result{
 				Matched:      false,
-				DecisionPath: r.DecisionPath,
+				DecisionPath: res.DecisionPath,
 				Err:          nil,
 			}, true
 		}
@@ -624,16 +626,16 @@ func (p *pipeline) AnyOf(ctx context.Context, parentResultC chan<- result, tasks
 }
 
 func (p *pipeline) AllOf(ctx context.Context, parentResultC chan<- result, tasks []func(execCtx context.Context, resultC chan<- result)) {
-	p.execTasks(ctx, parentResultC, tasks, func(r result, isLastExpected bool) (*result, bool) {
+	p.execTasks(ctx, parentResultC, tasks, func(res result, isLastExpected bool) (*result, bool) {
 		// Short-circuit - return not matched if any sub-result is not matched
-		if !r.Matched {
-			return &r, true
+		if !res.Matched {
+			return &res, true
 		}
 		// Last result AND it's a match due to prev condition -> return matched
 		if isLastExpected {
 			return &result{
 				Matched:      true,
-				DecisionPath: r.DecisionPath,
+				DecisionPath: res.DecisionPath,
 				Err:          nil,
 			}, true
 		}
@@ -643,12 +645,12 @@ func (p *pipeline) AllOf(ctx context.Context, parentResultC chan<- result, tasks
 }
 
 func (p *pipeline) NoneOf(ctx context.Context, parentResultC chan<- result, tasks []func(execCtx context.Context, resultC chan<- result)) {
-	p.execTasks(ctx, parentResultC, tasks, func(r result, isLastExpected bool) (*result, bool) {
+	p.execTasks(ctx, parentResultC, tasks, func(res result, isLastExpected bool) (*result, bool) {
 		// Short-circuit - return not matched
-		if r.Matched {
+		if res.Matched {
 			return &result{
 				Matched:      false,
-				DecisionPath: r.DecisionPath,
+				DecisionPath: res.DecisionPath,
 				Err:          nil,
 			}, true
 		}
@@ -656,7 +658,7 @@ func (p *pipeline) NoneOf(ctx context.Context, parentResultC chan<- result, task
 		if isLastExpected {
 			return &result{
 				Matched:      true,
-				DecisionPath: r.DecisionPath,
+				DecisionPath: res.DecisionPath,
 				Err:          nil,
 			}, true
 		}
