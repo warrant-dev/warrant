@@ -114,20 +114,30 @@ func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*O
 }
 
 func (svc ObjectTypeService) GetTypeMap(ctx context.Context) (*ObjectTypeMap, *wookie.Token, error) {
-	types, wookie, err := svc.List(ctx, service.ListParams{
-		Page:  1,
-		Limit: 1000,
-	})
-	if err != nil {
-		return nil, nil, err
-	}
 	typeMap := make(map[string]ObjectTypeSpec)
-	for _, t := range types {
-		typeMap[t.Type] = t
+	newWookie, e := svc.WookieSvc.WookieSafeRead(ctx, func(wkCtx context.Context) error {
+		objectTypes, err := svc.Repository.ListAll(wkCtx)
+		if err != nil {
+			return err
+		}
+
+		for _, objectType := range objectTypes {
+			objectTypeSpec, err := objectType.ToObjectTypeSpec()
+			if err != nil {
+				return err
+			}
+
+			typeMap[objectTypeSpec.Type] = *objectTypeSpec
+		}
+
+		return nil
+	})
+	if e != nil {
+		return nil, nil, e
 	}
 	return &ObjectTypeMap{
 		objectTypes: typeMap,
-	}, wookie, nil
+	}, newWookie, nil
 }
 
 func (svc ObjectTypeService) List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, *wookie.Token, error) {

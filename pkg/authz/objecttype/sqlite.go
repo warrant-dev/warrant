@@ -120,6 +120,35 @@ func (repo SQLiteRepository) GetByTypeId(ctx context.Context, typeId string) (Mo
 	return &objectType, nil
 }
 
+func (repo SQLiteRepository) ListAll(ctx context.Context) ([]Model, error) {
+	models := make([]Model, 0)
+	objectTypes := make([]ObjectType, 0)
+	err := repo.DB.SelectContext(
+		ctx,
+		&objectTypes,
+		`
+			SELECT id, typeId, definition, createdAt, updatedAt, deletedAt
+			FROM objectType
+			WHERE
+				deletedAt IS NULL
+		`,
+	)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return models, nil
+		default:
+			return models, errors.Wrap(err, "error listing object types")
+		}
+	}
+
+	for i := range objectTypes {
+		models = append(models, &objectTypes[i])
+	}
+
+	return models, nil
+}
+
 func (repo SQLiteRepository) List(ctx context.Context, listParams service.ListParams) ([]Model, error) {
 	models := make([]Model, 0)
 	objectTypes := make([]ObjectType, 0)
