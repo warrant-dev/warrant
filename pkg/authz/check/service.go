@@ -379,7 +379,7 @@ func (svc CheckService) check(level int, p *pipeline, ctx context.Context, check
 		if matchedWarrant != nil {
 			resultC <- result{
 				Matched:      true,
-				DecisionPath: append(currentPath, *matchedWarrant),
+				DecisionPath: append([]warrant.WarrantSpec{*matchedWarrant}, currentPath...),
 				Err:          nil,
 			}
 			return
@@ -460,7 +460,7 @@ func (svc CheckService) checkGroup(level int, p *pipeline, ctx context.Context, 
 						Context:    checkSpec.Context,
 					},
 					Debug: checkSpec.Debug,
-				}, append(currentPath, matchingWarrant), resultC, typesMap)
+				}, append([]warrant.WarrantSpec{matchingWarrant}, currentPath...), resultC, typesMap)
 			})
 		}
 		p.AnyOf(ctx, resultC, additionalTasks)
@@ -567,7 +567,7 @@ func (svc CheckService) checkRule(level int, p *pipeline, ctx context.Context, c
 							Context:    warrantSpec.Context,
 						},
 						Debug: checkSpec.Debug,
-					}, append(currentPath, matchingWarrant), resultC, typesMap)
+					}, append([]warrant.WarrantSpec{matchingWarrant}, currentPath...), resultC, typesMap)
 				})
 			}
 			p.AnyOf(ctx, resultC, additionalTasks)

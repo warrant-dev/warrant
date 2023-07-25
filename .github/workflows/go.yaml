@@ -1,4 +1,4 @@
-name: "Go Build/Test/Check/Lint"
+name: "Go"
 
 on:
   push:
