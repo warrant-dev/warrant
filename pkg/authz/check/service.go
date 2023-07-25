@@ -113,7 +113,9 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, checkPipeline *
 	return warrantSpecs, nil
 }
 
-func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, checkPipeline *pipeline, objectTypeMap *objecttype.ObjectTypeMap, objectType string, objectId string, relation string, subjectType string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
+func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, checkPipeline *pipeline, objectTypeMap *objecttype.ObjectTypeMap, objectType string,
+	objectId string, relation string, subjectType string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
+
 	checkPipeline.AcquireServiceLock()
 	defer checkPipeline.ReleaseServiceLock()
 

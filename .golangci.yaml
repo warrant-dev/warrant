@@ -33,9 +33,9 @@ linters:
     # - gocritic
     # - gocyclo
     # - godot
-    # - godox
+    - godox
     # - goerr113
-    # - gofumpt
+    - gofumpt
     # - gomnd
     # - gosec
     # - interfacebloat
@@ -57,7 +57,7 @@ linters:
     # - unconvert
     # - varnamelen
     - wrapcheck
-    # - wsl
+    - wsl
 linters-settings:
   goheader:
     template: |-
@@ -79,4 +79,6 @@ linters-settings:
   nestif:
     min-complexity: 7
 issues:
-  new-from-rev: HEAD~1
+  new-from-rev: 3f04848d5a946826ab51f00361d6793761ca6616
+  max-issues-per-linter: 0
+  max-same-issues: 0
