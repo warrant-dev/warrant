@@ -40,8 +40,6 @@ jobs:
           cache: false
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 23
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:

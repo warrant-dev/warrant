@@ -85,22 +85,26 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 	if ds.Config.MaxIdleConnections != 0 {
 		db.SetMaxIdleConns(ds.Config.MaxIdleConnections)
 	}
+
 	if ds.Config.ConnMaxIdleTime != "" {
 		idleTime, err := time.ParseDuration(ds.Config.ConnMaxIdleTime)
 		if err != nil {
 			return errors.Wrap(err, "Invalid ConnMaxIdleTime provided in config.")
 		}
+
 		db.SetConnMaxIdleTime(idleTime)
 	}
 
 	if ds.Config.MaxOpenConnections != 0 {
 		db.SetMaxOpenConns(ds.Config.MaxOpenConnections)
 	}
+
 	if ds.Config.ConnMaxLifetime != "" {
 		connMaxLifetime, err := time.ParseDuration(ds.Config.ConnMaxLifetime)
 		if err != nil {
 			return errors.Wrap(err, "Invalid ConnMaxLifetime provided in config.")
 		}
+
 		db.SetConnMaxLifetime(connMaxLifetime)
 	}
 
@@ -125,22 +129,26 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 		if ds.Config.ReaderMaxIdleConnections != 0 {
 			reader.SetMaxIdleConns(ds.Config.ReaderMaxIdleConnections)
 		}
+
 		if ds.Config.ConnMaxIdleTime != "" {
 			idleTime, err := time.ParseDuration(ds.Config.ConnMaxIdleTime)
 			if err != nil {
 				return errors.Wrap(err, "Invalid ConnMaxIdleTime provided in config.")
 			}
+
 			reader.SetConnMaxIdleTime(idleTime)
 		}
 
 		if ds.Config.ReaderMaxOpenConnections != 0 {
 			reader.SetMaxOpenConns(ds.Config.ReaderMaxOpenConnections)
 		}
+
 		if ds.Config.ConnMaxLifetime != "" {
 			connMaxLifetime, err := time.ParseDuration(ds.Config.ConnMaxLifetime)
 			if err != nil {
 				return errors.Wrap(err, "Invalid ConnMaxLifetime provided in config.")
 			}
+
 			reader.SetConnMaxLifetime(connMaxLifetime)
 		}
 

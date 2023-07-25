@@ -133,13 +133,13 @@ func (repo SQLiteRepository) ListAll(ctx context.Context) ([]Model, error) {
 				deletedAt IS NULL
 		`,
 	)
+
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		if errors.Is(err, sql.ErrNoRows) {
 			return models, nil
-		default:
-			return models, errors.Wrap(err, "error listing object types")
 		}
+
+		return models, errors.Wrap(err, "error listing all object types")
 	}
 
 	for i := range objectTypes {

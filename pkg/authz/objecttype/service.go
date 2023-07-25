@@ -33,6 +33,7 @@ func (m ObjectTypeMap) GetByTypeId(typeId string) (*ObjectTypeSpec, error) {
 	if val, ok := m.objectTypes[typeId]; ok {
 		return &val, nil
 	}
+
 	return nil, fmt.Errorf("no object type with typeId %s exists", typeId)
 }
 
@@ -115,7 +116,7 @@ func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*O
 
 func (svc ObjectTypeService) GetTypeMap(ctx context.Context) (*ObjectTypeMap, *wookie.Token, error) {
 	typeMap := make(map[string]ObjectTypeSpec)
-	newWookie, e := svc.WookieSvc.WookieSafeRead(ctx, func(wkCtx context.Context) error {
+	newWookie, err := svc.WookieSvc.WookieSafeRead(ctx, func(wkCtx context.Context) error {
 		objectTypes, err := svc.Repository.ListAll(wkCtx)
 		if err != nil {
 			return err
@@ -132,9 +133,11 @@ func (svc ObjectTypeService) GetTypeMap(ctx context.Context) (*ObjectTypeMap, *w
 
 		return nil
 	})
-	if e != nil {
-		return nil, nil, e
+
+	if err != nil {
+		return nil, nil, err
 	}
+
 	return &ObjectTypeMap{
 		objectTypes: typeMap,
 	}, newWookie, nil
