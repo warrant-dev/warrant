@@ -17,7 +17,6 @@ package database
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
@@ -69,27 +68,13 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 		db.SetMaxIdleConns(ds.Config.MaxIdleConnections)
 	}
 
-	if ds.Config.ConnMaxIdleTime != "" {
-		idleTime, err := time.ParseDuration(ds.Config.ConnMaxIdleTime)
-		if err != nil {
-			return errors.Wrap(err, "Invalid ConnMaxIdleTime provided in config.")
-		}
-
-		db.SetConnMaxIdleTime(idleTime)
-	}
+	db.SetConnMaxIdleTime(ds.Config.ConnMaxIdleTime)
 
 	if ds.Config.MaxOpenConnections != 0 {
 		db.SetMaxOpenConns(ds.Config.MaxOpenConnections)
 	}
 
-	if ds.Config.ConnMaxLifetime != "" {
-		connMaxLifetime, err := time.ParseDuration(ds.Config.ConnMaxLifetime)
-		if err != nil {
-			return errors.Wrap(err, "Invalid ConnMaxLifetime provided in config.")
-		}
-
-		db.SetConnMaxLifetime(connMaxLifetime)
-	}
+	db.SetConnMaxLifetime(ds.Config.ConnMaxLifetime)
 
 	// map struct attributes to db column names
 	db.Mapper = reflectx.NewMapperFunc("mysql", func(s string) string { return s })
@@ -118,27 +103,13 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 			reader.SetMaxIdleConns(ds.Config.ReaderMaxIdleConnections)
 		}
 
-		if ds.Config.ConnMaxIdleTime != "" {
-			idleTime, err := time.ParseDuration(ds.Config.ConnMaxIdleTime)
-			if err != nil {
-				return errors.Wrap(err, "Invalid ConnMaxIdleTime provided in config.")
-			}
-
-			reader.SetConnMaxIdleTime(idleTime)
-		}
+		reader.SetConnMaxIdleTime(ds.Config.ConnMaxIdleTime)
 
 		if ds.Config.ReaderMaxOpenConnections != 0 {
 			reader.SetMaxOpenConns(ds.Config.ReaderMaxOpenConnections)
 		}
 
-		if ds.Config.ConnMaxLifetime != "" {
-			connMaxLifetime, err := time.ParseDuration(ds.Config.ConnMaxLifetime)
-			if err != nil {
-				return errors.Wrap(err, "Invalid ConnMaxLifetime provided in config.")
-			}
-
-			reader.SetConnMaxLifetime(connMaxLifetime)
-		}
+		reader.SetConnMaxLifetime(ds.Config.ConnMaxLifetime)
 
 		// map struct attributes to db column names
 		reader.Mapper = reflectx.NewMapperFunc("mysql", func(s string) string { return s })

@@ -21,7 +21,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"time"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
@@ -77,24 +76,14 @@ func (ds *SQLite) Connect(ctx context.Context) error {
 	if ds.Config.MaxIdleConnections != 0 {
 		db.SetMaxIdleConns(ds.Config.MaxIdleConnections)
 	}
-	if ds.Config.ConnMaxIdleTime != "" {
-		idleTime, err := time.ParseDuration(ds.Config.ConnMaxIdleTime)
-		if err != nil {
-			return errors.Wrap(err, "Invalid ConnMaxIdleTime provided in config.")
-		}
-		db.SetConnMaxIdleTime(idleTime)
-	}
+
+	db.SetConnMaxIdleTime(ds.Config.ConnMaxIdleTime)
 
 	if ds.Config.MaxOpenConnections != 0 {
 		db.SetMaxOpenConns(ds.Config.MaxOpenConnections)
 	}
-	if ds.Config.ConnMaxLifetime != "" {
-		connMaxLifetime, err := time.ParseDuration(ds.Config.ConnMaxLifetime)
-		if err != nil {
-			return errors.Wrap(err, "Invalid ConnMaxLifetime provided in config.")
-		}
-		db.SetConnMaxLifetime(connMaxLifetime)
-	}
+
+	db.SetConnMaxLifetime(ds.Config.ConnMaxLifetime)
 
 	// map struct attributes to db column names
 	db.Mapper = reflectx.NewMapperFunc("sqlite", func(s string) string { return s })

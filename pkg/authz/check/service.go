@@ -23,6 +23,7 @@ import (
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
+	"github.com/warrant-dev/warrant/pkg/config"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -33,15 +34,17 @@ type CheckService struct {
 	EventSvc          event.Service
 	ObjectTypeSvc     *objecttype.ObjectTypeService
 	WookieSvc         *wookie.WookieService
+	CheckConfig       *config.CheckConfig
 }
 
-func NewService(env service.Env, warrantRepo warrant.WarrantRepository, eventSvc event.Service, objectTypeSvc *objecttype.ObjectTypeService, wookieSvc *wookie.WookieService) *CheckService {
+func NewService(env service.Env, warrantRepo warrant.WarrantRepository, eventSvc event.Service, objectTypeSvc *objecttype.ObjectTypeService, wookieSvc *wookie.WookieService, checkConfig *config.CheckConfig) *CheckService {
 	return &CheckService{
 		BaseService:       service.NewBaseService(env),
 		WarrantRepository: warrantRepo,
 		EventSvc:          eventSvc,
 		ObjectTypeSvc:     objectTypeSvc,
 		WookieSvc:         wookieSvc,
+		CheckConfig:       checkConfig,
 	}
 }
 
@@ -332,14 +335,10 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 	}
 
 	// TODO: Should do wookieSafeRead
-	// TODO: Set some 'dynamic' upper-bound for maxSubtaskConcurrency & cancelable-context
-	maxServiceConcurrency := 4
-	maxSubtaskConcurrency := 1000
-	pipelineTimeout := 3 * time.Minute
 	resultsC := make(chan result, 1)
-	pipeline := NewPipeline(maxServiceConcurrency, maxSubtaskConcurrency)
+	pipeline := NewPipeline(svc.CheckConfig.Concurrency, svc.CheckConfig.MaxConcurrency)
 
-	childCtx, cancelFunc := context.WithTimeout(ctx, pipelineTimeout)
+	childCtx, cancelFunc := context.WithTimeout(ctx, svc.CheckConfig.Timeout)
 	defer cancelFunc()
 
 	go func() {

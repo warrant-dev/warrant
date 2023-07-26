@@ -57,6 +57,7 @@ type WarrantConfig struct {
 	Eventstore          *EventstoreConfig `mapstructure:"eventstore"`
 	Authentication      *AuthConfig       `mapstructure:"authentication"`
 	EnableWarrantTokens bool              `mapstructure:"enableWarrantTokens"`
+	Check               *CheckConfig      `mapstructure:"check"`
 }
 
 func (warrantConfig WarrantConfig) GetPort() int {
@@ -87,6 +88,14 @@ func (warrantConfig WarrantConfig) GetAuthentication() *AuthConfig {
 	return warrantConfig.Authentication
 }
 
+func (warrantConfig WarrantConfig) GetEnableWarrantTokens() bool {
+	return warrantConfig.EnableWarrantTokens
+}
+
+func (warrantConfig WarrantConfig) GetCheck() *CheckConfig {
+	return warrantConfig.Check
+}
+
 type DatastoreConfig struct {
 	MySQL    *MySQLConfig    `mapstructure:"mysql"`
 	Postgres *PostgresConfig `mapstructure:"postgres"`
@@ -94,46 +103,46 @@ type DatastoreConfig struct {
 }
 
 type MySQLConfig struct {
-	Username                 string `mapstructure:"username"`
-	Password                 string `mapstructure:"password"`
-	Hostname                 string `mapstructure:"hostname"`
-	Database                 string `mapstructure:"database"`
-	MigrationSource          string `mapstructure:"migrationSource"`
-	MaxIdleConnections       int    `mapstructure:"maxIdleConnections"`
-	ConnMaxIdleTime          string `mapstructure:"connMaxIdleTime"`
-	MaxOpenConnections       int    `mapstructure:"maxOpenConnections"`
-	ConnMaxLifetime          string `mapstructure:"connMaxLifetime"`
-	ReaderHostname           string `mapstructure:"readerHostname"`
-	ReaderMaxIdleConnections int    `mapstructure:"readerMaxIdleConnections"`
-	ReaderMaxOpenConnections int    `mapstructure:"readerMaxOpenConnections"`
-	DSN                      string `mapstructure:"dsn"`
-	ReaderDSN                string `mapstructure:"readerDsn"`
+	Username                 string        `mapstructure:"username"`
+	Password                 string        `mapstructure:"password"`
+	Hostname                 string        `mapstructure:"hostname"`
+	Database                 string        `mapstructure:"database"`
+	MigrationSource          string        `mapstructure:"migrationSource"`
+	MaxIdleConnections       int           `mapstructure:"maxIdleConnections"`
+	ConnMaxIdleTime          time.Duration `mapstructure:"connMaxIdleTime"`
+	MaxOpenConnections       int           `mapstructure:"maxOpenConnections"`
+	ConnMaxLifetime          time.Duration `mapstructure:"connMaxLifetime"`
+	ReaderHostname           string        `mapstructure:"readerHostname"`
+	ReaderMaxIdleConnections int           `mapstructure:"readerMaxIdleConnections"`
+	ReaderMaxOpenConnections int           `mapstructure:"readerMaxOpenConnections"`
+	DSN                      string        `mapstructure:"dsn"`
+	ReaderDSN                string        `mapstructure:"readerDsn"`
 }
 
 type PostgresConfig struct {
-	Username                 string `mapstructure:"username"`
-	Password                 string `mapstructure:"password"`
-	Hostname                 string `mapstructure:"hostname"`
-	Database                 string `mapstructure:"database"`
-	SSLMode                  string `mapstructure:"sslmode"`
-	MigrationSource          string `mapstructure:"migrationSource"`
-	MaxIdleConnections       int    `mapstructure:"maxIdleConnections"`
-	ConnMaxIdleTime          string `mapstructure:"connMaxIdleTime"`
-	MaxOpenConnections       int    `mapstructure:"maxOpenConnections"`
-	ConnMaxLifetime          string `mapstructure:"connMaxLifetime"`
-	ReaderHostname           string `mapstructure:"readerHostname"`
-	ReaderMaxIdleConnections int    `mapstructure:"readerMaxIdleConnections"`
-	ReaderMaxOpenConnections int    `mapstructure:"readerMaxOpenConnections"`
+	Username                 string        `mapstructure:"username"`
+	Password                 string        `mapstructure:"password"`
+	Hostname                 string        `mapstructure:"hostname"`
+	Database                 string        `mapstructure:"database"`
+	SSLMode                  string        `mapstructure:"sslmode"`
+	MigrationSource          string        `mapstructure:"migrationSource"`
+	MaxIdleConnections       int           `mapstructure:"maxIdleConnections"`
+	ConnMaxIdleTime          time.Duration `mapstructure:"connMaxIdleTime"`
+	MaxOpenConnections       int           `mapstructure:"maxOpenConnections"`
+	ConnMaxLifetime          time.Duration `mapstructure:"connMaxLifetime"`
+	ReaderHostname           string        `mapstructure:"readerHostname"`
+	ReaderMaxIdleConnections int           `mapstructure:"readerMaxIdleConnections"`
+	ReaderMaxOpenConnections int           `mapstructure:"readerMaxOpenConnections"`
 }
 
 type SQLiteConfig struct {
-	Database           string `mapstructure:"database"`
-	InMemory           bool   `mapstructure:"inMemory"`
-	MigrationSource    string `mapstructure:"migrationSource"`
-	MaxIdleConnections int    `mapstructure:"maxIdleConnections"`
-	ConnMaxIdleTime    string `mapstructure:"connMaxIdleTime"`
-	MaxOpenConnections int    `mapstructure:"maxOpenConnections"`
-	ConnMaxLifetime    string `mapstructure:"connMaxLifetime"`
+	Database           string        `mapstructure:"database"`
+	InMemory           bool          `mapstructure:"inMemory"`
+	MigrationSource    string        `mapstructure:"migrationSource"`
+	MaxIdleConnections int           `mapstructure:"maxIdleConnections"`
+	ConnMaxIdleTime    time.Duration `mapstructure:"connMaxIdleTime"`
+	MaxOpenConnections int           `mapstructure:"maxOpenConnections"`
+	ConnMaxLifetime    time.Duration `mapstructure:"connMaxLifetime"`
 }
 
 type EventstoreConfig struct {
@@ -155,6 +164,12 @@ type AuthProviderConfig struct {
 	TenantIdClaim string `mapstructure:"tenantIdClaim"`
 }
 
+type CheckConfig struct {
+	Concurrency    int           `mapstructure:"concurrency"`
+	MaxConcurrency int           `mapstructure:"maxConcurrency"`
+	Timeout        time.Duration `mapstructure:"timeout"`
+}
+
 func NewConfig() WarrantConfig {
 	viper.SetConfigFile(ConfigFileName)
 	viper.SetDefault("port", 8000)
@@ -162,14 +177,29 @@ func NewConfig() WarrantConfig {
 	viper.SetDefault("enableAccessLog", true)
 	viper.SetDefault("autoMigrate", false)
 	viper.SetDefault("enableWarrantTokens", false)
+	viper.SetDefault("datastore.mysql.connMaxIdleTime", 4*time.Hour)
+	viper.SetDefault("datastore.mysql.connMaxLifetime", 6*time.Hour)
 	viper.SetDefault("datastore.mysql.migrationSource", DefaultMySQLDatastoreMigrationSource)
+	viper.SetDefault("datastore.postgres.connMaxIdleTime", 4*time.Hour)
+	viper.SetDefault("datastore.postgres.connMaxLifetime", 6*time.Hour)
 	viper.SetDefault("datastore.postgres.migrationSource", DefaultPostgresDatastoreMigrationSource)
+	viper.SetDefault("datastore.sqlite.connMaxIdleTime", 4*time.Hour)
+	viper.SetDefault("datastore.sqlite.connMaxLifetime", 6*time.Hour)
 	viper.SetDefault("datastore.sqlite.migrationSource", DefaultSQLiteDatastoreMigrationSource)
+	viper.SetDefault("eventstore.mysql.connMaxIdleTime", 4*time.Hour)
+	viper.SetDefault("eventstore.mysql.connMaxLifetime", 6*time.Hour)
 	viper.SetDefault("eventstore.mysql.migrationSource", DefaultMySQLEventstoreMigrationSource)
+	viper.SetDefault("eventstore.postgres.connMaxIdleTime", 4*time.Hour)
+	viper.SetDefault("eventstore.postgres.connMaxLifetime", 6*time.Hour)
 	viper.SetDefault("eventstore.postgres.migrationSource", DefaultPostgresEventstoreMigrationSource)
+	viper.SetDefault("eventstore.sqlite.connMaxIdleTime", 4*time.Hour)
+	viper.SetDefault("eventstore.sqlite.connMaxLifetime", 6*time.Hour)
 	viper.SetDefault("eventstore.sqlite.migrationSource", DefaultSQLiteEventstoreMigrationSource)
 	viper.SetDefault("eventstore.synchronizeEvents", false)
-	viper.SetDefault("authentication.provider.userIdClaim", DefaultAuthenticationUserIdClaim)
+	viper.SetDefault("authentication.providers.userIdClaim", DefaultAuthenticationUserIdClaim)
+	viper.SetDefault("check.concurrency", 4)
+	viper.SetDefault("check.maxConcurrency", 1000)
+	viper.SetDefault("check.timeout", 1*time.Minute)
 
 	// If config file exists, use it
 	_, err := os.ReadFile(ConfigFileName)
