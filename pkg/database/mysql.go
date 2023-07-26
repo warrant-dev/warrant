@@ -68,9 +68,13 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 		db.SetMaxIdleConns(ds.Config.MaxIdleConnections)
 	}
 
+	db.SetConnMaxIdleTime(ds.Config.ConnMaxIdleTime)
+
 	if ds.Config.MaxOpenConnections != 0 {
 		db.SetMaxOpenConns(ds.Config.MaxOpenConnections)
 	}
+
+	db.SetConnMaxLifetime(ds.Config.ConnMaxLifetime)
 
 	// map struct attributes to db column names
 	db.Mapper = reflectx.NewMapperFunc("mysql", func(s string) string { return s })
@@ -99,9 +103,14 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 			reader.SetMaxIdleConns(ds.Config.ReaderMaxIdleConnections)
 		}
 
+		reader.SetConnMaxIdleTime(ds.Config.ConnMaxIdleTime)
+
 		if ds.Config.ReaderMaxOpenConnections != 0 {
 			reader.SetMaxOpenConns(ds.Config.ReaderMaxOpenConnections)
 		}
+
+		reader.SetConnMaxLifetime(ds.Config.ConnMaxLifetime)
+
 		// map struct attributes to db column names
 		reader.Mapper = reflectx.NewMapperFunc("mysql", func(s string) string { return s })
 		ds.Reader = reader

@@ -1,4 +1,4 @@
-name: "Go Build/Test/Check/Lint"
+name: "Go"
 
 on:
   push:
@@ -16,7 +16,6 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: "^1.20.4"
-          cache: false
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -31,10 +30,22 @@ jobs:
           distribution: goreleaser
           version: latest
           args: check
+  golangci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go env
+        uses: actions/setup-go@v4
+        with:
+          go-version: "^1.20.4"
+          cache: false
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
           version: latest
           args: -v --timeout=5m
-          only-new-issues: true
+          only-new-issues: false
           install-mode: "binary"

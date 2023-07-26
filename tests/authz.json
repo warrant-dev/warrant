@@ -685,15 +685,6 @@
                                     "objectType": "user",
                                     "objectId": "user-a"
                                 }
-                            },
-                            {
-                                "objectType": "report",
-                                "objectId": "report-a",
-                                "relation": "editor",
-                                "subject": {
-                                    "objectType": "user",
-                                    "objectId": "user-a"
-                                }
                             }
                         ]
                     }

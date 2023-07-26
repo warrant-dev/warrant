@@ -77,9 +77,13 @@ func (ds *SQLite) Connect(ctx context.Context) error {
 		db.SetMaxIdleConns(ds.Config.MaxIdleConnections)
 	}
 
+	db.SetConnMaxIdleTime(ds.Config.ConnMaxIdleTime)
+
 	if ds.Config.MaxOpenConnections != 0 {
 		db.SetMaxOpenConns(ds.Config.MaxOpenConnections)
 	}
+
+	db.SetConnMaxLifetime(ds.Config.ConnMaxLifetime)
 
 	// map struct attributes to db column names
 	db.Mapper = reflectx.NewMapperFunc("sqlite", func(s string) string { return s })

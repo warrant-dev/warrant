@@ -232,7 +232,7 @@ func main() {
 	warrantSvc := warrant.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, wookieSvc)
 
 	// Init check service
-	checkSvc := check.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, wookieSvc)
+	checkSvc := check.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, wookieSvc, cfg.Check)
 
 	// Init object repo and service
 	objectRepository, err := object.NewRepository(svcEnv.DB())

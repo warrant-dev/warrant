@@ -116,6 +116,35 @@ func (repo MySQLRepository) GetByTypeId(ctx context.Context, typeId string) (Mod
 	return &objectType, nil
 }
 
+func (repo MySQLRepository) ListAll(ctx context.Context) ([]Model, error) {
+	models := make([]Model, 0)
+	objectTypes := make([]ObjectType, 0)
+	err := repo.DB.SelectContext(
+		ctx,
+		&objectTypes,
+		`
+			SELECT id, typeId, definition, createdAt, updatedAt, deletedAt
+			FROM objectType
+			WHERE
+				deletedAt IS NULL
+		`,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return models, nil
+		}
+
+		return models, errors.Wrap(err, "error listing all object types")
+	}
+
+	for i := range objectTypes {
+		models = append(models, &objectTypes[i])
+	}
+
+	return models, nil
+}
+
 func (repo MySQLRepository) List(ctx context.Context, listParams service.ListParams) ([]Model, error) {
 	models := make([]Model, 0)
 	objectTypes := make([]ObjectType, 0)
