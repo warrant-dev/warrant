@@ -97,7 +97,8 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 	db.Mapper = reflectx.NewMapperFunc("postgres", func(s string) string { return s })
 
 	ds.Writer = db
-	log.Info().Msgf("Connected to postgres database %s", ds.Config.Database)
+	log.Info().Msgf("Connected to postgres database %s [maxIdleConns: %d, connMaxIdleTime: %s, maxOpenConns: %d, connMaxLifetime: %s]",
+		ds.Config.Database, ds.Config.MaxIdleConnections, ds.Config.ConnMaxIdleTime, ds.Config.MaxOpenConnections, ds.Config.ConnMaxLifetime)
 
 	// connect to reader if provided
 	if ds.Config.ReaderHostname != "" {
@@ -127,7 +128,8 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 		reader.Mapper = reflectx.NewMapperFunc("postgres", func(s string) string { return s })
 
 		ds.Reader = reader
-		log.Info().Msgf("Connected to postgres reader %s", ds.Config.Database)
+		log.Info().Msgf("Connected to postgres reader database %s [maxIdleConns: %d, connMaxIdleTime: %s, maxOpenConns: %d, connMaxLifetime: %s]",
+			ds.Config.Database, ds.Config.ReaderMaxIdleConnections, ds.Config.ConnMaxIdleTime, ds.Config.ReaderMaxOpenConnections, ds.Config.ConnMaxLifetime)
 	}
 
 	return nil

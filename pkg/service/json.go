@@ -29,6 +29,9 @@ import (
 )
 
 var validate *validator.Validate
+var objectIdRegexp = regexp.MustCompile(`^[a-zA-Z0-9_\-\.@\|:]+$`)
+var objectTypeRegexp = regexp.MustCompile(`^[a-zA-Z0-9_\-]+$`)
+var relationRegexp = regexp.MustCompile(`^[a-zA-Z0-9_\-]+$`)
 
 //nolint:errcheck
 func init() {
@@ -73,8 +76,7 @@ func validObjectId(fl validator.FieldLevel) bool {
 		return true
 	}
 
-	regExp := regexp.MustCompile(`^[a-zA-Z0-9_\-\.@\|:]+$`)
-	return regExp.Match([]byte(value))
+	return objectIdRegexp.Match([]byte(value))
 }
 
 func validObjectType(fl validator.FieldLevel) bool {
@@ -83,8 +85,7 @@ func validObjectType(fl validator.FieldLevel) bool {
 		return true
 	}
 
-	regExp := regexp.MustCompile(`^[a-zA-Z0-9_\-]+$`)
-	return regExp.Match([]byte(value))
+	return objectTypeRegexp.Match([]byte(value))
 }
 
 func validRelation(fl validator.FieldLevel) bool {
@@ -93,8 +94,7 @@ func validRelation(fl validator.FieldLevel) bool {
 		return true
 	}
 
-	regExp := regexp.MustCompile(`^[a-zA-Z0-9_\-]+$`)
-	return regExp.Match([]byte(value))
+	return relationRegexp.Match([]byte(value))
 }
 
 func validInheritIf(fl validator.FieldLevel) bool {

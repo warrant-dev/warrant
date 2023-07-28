@@ -89,7 +89,8 @@ func (ds *SQLite) Connect(ctx context.Context) error {
 	db.Mapper = reflectx.NewMapperFunc("sqlite", func(s string) string { return s })
 
 	ds.Writer = db
-	log.Info().Msgf("Connected to sqlite database %s", ds.Config.Database)
+	log.Info().Msgf("Connected to sqlite database %s [maxIdleConns: %d, connMaxIdleTime: %s, maxOpenConns: %d, connMaxLifetime: %s]",
+		ds.Config.Database, ds.Config.MaxIdleConnections, ds.Config.ConnMaxIdleTime, ds.Config.MaxOpenConnections, ds.Config.ConnMaxLifetime)
 	return nil
 }
 
