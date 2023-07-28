@@ -93,7 +93,7 @@ func (svc RoleService) List(ctx context.Context, listParams service.ListParams) 
 
 	roles, err := svc.Repository.List(ctx, listParams)
 	if err != nil {
-		return roleSpecs, nil
+		return roleSpecs, err
 	}
 
 	for _, role := range roles {
