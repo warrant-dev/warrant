@@ -10,6 +10,10 @@ Warrant requires certain configuration variables to be set via either a `warrant
 | `logLevel` | Log level (e.g. Debug, Info etc.) for the server. Warrant uses zerolog, valid log levels are defined [here](https://github.com/rs/zerolog#leveled-logging). | no | 0 | `logLevel: VALUE` | `WARRANT_LOGLEVEL=VALUE` |
 | `enableAccessLog` | Determines whether the built-in request logger is enabled or not. | no | true | `enableAccessLog: VALUE` | `WARRANT_ENABLEACCESSLOG=VALUE` |
 | `autoMigrate` | If set to `true`, the server will apply datastore and eventstore migrations before starting up. | no | false | `autoMigrate: VALUE` | `WARRANT_AUTOMIGRATE=VALUE` |
+| `enableWarrantTokens` | If set to `true`, the server will respect client-provided 'Warrant-Tokens' for read consistency. | no | false | `enableWarrantTokens: VALUE` | `WARRANT_ENABLEWARRANTTOKENS=VALUE` |
+| `check.concurrency` | The default concurrency setting for access checks. | no | 4 | `concurrency: VALUE` | `WARRANT_CHECK_CONCURRENCY=VALUE` |
+| `check.maxConcurrency` | The max concurrency setting for access checks. | no | 1000 | `maxConcurrency: VALUE` | `WARRANT_CHECK_MAXCONCURRENCY=VALUE` |
+| `check.timeout` | Access check global timeout. | no | 1m | `timeout: VALUE` | `WARRANT_CHECK_TIMEOUT=VALUE` |
 
 ## Warrant Server Authentication
 Warrant supports two types of authentication: API key and JWT authentication tokens.
@@ -52,6 +56,11 @@ port: 8000
 logLevel: 1
 enableAccessLog: true
 autoMigrate: true
+enableWarrantTokens: false
+check:
+    concurrency: 4
+    maxConcurrency: 1000
+    timeout: 1m
 authentication:
     apiKey: your_api_key
 datastore:
@@ -75,6 +84,11 @@ port: 8000
 logLevel: 1
 enableAccessLog: true
 autoMigrate: true
+enableWarrantTokens: false
+check:
+    concurrency: 4
+    maxConcurrency: 1000
+    timeout: 1m
 authentication:
     apiKey: your_api_key
     provider: auth0
@@ -106,6 +120,10 @@ export WARRANT_PORT=8000
 export WARRANT_LOGLEVEL=1
 export WARRANT_ENABLEACCESSLOG=true
 export WARRANT_AUTOMIGRATE=true
+export WARRANT_ENABLEWARRANTTOKENS=false
+export WARRANT_CHECK_CONCURRENCY=4
+export WARRANT_CHECK_MAXCONCURRENCY=1000
+export WARRANT_CHECK_TIMEOUT="1m"
 export WARRANT_AUTHENTICATION_APIKEY="replace_with_api_key"
 export WARRANT_DATASTORE_MYSQL_USERNAME="replace_with_username"
 export WARRANT_DATASTORE_MYSQL_PASSWORD="replace_with_password"

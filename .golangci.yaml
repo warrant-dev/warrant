@@ -21,13 +21,14 @@ linters:
     # - cyclop
     - depguard
     - dupl
+    - dupword
     # - errorlint
     # - exhaustive
     - exhaustruct
     # - forcetypeassert
     - funlen
     - gci
-    # - gochecknoglobals
+    - gochecknoglobals
     # - gochecknoinits
     # - gocognit
     # - gocritic
@@ -38,8 +39,8 @@ linters:
     - gofumpt
     - gomnd
     # - gosec
-    # - interfacebloat
-    # - ireturn
+    - interfacebloat
+    - ireturn
     # - mirror
     # - nestif
     # - nilerr
@@ -55,7 +56,7 @@ linters:
     # - tagalign
     # - testpackage
     # - unconvert
-    # - varnamelen
+    - varnamelen
     - wrapcheck
     - wsl
 linters-settings:
@@ -77,9 +78,15 @@ linters-settings:
   lll:
     line-length: 270
   nestif:
-    min-complexity: 7
+    min-complexity: 40
   cyclop:
-    max-complexity: 20
+    max-complexity: 100
+  gocognit:
+    min-complexity: 150
+  gocyclo:
+    min-complexity: 80
+  maintidx:
+    under: 10
 issues:
   new-from-rev: 3f04848d5a946826ab51f00361d6793761ca6616
   max-issues-per-linter: 0

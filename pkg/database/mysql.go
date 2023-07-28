@@ -80,7 +80,8 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 	db.Mapper = reflectx.NewMapperFunc("mysql", func(s string) string { return s })
 
 	ds.Writer = db
-	log.Info().Msgf("Connected to mysql database %s", ds.Config.Database)
+	log.Info().Msgf("Connected to mysql database %s [maxIdleConns: %d, connMaxIdleTime: %s, maxOpenConns: %d, connMaxLifetime: %s]",
+		ds.Config.Database, ds.Config.MaxIdleConnections, ds.Config.ConnMaxIdleTime, ds.Config.MaxOpenConnections, ds.Config.ConnMaxLifetime)
 
 	// connect to reader if provided
 	if ds.Config.ReaderHostname != "" || ds.Config.ReaderDSN != "" {
@@ -114,7 +115,8 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 		// map struct attributes to db column names
 		reader.Mapper = reflectx.NewMapperFunc("mysql", func(s string) string { return s })
 		ds.Reader = reader
-		log.Info().Msgf("Connected to mysql reader database %s", ds.Config.Database)
+		log.Info().Msgf("Connected to mysql reader database %s [maxIdleConns: %d, connMaxIdleTime: %s, maxOpenConns: %d, connMaxLifetime: %s]",
+			ds.Config.Database, ds.Config.ReaderMaxIdleConnections, ds.Config.ConnMaxIdleTime, ds.Config.ReaderMaxOpenConnections, ds.Config.ConnMaxLifetime)
 	}
 
 	return nil

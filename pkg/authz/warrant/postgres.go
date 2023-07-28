@@ -27,6 +27,8 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
+var sortRegexp = regexp.MustCompile("([A-Z])")
+
 type PostgresRepository struct {
 	database.SQLRepository
 }
@@ -343,7 +345,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 	}
 
 	if listParams.SortBy != "" {
-		sortBy := regexp.MustCompile("([A-Z])").ReplaceAllString(listParams.SortBy, `_$1`)
+		sortBy := sortRegexp.ReplaceAllString(listParams.SortBy, `_$1`)
 		query = fmt.Sprintf(`%s ORDER BY %s %s`, query, sortBy, listParams.SortOrder)
 	}
 

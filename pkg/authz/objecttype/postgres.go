@@ -26,6 +26,8 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
+var sortRegexp = regexp.MustCompile("([A-Z])")
+
 type PostgresRepository struct {
 	database.SQLRepository
 }
@@ -154,8 +156,8 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 		WHERE
 			deleted_at IS NULL
 	`
-	defaultSortColumn := regexp.MustCompile("([A-Z])").ReplaceAllString(DefaultSortByColumn, `_$1`)
-	sortBy := regexp.MustCompile("([A-Z])").ReplaceAllString(listParams.SortBy, `_$1`)
+	defaultSortColumn := sortRegexp.ReplaceAllString(DefaultSortByColumn, `_$1`)
+	sortBy := sortRegexp.ReplaceAllString(listParams.SortBy, `_$1`)
 
 	if listParams.Query != nil {
 		searchTermReplacement := fmt.Sprintf("%%%s%%", *listParams.Query)
