@@ -76,7 +76,7 @@ func validObjectId(fl validator.FieldLevel) bool {
 		return true
 	}
 
-	return objectIdRegexp.Match([]byte(value))
+	return objectIdRegexp.MatchString(value)
 }
 
 func validObjectType(fl validator.FieldLevel) bool {
@@ -85,7 +85,7 @@ func validObjectType(fl validator.FieldLevel) bool {
 		return true
 	}
 
-	return objectTypeRegexp.Match([]byte(value))
+	return objectTypeRegexp.MatchString(value)
 }
 
 func validRelation(fl validator.FieldLevel) bool {
@@ -94,7 +94,7 @@ func validRelation(fl validator.FieldLevel) bool {
 		return true
 	}
 
-	return relationRegexp.Match([]byte(value))
+	return relationRegexp.MatchString(value)
 }
 
 func validInheritIf(fl validator.FieldLevel) bool {
