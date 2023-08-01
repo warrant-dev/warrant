@@ -33,12 +33,12 @@ type CheckContextFunc func(ctx context.Context) (context.Context, error)
 
 type CheckService struct {
 	service.BaseService
-	WarrantRepository warrant.WarrantRepository
-	EventSvc          event.Service
-	ObjectTypeSvc     *objecttype.ObjectTypeService
-	WookieSvc         *wookie.WookieService
-	CheckConfig       *config.CheckConfig
-	CheckContext      CheckContextFunc
+	WarrantRepository  warrant.WarrantRepository
+	EventSvc           event.Service
+	ObjectTypeSvc      *objecttype.ObjectTypeService
+	WookieSvc          *wookie.WookieService
+	CheckConfig        *config.CheckConfig
+	CreateCheckContext CheckContextFunc
 }
 
 func defaultCreateCheckContext(ctx context.Context) (context.Context, error) {
@@ -47,17 +47,17 @@ func defaultCreateCheckContext(ctx context.Context) (context.Context, error) {
 
 func NewService(env service.Env, warrantRepo warrant.WarrantRepository, eventSvc event.Service, objectTypeSvc *objecttype.ObjectTypeService, wookieSvc *wookie.WookieService, checkConfig *config.CheckConfig, checkContext CheckContextFunc) *CheckService {
 	svc := &CheckService{
-		BaseService:       service.NewBaseService(env),
-		WarrantRepository: warrantRepo,
-		EventSvc:          eventSvc,
-		ObjectTypeSvc:     objectTypeSvc,
-		WookieSvc:         wookieSvc,
-		CheckConfig:       checkConfig,
-		CheckContext:      checkContext,
+		BaseService:        service.NewBaseService(env),
+		WarrantRepository:  warrantRepo,
+		EventSvc:           eventSvc,
+		ObjectTypeSvc:      objectTypeSvc,
+		WookieSvc:          wookieSvc,
+		CheckConfig:        checkConfig,
+		CreateCheckContext: checkContext,
 	}
 
 	if checkContext == nil {
-		svc.CheckContext = defaultCreateCheckContext
+		svc.CreateCheckContext = defaultCreateCheckContext
 	}
 
 	return svc
@@ -353,7 +353,7 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 	resultsC := make(chan result, 1)
 	pipeline := NewPipeline(svc.CheckConfig.Concurrency, svc.CheckConfig.MaxConcurrency)
 
-	checkCtx, err := svc.CheckContext(ctx)
+	checkCtx, err := svc.CreateCheckContext(ctx)
 	if err != nil {
 		return false, nil, nil, err
 	}
