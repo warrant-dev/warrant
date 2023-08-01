@@ -172,7 +172,7 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 		if warrantCheck.Op == objecttype.InheritIfAllOf {
 			var processingTime int64
 			for _, warrantSpec := range warrantCheck.Warrants {
-				match, decisionPath, _, err := svc.Check(wkCtx, authInfo, CheckSpec{
+				match, decisionPath, _, err := svc.checkParallel(wkCtx, authInfo, CheckSpec{
 					CheckWarrantSpec: warrantSpec,
 					Debug:            warrantCheck.Debug,
 				})
@@ -218,7 +218,7 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 		if warrantCheck.Op == objecttype.InheritIfAnyOf {
 			var processingTime int64
 			for _, warrantSpec := range warrantCheck.Warrants {
-				match, decisionPath, _, err := svc.Check(wkCtx, authInfo, CheckSpec{
+				match, decisionPath, _, err := svc.checkParallel(wkCtx, authInfo, CheckSpec{
 					CheckWarrantSpec: warrantSpec,
 					Debug:            warrantCheck.Debug,
 				})
@@ -268,7 +268,7 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 		}
 
 		warrantSpec := warrantCheck.Warrants[0]
-		match, decisionPath, _, err := svc.Check(wkCtx, authInfo, CheckSpec{
+		match, decisionPath, _, err := svc.checkParallel(wkCtx, authInfo, CheckSpec{
 			CheckWarrantSpec: warrantSpec,
 			Debug:            warrantCheck.Debug,
 		})
@@ -315,6 +315,49 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 	return &checkResult, newWookie, nil
 }
 
+// Same as Check() but runs on parallel conns based on svc.CheckConfig.Concurrency.
+func (svc CheckService) checkParallel(ctx context.Context, authInfo *service.AuthInfo, warrantCheck CheckSpec) (bool, []warrant.WarrantSpec, *wookie.Token, error) {
+	// Used to automatically append tenant context for session token w/ tenantId checks
+	if authInfo != nil && authInfo.TenantId != "" {
+		if warrantCheck.CheckWarrantSpec.Context == nil {
+			warrantCheck.CheckWarrantSpec.Context = warrant.PolicyContext{
+				"tenant": authInfo.TenantId,
+			}
+		} else {
+			warrantCheck.CheckWarrantSpec.Context["tenant"] = authInfo.TenantId
+		}
+	}
+
+	// Fetch object types upfront
+	typesMap, _, err := svc.ObjectTypeSvc.GetTypeMap(ctx)
+	if err != nil {
+		return false, nil, nil, err
+	}
+
+	// TODO: Should do wookieSafeRead
+	resultsC := make(chan result, 1)
+	pipeline := NewPipeline(svc.CheckConfig.Concurrency, svc.CheckConfig.MaxConcurrency)
+
+	childCtx, cancelFunc := context.WithTimeout(ctx, svc.CheckConfig.Timeout)
+	defer cancelFunc()
+
+	go func() {
+		svc.check(0, pipeline, childCtx, warrantCheck, make([]warrant.WarrantSpec, 0), resultsC, typesMap)
+	}()
+
+	result := <-resultsC
+
+	if result.Err != nil {
+		return false, nil, nil, result.Err
+	}
+
+	if result.Matched {
+		return true, result.DecisionPath, nil, nil
+	}
+
+	return false, nil, nil, nil
+}
+
 // Check returns true if the subject has a warrant (explicitly or implicitly) for given objectType:objectId#relation and context
 func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, warrantCheck CheckSpec) (bool, []warrant.WarrantSpec, *wookie.Token, error) {
 	// Used to automatically append tenant context for session token w/ tenantId checks
@@ -336,7 +379,7 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 
 	// TODO: Should do wookieSafeRead
 	resultsC := make(chan result, 1)
-	pipeline := NewPipeline(svc.CheckConfig.Concurrency, svc.CheckConfig.MaxConcurrency)
+	pipeline := NewPipeline(1, svc.CheckConfig.MaxConcurrency)
 
 	childCtx, cancelFunc := context.WithTimeout(ctx, svc.CheckConfig.Timeout)
 	defer cancelFunc()
