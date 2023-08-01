@@ -26,7 +26,10 @@ import (
 	"github.com/warrant-dev/warrant/pkg/config"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
+	"github.com/warrant-dev/warrant/pkg/stats"
 )
+
+type CheckContextFunc func(ctx context.Context) (context.Context, error)
 
 type CheckService struct {
 	service.BaseService
@@ -35,17 +38,29 @@ type CheckService struct {
 	ObjectTypeSvc     *objecttype.ObjectTypeService
 	WookieSvc         *wookie.WookieService
 	CheckConfig       *config.CheckConfig
+	CheckContext      CheckContextFunc
 }
 
-func NewService(env service.Env, warrantRepo warrant.WarrantRepository, eventSvc event.Service, objectTypeSvc *objecttype.ObjectTypeService, wookieSvc *wookie.WookieService, checkConfig *config.CheckConfig) *CheckService {
-	return &CheckService{
+func defaultCreateCheckContext(ctx context.Context) (context.Context, error) {
+	return stats.BlankContextWithRequestStats(ctx), nil
+}
+
+func NewService(env service.Env, warrantRepo warrant.WarrantRepository, eventSvc event.Service, objectTypeSvc *objecttype.ObjectTypeService, wookieSvc *wookie.WookieService, checkConfig *config.CheckConfig, checkContext CheckContextFunc) *CheckService {
+	svc := &CheckService{
 		BaseService:       service.NewBaseService(env),
 		WarrantRepository: warrantRepo,
 		EventSvc:          eventSvc,
 		ObjectTypeSvc:     objectTypeSvc,
 		WookieSvc:         wookieSvc,
 		CheckConfig:       checkConfig,
+		CheckContext:      checkContext,
 	}
+
+	if checkContext == nil {
+		svc.CheckContext = defaultCreateCheckContext
+	}
+
+	return svc
 }
 
 func (svc CheckService) getWithPolicyMatch(ctx context.Context, checkPipeline *pipeline, spec CheckWarrantSpec) (*warrant.WarrantSpec, error) {
@@ -172,7 +187,7 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 		if warrantCheck.Op == objecttype.InheritIfAllOf {
 			var processingTime int64
 			for _, warrantSpec := range warrantCheck.Warrants {
-				match, decisionPath, _, err := svc.checkParallel(wkCtx, authInfo, CheckSpec{
+				match, decisionPath, _, err := svc.Check(wkCtx, authInfo, CheckSpec{
 					CheckWarrantSpec: warrantSpec,
 					Debug:            warrantCheck.Debug,
 				})
@@ -218,7 +233,7 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 		if warrantCheck.Op == objecttype.InheritIfAnyOf {
 			var processingTime int64
 			for _, warrantSpec := range warrantCheck.Warrants {
-				match, decisionPath, _, err := svc.checkParallel(wkCtx, authInfo, CheckSpec{
+				match, decisionPath, _, err := svc.Check(wkCtx, authInfo, CheckSpec{
 					CheckWarrantSpec: warrantSpec,
 					Debug:            warrantCheck.Debug,
 				})
@@ -268,7 +283,7 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 		}
 
 		warrantSpec := warrantCheck.Warrants[0]
-		match, decisionPath, _, err := svc.checkParallel(wkCtx, authInfo, CheckSpec{
+		match, decisionPath, _, err := svc.Check(wkCtx, authInfo, CheckSpec{
 			CheckWarrantSpec: warrantSpec,
 			Debug:            warrantCheck.Debug,
 		})
@@ -315,49 +330,6 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 	return &checkResult, newWookie, nil
 }
 
-// Same as Check() but runs on parallel conns based on svc.CheckConfig.Concurrency.
-func (svc CheckService) checkParallel(ctx context.Context, authInfo *service.AuthInfo, warrantCheck CheckSpec) (bool, []warrant.WarrantSpec, *wookie.Token, error) {
-	// Used to automatically append tenant context for session token w/ tenantId checks
-	if authInfo != nil && authInfo.TenantId != "" {
-		if warrantCheck.CheckWarrantSpec.Context == nil {
-			warrantCheck.CheckWarrantSpec.Context = warrant.PolicyContext{
-				"tenant": authInfo.TenantId,
-			}
-		} else {
-			warrantCheck.CheckWarrantSpec.Context["tenant"] = authInfo.TenantId
-		}
-	}
-
-	// Fetch object types upfront
-	typesMap, _, err := svc.ObjectTypeSvc.GetTypeMap(ctx)
-	if err != nil {
-		return false, nil, nil, err
-	}
-
-	// TODO: Should do wookieSafeRead
-	resultsC := make(chan result, 1)
-	pipeline := NewPipeline(svc.CheckConfig.Concurrency, svc.CheckConfig.MaxConcurrency)
-
-	childCtx, cancelFunc := context.WithTimeout(ctx, svc.CheckConfig.Timeout)
-	defer cancelFunc()
-
-	go func() {
-		svc.check(0, pipeline, childCtx, warrantCheck, make([]warrant.WarrantSpec, 0), resultsC, typesMap)
-	}()
-
-	result := <-resultsC
-
-	if result.Err != nil {
-		return false, nil, nil, result.Err
-	}
-
-	if result.Matched {
-		return true, result.DecisionPath, nil, nil
-	}
-
-	return false, nil, nil, nil
-}
-
 // Check returns true if the subject has a warrant (explicitly or implicitly) for given objectType:objectId#relation and context
 func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, warrantCheck CheckSpec) (bool, []warrant.WarrantSpec, *wookie.Token, error) {
 	// Used to automatically append tenant context for session token w/ tenantId checks
@@ -379,9 +351,13 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 
 	// TODO: Should do wookieSafeRead
 	resultsC := make(chan result, 1)
-	pipeline := NewPipeline(1, svc.CheckConfig.MaxConcurrency)
+	pipeline := NewPipeline(svc.CheckConfig.Concurrency, svc.CheckConfig.MaxConcurrency)
 
-	childCtx, cancelFunc := context.WithTimeout(ctx, svc.CheckConfig.Timeout)
+	checkCtx, err := svc.CheckContext(ctx)
+	if err != nil {
+		return false, nil, nil, err
+	}
+	childCtx, cancelFunc := context.WithTimeout(checkCtx, svc.CheckConfig.Timeout)
 	defer cancelFunc()
 
 	go func() {

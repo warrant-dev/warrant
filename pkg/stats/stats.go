@@ -66,6 +66,15 @@ func GetRequestStatsFromContext(ctx context.Context) *RequestStats {
 	return nil
 }
 
+// Returns a blank context with only parent's existing *RequestStats (if present)
+func BlankContextWithRequestStats(parent context.Context) context.Context {
+	stats := GetRequestStatsFromContext(parent)
+	if stats != nil {
+		return context.WithValue(context.Background(), requestStatsKey{}, stats)
+	}
+	return context.Background()
+}
+
 // Append a new Stat to the RequestStats obj in provided context, if present
 func RecordStat(ctx context.Context, store string, tag string, duration time.Duration) {
 	if reqStats, ok := ctx.Value(requestStatsKey{}).(*RequestStats); ok {
