@@ -47,7 +47,7 @@ func (s *RequestStats) MarshalZerologObject(e *zerolog.Event) {
 type requestStatsKey struct{}
 type statTagKey struct{}
 
-// Create & inject a 'per-request' stats object into request context
+// Create & inject a 'per-request' stats object into request context.
 func RequestStatsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		reqStats := RequestStats{
@@ -58,7 +58,7 @@ func RequestStatsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// Get RequestStats from ctx, if present
+// Get RequestStats from ctx, if present.
 func GetRequestStatsFromContext(ctx context.Context) *RequestStats {
 	if reqStats, ok := ctx.Value(requestStatsKey{}).(*RequestStats); ok {
 		return reqStats
@@ -66,7 +66,16 @@ func GetRequestStatsFromContext(ctx context.Context) *RequestStats {
 	return nil
 }
 
-// Append a new Stat to the RequestStats obj in provided context, if present
+// Returns a blank context with only parent's existing *RequestStats (if present).
+func BlankContextWithRequestStats(parent context.Context) context.Context {
+	stats := GetRequestStatsFromContext(parent)
+	if stats != nil {
+		return context.WithValue(context.Background(), requestStatsKey{}, stats)
+	}
+	return context.Background()
+}
+
+// Append a new Stat to the RequestStats obj in provided context, if present.
 func RecordStat(ctx context.Context, store string, tag string, duration time.Duration) {
 	if reqStats, ok := ctx.Value(requestStatsKey{}).(*RequestStats); ok {
 		if tagPrefix, ctxHasTag := ctx.Value(statTagKey{}).(string); ctxHasTag {
