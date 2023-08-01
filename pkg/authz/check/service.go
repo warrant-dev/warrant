@@ -330,7 +330,7 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 	return &checkResult, newWookie, nil
 }
 
-// Check returns true if the subject has a warrant (explicitly or implicitly) for given objectType:objectId#relation and context
+// Check returns true if the subject has a warrant (explicitly or implicitly) for given objectType:objectId#relation and context.
 func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, warrantCheck CheckSpec) (bool, []warrant.WarrantSpec, *wookie.Token, error) {
 	// Used to automatically append tenant context for session token w/ tenantId checks
 	if authInfo != nil && authInfo.TenantId != "" {
