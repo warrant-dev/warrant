@@ -21,7 +21,6 @@ import (
 	"github.com/pkg/errors"
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -120,24 +119,33 @@ func (svc TenantService) List(ctx context.Context, listParams service.ListParams
 }
 
 func (svc TenantService) UpdateByTenantId(ctx context.Context, tenantId string, tenantSpec UpdateTenantSpec) (*TenantSpec, error) {
-	currentTenant, err := svc.Repository.GetByTenantId(ctx, tenantId)
-	if err != nil {
-		return nil, err
-	}
+	var updatedTenantSpec *TenantSpec
+	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+		currentTenant, err := svc.Repository.GetByTenantId(txCtx, tenantId)
+		if err != nil {
+			return err
+		}
 
-	currentTenant.SetName(tenantSpec.Name)
-	err = svc.Repository.UpdateByTenantId(ctx, tenantId, currentTenant)
-	if err != nil {
-		return nil, err
-	}
+		currentTenant.SetName(tenantSpec.Name)
+		err = svc.Repository.UpdateByTenantId(txCtx, tenantId, currentTenant)
+		if err != nil {
+			return err
+		}
 
-	updatedTenant, err := svc.Repository.GetByTenantId(ctx, tenantId)
-	if err != nil {
-		return nil, err
-	}
+		updatedTenant, err := svc.Repository.GetByTenantId(txCtx, tenantId)
+		if err != nil {
+			return err
+		}
 
-	updatedTenantSpec := updatedTenant.ToTenantSpec()
-	err = svc.EventSvc.TrackResourceUpdated(ctx, ResourceTypeTenant, updatedTenant.GetTenantId(), updatedTenantSpec)
+		updatedTenantSpec = updatedTenant.ToTenantSpec()
+		err = svc.EventSvc.TrackResourceUpdated(txCtx, ResourceTypeTenant, updatedTenant.GetTenantId(), updatedTenantSpec)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -145,15 +153,14 @@ func (svc TenantService) UpdateByTenantId(ctx context.Context, tenantId string, 
 	return updatedTenantSpec, nil
 }
 
-func (svc TenantService) DeleteByTenantId(ctx context.Context, tenantId string) (*wookie.Token, error) {
-	var newWookie *wookie.Token
+func (svc TenantService) DeleteByTenantId(ctx context.Context, tenantId string) error {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		err := svc.Repository.DeleteByTenantId(txCtx, tenantId)
 		if err != nil {
 			return err
 		}
 
-		newWookie, err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypeTenant, tenantId)
+		err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypeTenant, tenantId)
 		if err != nil {
 			return err
 		}
@@ -166,8 +173,8 @@ func (svc TenantService) DeleteByTenantId(ctx context.Context, tenantId string) 
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return newWookie, nil
+	return nil
 }

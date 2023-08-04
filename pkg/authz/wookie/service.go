@@ -17,15 +17,10 @@ package wookie
 import (
 	"context"
 
-	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
-
-const currentWookieVersion = 1
-
-type updateWookieKey struct{}
 
 type wookieQueryContextKey struct{}
 
@@ -41,57 +36,6 @@ func NewService(env service.Env, repository WookieRepository, enabled bool) *Woo
 		Repository:  repository,
 		Enabled:     enabled,
 	}
-}
-
-// Apply given updateFunc() and create a new wookie for this update. Returns the new wookie token.
-func (svc WookieService) WithWookieUpdate(ctx context.Context, updateFunc func(txCtx context.Context) error) (*Token, error) {
-	// If wookies are explicitly disabled, just run the updateFunc() in a tx
-	if !svc.Enabled {
-		e := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-			return updateFunc(txCtx)
-		})
-		return nil, e
-	}
-
-	_, hasQueryWookie := ctx.Value(wookieQueryContextKey{}).(*Token)
-	if hasQueryWookie {
-		return nil, errors.New("invalid state: can't call WookieUpdate() within WookieSafeRead()")
-	}
-
-	updateWookie, hasUpdateWookie := ctx.Value(updateWookieKey{}).(*Token)
-	// An update is already in progress so continue with that ctx
-	if hasUpdateWookie {
-		e := updateFunc(ctx)
-		if e != nil {
-			return nil, e
-		}
-		return updateWookie, nil
-	}
-
-	// Otherwise create a new tx and new update wookie
-	var newWookie *Token
-	e := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		newWookieId, err := svc.Repository.Create(txCtx, currentWookieVersion)
-		if err != nil {
-			return err
-		}
-		token, err := svc.Repository.GetById(txCtx, newWookieId)
-		if err != nil {
-			return err
-		}
-		newWookie = token.ToToken()
-		wkCtx := context.WithValue(txCtx, updateWookieKey{}, newWookie)
-		err = updateFunc(wkCtx)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-	if e != nil {
-		return nil, e
-	}
-	return newWookie, nil
 }
 
 func (svc WookieService) WookieSafeRead(ctx context.Context, readFunc func(wkCtx context.Context) error) (*Token, error) {

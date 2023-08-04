@@ -19,7 +19,6 @@ import (
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -103,25 +102,32 @@ func (svc FeatureService) List(ctx context.Context, listParams service.ListParam
 }
 
 func (svc FeatureService) UpdateByFeatureId(ctx context.Context, featureId string, featureSpec UpdateFeatureSpec) (*FeatureSpec, error) {
-	currentFeature, err := svc.Repository.GetByFeatureId(ctx, featureId)
-	if err != nil {
-		return nil, err
-	}
+	var updatedFeatureSpec *FeatureSpec
+	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+		currentFeature, err := svc.Repository.GetByFeatureId(txCtx, featureId)
+		if err != nil {
+			return err
+		}
 
-	currentFeature.SetName(featureSpec.Name)
-	currentFeature.SetDescription(featureSpec.Description)
-	err = svc.Repository.UpdateByFeatureId(ctx, featureId, currentFeature)
-	if err != nil {
-		return nil, err
-	}
+		currentFeature.SetName(featureSpec.Name)
+		currentFeature.SetDescription(featureSpec.Description)
+		err = svc.Repository.UpdateByFeatureId(txCtx, featureId, currentFeature)
+		if err != nil {
+			return err
+		}
 
-	updatedFeature, err := svc.Repository.GetByFeatureId(ctx, featureId)
-	if err != nil {
-		return nil, err
-	}
+		updatedFeature, err := svc.Repository.GetByFeatureId(txCtx, featureId)
+		if err != nil {
+			return err
+		}
 
-	updatedFeatureSpec := updatedFeature.ToFeatureSpec()
-	err = svc.EventSvc.TrackResourceUpdated(ctx, ResourceTypeFeature, updatedFeature.GetFeatureId(), updatedFeatureSpec)
+		updatedFeatureSpec = updatedFeature.ToFeatureSpec()
+		err = svc.EventSvc.TrackResourceUpdated(txCtx, ResourceTypeFeature, updatedFeature.GetFeatureId(), updatedFeatureSpec)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -129,15 +135,14 @@ func (svc FeatureService) UpdateByFeatureId(ctx context.Context, featureId strin
 	return updatedFeatureSpec, nil
 }
 
-func (svc FeatureService) DeleteByFeatureId(ctx context.Context, featureId string) (*wookie.Token, error) {
-	var newWookie *wookie.Token
+func (svc FeatureService) DeleteByFeatureId(ctx context.Context, featureId string) error {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		err := svc.Repository.DeleteByFeatureId(txCtx, featureId)
 		if err != nil {
 			return err
 		}
 
-		newWookie, err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypeFeature, featureId)
+		err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypeFeature, featureId)
 		if err != nil {
 			return err
 		}
@@ -150,8 +155,8 @@ func (svc FeatureService) DeleteByFeatureId(ctx context.Context, featureId strin
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return newWookie, nil
+	return nil
 }

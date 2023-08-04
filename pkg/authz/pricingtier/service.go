@@ -19,7 +19,6 @@ import (
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -104,25 +103,34 @@ func (svc PricingTierService) List(ctx context.Context, listParams service.ListP
 }
 
 func (svc PricingTierService) UpdateByPricingTierId(ctx context.Context, pricingTierId string, pricingTierSpec UpdatePricingTierSpec) (*PricingTierSpec, error) {
-	currentPricingTier, err := svc.Repository.GetByPricingTierId(ctx, pricingTierId)
-	if err != nil {
-		return nil, err
-	}
+	var updatedPricingTierSpec *PricingTierSpec
+	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+		currentPricingTier, err := svc.Repository.GetByPricingTierId(txCtx, pricingTierId)
+		if err != nil {
+			return err
+		}
 
-	currentPricingTier.SetName(pricingTierSpec.Name)
-	currentPricingTier.SetDescription(pricingTierSpec.Description)
-	err = svc.Repository.UpdateByPricingTierId(ctx, pricingTierId, currentPricingTier)
-	if err != nil {
-		return nil, err
-	}
+		currentPricingTier.SetName(pricingTierSpec.Name)
+		currentPricingTier.SetDescription(pricingTierSpec.Description)
+		err = svc.Repository.UpdateByPricingTierId(txCtx, pricingTierId, currentPricingTier)
+		if err != nil {
+			return err
+		}
 
-	updatedPricingTier, err := svc.Repository.GetByPricingTierId(ctx, pricingTierId)
-	if err != nil {
-		return nil, err
-	}
+		updatedPricingTier, err := svc.Repository.GetByPricingTierId(txCtx, pricingTierId)
+		if err != nil {
+			return err
+		}
 
-	updatedPricingTierSpec := updatedPricingTier.ToPricingTierSpec()
-	err = svc.EventSvc.TrackResourceUpdated(ctx, ResourceTypePricingTier, updatedPricingTier.GetPricingTierId(), updatedPricingTierSpec)
+		updatedPricingTierSpec = updatedPricingTier.ToPricingTierSpec()
+		err = svc.EventSvc.TrackResourceUpdated(txCtx, ResourceTypePricingTier, updatedPricingTier.GetPricingTierId(), updatedPricingTierSpec)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -130,15 +138,14 @@ func (svc PricingTierService) UpdateByPricingTierId(ctx context.Context, pricing
 	return updatedPricingTierSpec, nil
 }
 
-func (svc PricingTierService) DeleteByPricingTierId(ctx context.Context, pricingTierId string) (*wookie.Token, error) {
-	var newWookie *wookie.Token
+func (svc PricingTierService) DeleteByPricingTierId(ctx context.Context, pricingTierId string) error {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		err := svc.Repository.DeleteByPricingTierId(txCtx, pricingTierId)
 		if err != nil {
 			return err
 		}
 
-		newWookie, err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypePricingTier, pricingTierId)
+		err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypePricingTier, pricingTierId)
 		if err != nil {
 			return err
 		}
@@ -151,8 +158,8 @@ func (svc PricingTierService) DeleteByPricingTierId(ctx context.Context, pricing
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return newWookie, nil
+	return nil
 }

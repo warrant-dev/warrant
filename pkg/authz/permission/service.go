@@ -19,7 +19,6 @@ import (
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -104,25 +103,34 @@ func (svc PermissionService) List(ctx context.Context, listParams service.ListPa
 }
 
 func (svc PermissionService) UpdateByPermissionId(ctx context.Context, permissionId string, permissionSpec UpdatePermissionSpec) (*PermissionSpec, error) {
-	currentPermission, err := svc.Repository.GetByPermissionId(ctx, permissionId)
-	if err != nil {
-		return nil, err
-	}
+	var updatedPermissionSpec *PermissionSpec
+	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+		currentPermission, err := svc.Repository.GetByPermissionId(txCtx, permissionId)
+		if err != nil {
+			return err
+		}
 
-	currentPermission.SetName(permissionSpec.Name)
-	currentPermission.SetDescription(permissionSpec.Description)
-	err = svc.Repository.UpdateByPermissionId(ctx, permissionId, currentPermission)
-	if err != nil {
-		return nil, err
-	}
+		currentPermission.SetName(permissionSpec.Name)
+		currentPermission.SetDescription(permissionSpec.Description)
+		err = svc.Repository.UpdateByPermissionId(txCtx, permissionId, currentPermission)
+		if err != nil {
+			return err
+		}
 
-	updatedPermission, err := svc.Repository.GetByPermissionId(ctx, permissionId)
-	if err != nil {
-		return nil, err
-	}
+		updatedPermission, err := svc.Repository.GetByPermissionId(txCtx, permissionId)
+		if err != nil {
+			return err
+		}
 
-	updatedPermissionSpec := updatedPermission.ToPermissionSpec()
-	err = svc.EventSvc.TrackResourceUpdated(ctx, ResourceTypePermission, updatedPermission.GetPermissionId(), updatedPermissionSpec)
+		updatedPermissionSpec = updatedPermission.ToPermissionSpec()
+		err = svc.EventSvc.TrackResourceUpdated(txCtx, ResourceTypePermission, updatedPermission.GetPermissionId(), updatedPermissionSpec)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -130,15 +138,14 @@ func (svc PermissionService) UpdateByPermissionId(ctx context.Context, permissio
 	return updatedPermissionSpec, nil
 }
 
-func (svc PermissionService) DeleteByPermissionId(ctx context.Context, permissionId string) (*wookie.Token, error) {
-	var newWookie *wookie.Token
+func (svc PermissionService) DeleteByPermissionId(ctx context.Context, permissionId string) error {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		err := svc.Repository.DeleteByPermissionId(txCtx, permissionId)
 		if err != nil {
 			return err
 		}
 
-		newWookie, err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypePermission, permissionId)
+		err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypePermission, permissionId)
 		if err != nil {
 			return err
 		}
@@ -151,8 +158,8 @@ func (svc PermissionService) DeleteByPermissionId(ctx context.Context, permissio
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return newWookie, nil
+	return nil
 }
