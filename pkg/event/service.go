@@ -62,6 +62,7 @@ func defaultCreateEventContext(ctx context.Context, synchronizeEvents bool) (con
 		return ctx, nil
 	}
 
+	// TODO: does this need to preserve wookie latest?
 	return context.Background(), nil
 }
 
@@ -180,19 +181,7 @@ func (svc EventService) TrackResourceEvents(ctx context.Context, resourceEventSp
 
 func (svc EventService) ListResourceEvents(ctx context.Context, listParams ListResourceEventParams) ([]ResourceEventSpec, string, error) {
 	resourceEventSpecs := make([]ResourceEventSpec, 0)
-
-	var resourceEvents []ResourceEventModel
-	var lastId string
-	var err error
-	if !svc.SynchronizeEvents {
-		err = svc.Env().EventDB().ReplicaSafeRead(ctx, func(connCtx context.Context) error {
-			resourceEvents, lastId, err = svc.Repository.ListResourceEvents(connCtx, listParams)
-			return err
-		})
-	} else {
-		resourceEvents, lastId, err = svc.Repository.ListResourceEvents(ctx, listParams)
-	}
-
+	resourceEvents, lastId, err := svc.Repository.ListResourceEvents(ctx, listParams)
 	if err != nil {
 		return resourceEventSpecs, "", err
 	}
@@ -335,19 +324,7 @@ func (svc EventService) TrackAccessEvents(ctx context.Context, accessEventSpecs 
 
 func (svc EventService) ListAccessEvents(ctx context.Context, listParams ListAccessEventParams) ([]AccessEventSpec, string, error) {
 	accessEventSpecs := make([]AccessEventSpec, 0)
-
-	var accessEvents []AccessEventModel
-	var lastId string
-	var err error
-	if !svc.SynchronizeEvents {
-		err = svc.Env().EventDB().ReplicaSafeRead(ctx, func(connCtx context.Context) error {
-			accessEvents, lastId, err = svc.Repository.ListAccessEvents(connCtx, listParams)
-			return err
-		})
-	} else {
-		accessEvents, lastId, err = svc.Repository.ListAccessEvents(ctx, listParams)
-	}
-
+	accessEvents, lastId, err := svc.Repository.ListAccessEvents(ctx, listParams)
 	if err != nil {
 		return accessEventSpecs, "", err
 	}

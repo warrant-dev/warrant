@@ -24,6 +24,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"github.com/warrant-dev/warrant/pkg/stats"
+	"github.com/warrant-dev/warrant/pkg/wookie"
 )
 
 type SqlQueryable interface {
@@ -36,6 +37,12 @@ type SqlQueryable interface {
 	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
 }
 
+type writerOverrideKey struct{}
+
+func CtxWithWriterOverride(parent context.Context) context.Context {
+	return context.WithValue(parent, writerOverrideKey{}, true)
+}
+
 type txKey struct {
 	Database string
 }
@@ -44,84 +51,6 @@ func newTxKey(databaseName string) txKey {
 	return txKey{
 		Database: databaseName,
 	}
-}
-
-type UnsafeOp struct{}
-
-type readConnKey struct {
-	Database string
-}
-
-func newReadConnKey(databaseName string) readConnKey {
-	return readConnKey{
-		Database: databaseName,
-	}
-}
-
-// Encapsulates a sql connection to a 'read-only' db
-type ReadSqlConn struct {
-	Conn         *sqlx.Conn
-	Hostname     string
-	DatabaseName string
-}
-
-func (c ReadSqlConn) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
-	return nil, errors.New("op ExecContext not supported on ReadSqlConn")
-}
-
-func (c ReadSqlConn) GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
-	query = c.Conn.Rebind(query)
-	err := c.Conn.GetContext(ctx, dest, query, args...)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return err
-		default:
-			return errors.Wrap(err, "ReadSqlConn error")
-		}
-	}
-	return err
-}
-
-func (c ReadSqlConn) NamedExecContext(ctx context.Context, query string, arg interface{}) (sql.Result, error) {
-	return nil, errors.New("op NamedExecContext not supported on ReadSqlConn")
-}
-
-func (c ReadSqlConn) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
-	return nil, errors.New("op PrepareContext not supported on ReadSqlConn")
-}
-
-func (c ReadSqlConn) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
-	query = c.Conn.Rebind(query)
-	rows, err := c.Conn.QueryContext(ctx, query, args...)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return rows, err
-		default:
-			return rows, errors.Wrap(err, "ReadSqlConn error")
-		}
-	}
-	return rows, err
-}
-
-func (c ReadSqlConn) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
-	query = c.Conn.Rebind(query)
-	return c.Conn.QueryRowContext(ctx, query, args...)
-}
-
-func (c ReadSqlConn) SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
-	query = c.Conn.Rebind(query)
-	err := c.Conn.SelectContext(ctx, dest, query, args...)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return err
-		default:
-			return errors.Wrap(err, "ReadSqlConn error")
-		}
-	}
-	return err
 }
 
 // Encapsulates a sql transaction for an atomic write op
@@ -174,26 +103,11 @@ func (q SqlTx) NamedExecContext(ctx context.Context, query string, arg interface
 }
 
 func (q SqlTx) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
-	query = q.Tx.Rebind(query)
-	stmt, err := q.Tx.PrepareContext(ctx, query)
-	if err != nil {
-		return stmt, errors.Wrap(err, "SqlTx error")
-	}
-	return stmt, err
+	return nil, errors.New("tx.PrepareContext op not supported")
 }
 
 func (q SqlTx) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
-	query = q.Tx.Rebind(query)
-	rows, err := q.Tx.QueryContext(ctx, query, args...)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return rows, err
-		default:
-			return rows, errors.Wrap(err, "SqlTx error")
-		}
-	}
-	return rows, err
+	return nil, errors.New("tx.QueryContext op not supported")
 }
 
 func (q SqlTx) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
@@ -234,47 +148,8 @@ func NewSQL(writer *sqlx.DB, reader *sqlx.DB, writerHostname string, readerHostn
 	}
 }
 
-// Execute connCallback() within the context of a single connection to a 'reader' db instance if present
-func (ds SQL) ReplicaSafeRead(ctx context.Context, connCallback func(connCtx context.Context) error) error {
-	_, hasReadConn := ctx.Value(newReadConnKey(ds.DatabaseName)).(*ReadSqlConn)
-	_, hasTx := ctx.Value(newTxKey(ds.DatabaseName)).(*SqlTx)
-
-	// Shouldn't have both an active readConn and active tx on the same ctx (coding error)
-	if hasReadConn && hasTx {
-		return errors.New("invalid state: cannot have both an open tx and open readConn")
-	}
-
-	// If active tx OR active readConn, use it
-	if hasTx || hasReadConn {
-		return connCallback(ctx)
-	}
-
-	// If there's no separate 'reader' db instance, db pool handles everything
-	if ds.Reader == nil {
-		return connCallback(ctx)
-	}
-
-	// Otherwise, start a new readConn and add it to ctx
-	conn, err := ds.Reader.Connx(ctx)
-	if err != nil {
-		return errors.Wrap(err, "error opening/retrieving readConn to reader")
-	}
-	defer conn.Close()
-	ctxWithConn := context.WithValue(ctx, newReadConnKey(ds.DatabaseName), &ReadSqlConn{
-		Conn:         conn,
-		Hostname:     ds.ReaderHostname,
-		DatabaseName: ds.DatabaseName,
-	})
-	return connCallback(ctxWithConn)
-}
-
 // Execute txFunc() within the context of a single write transaction
 func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.Context) error) error {
-	// Cannot start tx if a readConn is already open (coding error). Caller should wrap everything in WithinTransaction()
-	if _, ok := ctx.Value(newReadConnKey(ds.DatabaseName)).(*ReadSqlConn); ok {
-		return errors.New("invalid state: readConn already open. Wrap entire read + write WithinTransaction()")
-	}
-
 	// If transaction already started for this database, re-use it and
 	// let the top-level WithinTransaction call manage rollback/commit
 	if _, ok := ctx.Value(newTxKey(ds.DatabaseName)).(*SqlTx); ok {
@@ -322,7 +197,7 @@ func (ds SQL) WithinTransaction(ctx context.Context, txFunc func(txCtx context.C
 func (ds SQL) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
 	curr := time.Now()
 	query = ds.Writer.Rebind(query)
-	queryable := ds.getQueryableFromContext(ctx)
+	queryable := ds.getQueryableFromContext(ctx, true)
 
 	defer ds.recordQueryStat(ctx, queryable, "ExecContext", curr)
 
@@ -341,7 +216,7 @@ func (ds SQL) ExecContext(ctx context.Context, query string, args ...interface{}
 func (ds SQL) GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
 	curr := time.Now()
 	query = ds.Writer.Rebind(query)
-	queryable := ds.getQueryableFromContext(ctx)
+	queryable := ds.getQueryableFromContext(ctx, false)
 
 	defer ds.recordQueryStat(ctx, queryable, "GetContext", curr)
 
@@ -360,7 +235,7 @@ func (ds SQL) GetContext(ctx context.Context, dest interface{}, query string, ar
 func (ds SQL) NamedExecContext(ctx context.Context, query string, arg interface{}) (sql.Result, error) {
 	curr := time.Now()
 	query = ds.Writer.Rebind(query)
-	queryable := ds.getQueryableFromContext(ctx)
+	queryable := ds.getQueryableFromContext(ctx, true)
 
 	defer ds.recordQueryStat(ctx, queryable, "NamedExecContext", curr)
 
@@ -377,42 +252,17 @@ func (ds SQL) NamedExecContext(ctx context.Context, query string, arg interface{
 }
 
 func (ds SQL) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
-	curr := time.Now()
-	query = ds.Writer.Rebind(query)
-	queryable := ds.getQueryableFromContext(ctx)
-
-	defer ds.recordQueryStat(ctx, queryable, "PrepareContext", curr)
-
-	stmt, err := queryable.PrepareContext(ctx, query)
-	if err != nil {
-		return stmt, errors.Wrap(err, "Error when calling sql PrepareContext")
-	}
-	return stmt, err
+	return nil, errors.New("sql.PrepareContext op not supported")
 }
 
 func (ds SQL) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
-	curr := time.Now()
-	query = ds.Writer.Rebind(query)
-	queryable := ds.getQueryableFromContext(ctx)
-
-	defer ds.recordQueryStat(ctx, queryable, "QueryContext", curr)
-
-	rows, err := queryable.QueryContext(ctx, query, args...)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return rows, err
-		default:
-			return rows, errors.Wrap(err, "Error when calling sql QueryContext")
-		}
-	}
-	return rows, err
+	return nil, errors.New("sql.QueryContext op not supported")
 }
 
 func (ds SQL) QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
 	curr := time.Now()
 	query = ds.Writer.Rebind(query)
-	queryable := ds.getQueryableFromContext(ctx)
+	queryable := ds.getQueryableFromContext(ctx, false)
 
 	defer ds.recordQueryStat(ctx, queryable, "QueryRowContext", curr)
 
@@ -422,7 +272,7 @@ func (ds SQL) QueryRowContext(ctx context.Context, query string, args ...interfa
 func (ds SQL) SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
 	curr := time.Now()
 	query = ds.Writer.Rebind(query)
-	queryable := ds.getQueryableFromContext(ctx)
+	queryable := ds.getQueryableFromContext(ctx, false)
 
 	defer ds.recordQueryStat(ctx, queryable, "SelectContext", curr)
 
@@ -439,47 +289,43 @@ func (ds SQL) SelectContext(ctx context.Context, dest interface{}, query string,
 }
 
 // Get main db pool (writer), tx or an open readConn if one has been started
-func (ds SQL) getQueryableFromContext(ctx context.Context) SqlQueryable {
-	readConn, hasReadConn := ctx.Value(newReadConnKey(ds.DatabaseName)).(*ReadSqlConn)
-	unSafeOp := false
-	if ctx.Value(UnsafeOp{}) != nil {
-		unSafeOp = ctx.Value(UnsafeOp{}).(bool)
-	}
-
-	tx, hasTx := ctx.Value(newTxKey(ds.DatabaseName)).(*SqlTx)
-
-	// Shouldn't have both an active readConn and active tx on the same ctx (coding error)
-	if hasReadConn && hasTx {
-		log.Fatal().Msg("Invalid state: tx and readConn both open in ctx")
-	}
-
-	// If tx is already open, use it
-	if hasTx {
+func (ds SQL) getQueryableFromContext(ctx context.Context, isWriteOp bool) SqlQueryable {
+	// If a writer tx is already open, use it
+	if tx, hasTx := ctx.Value(newTxKey(ds.DatabaseName)).(*SqlTx); hasTx {
 		return tx
 	}
 
-	// If a readConn is already open and it's not an 'unsafeOp' use it
-	if hasReadConn && !unSafeOp {
-		return readConn
+	// Use writer pool if:
+	// 1. This is called by a 'write-op'
+	// 2. There is no reader
+	// 3. ctx contains 'latest' wookie
+	// 4. ctx contains 'writer' db override
+	if isWriteOp || ds.Reader == nil || wookie.ContainsLatest(ctx) {
+		return ds.Writer
+	}
+	if useWriter, ok := ctx.Value(writerOverrideKey{}).(bool); ok {
+		if useWriter {
+			return ds.Writer
+		}
 	}
 
-	return ds.Writer
+	// Otherwise, use reader
+	return ds.Reader
 }
 
 func (ds SQL) recordQueryStat(ctx context.Context, queryable SqlQueryable, query string, start time.Time) {
-	sqlType := "sql.pool"
-	hostname := ds.WriterHostname
+	sqlType := "sql.reader"
+	hostname := ds.ReaderHostname
 	db := ds.DatabaseName
-	conn, isConn := queryable.(*ReadSqlConn)
-	tx, isTx := queryable.(*SqlTx)
-	if isConn {
-		sqlType = "sql.conn"
-		hostname = conn.Hostname
-		db = conn.DatabaseName
-	} else if isTx {
+	if tx, isTx := queryable.(*SqlTx); isTx {
 		sqlType = "sql.tx"
 		hostname = tx.Hostname
 		db = tx.DatabaseName
+	}
+	if queryable == ds.Writer {
+		sqlType = "sql.writer"
+		hostname = ds.WriterHostname
+		db = ds.DatabaseName
 	}
 
 	stats.RecordStat(ctx, fmt.Sprintf("%s/%s", hostname, db), fmt.Sprintf("%s.%s", sqlType, query), time.Since(start))

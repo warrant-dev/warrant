@@ -39,7 +39,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 	var newFeatureId int64
 	now := time.Now().UTC()
 	err := repo.DB.GetContext(
-		ctx,
+		database.CtxWithWriterOverride(ctx),
 		&newFeatureId,
 		`
 			INSERT INTO feature (

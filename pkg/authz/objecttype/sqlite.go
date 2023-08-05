@@ -39,7 +39,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 	var newObjectTypeId int64
 	now := time.Now().UTC()
 	err := repo.DB.GetContext(
-		ctx,
+		database.CtxWithWriterOverride(ctx),
 		&newObjectTypeId,
 		`
 			INSERT INTO objectType (

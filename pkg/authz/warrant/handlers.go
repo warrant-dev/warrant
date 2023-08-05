@@ -17,7 +17,6 @@ package authz
 import (
 	"net/http"
 
-	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -39,7 +38,6 @@ func (svc WarrantService) Routes() ([]service.Route, error) {
 			Method:  "GET",
 			Handler: service.ChainMiddleware(
 				service.NewRouteHandler(svc, ListHandler),
-				wookie.ClientTokenMiddleware,
 				service.ListMiddleware[WarrantListParamParser],
 			),
 		},
@@ -97,11 +95,10 @@ func ListHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) err
 		filters.Subject.Relation = subjectRelation
 	}
 
-	warrants, updatedWookie, err := svc.List(r.Context(), &filters, listParams)
+	warrants, err := svc.List(r.Context(), &filters, listParams)
 	if err != nil {
 		return err
 	}
-	wookie.AddAsResponseHeader(w, updatedWookie)
 
 	service.SendJSONResponse(w, warrants)
 	return nil

@@ -42,7 +42,7 @@ func NewPostgresRepository(db *database.Postgres) *PostgresRepository {
 func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newWarrantId int64
 	err := repo.DB.GetContext(
-		ctx,
+		database.CtxWithWriterOverride(ctx),
 		&newWarrantId,
 		`
 			INSERT INTO warrant (
