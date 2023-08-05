@@ -19,6 +19,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/warrant-dev/warrant/pkg/service"
+	"github.com/warrant-dev/warrant/pkg/wookie"
 )
 
 const (
@@ -62,7 +63,9 @@ func defaultCreateEventContext(ctx context.Context, synchronizeEvents bool) (con
 		return ctx, nil
 	}
 
-	// TODO: does this need to preserve wookie latest?
+	if wookie.ContainsLatest(ctx) {
+		return wookie.WithLatest(context.Background()), nil
+	}
 	return context.Background(), nil
 }
 

@@ -36,12 +36,12 @@ func ClientHeaderMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// Return a context with wookie set to 'latest'
+// Return a context with wookie set to 'latest'.
 func WithLatest(parent context.Context) context.Context {
 	return context.WithValue(parent, wookieCtxKey{}, Latest)
 }
 
-// Returns true if ctx contains wookie set to 'latest', false otherwise
+// Returns true if ctx contains wookie set to 'latest', false otherwise.
 func ContainsLatest(ctx context.Context) bool {
 	if val, ok := ctx.Value(wookieCtxKey{}).(string); ok {
 		if val == Latest {
