@@ -28,7 +28,7 @@ func WookieMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		headerVal := r.Header.Get(HeaderName)
 		if headerVal == Latest {
-			latestCtx := context.WithValue(r.Context(), wookieCtxKey{}, Latest)
+			latestCtx := WithLatest(r.Context())
 			next.ServeHTTP(w, r.WithContext(latestCtx))
 			return
 		}

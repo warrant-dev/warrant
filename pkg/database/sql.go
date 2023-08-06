@@ -129,7 +129,7 @@ func (q SqlTx) SelectContext(ctx context.Context, dest interface{}, query string
 	return err
 }
 
-// Wrapper around a sql database with support for creating/managing transactions and 'read-only' connections to a 'reader' db
+// Wrapper around a sql database with support for a writer + reader pool and the ability to start txns.
 type SQL struct {
 	Writer         *sqlx.DB
 	Reader         *sqlx.DB
@@ -288,7 +288,7 @@ func (ds SQL) SelectContext(ctx context.Context, dest interface{}, query string,
 	return err
 }
 
-// Get main db pool (writer), tx or an open readConn if one has been started
+// Get main db pool (writer), open tx, or the reader pool (if configured).
 func (ds SQL) getQueryableFromContext(ctx context.Context, isWriteOp bool) SqlQueryable {
 	// If a writer tx is already open, use it
 	if tx, hasTx := ctx.Value(newTxKey(ds.DatabaseName)).(*SqlTx); hasTx {
