@@ -21,7 +21,6 @@ import (
 	"github.com/pkg/errors"
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -120,24 +119,33 @@ func (svc UserService) List(ctx context.Context, listParams service.ListParams) 
 }
 
 func (svc UserService) UpdateByUserId(ctx context.Context, userId string, userSpec UpdateUserSpec) (*UserSpec, error) {
-	currentUser, err := svc.Repository.GetByUserId(ctx, userId)
-	if err != nil {
-		return nil, err
-	}
+	var updatedUserSpec *UserSpec
+	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+		currentUser, err := svc.Repository.GetByUserId(txCtx, userId)
+		if err != nil {
+			return err
+		}
 
-	currentUser.SetEmail(userSpec.Email)
-	err = svc.Repository.UpdateByUserId(ctx, userId, currentUser)
-	if err != nil {
-		return nil, err
-	}
+		currentUser.SetEmail(userSpec.Email)
+		err = svc.Repository.UpdateByUserId(txCtx, userId, currentUser)
+		if err != nil {
+			return err
+		}
 
-	updatedUser, err := svc.Repository.GetByUserId(ctx, userId)
-	if err != nil {
-		return nil, err
-	}
+		updatedUser, err := svc.Repository.GetByUserId(txCtx, userId)
+		if err != nil {
+			return err
+		}
 
-	updatedUserSpec := updatedUser.ToUserSpec()
-	err = svc.EventSvc.TrackResourceUpdated(ctx, ResourceTypeUser, updatedUser.GetUserId(), updatedUserSpec)
+		updatedUserSpec = updatedUser.ToUserSpec()
+		err = svc.EventSvc.TrackResourceUpdated(txCtx, ResourceTypeUser, updatedUser.GetUserId(), updatedUserSpec)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -145,15 +153,14 @@ func (svc UserService) UpdateByUserId(ctx context.Context, userId string, userSp
 	return updatedUserSpec, nil
 }
 
-func (svc UserService) DeleteByUserId(ctx context.Context, userId string) (*wookie.Token, error) {
-	var newWookie *wookie.Token
+func (svc UserService) DeleteByUserId(ctx context.Context, userId string) error {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		err := svc.Repository.DeleteByUserId(txCtx, userId)
 		if err != nil {
 			return err
 		}
 
-		newWookie, err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypeUser, userId)
+		err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypeUser, userId)
 		if err != nil {
 			return err
 		}
@@ -167,7 +174,7 @@ func (svc UserService) DeleteByUserId(ctx context.Context, userId string) (*wook
 	})
 
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return newWookie, nil
+	return nil
 }

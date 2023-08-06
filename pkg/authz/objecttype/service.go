@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 
-	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -41,31 +40,29 @@ type ObjectTypeService struct {
 	service.BaseService
 	Repository ObjectTypeRepository
 	EventSvc   event.Service
-	WookieSvc  *wookie.WookieService
 }
 
-func NewService(env service.Env, repository ObjectTypeRepository, eventSvc event.Service, wookieSvc *wookie.WookieService) *ObjectTypeService {
+func NewService(env service.Env, repository ObjectTypeRepository, eventSvc event.Service) *ObjectTypeService {
 	return &ObjectTypeService{
 		BaseService: service.NewBaseService(env),
 		Repository:  repository,
 		EventSvc:    eventSvc,
-		WookieSvc:   wookieSvc,
 	}
 }
 
-func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, *wookie.Token, error) {
-	_, err := svc.Repository.GetByTypeId(ctx, objectTypeSpec.Type)
-	if err == nil {
-		return nil, nil, service.NewDuplicateRecordError("ObjectType", objectTypeSpec.Type, "An objectType with the given type already exists")
-	}
-
-	objectType, err := objectTypeSpec.ToObjectType()
-	if err != nil {
-		return nil, nil, err
-	}
-
+func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error) {
 	var newObjectTypeSpec *ObjectTypeSpec
-	newWookie, e := svc.WookieSvc.WithWookieUpdate(ctx, func(txCtx context.Context) error {
+	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+		_, err := svc.Repository.GetByTypeId(txCtx, objectTypeSpec.Type)
+		if err == nil {
+			return service.NewDuplicateRecordError("ObjectType", objectTypeSpec.Type, "An objectType with the given type already exists")
+		}
+
+		objectType, err := objectTypeSpec.ToObjectType()
+		if err != nil {
+			return err
+		}
+
 		newObjectTypeId, err := svc.Repository.Create(txCtx, objectType)
 		if err != nil {
 			return err
@@ -88,104 +85,86 @@ func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTy
 
 		return nil
 	})
-	if e != nil {
-		return nil, nil, e
-	}
-	return newObjectTypeSpec, newWookie, nil
-}
-
-func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*ObjectTypeSpec, *wookie.Token, error) {
-	var objectTypeSpec *ObjectTypeSpec
-	newWookie, e := svc.WookieSvc.WookieSafeRead(ctx, func(wkCtx context.Context) error {
-		objectType, err := svc.Repository.GetByTypeId(wkCtx, typeId)
-		if err != nil {
-			return err
-		}
-
-		objectTypeSpec, err = objectType.ToObjectTypeSpec()
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if e != nil {
-		return nil, nil, e
-	}
-	return objectTypeSpec, newWookie, e
-}
-
-func (svc ObjectTypeService) GetTypeMap(ctx context.Context) (*ObjectTypeMap, *wookie.Token, error) {
-	typeMap := make(map[string]ObjectTypeSpec)
-	newWookie, err := svc.WookieSvc.WookieSafeRead(ctx, func(wkCtx context.Context) error {
-		objectTypes, err := svc.Repository.ListAll(wkCtx)
-		if err != nil {
-			return err
-		}
-
-		for _, objectType := range objectTypes {
-			objectTypeSpec, err := objectType.ToObjectTypeSpec()
-			if err != nil {
-				return err
-			}
-
-			typeMap[objectTypeSpec.Type] = *objectTypeSpec
-		}
-
-		return nil
-	})
-
 	if err != nil {
-		return nil, nil, err
+		return nil, err
+	}
+	return newObjectTypeSpec, nil
+}
+
+func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*ObjectTypeSpec, error) {
+	objectType, err := svc.Repository.GetByTypeId(ctx, typeId)
+	if err != nil {
+		return nil, err
+	}
+
+	objectTypeSpec, err := objectType.ToObjectTypeSpec()
+	if err != nil {
+		return nil, err
+	}
+
+	return objectTypeSpec, nil
+}
+
+func (svc ObjectTypeService) GetTypeMap(ctx context.Context) (*ObjectTypeMap, error) {
+	objectTypes, err := svc.Repository.ListAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	typeMap := make(map[string]ObjectTypeSpec)
+	for _, objectType := range objectTypes {
+		objectTypeSpec, err := objectType.ToObjectTypeSpec()
+		if err != nil {
+			return nil, err
+		}
+
+		typeMap[objectTypeSpec.Type] = *objectTypeSpec
 	}
 
 	return &ObjectTypeMap{
 		objectTypes: typeMap,
-	}, newWookie, nil
+	}, nil
 }
 
-func (svc ObjectTypeService) List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, *wookie.Token, error) {
+func (svc ObjectTypeService) List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, error) {
 	objectTypeSpecs := make([]ObjectTypeSpec, 0)
-	newWookie, e := svc.WookieSvc.WookieSafeRead(ctx, func(wkCtx context.Context) error {
-		objectTypes, err := svc.Repository.List(wkCtx, listParams)
-		if err != nil {
-			return err
-		}
 
-		for _, objectType := range objectTypes {
-			objectTypeSpec, err := objectType.ToObjectTypeSpec()
-			if err != nil {
-				return err
-			}
-
-			objectTypeSpecs = append(objectTypeSpecs, *objectTypeSpec)
-		}
-
-		return nil
-	})
-	if e != nil {
-		return nil, nil, e
+	objectTypes, err := svc.Repository.List(ctx, listParams)
+	if err != nil {
+		return objectTypeSpecs, err
 	}
-	return objectTypeSpecs, newWookie, nil
+
+	for _, objectType := range objectTypes {
+		objectTypeSpec, err := objectType.ToObjectTypeSpec()
+		if err != nil {
+			return nil, err
+		}
+
+		objectTypeSpecs = append(objectTypeSpecs, *objectTypeSpec)
+	}
+
+	return objectTypeSpecs, nil
 }
 
-func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, *wookie.Token, error) {
-	currentObjectType, err := svc.Repository.GetByTypeId(ctx, typeId)
-	if err != nil {
-		return nil, nil, err
-	}
-	updateTo, err := objectTypeSpec.ToObjectType()
-	if err != nil {
-		return nil, nil, err
-	}
-	currentObjectType.SetDefinition(updateTo.Definition)
+func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error) {
 	var updatedObjectTypeSpec *ObjectTypeSpec
-	newWookie, e := svc.WookieSvc.WithWookieUpdate(ctx, func(txCtx context.Context) error {
-		err := svc.Repository.UpdateByTypeId(txCtx, typeId, currentObjectType)
+	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+		currentObjectType, err := svc.Repository.GetByTypeId(txCtx, typeId)
+		if err != nil {
+			return err
+		}
+		updateTo, err := objectTypeSpec.ToObjectType()
+		if err != nil {
+			return err
+		}
+		currentObjectType.SetDefinition(updateTo.Definition)
+
+		err = svc.Repository.UpdateByTypeId(txCtx, typeId, currentObjectType)
 		if err != nil {
 			return err
 		}
 
-		updatedObjectTypeSpec, _, err = svc.GetByTypeId(txCtx, typeId)
+		updatedObjectTypeSpec, err = svc.GetByTypeId(txCtx, typeId)
 		if err != nil {
 			return err
 		}
@@ -197,14 +176,14 @@ func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, 
 
 		return nil
 	})
-	if e != nil {
-		return nil, nil, e
+	if err != nil {
+		return nil, err
 	}
-	return updatedObjectTypeSpec, newWookie, nil
+	return updatedObjectTypeSpec, nil
 }
 
-func (svc ObjectTypeService) DeleteByTypeId(ctx context.Context, typeId string) (*wookie.Token, error) {
-	newWookie, e := svc.WookieSvc.WithWookieUpdate(ctx, func(txCtx context.Context) error {
+func (svc ObjectTypeService) DeleteByTypeId(ctx context.Context, typeId string) error {
+	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		err := svc.Repository.DeleteByTypeId(txCtx, typeId)
 		if err != nil {
 			return err
@@ -217,8 +196,8 @@ func (svc ObjectTypeService) DeleteByTypeId(ctx context.Context, typeId string) 
 
 		return nil
 	})
-	if e != nil {
-		return nil, e
+	if err != nil {
+		return err
 	}
-	return newWookie, nil
+	return nil
 }

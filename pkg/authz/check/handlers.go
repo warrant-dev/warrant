@@ -19,7 +19,6 @@ import (
 
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
-	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -27,12 +26,9 @@ func (svc CheckService) Routes() ([]service.Route, error) {
 	return []service.Route{
 		// Standard Authorization
 		service.WarrantRoute{
-			Pattern: "/v2/authorize",
-			Method:  "POST",
-			Handler: service.ChainMiddleware(
-				service.NewRouteHandler(svc, AuthorizeHandler),
-				wookie.ClientTokenMiddleware,
-			),
+			Pattern:                    "/v2/authorize",
+			Method:                     "POST",
+			Handler:                    service.NewRouteHandler(svc, AuthorizeHandler),
 			OverrideAuthMiddlewareFunc: service.ApiKeyAndSessionAuthMiddleware,
 		},
 	}, nil
@@ -67,11 +63,10 @@ func AuthorizeHandler(svc CheckService, w http.ResponseWriter, r *http.Request) 
 			Debug:    sessionCheckManySpec.Debug,
 		}
 
-		checkResult, updatedWookie, err := svc.CheckMany(r.Context(), authInfo, &checkManySpec)
+		checkResult, err := svc.CheckMany(r.Context(), authInfo, &checkManySpec)
 		if err != nil {
 			return err
 		}
-		wookie.AddAsResponseHeader(w, updatedWookie)
 
 		service.SendJSONResponse(w, checkResult)
 		return nil
@@ -83,11 +78,10 @@ func AuthorizeHandler(svc CheckService, w http.ResponseWriter, r *http.Request) 
 		return err
 	}
 
-	checkResult, updatedWookie, err := svc.CheckMany(r.Context(), authInfo, &checkManySpec)
+	checkResult, err := svc.CheckMany(r.Context(), authInfo, &checkManySpec)
 	if err != nil {
 		return err
 	}
-	wookie.AddAsResponseHeader(w, updatedWookie)
 
 	service.SendJSONResponse(w, checkResult)
 	return nil

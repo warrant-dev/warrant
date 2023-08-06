@@ -18,7 +18,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -129,11 +128,10 @@ func DeleteHandler(svc PricingTierService, w http.ResponseWriter, r *http.Reques
 		return service.NewMissingRequiredParameterError("pricingTierId")
 	}
 
-	newWookie, err := svc.DeleteByPricingTierId(r.Context(), pricingTierId)
+	err := svc.DeleteByPricingTierId(r.Context(), pricingTierId)
 	if err != nil {
 		return err
 	}
-	wookie.AddAsResponseHeader(w, newWookie)
 
 	return nil
 }

@@ -41,7 +41,7 @@ func NewPostgresRepository(db *database.Postgres) *PostgresRepository {
 func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, error) {
 	var newPermissionId int64
 	err := repo.DB.GetContext(
-		ctx,
+		database.CtxWithWriterOverride(ctx),
 		&newPermissionId,
 		`
 			INSERT INTO permission (

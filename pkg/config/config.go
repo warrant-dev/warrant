@@ -49,15 +49,14 @@ type Config interface {
 }
 
 type WarrantConfig struct {
-	Port                int               `mapstructure:"port"`
-	LogLevel            int8              `mapstructure:"logLevel"`
-	EnableAccessLog     bool              `mapstructure:"enableAccessLog"`
-	AutoMigrate         bool              `mapstructure:"autoMigrate"`
-	Datastore           *DatastoreConfig  `mapstructure:"datastore"`
-	Eventstore          *EventstoreConfig `mapstructure:"eventstore"`
-	Authentication      *AuthConfig       `mapstructure:"authentication"`
-	EnableWarrantTokens bool              `mapstructure:"enableWarrantTokens"`
-	Check               *CheckConfig      `mapstructure:"check"`
+	Port            int               `mapstructure:"port"`
+	LogLevel        int8              `mapstructure:"logLevel"`
+	EnableAccessLog bool              `mapstructure:"enableAccessLog"`
+	AutoMigrate     bool              `mapstructure:"autoMigrate"`
+	Datastore       *DatastoreConfig  `mapstructure:"datastore"`
+	Eventstore      *EventstoreConfig `mapstructure:"eventstore"`
+	Authentication  *AuthConfig       `mapstructure:"authentication"`
+	Check           *CheckConfig      `mapstructure:"check"`
 }
 
 func (warrantConfig WarrantConfig) GetPort() int {
@@ -86,10 +85,6 @@ func (warrantConfig WarrantConfig) GetEventstore() *EventstoreConfig {
 
 func (warrantConfig WarrantConfig) GetAuthentication() *AuthConfig {
 	return warrantConfig.Authentication
-}
-
-func (warrantConfig WarrantConfig) GetEnableWarrantTokens() bool {
-	return warrantConfig.EnableWarrantTokens
 }
 
 func (warrantConfig WarrantConfig) GetCheck() *CheckConfig {
@@ -176,7 +171,6 @@ func NewConfig() WarrantConfig {
 	viper.SetDefault("logLevel", zerolog.DebugLevel)
 	viper.SetDefault("enableAccessLog", true)
 	viper.SetDefault("autoMigrate", false)
-	viper.SetDefault("enableWarrantTokens", false)
 	viper.SetDefault("datastore.mysql.connMaxIdleTime", 4*time.Hour)
 	viper.SetDefault("datastore.mysql.connMaxLifetime", 6*time.Hour)
 	viper.SetDefault("datastore.mysql.migrationSource", DefaultMySQLDatastoreMigrationSource)

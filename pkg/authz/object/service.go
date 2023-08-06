@@ -19,7 +19,6 @@ import (
 	"fmt"
 
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
-	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -41,33 +40,19 @@ func NewService(env service.Env, repository ObjectRepository, eventSvc event.Ser
 }
 
 func (svc ObjectService) Create(ctx context.Context, objectSpec ObjectSpec) (*ObjectSpec, error) {
-	_, err := svc.Repository.GetByObjectTypeAndId(ctx, objectSpec.ObjectType, objectSpec.ObjectId)
-	if err == nil {
-		return nil, service.NewDuplicateRecordError("Object", fmt.Sprintf("%s:%s", objectSpec.ObjectType, objectSpec.ObjectId), "An object with the given objectType and objectId already exists")
-	}
-
-	newObjectId, err := svc.Repository.Create(ctx, *objectSpec.ToObject())
-	if err != nil {
-		return nil, err
-	}
-
-	newObject, err := svc.Repository.GetById(ctx, newObjectId)
-	if err != nil {
-		return nil, err
-	}
-
-	return newObject.ToObjectSpec(), nil
-}
-
-func (svc ObjectService) DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (*wookie.Token, error) {
-	var newWookie *wookie.Token
+	var newObject Model
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		err := svc.Repository.DeleteByObjectTypeAndId(txCtx, objectType, objectId)
+		_, err := svc.Repository.GetByObjectTypeAndId(txCtx, objectSpec.ObjectType, objectSpec.ObjectId)
+		if err == nil {
+			return service.NewDuplicateRecordError("Object", fmt.Sprintf("%s:%s", objectSpec.ObjectType, objectSpec.ObjectId), "An object with the given objectType and objectId already exists")
+		}
+
+		newObjectId, err := svc.Repository.Create(txCtx, *objectSpec.ToObject())
 		if err != nil {
 			return err
 		}
 
-		newWookie, err = svc.WarrantSvc.DeleteRelatedWarrants(txCtx, objectType, objectId)
+		newObject, err = svc.Repository.GetById(txCtx, newObjectId)
 		if err != nil {
 			return err
 		}
@@ -78,7 +63,29 @@ func (svc ObjectService) DeleteByObjectTypeAndId(ctx context.Context, objectType
 	if err != nil {
 		return nil, err
 	}
-	return newWookie, nil
+
+	return newObject.ToObjectSpec(), nil
+}
+
+func (svc ObjectService) DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) error {
+	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+		err := svc.Repository.DeleteByObjectTypeAndId(txCtx, objectType, objectId)
+		if err != nil {
+			return err
+		}
+
+		err = svc.WarrantSvc.DeleteRelatedWarrants(txCtx, objectType, objectId)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (svc ObjectService) GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (*ObjectSpec, error) {

@@ -17,32 +17,36 @@ package wookie
 import (
 	"context"
 	"net/http"
-
-	"github.com/rs/zerolog/hlog"
 )
 
-const WarrantTokenHeaderName = "Warrant-Token"
+const HeaderName = "Warrant-Token"
+const Latest = "latest"
 
-func ClientTokenMiddleware(next http.Handler) http.Handler {
+type wookieCtxKey struct{}
+
+func WookieMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		headerVal := r.Header.Get(WarrantTokenHeaderName)
-		if headerVal != "" {
-			clientWookie, err := FromString(headerVal)
-			if err != nil {
-				hlog.FromRequest(r).Warn().Msgf("invalid client-supplied wookie header: %s", headerVal)
-				next.ServeHTTP(w, r)
-				return
-			}
-			newContext := context.WithValue(r.Context(), ClientTokenKey{}, clientWookie)
-			next.ServeHTTP(w, r.WithContext(newContext))
+		headerVal := r.Header.Get(HeaderName)
+		if headerVal == Latest {
+			latestCtx := WithLatest(r.Context())
+			next.ServeHTTP(w, r.WithContext(latestCtx))
 			return
 		}
 		next.ServeHTTP(w, r)
 	})
 }
 
-func AddAsResponseHeader(w http.ResponseWriter, token *Token) {
-	if token != nil {
-		w.Header().Set(WarrantTokenHeaderName, token.String())
+// Return a context with wookie set to 'latest'.
+func WithLatest(parent context.Context) context.Context {
+	return context.WithValue(parent, wookieCtxKey{}, Latest)
+}
+
+// Returns true if ctx contains wookie set to 'latest', false otherwise.
+func ContainsLatest(ctx context.Context) bool {
+	if val, ok := ctx.Value(wookieCtxKey{}).(string); ok {
+		if val == Latest {
+			return true
+		}
 	}
+	return false
 }

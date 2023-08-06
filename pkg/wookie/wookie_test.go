@@ -12,20 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package database
+package wookie_test
 
-import "context"
+import (
+	"context"
+	"testing"
 
-const (
-	TypeMySQL    = "mysql"
-	TypePostgres = "postgres"
-	TypeSQLite   = "sqlite"
+	"github.com/warrant-dev/warrant/pkg/wookie"
 )
 
-type Database interface {
-	Type() string
-	Connect(ctx context.Context) error
-	Migrate(ctx context.Context, toVersion uint) error
-	Ping(ctx context.Context) error
-	WithinTransaction(ctx context.Context, txCallback func(ctx context.Context) error) error
+func TestBasicSerialization(t *testing.T) {
+	t.Parallel()
+	ctx := wookie.WithLatest(context.Background())
+	if !wookie.ContainsLatest(ctx) {
+		t.Fatalf("expected ctx to contain 'latest' wookie")
+	}
+
+	ctx = context.Background()
+	if wookie.ContainsLatest(ctx) {
+		t.Fatalf("expected ctx to not contain 'latest' wookie")
+	}
 }

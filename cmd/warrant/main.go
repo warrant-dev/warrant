@@ -32,7 +32,6 @@ import (
 	tenant "github.com/warrant-dev/warrant/pkg/authz/tenant"
 	user "github.com/warrant-dev/warrant/pkg/authz/user"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
-	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/config"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/event"
@@ -210,29 +209,22 @@ func main() {
 	}
 	eventSvc := event.NewService(svcEnv, eventRepository, cfg.Eventstore.SynchronizeEvents, nil)
 
-	// Init wookie repo and service
-	wookieRepository, err := wookie.NewRepository(svcEnv.DB())
-	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize WookieRepository")
-	}
-	wookieSvc := wookie.NewService(svcEnv, wookieRepository, cfg.EnableWarrantTokens)
-
 	// Init object type repo and service
 	objectTypeRepository, err := objecttype.NewRepository(svcEnv.DB())
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize ObjectTypeRepository")
 	}
-	objectTypeSvc := objecttype.NewService(svcEnv, objectTypeRepository, eventSvc, wookieSvc)
+	objectTypeSvc := objecttype.NewService(svcEnv, objectTypeRepository, eventSvc)
 
 	// Init warrant repo and service
 	warrantRepository, err := warrant.NewRepository(svcEnv.DB())
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize WarrantRepository")
 	}
-	warrantSvc := warrant.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, wookieSvc)
+	warrantSvc := warrant.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc)
 
 	// Init check service
-	checkSvc := check.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, wookieSvc, cfg.Check, nil)
+	checkSvc := check.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, cfg.Check, nil)
 
 	// Init object repo and service
 	objectRepository, err := object.NewRepository(svcEnv.DB())
