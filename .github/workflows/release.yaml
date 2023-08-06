@@ -8,6 +8,10 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+        with:
+          platforms: amd64,arm64
       - name: Setup Go env
         uses: actions/setup-go@v4
         with:

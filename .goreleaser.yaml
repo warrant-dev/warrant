@@ -40,13 +40,34 @@ changelog:
       - '^docs:'
       - '^test:'
 dockers:
-  - image_templates:
-      - "warrantdev/warrant:{{ .Tag }}"
-      - "warrantdev/warrant:latest"
+  - id: warrant-amd64
+    image_templates:
+      - "warrantdev/warrant:{{ .Tag }}-amd64"
+      - "warrantdev/warrant:latest-amd64"
     goos: linux
     goarch: amd64
-    use: docker
+    use: buildx
     skip_push: false
     dockerfile: "Dockerfile"
     build_flag_templates:
       - "--platform=linux/amd64"
+  - id: warrant-arm64
+    image_templates:
+      - "warrantdev/warrant:{{ .Tag }}-arm64"
+      - "warrantdev/warrant:latest-arm64"
+    goos: linux
+    goarch: arm64
+    use: buildx
+    skip_push: false
+    dockerfile: "Dockerfile"
+    build_flag_templates:
+      - "--platform=linux/arm64"
+docker_manifests:
+  - name_template: "warrantdev/warrant:{{ .Tag }}"
+    image_templates:
+      - "warrantdev/warrant:{{ .Tag }}-amd64"
+      - "warrantdev/warrant:{{ .Tag }}-arm64"
+  - name_template: "warrantdev/warrant:latest"
+    image_templates:
+      - "warrantdev/warrant:latest-amd64"
+      - "warrantdev/warrant:latest-arm64"
