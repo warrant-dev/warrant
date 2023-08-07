@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/antonmedv/expr v1.12.7
-	github.com/go-playground/validator/v10 v10.14.1
+	github.com/go-playground/validator/v10 v10.15.0
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/golang-migrate/migrate/v4 v4.16.2
 	github.com/google/go-cmp v0.5.9
