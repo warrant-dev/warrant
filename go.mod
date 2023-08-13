@@ -1,6 +1,6 @@
 module github.com/warrant-dev/warrant
 
-go 1.20
+go 1.21
 
 require (
 	github.com/antonmedv/expr v1.12.7
