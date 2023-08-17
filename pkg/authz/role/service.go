@@ -49,7 +49,7 @@ func (svc RoleService) Create(ctx context.Context, roleSpec RoleSpec) (*RoleSpec
 			return service.NewDuplicateRecordError("Role", roleSpec.RoleId, "A role with the given roleId already exists")
 		}
 
-		createdObject, err := svc.ObjectSvc.Create(txCtx, *roleSpec.ToObjectSpec())
+		createdObject, err := svc.ObjectSvc.Create(txCtx, *roleSpec.ToCreateObjectSpec())
 		if err != nil {
 			return err
 		}

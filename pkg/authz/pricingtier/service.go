@@ -44,7 +44,7 @@ func NewService(env service.Env, repository PricingTierRepository, eventSvc even
 func (svc PricingTierService) Create(ctx context.Context, pricingTierSpec PricingTierSpec) (*PricingTierSpec, error) {
 	var newPricingTier Model
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		createdObject, err := svc.ObjectSvc.Create(txCtx, *pricingTierSpec.ToObjectSpec())
+		createdObject, err := svc.ObjectSvc.Create(txCtx, *pricingTierSpec.ToCreateObjectSpec())
 		if err != nil {
 			return err
 		}

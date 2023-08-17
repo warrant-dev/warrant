@@ -37,8 +37,8 @@ func (spec PricingTierSpec) ToPricingTier(objectId int64) Model {
 	}
 }
 
-func (spec PricingTierSpec) ToObjectSpec() *object.ObjectSpec {
-	return &object.ObjectSpec{
+func (spec PricingTierSpec) ToCreateObjectSpec() *object.CreateObjectSpec {
+	return &object.CreateObjectSpec{
 		ObjectType: objecttype.ObjectTypePricingTier,
 		ObjectId:   spec.PricingTierId,
 	}

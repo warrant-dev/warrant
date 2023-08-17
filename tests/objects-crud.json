@@ -10,14 +10,14 @@
                 "url": "/v1/objects",
                 "body": {
                     "objectType": "test",
-                    "objectId": "object-1"
+                    "objectId": "first-object"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "objectType": "test",
-                    "objectId": "object-1"
+                    "objectId": "first-object"
                 }
             }
         },
@@ -28,14 +28,31 @@
                 "url": "/v1/objects",
                 "body": {
                     "objectType": "test",
-                    "objectId": "object-2"
+                    "objectId": "second-object"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "objectType": "test",
-                    "objectId": "object-2"
+                    "objectId": "second-object"
+                }
+            }
+        },
+        {
+            "name": "createObjectWithGeneratedId",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "test"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "test",
+                    "objectId": "{{ createObjectWithGeneratedId.objectId }}"
                 }
             }
         },
@@ -43,13 +60,13 @@
             "name": "getObjectById",
             "request": {
                 "method": "GET",
-                "url": "/v1/objects/test/object-1"
+                "url": "/v1/objects/test/first-object"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "objectType": "test",
-                    "objectId": "object-1"
+                    "objectId": "first-object"
                 }
             }
         },
@@ -64,11 +81,15 @@
                 "body": [
                     {
                         "objectType": "test",
-                        "objectId": "object-2"
+                        "objectId": "{{ createObjectWithGeneratedId.objectId }}"
                     },
                     {
                         "objectType": "test",
-                        "objectId": "object-1"
+                        "objectId": "second-object"
+                    },
+                    {
+                        "objectType": "test",
+                        "objectId": "first-object"
                     }
                 ]
             }
@@ -77,14 +98,14 @@
             "name": "filterObjects",
             "request": {
                 "method": "GET",
-                "url": "/v1/objects?q=1"
+                "url": "/v1/objects?q=first-object"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
                         "objectType": "test",
-                        "objectId": "object-1"
+                        "objectId": "first-object"
                     }
                 ]
             }
@@ -93,7 +114,7 @@
             "name": "deleteObject1",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/objects/test/object-1"
+                "url": "/v1/objects/test/first-object"
             },
             "expectedResponse": {
                 "statusCode": 200
@@ -103,7 +124,17 @@
             "name": "deleteObject2",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/objects/test/object-2"
+                "url": "/v1/objects/test/second-object"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectWithGeneratedId",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/test/{{ createObjectWithGeneratedId.objectId }}"
             },
             "expectedResponse": {
                 "statusCode": 200

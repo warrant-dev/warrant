@@ -37,8 +37,8 @@ func (spec RoleSpec) ToRole(objectId int64) *Role {
 	}
 }
 
-func (spec RoleSpec) ToObjectSpec() *object.ObjectSpec {
-	return &object.ObjectSpec{
+func (spec RoleSpec) ToCreateObjectSpec() *object.CreateObjectSpec {
+	return &object.CreateObjectSpec{
 		ObjectType: objecttype.ObjectTypeRole,
 		ObjectId:   spec.RoleId,
 	}

@@ -37,8 +37,8 @@ func (spec FeatureSpec) ToFeature(objectId int64) *Feature {
 	}
 }
 
-func (spec FeatureSpec) ToObjectSpec() *object.ObjectSpec {
-	return &object.ObjectSpec{
+func (spec FeatureSpec) ToCreateObjectSpec() *object.CreateObjectSpec {
+	return &object.CreateObjectSpec{
 		ObjectType: objecttype.ObjectTypeFeature,
 		ObjectId:   spec.FeatureId,
 	}

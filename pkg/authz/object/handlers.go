@@ -56,13 +56,13 @@ func (svc ObjectService) Routes() ([]service.Route, error) {
 }
 
 func CreateHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
-	var newObject ObjectSpec
-	err := service.ParseJSONBody(r.Body, &newObject)
+	var objectSpec CreateObjectSpec
+	err := service.ParseJSONBody(r.Body, &objectSpec)
 	if err != nil {
 		return err
 	}
 
-	createdObject, err := svc.Create(r.Context(), newObject)
+	createdObject, err := svc.Create(r.Context(), objectSpec)
 	if err != nil {
 		return err
 	}

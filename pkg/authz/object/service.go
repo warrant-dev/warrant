@@ -18,6 +18,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
+	"github.com/pkg/errors"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -39,7 +41,16 @@ func NewService(env service.Env, repository ObjectRepository, eventSvc event.Ser
 	}
 }
 
-func (svc ObjectService) Create(ctx context.Context, objectSpec ObjectSpec) (*ObjectSpec, error) {
+func (svc ObjectService) Create(ctx context.Context, objectSpec CreateObjectSpec) (*ObjectSpec, error) {
+	if objectSpec.ObjectId == "" {
+		// generate an id for the object if one isn't supplied
+		generatedUUID, err := uuid.NewRandom()
+		if err != nil {
+			return nil, errors.New("unable to generate random UUID for object")
+		}
+		objectSpec.ObjectId = generatedUUID.String()
+	}
+
 	var newObject Model
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		_, err := svc.Repository.GetByObjectTypeAndId(txCtx, objectSpec.ObjectType, objectSpec.ObjectId)
