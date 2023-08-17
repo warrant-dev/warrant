@@ -35,8 +35,8 @@ func (spec TenantSpec) ToTenant(objectId int64) *Tenant {
 	}
 }
 
-func (spec TenantSpec) ToObjectSpec() *object.ObjectSpec {
-	return &object.ObjectSpec{
+func (spec TenantSpec) ToCreateObjectSpec() *object.CreateObjectSpec {
+	return &object.CreateObjectSpec{
 		ObjectType: objecttype.ObjectTypeTenant,
 		ObjectId:   spec.TenantId,
 	}

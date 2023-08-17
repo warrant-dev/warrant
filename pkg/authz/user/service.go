@@ -55,7 +55,7 @@ func (svc UserService) Create(ctx context.Context, userSpec UserSpec) (*UserSpec
 
 	var newUser Model
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		createdObject, err := svc.ObjectSvc.Create(txCtx, *userSpec.ToObjectSpec())
+		createdObject, err := svc.ObjectSvc.Create(txCtx, *userSpec.ToCreateObjectSpec())
 		if err != nil {
 			switch err.(type) {
 			case *service.DuplicateRecordError:

@@ -44,7 +44,7 @@ func NewService(env service.Env, repository FeatureRepository, eventSvc event.Se
 func (svc FeatureService) Create(ctx context.Context, featureSpec FeatureSpec) (*FeatureSpec, error) {
 	var newFeature Model
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		createdObject, err := svc.ObjectSvc.Create(txCtx, *featureSpec.ToObjectSpec())
+		createdObject, err := svc.ObjectSvc.Create(txCtx, *featureSpec.ToCreateObjectSpec())
 		if err != nil {
 			return err
 		}

@@ -37,8 +37,8 @@ func (spec PermissionSpec) ToPermission(objectId int64) *Permission {
 	}
 }
 
-func (spec PermissionSpec) ToObjectSpec() *object.ObjectSpec {
-	return &object.ObjectSpec{
+func (spec PermissionSpec) ToCreateObjectSpec() *object.CreateObjectSpec {
+	return &object.CreateObjectSpec{
 		ObjectType: objecttype.ObjectTypePermission,
 		ObjectId:   spec.PermissionId,
 	}

@@ -39,5 +39,12 @@ func (spec ObjectSpec) ToObject() *Object {
 
 type CreateObjectSpec struct {
 	ObjectType string `json:"objectType" validate:"required"`
-	ObjectId   string `json:"objectId" validate:"required"`
+	ObjectId   string `json:"objectId" validate:"omitempty,valid_object_id"`
+}
+
+func (spec CreateObjectSpec) ToObject() *Object {
+	return &Object{
+		ObjectType: spec.ObjectType,
+		ObjectId:   spec.ObjectId,
+	}
 }

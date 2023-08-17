@@ -55,7 +55,7 @@ func (svc TenantService) Create(ctx context.Context, tenantSpec TenantSpec) (*Te
 
 	var newTenant Model
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		createdObject, err := svc.ObjectSvc.Create(txCtx, *tenantSpec.ToObjectSpec())
+		createdObject, err := svc.ObjectSvc.Create(txCtx, *tenantSpec.ToCreateObjectSpec())
 		if err != nil {
 			switch err.(type) {
 			case *service.DuplicateRecordError:

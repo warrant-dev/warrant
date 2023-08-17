@@ -35,8 +35,8 @@ func (spec UserSpec) ToUser(objectId int64) *User {
 	}
 }
 
-func (spec UserSpec) ToObjectSpec() *object.ObjectSpec {
-	return &object.ObjectSpec{
+func (spec UserSpec) ToCreateObjectSpec() *object.CreateObjectSpec {
+	return &object.CreateObjectSpec{
 		ObjectType: objecttype.ObjectTypeUser,
 		ObjectId:   spec.UserId,
 	}
