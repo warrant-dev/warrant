@@ -25,7 +25,7 @@ type ObjectSpec struct {
 	// However, we don't return it to the client.
 	ID         int64     `json:"-"`
 	ObjectType string    `json:"objectType" validate:"required,valid_object_type"`
-	ObjectId   string    `json:"objectId" validate:"required,valid_object_id"`
+	ObjectId   string    `json:"objectId"   validate:"required,valid_object_id"`
 	CreatedAt  time.Time `json:"createdAt"`
 }
 
@@ -39,7 +39,7 @@ func (spec ObjectSpec) ToObject() *Object {
 
 type CreateObjectSpec struct {
 	ObjectType string `json:"objectType" validate:"required"`
-	ObjectId   string `json:"objectId" validate:"omitempty,valid_object_id"`
+	ObjectId   string `json:"objectId"   validate:"omitempty,valid_object_id"`
 }
 
 func (spec CreateObjectSpec) ToObject() *Object {

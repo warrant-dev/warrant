@@ -43,7 +43,7 @@ func NewService(env service.Env, repository ObjectRepository, eventSvc event.Ser
 
 func (svc ObjectService) Create(ctx context.Context, objectSpec CreateObjectSpec) (*ObjectSpec, error) {
 	if objectSpec.ObjectId == "" {
-		// generate an id for the tenant if one isn't supplied
+		// generate an id for the object if one isn't supplied
 		generatedUUID, err := uuid.NewRandom()
 		if err != nil {
 			return nil, errors.New("unable to generate random UUID for object")
