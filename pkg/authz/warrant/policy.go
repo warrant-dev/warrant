@@ -54,6 +54,7 @@ func defaultExprOptions(ctx PolicyContext) []expr.Option {
 	if ctx != nil {
 		opts = append(opts, expr.Env(ctx))
 	}
+
 	opts = append(opts, expr.Function(
 		"expiresIn",
 		func(params ...interface{}) (interface{}, error) {
@@ -63,7 +64,7 @@ func defaultExprOptions(ctx PolicyContext) []expr.Option {
 				return false, fmt.Errorf("invalid duration string %s", durationStr)
 			}
 
-			warrantCreatedAt := ctx["warrant"].(*WarrantSpec).CreatedAt
+			warrantCreatedAt := ctx["warrant"].(*Warrant).CreatedAt
 			return bool(time.Now().Before(warrantCreatedAt.Add(duration))), nil
 		},
 		new(func(string) bool),
