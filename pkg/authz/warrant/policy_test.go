@@ -21,6 +21,7 @@ import (
 )
 
 func TestPolicyContextToString(t *testing.T) {
+	t.Parallel()
 	policyContext := PolicyContext{
 		"hello": "world",
 		"user": map[string]interface{}{
@@ -35,6 +36,7 @@ func TestPolicyContextToString(t *testing.T) {
 }
 
 func TestPolicyEvalUndefinedVariables(t *testing.T) {
+	t.Parallel()
 	_, err := Policy("a > b").Eval(PolicyContext{})
 	if err == nil {
 		t.Fatal("Expected err to be non-nil, but it was nil")
@@ -42,6 +44,7 @@ func TestPolicyEvalUndefinedVariables(t *testing.T) {
 }
 
 func TestPolicyEvalSyntaxError(t *testing.T) {
+	t.Parallel()
 	_, err := Policy("a >").Eval(PolicyContext{})
 	if err == nil {
 		t.Fatal("Expected err to be non-nil, but it was nil")
@@ -49,6 +52,7 @@ func TestPolicyEvalSyntaxError(t *testing.T) {
 }
 
 func TestExpiresIn(t *testing.T) {
+	t.Parallel()
 	warrant := Warrant{
 		ObjectType:  "role",
 		ObjectId:    "admin",
@@ -82,6 +86,7 @@ func TestExpiresIn(t *testing.T) {
 }
 
 func TestExpiresInInvalidDuration(t *testing.T) {
+	t.Parallel()
 	expectedErrStr := "invalid duration string 1"
 	_, err := Policy("expiresIn(\"1\")").Eval(PolicyContext{})
 	if err == nil || !strings.Contains(err.Error(), expectedErrStr) {
@@ -90,6 +95,7 @@ func TestExpiresInInvalidDuration(t *testing.T) {
 }
 
 func TestGt(t *testing.T) {
+	t.Parallel()
 	warrant := Warrant{
 		ObjectType:  "role",
 		ObjectId:    "admin",
@@ -126,6 +132,7 @@ func TestGt(t *testing.T) {
 }
 
 func TestGte(t *testing.T) {
+	t.Parallel()
 	warrant := Warrant{
 		ObjectType:  "role",
 		ObjectId:    "admin",
@@ -174,6 +181,7 @@ func TestGte(t *testing.T) {
 }
 
 func TestLt(t *testing.T) {
+	t.Parallel()
 	warrant := Warrant{
 		ObjectType:  "role",
 		ObjectId:    "admin",
@@ -210,6 +218,7 @@ func TestLt(t *testing.T) {
 }
 
 func TestLte(t *testing.T) {
+	t.Parallel()
 	warrant := Warrant{
 		ObjectType:  "role",
 		ObjectId:    "admin",
@@ -258,6 +267,7 @@ func TestLte(t *testing.T) {
 }
 
 func TestMatches(t *testing.T) {
+	t.Parallel()
 	warrant := Warrant{
 		ObjectType:  "role",
 		ObjectId:    "admin",
@@ -292,5 +302,143 @@ func TestMatches(t *testing.T) {
 
 	if match {
 		t.Fatalf("Expected match to be false, but it was true")
+	}
+}
+
+func TestOr(t *testing.T) {
+	t.Parallel()
+	p := Policy("")
+
+	p = p.Or("firstName == \"jane\"")
+	err := p.Validate()
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	match, err := p.Eval(PolicyContext{
+		"firstName": "jane",
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	if !match {
+		t.Fatalf("Expected match to be true, but it was false")
+	}
+
+	p = p.Or("lastName == \"doe\"")
+	err = p.Validate()
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	match, err = p.Eval(PolicyContext{
+		"lastName": "doe",
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	if !match {
+		t.Fatalf("Expected match to be true, but it was false")
+	}
+
+	match, err = p.Eval(PolicyContext{
+		"firstName": "jane",
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	if !match {
+		t.Fatalf("Expected match to be true, but it was false")
+	}
+
+	expectedPolicy := "(firstName == \"jane\") || (lastName == \"doe\")"
+	if p != Policy(expectedPolicy) {
+		t.Fatalf("Expected policy to be %s but got %s", expectedPolicy, p)
+	}
+}
+
+func TestAnd(t *testing.T) {
+	t.Parallel()
+	p := Policy("")
+
+	p = p.And("firstName == \"jane\"")
+	err := p.Validate()
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	match, err := p.Eval(PolicyContext{
+		"firstName": "jane",
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	if !match {
+		t.Fatalf("Expected match to be true, but it was false")
+	}
+
+	p = p.And("lastName == \"doe\"")
+	err = p.Validate()
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	match, err = p.Eval(PolicyContext{
+		"lastName": "doe",
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	if match {
+		t.Fatalf("Expected match to be false, but it was true")
+	}
+
+	match, err = p.Eval(PolicyContext{
+		"firstName": "jane",
+		"lastName":  "doe",
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	if !match {
+		t.Fatalf("Expected match to be true, but it was false")
+	}
+
+	expectedPolicy := "(firstName == \"jane\") && (lastName == \"doe\")"
+	if p != Policy(expectedPolicy) {
+		t.Fatalf("Expected policy to be %s but got %s", expectedPolicy, p)
+	}
+}
+
+func TestNot(t *testing.T) {
+	t.Parallel()
+	p := Policy("")
+
+	newPolicy := Not(p)
+	if newPolicy != "" {
+		t.Fatalf("Expected empty policy but got %s", newPolicy)
+	}
+
+	p = Policy("firstName == \"jane\"")
+	p = Not(p)
+	match, err := p.Eval(PolicyContext{
+		"firstName": "notjane",
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	if !match {
+		t.Fatalf("Expected match to be true, but it was false")
+	}
+
+	match, err = p.Eval(PolicyContext{
+		"firstName": "jane",
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	if match {
+		t.Fatalf("Expected match to be false, but it was true")
+	}
+
+	expectedPolicy := "!(firstName == \"jane\")"
+	if p != Policy(expectedPolicy) {
+		t.Fatalf("Expected policy to be %s but got %s", expectedPolicy, p)
 	}
 }
