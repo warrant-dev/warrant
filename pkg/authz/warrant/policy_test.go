@@ -294,3 +294,138 @@ func TestMatches(t *testing.T) {
 		t.Fatalf("Expected match to be false, but it was true")
 	}
 }
+
+func TestOr(t *testing.T) {
+	p := Policy("")
+
+	p = p.Or("firstName == \"jane\"")
+	err := p.Validate()
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	match, err := p.Eval(PolicyContext{
+		"firstName": "jane",
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	if !match {
+		t.Fatalf("Expected match to be true, but it was false")
+	}
+
+	p = p.Or("lastName == \"doe\"")
+	err = p.Validate()
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	match, err = p.Eval(PolicyContext{
+		"lastName": "doe",
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	if !match {
+		t.Fatalf("Expected match to be true, but it was false")
+	}
+
+	match, err = p.Eval(PolicyContext{
+		"firstName": "jane",
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	if !match {
+		t.Fatalf("Expected match to be true, but it was false")
+	}
+
+	expectedPolicy := "(firstName == \"jane\") || (lastName == \"doe\")"
+	if p != Policy(expectedPolicy) {
+		t.Fatalf("Expected policy to be %s but got %s", expectedPolicy, p)
+	}
+}
+
+func TestAnd(t *testing.T) {
+	p := Policy("")
+
+	p = p.And("firstName == \"jane\"")
+	err := p.Validate()
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	match, err := p.Eval(PolicyContext{
+		"firstName": "jane",
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	if !match {
+		t.Fatalf("Expected match to be true, but it was false")
+	}
+
+	p = p.And("lastName == \"doe\"")
+	err = p.Validate()
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	match, err = p.Eval(PolicyContext{
+		"lastName": "doe",
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	if match {
+		t.Fatalf("Expected match to be false, but it was true")
+	}
+
+	match, err = p.Eval(PolicyContext{
+		"firstName": "jane",
+		"lastName":  "doe",
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	if !match {
+		t.Fatalf("Expected match to be true, but it was false")
+	}
+
+	expectedPolicy := "(firstName == \"jane\") && (lastName == \"doe\")"
+	if p != Policy(expectedPolicy) {
+		t.Fatalf("Expected policy to be %s but got %s", expectedPolicy, p)
+	}
+}
+
+func TestNot(t *testing.T) {
+	p := Policy("")
+
+	newPolicy := Not(p)
+	if newPolicy != "" {
+		t.Fatalf("Expected empty policy but got %s", newPolicy)
+	}
+
+	p = Policy("firstName == \"jane\"")
+	p = Not(p)
+	match, err := p.Eval(PolicyContext{
+		"firstName": "notjane",
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	if !match {
+		t.Fatalf("Expected match to be true, but it was false")
+	}
+
+	match, err = p.Eval(PolicyContext{
+		"firstName": "jane",
+	})
+	if err != nil {
+		t.Fatalf("Unexpected error %v", err)
+	}
+	if match {
+		t.Fatalf("Expected match to be false, but it was true")
+	}
+
+	expectedPolicy := "!(firstName == \"jane\")"
+	if p != Policy(expectedPolicy) {
+		t.Fatalf("Expected policy to be %s but got %s", expectedPolicy, p)
+	}
+}

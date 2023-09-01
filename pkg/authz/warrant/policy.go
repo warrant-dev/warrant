@@ -50,15 +50,10 @@ func (pc PolicyContext) String() string {
 }
 
 func defaultExprOptions(ctx PolicyContext) []expr.Option {
-	opts := []expr.Option{
-		expr.AllowUndefinedVariables(),
-		expr.AsBool(),
-	}
-
+	var opts []expr.Option
 	if ctx != nil {
 		opts = append(opts, expr.Env(ctx))
 	}
-
 	opts = append(opts, expr.Function(
 		"expiresIn",
 		func(params ...interface{}) (interface{}, error) {
@@ -68,11 +63,15 @@ func defaultExprOptions(ctx PolicyContext) []expr.Option {
 				return false, fmt.Errorf("invalid duration string %s", durationStr)
 			}
 
-			warrantCreatedAt := ctx["warrant"].(*Warrant).CreatedAt
+			warrantCreatedAt := ctx["warrant"].(*WarrantSpec).CreatedAt
 			return bool(time.Now().Before(warrantCreatedAt.Add(duration))), nil
 		},
 		new(func(string) bool),
 	))
+	opts = append(opts,
+		expr.AllowUndefinedVariables(),
+		expr.AsBool(),
+	)
 
 	return opts
 }
@@ -107,4 +106,39 @@ func (policy Policy) Hash() string {
 
 	hash := sha256.Sum256([]byte(policy))
 	return hex.EncodeToString(hash[:])
+}
+
+func (policy Policy) Or(or Policy) Policy {
+	if policy == "" {
+		return or
+	}
+	if or == "" {
+		return policy
+	}
+	if policy == or {
+		return policy
+	}
+
+	return Policy(fmt.Sprintf("(%s) || (%s)", policy, or))
+}
+
+func (policy Policy) And(and Policy) Policy {
+	if policy == "" {
+		return and
+	}
+	if and == "" {
+		return policy
+	}
+	if policy == and {
+		return policy
+	}
+
+	return Policy(fmt.Sprintf("(%s) && (%s)", policy, and))
+}
+
+func Not(p Policy) Policy {
+	if p == "" {
+		return p
+	}
+	return Policy(fmt.Sprintf("!(%s)", p))
 }
