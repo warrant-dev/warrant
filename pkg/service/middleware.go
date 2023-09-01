@@ -19,29 +19,23 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (
-	paramNameLimit            = "limit"
-	paramNamePage             = "page"
-	paramNameQuery            = "q"
-	paramNameSortBy           = "sortBy"
-	paramNameSortOrder        = "sortOrder"
-	paramNameAfterId          = "afterId"
-	paramNameBeforeId         = "beforeId"
-	paramNameAfterValue       = "afterValue"
-	paramNameBeforeValue      = "beforeValue"
-	defaultLimit              = 25
-	defaultPage               = 1
-	contextKeyLimit       key = iota
-	contextKeyPage        key = iota
-	contextKeyQuery       key = iota
-	contextKeySortBy      key = iota
-	contextKeySortOrder   key = iota
-	contextKeyAfterId     key = iota
-	contextKeyBeforeId    key = iota
-	contextKeyAfterValue  key = iota
-	contextKeyBeforeValue key = iota
+	paramNameLimit           = "limit"
+	paramNamePage            = "page"
+	paramNameQuery           = "q"
+	paramNameSortBy          = "sortBy"
+	paramNameSortOrder       = "sortOrder"
+	paramNameAfterId         = "afterId"
+	paramNameBeforeId        = "beforeId"
+	paramNameAfterValue      = "afterValue"
+	paramNameBeforeValue     = "beforeValue"
+	defaultLimit             = 25
+	defaultPage              = 1
+	contextKeyListParams key = iota
 
 	SortOrderAsc  SortOrder = iota
 	SortOrderDesc SortOrder = iota
@@ -79,15 +73,20 @@ type ListParamParser interface {
 }
 
 type ListParams struct {
-	Page        int
-	Limit       int
-	Query       *string
-	SortBy      string
-	SortOrder   SortOrder
-	AfterId     *string
-	BeforeId    *string
-	AfterValue  interface{}
-	BeforeValue interface{}
+	Page          int
+	Limit         int
+	Query         *string
+	SortBy        string
+	SortOrder     SortOrder
+	AfterId       *string
+	BeforeId      *string
+	AfterValue    interface{}
+	BeforeValue   interface{}
+	defaultSortBy string
+}
+
+func (lp ListParams) DefaultSortBy() string {
+	return lp.defaultSortBy
 }
 
 func (lp ListParams) UseCursorPagination() bool {
@@ -168,11 +167,13 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var err error
 		listParamParser := ListParamParser(*new(T))
+		listParams := defaultListParams(listParamParser)
 		urlQueryParams := r.URL.Query()
 		ctx := r.Context()
 
 		if urlQueryParams.Has(paramNameQuery) {
-			ctx = context.WithValue(ctx, contextKeyQuery, urlQueryParams.Get(paramNameQuery))
+			query := urlQueryParams.Get(paramNameQuery)
+			listParams.Query = &query
 		}
 
 		if urlQueryParams.Has(paramNamePage) {
@@ -181,7 +182,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 				SendErrorResponse(w, NewInvalidParameterError(paramNamePage, err.Error()))
 				return
 			}
-			ctx = context.WithValue(r.Context(), contextKeyPage, page)
+			listParams.Page = page
 		}
 
 		if urlQueryParams.Has(paramNameLimit) {
@@ -190,7 +191,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 				SendErrorResponse(w, NewInvalidParameterError(paramNameLimit, err.Error()))
 				return
 			}
-			ctx = context.WithValue(ctx, contextKeyLimit, limit)
+			listParams.Limit = limit
 		}
 
 		if urlQueryParams.Has(paramNameSortOrder) {
@@ -199,7 +200,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 				SendErrorResponse(w, NewInvalidParameterError(paramNameSortOrder, err.Error()))
 				return
 			}
-			ctx = context.WithValue(ctx, contextKeySortOrder, sortOrder)
+			listParams.SortOrder = sortOrder
 		}
 
 		var sortBy string
@@ -209,7 +210,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 				SendErrorResponse(w, NewInvalidParameterError(paramNameSortBy, err.Error()))
 				return
 			}
-			ctx = context.WithValue(ctx, contextKeySortBy, sortBy)
+			listParams.SortBy = sortBy
 		}
 
 		if urlQueryParams.Has(paramNameAfterValue) && !urlQueryParams.Has(paramNameAfterId) {
@@ -239,7 +240,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 				SendErrorResponse(w, NewInvalidParameterError(paramNameAfterId, err.Error()))
 				return
 			}
-			ctx = context.WithValue(ctx, contextKeyAfterId, afterId)
+			listParams.AfterId = &afterId
 		}
 
 		if urlQueryParams.Has(paramNameBeforeId) {
@@ -248,7 +249,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 				SendErrorResponse(w, NewInvalidParameterError(paramNameBeforeId, err.Error()))
 				return
 			}
-			ctx = context.WithValue(ctx, contextKeyBeforeId, beforeId)
+			listParams.BeforeId = &beforeId
 		}
 
 		if urlQueryParams.Has(paramNameAfterValue) {
@@ -257,7 +258,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 				SendErrorResponse(w, NewInvalidParameterError(paramNameAfterValue, err.Error()))
 				return
 			}
-			ctx = context.WithValue(ctx, contextKeyAfterValue, afterValue)
+			listParams.AfterValue = afterValue
 		}
 
 		if urlQueryParams.Has(paramNameBeforeValue) {
@@ -266,68 +267,34 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 				SendErrorResponse(w, NewInvalidParameterError(paramNameBeforeValue, err.Error()))
 				return
 			}
-			ctx = context.WithValue(ctx, contextKeyBeforeValue, beforeValue)
+			listParams.BeforeValue = beforeValue
 		}
 
+		ctx = context.WithValue(r.Context(), contextKeyListParams, &listParams)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func GetListParamsFromContext[T ListParamParser](context context.Context) ListParams {
-	var listParams ListParams
-	listParamParser := ListParamParser(*new(T))
+func GetListParamsFromContext[T ListParamParser](ctx context.Context) ListParams {
+	ctxListParams := ctx.Value(contextKeyListParams)
+	if ctxListParams != nil {
+		listParams, ok := ctxListParams.(*ListParams)
+		if !ok {
+			log.Ctx(ctx).Error().Msg("Unsuccessful type cast of listParams context value to *ListParams type")
+			return defaultListParams(ListParamParser(*new(T)))
+		}
 
-	contextPage := context.Value(contextKeyPage)
-	if contextPage == nil {
-		contextPage = defaultPage
-	}
-	listParams.Page = contextPage.(int)
-
-	contextLimit := context.Value(contextKeyLimit)
-	if contextLimit == nil {
-		contextLimit = defaultLimit
-	}
-	listParams.Limit = contextLimit.(int)
-
-	contextSortBy := context.Value(contextKeySortBy)
-	if contextSortBy == nil {
-		contextSortBy = listParamParser.GetDefaultSortBy()
-	}
-	listParams.SortBy = contextSortBy.(string)
-
-	contextSortOrder := context.Value(contextKeySortOrder)
-	if contextSortOrder == nil {
-		contextSortOrder = SortOrderAsc
-	}
-	listParams.SortOrder = contextSortOrder.(SortOrder)
-
-	contextQuery := context.Value(contextKeyQuery)
-	if contextQuery != nil {
-		query := contextQuery.(string)
-		listParams.Query = &query
+		return *listParams
 	}
 
-	contextAfterId := context.Value(contextKeyAfterId)
-	if contextAfterId != nil {
-		afterId := contextAfterId.(string)
-		listParams.AfterId = &afterId
-	}
+	return defaultListParams(ListParamParser(*new(T)))
+}
 
-	contextBeforeId := context.Value(contextKeyBeforeId)
-	if contextBeforeId != nil {
-		beforeId := contextBeforeId.(string)
-		listParams.BeforeId = &beforeId
+func defaultListParams(listParamParser ListParamParser) ListParams {
+	return ListParams{
+		Page:      defaultPage,
+		Limit:     defaultLimit,
+		SortBy:    listParamParser.GetDefaultSortBy(),
+		SortOrder: SortOrderAsc,
 	}
-
-	contextAfterValue := context.Value(contextKeyAfterValue)
-	if contextAfterValue != nil {
-		listParams.AfterValue = contextAfterValue
-	}
-
-	contextBeforeValue := context.Value(contextKeyBeforeValue)
-	if contextBeforeValue != nil {
-		listParams.BeforeValue = contextBeforeValue
-	}
-
-	return listParams
 }
