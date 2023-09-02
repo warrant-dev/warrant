@@ -46,6 +46,18 @@ func (svc ObjectService) Routes() ([]service.Route, error) {
 			Handler: service.NewRouteHandler(svc, GetHandler),
 		},
 
+		// update
+		service.WarrantRoute{
+			Pattern: "/v1/objects/{objectType}/{objectId}",
+			Method:  "POST",
+			Handler: service.NewRouteHandler(svc, UpdateHandler),
+		},
+		service.WarrantRoute{
+			Pattern: "/v1/objects/{objectType}/{objectId}",
+			Method:  "PUT",
+			Handler: service.NewRouteHandler(svc, UpdateHandler),
+		},
+
 		// delete
 		service.WarrantRoute{
 			Pattern: "/v1/objects/{objectType}/{objectId}",
@@ -98,6 +110,24 @@ func GetHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) error
 	}
 
 	service.SendJSONResponse(w, object)
+	return nil
+}
+
+func UpdateHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
+	var updateObject UpdateObjectSpec
+	err := service.ParseJSONBody(r.Body, &updateObject)
+	if err != nil {
+		return err
+	}
+
+	objectType := mux.Vars(r)["objectType"]
+	objectId := mux.Vars(r)["objectId"]
+	updatedFeature, err := svc.UpdateByObjectTypeAndId(r.Context(), objectType, objectId, updateObject)
+	if err != nil {
+		return err
+	}
+
+	service.SendJSONResponse(w, updatedFeature)
 	return nil
 }
 

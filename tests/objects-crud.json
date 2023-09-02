@@ -57,6 +57,30 @@
             }
         },
         {
+            "name": "createObjectWithMetadata",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "test",
+                    "objectId": "third-object",
+                    "meta": {
+                        "myKey": "myVal"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "test",
+                    "objectId": "third-object",
+                    "meta": {
+                        "myKey": "myVal"
+                    }
+                }
+            }
+        },
+        {
             "name": "getObjectById",
             "request": {
                 "method": "GET",
@@ -111,6 +135,45 @@
             }
         },
         {
+            "name": "updateObjectWithMetadata",
+            "request": {
+                "method": "PUT",
+                "url": "/v1/objects/test/third-object",
+                "body": {
+                    "meta": {
+                        "myUpdatedKey": "myUpdatedValue"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "test",
+                    "objectId": "third-object",
+                    "meta": {
+                        "myUpdatedKey": "myUpdatedValue"
+                    }
+                }
+            }
+        },
+        {
+            "name": "getUpdatedObjectWithMetadata",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects/test/third-object"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "test",
+                    "objectId": "third-object",
+                    "meta": {
+                        "myUpdatedKey": "myUpdatedValue"
+                    }
+                }
+            }
+        },
+        {
             "name": "deleteObject1",
             "request": {
                 "method": "DELETE",
@@ -135,6 +198,16 @@
             "request": {
                 "method": "DELETE",
                 "url": "/v1/objects/test/{{ createObjectWithGeneratedId.objectId }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectWithMetadata",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/test/third-object"
             },
             "expectedResponse": {
                 "statusCode": 200

@@ -46,15 +46,19 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 		`
 			INSERT INTO object (
 				object_type,
-				object_id
-			) VALUES (?, ?)
+				object_id,
+				meta
+			) VALUES (?, ?, ?)
 			ON CONFLICT (object_type, object_id) DO UPDATE SET
+				meta = ?,
 				created_at = CURRENT_TIMESTAMP(6),
 				deleted_at = NULL
 			RETURNING id
 		`,
 		model.GetObjectType(),
 		model.GetObjectId(),
+		model.GetMeta(),
+		model.GetMeta(),
 	)
 	if err != nil {
 		return -1, errors.Wrap(err, "error creating object")
@@ -69,7 +73,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, er
 		ctx,
 		&object,
 		`
-			SELECT id, object_type, object_id, created_at, updated_at, deleted_at
+			SELECT id, object_type, object_id, meta, created_at, updated_at, deleted_at
 			FROM object
 			WHERE
 				id = ? AND
@@ -95,7 +99,7 @@ func (repo PostgresRepository) GetByObjectTypeAndId(ctx context.Context, objectT
 		ctx,
 		&object,
 		`
-			SELECT id, object_type, object_id, created_at, updated_at, deleted_at
+			SELECT id, object_type, object_id, meta, created_at, updated_at, deleted_at
 			FROM object
 			WHERE
 				object_type = ? AND
@@ -121,13 +125,13 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 	models := make([]Model, 0)
 	objects := make([]Object, 0)
 	query := `
-		SELECT id, object_type, object_id, created_at, updated_at, deleted_at
+		SELECT id, object_type, object_id, meta, created_at, updated_at, deleted_at
 		FROM object
 		WHERE
 			deleted_at IS NULL
 	`
 	replacements := []interface{}{}
-	defaultSort := sortRegexp.ReplaceAllString(DefaultSortBy, `_$1`)
+	defaultSortColumn := sortRegexp.ReplaceAllString("objectId", `_$1`)
 	sortBy := sortRegexp.ReplaceAllString(listParams.SortBy, `_$1`)
 
 	if filterOptions != nil && filterOptions.ObjectType != "" {
@@ -137,7 +141,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 
 	if listParams.Query != nil {
 		searchTermReplacement := fmt.Sprintf("%%%s%%", *listParams.Query)
-		query = fmt.Sprintf("%s AND (object_type LIKE ? OR %s LIKE ?)", query, defaultSort)
+		query = fmt.Sprintf("%s AND (object_type LIKE ? OR %s LIKE ?)", query, defaultSortColumn)
 		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
 	}
 
@@ -149,30 +153,30 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 
 		switch listParams.AfterValue {
 		case nil:
-			if listParams.SortBy == DefaultSortBy {
-				query = fmt.Sprintf("%s AND %s %s ?", query, defaultSort, comparisonOp)
+			if listParams.SortBy == listParams.DefaultSortBy() {
+				query = fmt.Sprintf("%s AND %s %s ?", query, defaultSortColumn, comparisonOp)
 				replacements = append(replacements, listParams.AfterId)
 			} else if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, sortBy, defaultSort, comparisonOp, sortBy)
+				query = fmt.Sprintf("%s AND (meta->>'%s' IS NOT NULL OR (%s %s ? AND meta->>'%s' IS NULL))", query, sortBy, defaultSortColumn, comparisonOp, sortBy)
 				replacements = append(replacements,
 					listParams.AfterId,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, defaultSort, comparisonOp, sortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? AND meta->>'%s' IS NULL)", query, defaultSortColumn, comparisonOp, sortBy)
 				replacements = append(replacements,
 					listParams.AfterId,
 				)
 			}
 		default:
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, sortBy, comparisonOp, defaultSort, comparisonOp, sortBy)
+				query = fmt.Sprintf("%s AND (meta->>'%s' %s ? OR (%s %s ? AND meta->>'%s' = ?))", query, sortBy, comparisonOp, defaultSortColumn, comparisonOp, sortBy)
 				replacements = append(replacements,
 					listParams.AfterValue,
 					listParams.AfterId,
 					listParams.AfterValue,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, sortBy, comparisonOp, sortBy, defaultSort, comparisonOp, sortBy)
+				query = fmt.Sprintf("%s AND (meta->>'%s' %s ? OR meta->>'%s' IS NULL OR (%s %s ? AND meta->>'%s' = ?))", query, sortBy, comparisonOp, sortBy, defaultSortColumn, comparisonOp, sortBy)
 				replacements = append(replacements,
 					listParams.AfterValue,
 					listParams.AfterId,
@@ -190,30 +194,30 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 
 		switch listParams.BeforeValue {
 		case nil:
-			if listParams.SortBy == DefaultSortBy {
-				query = fmt.Sprintf("%s AND %s %s ?", query, defaultSort, comparisonOp)
+			if listParams.SortBy == listParams.DefaultSortBy() {
+				query = fmt.Sprintf("%s AND %s %s ?", query, defaultSortColumn, comparisonOp)
 				replacements = append(replacements, listParams.BeforeId)
 			} else if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, defaultSort, comparisonOp, sortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? AND meta->>'%s' IS NULL)", query, defaultSortColumn, comparisonOp, sortBy)
 				replacements = append(replacements,
 					listParams.BeforeId,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, sortBy, defaultSort, comparisonOp, sortBy)
+				query = fmt.Sprintf("%s AND (meta->>'%s' IS NOT NULL OR (%s %s ? AND meta->>'%s' IS NULL))", query, sortBy, defaultSortColumn, comparisonOp, sortBy)
 				replacements = append(replacements,
 					listParams.BeforeId,
 				)
 			}
 		default:
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, sortBy, comparisonOp, sortBy, defaultSort, comparisonOp, sortBy)
+				query = fmt.Sprintf("%s AND (meta->>'%s' %s ? OR meta->>'%s' IS NULL OR (%s %s ? AND meta->>'%s' = ?))", query, sortBy, comparisonOp, sortBy, defaultSortColumn, comparisonOp, sortBy)
 				replacements = append(replacements,
 					listParams.BeforeValue,
 					listParams.BeforeId,
 					listParams.BeforeValue,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, sortBy, comparisonOp, defaultSort, comparisonOp, sortBy)
+				query = fmt.Sprintf("%s AND (meta->>'%s' %s ? OR (%s %s ? AND meta->>'%s' = ?))", query, sortBy, comparisonOp, defaultSortColumn, comparisonOp, sortBy)
 				replacements = append(replacements,
 					listParams.BeforeValue,
 					listParams.BeforeId,
@@ -231,31 +235,31 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 	}
 
 	if listParams.BeforeId != nil {
-		if listParams.SortBy != DefaultSortBy {
+		if listParams.SortBy != listParams.DefaultSortBy() {
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s ORDER BY %s %s %s, %s %s LIMIT ?", query, sortBy, service.SortOrderDesc, invertedNullSortClause, defaultSort, service.SortOrderDesc)
+				query = fmt.Sprintf("%s ORDER BY meta->>'%s' %s %s, %s %s LIMIT ?", query, sortBy, service.SortOrderDesc, invertedNullSortClause, defaultSortColumn, service.SortOrderDesc)
 				replacements = append(replacements, listParams.Limit)
 			} else {
-				query = fmt.Sprintf("%s ORDER BY %s %s %s, %s %s LIMIT ?", query, sortBy, service.SortOrderAsc, invertedNullSortClause, defaultSort, service.SortOrderAsc)
+				query = fmt.Sprintf("%s ORDER BY meta->>'%s' %s %s, %s %s LIMIT ?", query, sortBy, service.SortOrderAsc, invertedNullSortClause, defaultSortColumn, service.SortOrderAsc)
 				replacements = append(replacements, listParams.Limit)
 			}
-			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s %s, %s %s", query, sortBy, listParams.SortOrder, nullSortClause, defaultSort, listParams.SortOrder)
+			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY meta->>'%s' %s %s, %s %s", query, sortBy, listParams.SortOrder, nullSortClause, defaultSortColumn, listParams.SortOrder)
 		} else {
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s ORDER BY %s %s %s LIMIT ?", query, sortBy, service.SortOrderDesc, invertedNullSortClause)
+				query = fmt.Sprintf("%s ORDER BY meta->>'%s' %s %s LIMIT ?", query, sortBy, service.SortOrderDesc, invertedNullSortClause)
 				replacements = append(replacements, listParams.Limit)
 			} else {
-				query = fmt.Sprintf("%s ORDER BY %s %s %s LIMIT ?", query, sortBy, service.SortOrderAsc, invertedNullSortClause)
+				query = fmt.Sprintf("%s ORDER BY meta->>'%s' %s %s LIMIT ?", query, sortBy, service.SortOrderAsc, invertedNullSortClause)
 				replacements = append(replacements, listParams.Limit)
 			}
-			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s %s", query, sortBy, listParams.SortOrder, nullSortClause)
+			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY meta->>'%s' %s %s", query, sortBy, listParams.SortOrder, nullSortClause)
 		}
 	} else {
-		if listParams.SortBy != DefaultSortBy {
-			query = fmt.Sprintf("%s ORDER BY %s %s %s, %s %s LIMIT ?", query, sortBy, listParams.SortOrder, nullSortClause, defaultSort, listParams.SortOrder)
+		if listParams.SortBy != listParams.DefaultSortBy() {
+			query = fmt.Sprintf("%s ORDER BY meta->>'%s' %s %s, %s %s LIMIT ?", query, sortBy, listParams.SortOrder, nullSortClause, defaultSortColumn, listParams.SortOrder)
 			replacements = append(replacements, listParams.Limit)
 		} else {
-			query = fmt.Sprintf("%s ORDER BY %s %s %s LIMIT ?", query, defaultSort, listParams.SortOrder, nullSortClause)
+			query = fmt.Sprintf("%s ORDER BY %s %s %s LIMIT ?", query, defaultSortColumn, listParams.SortOrder, nullSortClause)
 			replacements = append(replacements, listParams.Limit)
 		}
 	}
@@ -279,6 +283,29 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 	}
 
 	return models, nil
+}
+
+func (repo PostgresRepository) UpdateByObjectTypeAndId(ctx context.Context, objectType string, objectId string, model Model) error {
+	_, err := repo.DB.ExecContext(
+		ctx,
+		`
+			UPDATE object
+			SET
+				meta = ?
+			WHERE
+				object_type = ? AND
+				object_id = ? AND
+				deleted_at IS NULL
+		`,
+		model.GetMeta(),
+		objectType,
+		objectId,
+	)
+	if err != nil {
+		return errors.Wrapf(err, "error updating object %s:%s", objectType, objectId)
+	}
+
+	return nil
 }
 
 func (repo PostgresRepository) DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) error {
