@@ -63,7 +63,7 @@ func (svc ObjectService) Create(ctx context.Context, objectSpec CreateObjectSpec
 			return err
 		}
 
-		newObjectId, err := svc.Repository.Create(txCtx, *newObject)
+		newObjectId, err := svc.Repository.Create(txCtx, newObject)
 		if err != nil {
 			return err
 		}
@@ -122,10 +122,10 @@ func (svc ObjectService) List(ctx context.Context, filterOptions *FilterOptions,
 }
 
 func (svc ObjectService) UpdateByObjectTypeAndId(ctx context.Context, objectType string, objectId string, updateSpec UpdateObjectSpec) (*ObjectSpec, error) {
-	var updatedObject Model
+	var updatedObjectSpec *ObjectSpec
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		currentObject, err := svc.Repository.GetByObjectTypeAndId(txCtx, objectType, objectId)
-		if err == nil {
+		if err != nil {
 			return err
 		}
 
@@ -134,17 +134,22 @@ func (svc ObjectService) UpdateByObjectTypeAndId(ctx context.Context, objectType
 			return err
 		}
 
-		err = svc.Repository.UpdateByObjectTypeAndId(ctx, objectType, objectId, currentObject)
+		err = svc.Repository.UpdateByObjectTypeAndId(txCtx, objectType, objectId, currentObject)
 		if err != nil {
 			return err
 		}
 
-		updatedObject, err = svc.Repository.GetByObjectTypeAndId(txCtx, objectType, objectId)
+		updatedObject, err := svc.Repository.GetByObjectTypeAndId(txCtx, objectType, objectId)
 		if err != nil {
 			return err
 		}
 
 		err = svc.EventSvc.TrackResourceUpdated(txCtx, objectType, objectId, updateSpec.Meta)
+		if err != nil {
+			return err
+		}
+
+		updatedObjectSpec, err = updatedObject.ToObjectSpec()
 		if err != nil {
 			return err
 		}
@@ -156,7 +161,7 @@ func (svc ObjectService) UpdateByObjectTypeAndId(ctx context.Context, objectType
 		return nil, err
 	}
 
-	return updatedObject.ToObjectSpec()
+	return updatedObjectSpec, nil
 }
 
 func (svc ObjectService) DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) error {

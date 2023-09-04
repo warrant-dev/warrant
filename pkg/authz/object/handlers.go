@@ -122,12 +122,12 @@ func UpdateHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) er
 
 	objectType := mux.Vars(r)["objectType"]
 	objectId := mux.Vars(r)["objectId"]
-	updatedFeature, err := svc.UpdateByObjectTypeAndId(r.Context(), objectType, objectId, updateObject)
+	updatedObject, err := svc.UpdateByObjectTypeAndId(r.Context(), objectType, objectId, updateObject)
 	if err != nil {
 		return err
 	}
 
-	service.SendJSONResponse(w, updatedFeature)
+	service.SendJSONResponse(w, updatedObject)
 	return nil
 }
 

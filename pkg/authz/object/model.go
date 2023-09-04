@@ -60,19 +60,19 @@ func (object Object) GetMeta() *string {
 	return object.Meta
 }
 
-func (object Object) SetMeta(newMeta map[string]interface{}) error {
-	var meta *string
-	if newMeta != nil {
-		m, err := json.Marshal(newMeta)
-		if err != nil {
-			return service.NewInvalidParameterError("meta", "invalid format")
-		}
-
-		metaStr := string(m)
-		meta = &metaStr
+func (object *Object) SetMeta(newMeta map[string]interface{}) error {
+	if newMeta == nil || len(newMeta) == 0 {
+		object.Meta = nil
+		return nil
 	}
 
-	object.Meta = meta
+	m, err := json.Marshal(newMeta)
+	if err != nil {
+		return service.NewInvalidParameterError("meta", "invalid format")
+	}
+
+	meta := string(m)
+	object.Meta = &meta
 	return nil
 }
 

@@ -228,9 +228,8 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 			return
 		}
 
-		DefaultSortBy := listParamParser.GetDefaultSortBy()
-		if (urlQueryParams.Has(paramNameAfterValue) || urlQueryParams.Has(paramNameBeforeValue)) && sortBy == DefaultSortBy {
-			SendErrorResponse(w, NewInvalidRequestError(fmt.Sprintf("cannot pass %s or %s when sorting by %s", paramNameAfterValue, paramNameBeforeValue, DefaultSortBy)))
+		if (urlQueryParams.Has(paramNameAfterValue) || urlQueryParams.Has(paramNameBeforeValue)) && sortBy == listParams.DefaultSortBy() {
+			SendErrorResponse(w, NewInvalidRequestError(fmt.Sprintf("cannot pass %s or %s when sorting by %s", paramNameAfterValue, paramNameBeforeValue, listParams.DefaultSortBy())))
 			return
 		}
 
@@ -292,9 +291,10 @@ func GetListParamsFromContext[T ListParamParser](ctx context.Context) ListParams
 
 func defaultListParams(listParamParser ListParamParser) ListParams {
 	return ListParams{
-		Page:      defaultPage,
-		Limit:     defaultLimit,
-		SortBy:    listParamParser.GetDefaultSortBy(),
-		SortOrder: SortOrderAsc,
+		Page:          defaultPage,
+		Limit:         defaultLimit,
+		SortBy:        listParamParser.GetDefaultSortBy(),
+		SortOrder:     SortOrderAsc,
+		defaultSortBy: listParamParser.GetDefaultSortBy(),
 	}
 }

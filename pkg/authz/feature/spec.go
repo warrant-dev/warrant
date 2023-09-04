@@ -17,6 +17,7 @@ package authz
 import (
 	"time"
 
+	"github.com/pkg/errors"
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 )
@@ -28,23 +29,77 @@ type FeatureSpec struct {
 	CreatedAt   time.Time `json:"createdAt"`
 }
 
-func (spec FeatureSpec) ToFeature(objectId int64) *Feature {
-	return &Feature{
-		ObjectId:    objectId,
-		FeatureId:   spec.FeatureId,
-		Name:        spec.Name,
-		Description: spec.Description,
+func NewFeatureSpecFromObjectSpec(objectSpec *object.ObjectSpec) (*FeatureSpec, error) {
+	var (
+		name        *string
+		description *string
+	)
+
+	if objectSpec.Meta != nil {
+		if _, exists := objectSpec.Meta["name"]; exists {
+			nameStr, ok := objectSpec.Meta["name"].(string)
+			if !ok {
+				return nil, errors.New("feature name has invalid type in object meta")
+			}
+			name = &nameStr
+		}
+
+		if _, exists := objectSpec.Meta["description"]; exists {
+			descriptionStr, ok := objectSpec.Meta["description"].(string)
+			if !ok {
+				return nil, errors.New("feature description has invalid type in object meta")
+			}
+			description = &descriptionStr
+		}
 	}
+
+	return &FeatureSpec{
+		FeatureId:   objectSpec.ObjectId,
+		Name:        name,
+		Description: description,
+		CreatedAt:   objectSpec.CreatedAt,
+	}, nil
 }
 
-func (spec FeatureSpec) ToCreateObjectSpec() *object.CreateObjectSpec {
-	return &object.CreateObjectSpec{
+func (spec FeatureSpec) ToCreateObjectSpec() (*object.CreateObjectSpec, error) {
+	createObjectSpec := object.CreateObjectSpec{
 		ObjectType: objecttype.ObjectTypeFeature,
 		ObjectId:   spec.FeatureId,
 	}
+
+	meta := make(map[string]interface{})
+	if spec.Name != nil {
+		meta["name"] = spec.Name
+	}
+
+	if spec.Description != nil {
+		meta["description"] = spec.Description
+	}
+
+	if len(meta) > 0 {
+		createObjectSpec.Meta = meta
+	}
+
+	return &createObjectSpec, nil
 }
 
 type UpdateFeatureSpec struct {
 	Name        *string `json:"name"`
 	Description *string `json:"description"`
+}
+
+func (updateSpec UpdateFeatureSpec) ToUpdateObjectSpec() *object.UpdateObjectSpec {
+	meta := make(map[string]interface{})
+
+	if updateSpec.Name != nil {
+		meta["name"] = updateSpec.Name
+	}
+
+	if updateSpec.Description != nil {
+		meta["description"] = updateSpec.Description
+	}
+
+	return &object.UpdateObjectSpec{
+		Meta: meta,
+	}
 }

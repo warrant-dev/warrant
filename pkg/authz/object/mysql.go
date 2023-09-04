@@ -131,6 +131,13 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 	`
 	replacements := []interface{}{}
 
+	var sortByColumn string
+	if isObjectSortBy(listParams.SortBy) {
+		sortByColumn = listParams.SortBy
+	} else {
+		sortByColumn = fmt.Sprintf("meta->>'$.%s'", listParams.SortBy)
+	}
+
 	if filterOptions != nil && filterOptions.ObjectType != "" {
 		query = fmt.Sprintf("%s AND objectType = ?", query)
 		replacements = append(replacements, filterOptions.ObjectType)
@@ -154,26 +161,26 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 				query = fmt.Sprintf("%s AND %s %s ?", query, "objectId", comparisonOp)
 				replacements = append(replacements, listParams.AfterId)
 			} else if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (meta->>'$.%s' IS NOT NULL OR (%s %s ? AND meta->>'$.%s' IS NULL))", query, listParams.SortBy, "objectId", comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, sortByColumn, "objectId", comparisonOp, sortByColumn)
 				replacements = append(replacements,
 					listParams.AfterId,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s %s ? AND meta->>'$.%s' IS NULL)", query, "objectId", comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, "objectId", comparisonOp, sortByColumn)
 				replacements = append(replacements,
 					listParams.AfterId,
 				)
 			}
 		default:
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (meta->>'$.%s' %s ? OR (%s %s ? AND meta->>'$.%s' = ?))", query, listParams.SortBy, comparisonOp, "objectId", comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, sortByColumn, comparisonOp, "objectId", comparisonOp, sortByColumn)
 				replacements = append(replacements,
 					listParams.AfterValue,
 					listParams.AfterId,
 					listParams.AfterValue,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (meta->>'$.%s' %s ? OR meta->>'$.%s' IS NULL OR (%s %s ? AND meta->>'$.%s' = ?))", query, listParams.SortBy, comparisonOp, listParams.SortBy, "objectId", comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, sortByColumn, comparisonOp, sortByColumn, "objectId", comparisonOp, sortByColumn)
 				replacements = append(replacements,
 					listParams.AfterValue,
 					listParams.AfterId,
@@ -195,26 +202,26 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 				query = fmt.Sprintf("%s AND %s %s ?", query, "objectId", comparisonOp)
 				replacements = append(replacements, listParams.BeforeId)
 			} else if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s %s ? AND meta->>'$.%s' IS NULL)", query, "objectId", comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, "objectId", comparisonOp, sortByColumn)
 				replacements = append(replacements,
 					listParams.BeforeId,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (meta->>'$.%s' IS NOT NULL OR (%s %s ? AND meta->>'$.%s' IS NULL))", query, listParams.SortBy, "objectId", comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, sortByColumn, "objectId", comparisonOp, sortByColumn)
 				replacements = append(replacements,
 					listParams.BeforeId,
 				)
 			}
 		default:
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (meta->>'$.%s' %s ? OR meta->>'$.%s' IS NULL OR (%s %s ? AND meta->>'$.%s' = ?))", query, listParams.SortBy, comparisonOp, listParams.SortBy, "objectId", comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, sortByColumn, comparisonOp, sortByColumn, "objectId", comparisonOp, sortByColumn)
 				replacements = append(replacements,
 					listParams.BeforeValue,
 					listParams.BeforeId,
 					listParams.BeforeValue,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (meta->>'$.%s' %s ? OR (%s %s ? AND meta->>'$.%s' = ?))", query, listParams.SortBy, comparisonOp, "objectId", comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, sortByColumn, comparisonOp, "objectId", comparisonOp, sortByColumn)
 				replacements = append(replacements,
 					listParams.BeforeValue,
 					listParams.BeforeId,
@@ -227,26 +234,26 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 	if listParams.BeforeId != nil {
 		if listParams.SortBy != listParams.DefaultSortBy() {
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s ORDER BY meta->>'$.%s' %s, %s %s LIMIT ?", query, listParams.SortBy, service.SortOrderDesc, "objectId", service.SortOrderDesc)
+				query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, sortByColumn, service.SortOrderDesc, "objectId", service.SortOrderDesc)
 				replacements = append(replacements, listParams.Limit)
 			} else {
-				query = fmt.Sprintf("%s ORDER BY meta->>'$.%s' %s, %s %s LIMIT ?", query, listParams.SortBy, service.SortOrderAsc, "objectId", service.SortOrderAsc)
+				query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, sortByColumn, service.SortOrderAsc, "objectId", service.SortOrderAsc)
 				replacements = append(replacements, listParams.Limit)
 			}
-			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY meta->>'$.%s' %s, %s %s", query, listParams.SortBy, listParams.SortOrder, "objectId", listParams.SortOrder)
+			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s, %s %s", query, sortByColumn, listParams.SortOrder, "objectId", listParams.SortOrder)
 		} else {
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s ORDER BY meta->>'$.%s' %s LIMIT ?", query, listParams.SortBy, service.SortOrderDesc)
+				query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, sortByColumn, service.SortOrderDesc)
 				replacements = append(replacements, listParams.Limit)
 			} else {
-				query = fmt.Sprintf("%s ORDER BY meta->>'$.%s' %s LIMIT ?", query, listParams.SortBy, service.SortOrderAsc)
+				query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, sortByColumn, service.SortOrderAsc)
 				replacements = append(replacements, listParams.Limit)
 			}
-			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY meta->>'$.%s' %s", query, listParams.SortBy, listParams.SortOrder)
+			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s", query, sortByColumn, listParams.SortOrder)
 		}
 	} else {
 		if listParams.SortBy != listParams.DefaultSortBy() {
-			query = fmt.Sprintf("%s ORDER BY meta->>'$.%s' %s, %s %s LIMIT ?", query, listParams.SortBy, listParams.SortOrder, "objectId", listParams.SortOrder)
+			query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, sortByColumn, listParams.SortOrder, "objectId", listParams.SortOrder)
 			replacements = append(replacements, listParams.Limit)
 		} else {
 			query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, "objectId", listParams.SortOrder)

@@ -27,44 +27,32 @@ const ResourceTypeRole = "role"
 
 type RoleService struct {
 	service.BaseService
-	Repository RoleRepository
-	EventSvc   event.Service
-	ObjectSvc  *object.ObjectService
+	EventSvc  event.Service
+	ObjectSvc *object.ObjectService
 }
 
-func NewService(env service.Env, repository RoleRepository, eventSvc event.Service, objectSvc *object.ObjectService) *RoleService {
+func NewService(env service.Env, eventSvc event.Service, objectSvc *object.ObjectService) *RoleService {
 	return &RoleService{
 		BaseService: service.NewBaseService(env),
-		Repository:  repository,
 		EventSvc:    eventSvc,
 		ObjectSvc:   objectSvc,
 	}
 }
 
 func (svc RoleService) Create(ctx context.Context, roleSpec RoleSpec) (*RoleSpec, error) {
-	var newRole Model
+	var createdRoleSpec *RoleSpec
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		_, err := svc.Repository.GetByRoleId(txCtx, roleSpec.RoleId)
-		if err == nil {
-			return service.NewDuplicateRecordError("Role", roleSpec.RoleId, "A role with the given roleId already exists")
-		}
-
-		createdObject, err := svc.ObjectSvc.Create(txCtx, *roleSpec.ToCreateObjectSpec())
+		objectSpec, err := roleSpec.ToCreateObjectSpec()
 		if err != nil {
 			return err
 		}
 
-		newRoleId, err := svc.Repository.Create(txCtx, roleSpec.ToRole(createdObject.ID))
+		createdObjectSpec, err := svc.ObjectSvc.Create(txCtx, *objectSpec)
 		if err != nil {
 			return err
 		}
 
-		newRole, err = svc.Repository.GetById(txCtx, newRoleId)
-		if err != nil {
-			return err
-		}
-
-		err = svc.EventSvc.TrackResourceCreated(txCtx, ResourceTypeRole, newRole.GetRoleId(), newRole.ToRoleSpec())
+		createdRoleSpec, err = NewRoleSpecFromObjectSpec(createdObjectSpec)
 		if err != nil {
 			return err
 		}
@@ -75,28 +63,32 @@ func (svc RoleService) Create(ctx context.Context, roleSpec RoleSpec) (*RoleSpec
 		return nil, err
 	}
 
-	return newRole.ToRoleSpec(), nil
+	return createdRoleSpec, nil
 }
 
 func (svc RoleService) GetByRoleId(ctx context.Context, roleId string) (*RoleSpec, error) {
-	role, err := svc.Repository.GetByRoleId(ctx, roleId)
+	objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(ctx, objecttype.ObjectTypeRole, roleId)
 	if err != nil {
 		return nil, err
 	}
 
-	return role.ToRoleSpec(), nil
+	return NewRoleSpecFromObjectSpec(objectSpec)
 }
 
 func (svc RoleService) List(ctx context.Context, listParams service.ListParams) ([]RoleSpec, error) {
 	roleSpecs := make([]RoleSpec, 0)
-
-	roles, err := svc.Repository.List(ctx, listParams)
+	objectSpecs, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeRole}, listParams)
 	if err != nil {
-		return roleSpecs, err
+		return roleSpecs, nil
 	}
 
-	for _, role := range roles {
-		roleSpecs = append(roleSpecs, *role.ToRoleSpec())
+	for _, objectSpec := range objectSpecs {
+		roleSpec, err := NewRoleSpecFromObjectSpec(&objectSpec)
+		if err != nil {
+			return roleSpecs, err
+		}
+
+		roleSpecs = append(roleSpecs, *roleSpec)
 	}
 
 	return roleSpecs, nil
@@ -105,32 +97,18 @@ func (svc RoleService) List(ctx context.Context, listParams service.ListParams) 
 func (svc RoleService) UpdateByRoleId(ctx context.Context, roleId string, roleSpec UpdateRoleSpec) (*RoleSpec, error) {
 	var updatedRoleSpec *RoleSpec
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		currentRole, err := svc.Repository.GetByRoleId(txCtx, roleId)
+		updatedObjectSpec, err := svc.ObjectSvc.UpdateByObjectTypeAndId(txCtx, objecttype.ObjectTypeRole, roleId, *roleSpec.ToUpdateObjectSpec())
 		if err != nil {
 			return err
 		}
 
-		currentRole.SetName(roleSpec.Name)
-		currentRole.SetDescription(roleSpec.Description)
-		err = svc.Repository.UpdateByRoleId(txCtx, roleId, currentRole)
-		if err != nil {
-			return err
-		}
-
-		updatedRole, err := svc.Repository.GetByRoleId(txCtx, roleId)
-		if err != nil {
-			return err
-		}
-
-		updatedRoleSpec = updatedRole.ToRoleSpec()
-		err = svc.EventSvc.TrackResourceUpdated(txCtx, ResourceTypeRole, updatedRole.GetRoleId(), updatedRoleSpec)
+		updatedRoleSpec, err = NewRoleSpecFromObjectSpec(updatedObjectSpec)
 		if err != nil {
 			return err
 		}
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -139,24 +117,7 @@ func (svc RoleService) UpdateByRoleId(ctx context.Context, roleId string, roleSp
 }
 
 func (svc RoleService) DeleteByRoleId(ctx context.Context, roleId string) error {
-	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		err := svc.Repository.DeleteByRoleId(txCtx, roleId)
-		if err != nil {
-			return err
-		}
-
-		err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypeRole, roleId)
-		if err != nil {
-			return err
-		}
-
-		err = svc.EventSvc.TrackResourceDeleted(txCtx, ResourceTypeRole, roleId, nil)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+	err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypeRole, roleId)
 	if err != nil {
 		return err
 	}

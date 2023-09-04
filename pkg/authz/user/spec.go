@@ -15,6 +15,7 @@
 package authz
 
 import (
+	"errors"
 	"time"
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
@@ -27,21 +28,56 @@ type UserSpec struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-func (spec UserSpec) ToUser(objectId int64) *User {
-	return &User{
-		ObjectId: objectId,
-		UserId:   spec.UserId,
-		Email:    spec.Email,
+func NewUserSpecFromObjectSpec(objectSpec *object.ObjectSpec) (*UserSpec, error) {
+	var email *string
+
+	if objectSpec.Meta != nil {
+		if _, exists := objectSpec.Meta["email"]; exists {
+			emailStr, ok := objectSpec.Meta["email"].(string)
+			if !ok {
+				return nil, errors.New("user email has invalid type in object meta")
+			}
+			email = &emailStr
+		}
 	}
+
+	return &UserSpec{
+		UserId:    objectSpec.ObjectId,
+		Email:     email,
+		CreatedAt: objectSpec.CreatedAt,
+	}, nil
 }
 
-func (spec UserSpec) ToCreateObjectSpec() *object.CreateObjectSpec {
-	return &object.CreateObjectSpec{
+func (spec UserSpec) ToCreateObjectSpec() (*object.CreateObjectSpec, error) {
+	createObjectSpec := object.CreateObjectSpec{
 		ObjectType: objecttype.ObjectTypeUser,
 		ObjectId:   spec.UserId,
 	}
+
+	meta := make(map[string]interface{})
+	if spec.Email != nil {
+		meta["email"] = spec.Email
+	}
+
+	if len(meta) > 0 {
+		createObjectSpec.Meta = meta
+	}
+
+	return &createObjectSpec, nil
 }
 
 type UpdateUserSpec struct {
 	Email *string `json:"email"`
+}
+
+func (updateSpec UpdateUserSpec) ToUpdateObjectSpec() *object.UpdateObjectSpec {
+	meta := make(map[string]interface{})
+
+	if updateSpec.Email != nil {
+		meta["email"] = updateSpec.Email
+	}
+
+	return &object.UpdateObjectSpec{
+		Meta: meta,
+	}
 }

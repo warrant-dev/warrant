@@ -23,48 +23,34 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-const ResourceTypeFeature = "feature"
-
 type FeatureService struct {
 	service.BaseService
-	Repository FeatureRepository
-	EventSvc   event.Service
-	ObjectSvc  *object.ObjectService
+	EventSvc  event.Service
+	ObjectSvc *object.ObjectService
 }
 
-func NewService(env service.Env, repository FeatureRepository, eventSvc event.Service, objectSvc *object.ObjectService) *FeatureService {
+func NewService(env service.Env, eventSvc event.Service, objectSvc *object.ObjectService) *FeatureService {
 	return &FeatureService{
 		BaseService: service.NewBaseService(env),
-		Repository:  repository,
 		EventSvc:    eventSvc,
 		ObjectSvc:   objectSvc,
 	}
 }
 
 func (svc FeatureService) Create(ctx context.Context, featureSpec FeatureSpec) (*FeatureSpec, error) {
-	var newFeature Model
+	var createdFeatureSpec *FeatureSpec
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		createdObject, err := svc.ObjectSvc.Create(txCtx, *featureSpec.ToCreateObjectSpec())
+		objectSpec, err := featureSpec.ToCreateObjectSpec()
 		if err != nil {
 			return err
 		}
 
-		_, err = svc.Repository.GetByFeatureId(txCtx, featureSpec.FeatureId)
-		if err == nil {
-			return service.NewDuplicateRecordError("Feature", featureSpec.FeatureId, "A feature with the given featureId already exists")
-		}
-
-		newFeatureId, err := svc.Repository.Create(txCtx, featureSpec.ToFeature(createdObject.ID))
+		createdObjectSpec, err := svc.ObjectSvc.Create(txCtx, *objectSpec)
 		if err != nil {
 			return err
 		}
 
-		newFeature, err = svc.Repository.GetById(txCtx, newFeatureId)
-		if err != nil {
-			return err
-		}
-
-		err = svc.EventSvc.TrackResourceCreated(txCtx, ResourceTypeFeature, newFeature.GetFeatureId(), newFeature.ToFeatureSpec())
+		createdFeatureSpec, err = NewFeatureSpecFromObjectSpec(createdObjectSpec)
 		if err != nil {
 			return err
 		}
@@ -75,27 +61,32 @@ func (svc FeatureService) Create(ctx context.Context, featureSpec FeatureSpec) (
 		return nil, err
 	}
 
-	return newFeature.ToFeatureSpec(), nil
+	return createdFeatureSpec, nil
 }
 
 func (svc FeatureService) GetByFeatureId(ctx context.Context, featureId string) (*FeatureSpec, error) {
-	feature, err := svc.Repository.GetByFeatureId(ctx, featureId)
+	objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(ctx, objecttype.ObjectTypeFeature, featureId)
 	if err != nil {
 		return nil, err
 	}
 
-	return feature.ToFeatureSpec(), nil
+	return NewFeatureSpecFromObjectSpec(objectSpec)
 }
 
 func (svc FeatureService) List(ctx context.Context, listParams service.ListParams) ([]FeatureSpec, error) {
 	featureSpecs := make([]FeatureSpec, 0)
-	features, err := svc.Repository.List(ctx, listParams)
+	objectSpecs, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeFeature}, listParams)
 	if err != nil {
 		return featureSpecs, nil
 	}
 
-	for _, feature := range features {
-		featureSpecs = append(featureSpecs, *feature.ToFeatureSpec())
+	for _, objectSpec := range objectSpecs {
+		featureSpec, err := NewFeatureSpecFromObjectSpec(&objectSpec)
+		if err != nil {
+			return featureSpecs, err
+		}
+
+		featureSpecs = append(featureSpecs, *featureSpec)
 	}
 
 	return featureSpecs, nil
@@ -104,28 +95,16 @@ func (svc FeatureService) List(ctx context.Context, listParams service.ListParam
 func (svc FeatureService) UpdateByFeatureId(ctx context.Context, featureId string, featureSpec UpdateFeatureSpec) (*FeatureSpec, error) {
 	var updatedFeatureSpec *FeatureSpec
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		currentFeature, err := svc.Repository.GetByFeatureId(txCtx, featureId)
+		updatedObjectSpec, err := svc.ObjectSvc.UpdateByObjectTypeAndId(txCtx, objecttype.ObjectTypeFeature, featureId, *featureSpec.ToUpdateObjectSpec())
 		if err != nil {
 			return err
 		}
 
-		currentFeature.SetName(featureSpec.Name)
-		currentFeature.SetDescription(featureSpec.Description)
-		err = svc.Repository.UpdateByFeatureId(txCtx, featureId, currentFeature)
+		updatedFeatureSpec, err = NewFeatureSpecFromObjectSpec(updatedObjectSpec)
 		if err != nil {
 			return err
 		}
 
-		updatedFeature, err := svc.Repository.GetByFeatureId(txCtx, featureId)
-		if err != nil {
-			return err
-		}
-
-		updatedFeatureSpec = updatedFeature.ToFeatureSpec()
-		err = svc.EventSvc.TrackResourceUpdated(txCtx, ResourceTypeFeature, updatedFeature.GetFeatureId(), updatedFeatureSpec)
-		if err != nil {
-			return err
-		}
 		return nil
 	})
 	if err != nil {
@@ -136,24 +115,7 @@ func (svc FeatureService) UpdateByFeatureId(ctx context.Context, featureId strin
 }
 
 func (svc FeatureService) DeleteByFeatureId(ctx context.Context, featureId string) error {
-	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		err := svc.Repository.DeleteByFeatureId(txCtx, featureId)
-		if err != nil {
-			return err
-		}
-
-		err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypeFeature, featureId)
-		if err != nil {
-			return err
-		}
-
-		err = svc.EventSvc.TrackResourceDeleted(txCtx, ResourceTypeFeature, featureId, nil)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+	err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypeFeature, featureId)
 	if err != nil {
 		return err
 	}

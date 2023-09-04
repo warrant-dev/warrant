@@ -18,19 +18,30 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a"
+                            "resourceId": "user-a",
+                            "meta": {
+                                "email": "user-a@warrant.dev"
+                            }
                         },
                         {
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "role",
-                            "resourceId": "senior-accountant"
+                            "resourceId": "senior-accountant",
+                            "meta": {
+                                "description": "Grants access to view and edit the balance sheet.",
+                                "name": "Senior Accountant"
+                            }
                         },
                         {
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "permission",
-                            "resourceId": "view-balance-sheet"
+                            "resourceId": "view-balance-sheet",
+                            "meta": {
+                                "description": "Grants access to view the balance sheet.",
+                                "name": "View Balance Sheet"
+                            }
                         }
                     ],
                     "lastId": "{{ listLastThreeResourceEvents.lastId }}"
@@ -51,7 +62,11 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "permission",
-                            "resourceId": "balance-sheet:edit"
+                            "resourceId": "balance-sheet:edit",
+                            "meta": {
+                                "description": "Grants access to edit the balance sheet.",
+                                "name": "Edit Balance Sheet"
+                            }
                         },
                         {
                             "type": "created",
@@ -60,8 +75,7 @@
                             "resourceId": "balance-sheet:edit",
                             "meta": {
                                 "description": "Grants access to edit the balance sheet.",
-                                "name": "Edit Balance Sheet",
-                                "permissionId": "balance-sheet:edit"
+                                "name": "Edit Balance Sheet"
                             }
                         }
                     ],
@@ -96,25 +110,40 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a"
+                            "resourceId": "user-a",
+                            "meta": {
+                                "email": "user-a@warrant.dev"
+                            }
                         },
                         {
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "role",
-                            "resourceId": "senior-accountant"
+                            "resourceId": "senior-accountant",
+                            "meta": {
+                                "description": "Grants access to view and edit the balance sheet.",
+                                "name": "Senior Accountant"
+                            }
                         },
                         {
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "permission",
-                            "resourceId": "view-balance-sheet"
+                            "resourceId": "view-balance-sheet",
+                            "meta": {
+                                "description": "Grants access to view the balance sheet.",
+                                "name": "View Balance Sheet"
+                            }
                         },
                         {
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "permission",
-                            "resourceId": "balance-sheet:edit"
+                            "resourceId": "balance-sheet:edit",
+                            "meta": {
+                                "description": "Grants access to edit the balance sheet.",
+                                "name": "Edit Balance Sheet"
+                            }
                         },
                         {
                             "type": "deleted",
@@ -141,7 +170,10 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a"
+                            "resourceId": "user-a",
+                            "meta": {
+                                "email": "user-a@warrant.dev"
+                            }
                         },
                         {
                             "type": "created",
@@ -149,8 +181,7 @@
                             "resourceType": "user",
                             "resourceId": "user-a",
                             "meta": {
-                                "email": "user-a@warrant.dev",
-                                "userId": "user-a"
+                                "email": "user-a@warrant.dev"
                             }
                         },
                         {
@@ -163,13 +194,19 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-5"
+                            "resourceId": "user-5",
+                            "meta": {
+                                "email": ""
+                            }
                         },
                         {
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-4"
+                            "resourceId": "user-4",
+                            "meta": {
+                                "email": "user-c@warrant.dev"
+                            }
                         }
                     ],
                     "lastId": "{{ listResourceEventsFilterByResourceType.lastId }}"
@@ -190,7 +227,10 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a"
+                            "resourceId": "user-a",
+                            "meta": {
+                                "email": "user-a@warrant.dev"
+                            }
                         },
                         {
                             "type": "created",
@@ -198,15 +238,17 @@
                             "resourceType": "user",
                             "resourceId": "user-a",
                             "meta": {
-                                "email": "user-a@warrant.dev",
-                                "userId": "user-a"
+                                "email": "user-a@warrant.dev"
                             }
                         },
                         {
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a"
+                            "resourceId": "user-a",
+                            "meta": {
+                                "email": "user-a@warrant.dev"
+                            }
                         }
                     ],
                     "lastId": "{{ listResourceEventsFilterByResourceTypeAndResourceId.lastId }}"

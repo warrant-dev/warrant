@@ -105,6 +105,13 @@
                 "body": [
                     {
                         "objectType": "test",
+                        "objectId": "third-object",
+                        "meta": {
+                            "myKey": "myVal"
+                        }
+                    },
+                    {
+                        "objectType": "test",
                         "objectId": "{{ createObjectWithGeneratedId.objectId }}"
                     },
                     {

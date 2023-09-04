@@ -15,6 +15,7 @@
 package authz
 
 import (
+	"errors"
 	"time"
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
@@ -28,23 +29,77 @@ type PermissionSpec struct {
 	CreatedAt    time.Time `json:"createdAt"`
 }
 
-func (spec PermissionSpec) ToPermission(objectId int64) *Permission {
-	return &Permission{
-		ObjectId:     objectId,
-		PermissionId: spec.PermissionId,
-		Name:         spec.Name,
-		Description:  spec.Description,
+func NewPermissionSpecFromObjectSpec(objectSpec *object.ObjectSpec) (*PermissionSpec, error) {
+	var (
+		name        *string
+		description *string
+	)
+
+	if objectSpec.Meta != nil {
+		if _, exists := objectSpec.Meta["name"]; exists {
+			nameStr, ok := objectSpec.Meta["name"].(string)
+			if !ok {
+				return nil, errors.New("permission name has invalid type in object meta")
+			}
+			name = &nameStr
+		}
+
+		if _, exists := objectSpec.Meta["description"]; exists {
+			descriptionStr, ok := objectSpec.Meta["description"].(string)
+			if !ok {
+				return nil, errors.New("permission description has invalid type in object meta")
+			}
+			description = &descriptionStr
+		}
 	}
+
+	return &PermissionSpec{
+		PermissionId: objectSpec.ObjectId,
+		Name:         name,
+		Description:  description,
+		CreatedAt:    objectSpec.CreatedAt,
+	}, nil
 }
 
-func (spec PermissionSpec) ToCreateObjectSpec() *object.CreateObjectSpec {
-	return &object.CreateObjectSpec{
+func (spec PermissionSpec) ToCreateObjectSpec() (*object.CreateObjectSpec, error) {
+	createObjectSpec := object.CreateObjectSpec{
 		ObjectType: objecttype.ObjectTypePermission,
 		ObjectId:   spec.PermissionId,
 	}
+
+	meta := make(map[string]interface{})
+	if spec.Name != nil {
+		meta["name"] = spec.Name
+	}
+
+	if spec.Description != nil {
+		meta["description"] = spec.Description
+	}
+
+	if len(meta) > 0 {
+		createObjectSpec.Meta = meta
+	}
+
+	return &createObjectSpec, nil
 }
 
 type UpdatePermissionSpec struct {
 	Name        *string `json:"name"`
 	Description *string `json:"description"`
+}
+
+func (updateSpec UpdatePermissionSpec) ToUpdateObjectSpec() *object.UpdateObjectSpec {
+	meta := make(map[string]interface{})
+
+	if updateSpec.Name != nil {
+		meta["name"] = updateSpec.Name
+	}
+
+	if updateSpec.Description != nil {
+		meta["description"] = updateSpec.Description
+	}
+
+	return &object.UpdateObjectSpec{
+		Meta: meta,
+	}
 }

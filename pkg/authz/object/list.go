@@ -19,6 +19,8 @@ import (
 	"time"
 )
 
+var supportedSortBys = []string{"createdAt", "objectType", "objectId"}
+
 type ObjectListParamParser struct{}
 
 func (parser ObjectListParamParser) GetDefaultSortBy() string {
@@ -26,7 +28,7 @@ func (parser ObjectListParamParser) GetDefaultSortBy() string {
 }
 
 func (parser ObjectListParamParser) GetSupportedSortBys() []string {
-	return []string{"createdAt", "objectType", "objectId"}
+	return supportedSortBys
 }
 
 func (parser ObjectListParamParser) ParseValue(val string, sortBy string) (interface{}, error) {
@@ -47,4 +49,14 @@ func (parser ObjectListParamParser) ParseValue(val string, sortBy string) (inter
 	default:
 		return nil, fmt.Errorf("must match type of selected sortBy attribute %s", sortBy)
 	}
+}
+
+func isObjectSortBy(sortBy string) bool {
+	for _, supportedSortBy := range supportedSortBys {
+		if sortBy == supportedSortBy {
+			return true
+		}
+	}
+
+	return false
 }
