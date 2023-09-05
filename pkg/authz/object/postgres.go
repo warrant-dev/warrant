@@ -147,7 +147,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 
 	if listParams.Query != nil {
 		searchTermReplacement := fmt.Sprintf("%%%s%%", *listParams.Query)
-		query = fmt.Sprintf("%s AND (object_type LIKE ? OR %s LIKE ?)", query, objectIdColumn)
+		query = fmt.Sprintf("%s AND (%s LIKE ? OR meta::text LIKE ?)", query, objectIdColumn)
 		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
 	}
 
