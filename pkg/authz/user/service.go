@@ -79,11 +79,11 @@ func (svc UserService) List(ctx context.Context, listParams service.ListParams) 
 	userSpecs := make([]UserSpec, 0)
 	objectSpecs, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeUser}, listParams)
 	if err != nil {
-		return userSpecs, nil
+		return userSpecs, err
 	}
 
-	for _, objectSpec := range objectSpecs {
-		userSpec, err := NewUserSpecFromObjectSpec(&objectSpec)
+	for i := range objectSpecs {
+		userSpec, err := NewUserSpecFromObjectSpec(&objectSpecs[i])
 		if err != nil {
 			return userSpecs, err
 		}

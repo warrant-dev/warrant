@@ -79,11 +79,11 @@ func (svc PricingTierService) List(ctx context.Context, listParams service.ListP
 	pricingTierSpecs := make([]PricingTierSpec, 0)
 	objectSpecs, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypePricingTier}, listParams)
 	if err != nil {
-		return pricingTierSpecs, nil
+		return pricingTierSpecs, err
 	}
 
-	for _, objectSpec := range objectSpecs {
-		pricingTierSpec, err := NewPricingTierSpecFromObjectSpec(&objectSpec)
+	for i := range objectSpecs {
+		pricingTierSpec, err := NewPricingTierSpecFromObjectSpec(&objectSpecs[i])
 		if err != nil {
 			return pricingTierSpecs, err
 		}

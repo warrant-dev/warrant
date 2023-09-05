@@ -157,6 +157,7 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 
 		switch listParams.AfterValue {
 		case nil:
+			//nolint:gocritic
 			if listParams.SortBy == listParams.DefaultSortBy() {
 				query = fmt.Sprintf("%s AND %s %s ?", query, "objectId", comparisonOp)
 				replacements = append(replacements, listParams.AfterId)
@@ -198,6 +199,7 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 
 		switch listParams.BeforeValue {
 		case nil:
+			//nolint:gocritic
 			if listParams.SortBy == listParams.DefaultSortBy() {
 				query = fmt.Sprintf("%s AND %s %s ?", query, "objectId", comparisonOp)
 				replacements = append(replacements, listParams.BeforeId)

@@ -159,6 +159,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 
 		switch listParams.AfterValue {
 		case nil:
+			//nolint:gocritic
 			if listParams.SortBy == listParams.DefaultSortBy() {
 				query = fmt.Sprintf("%s AND %s %s ?", query, objectIdColumn, comparisonOp)
 				replacements = append(replacements, listParams.AfterId)
@@ -200,6 +201,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 
 		switch listParams.BeforeValue {
 		case nil:
+			//nolint:gocritic
 			if listParams.SortBy == listParams.DefaultSortBy() {
 				query = fmt.Sprintf("%s AND %s %s ?", query, objectIdColumn, comparisonOp)
 				replacements = append(replacements, listParams.BeforeId)

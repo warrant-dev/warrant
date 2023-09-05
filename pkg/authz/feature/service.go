@@ -77,11 +77,11 @@ func (svc FeatureService) List(ctx context.Context, listParams service.ListParam
 	featureSpecs := make([]FeatureSpec, 0)
 	objectSpecs, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeFeature}, listParams)
 	if err != nil {
-		return featureSpecs, nil
+		return featureSpecs, err
 	}
 
-	for _, objectSpec := range objectSpecs {
-		featureSpec, err := NewFeatureSpecFromObjectSpec(&objectSpec)
+	for i := range objectSpecs {
+		featureSpec, err := NewFeatureSpecFromObjectSpec(&objectSpecs[i])
 		if err != nil {
 			return featureSpecs, err
 		}

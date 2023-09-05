@@ -79,11 +79,11 @@ func (svc PermissionService) List(ctx context.Context, listParams service.ListPa
 	permissionSpecs := make([]PermissionSpec, 0)
 	objectSpecs, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypePermission}, listParams)
 	if err != nil {
-		return permissionSpecs, nil
+		return permissionSpecs, err
 	}
 
-	for _, objectSpec := range objectSpecs {
-		permissionSpec, err := NewPermissionSpecFromObjectSpec(&objectSpec)
+	for i := range objectSpecs {
+		permissionSpec, err := NewPermissionSpecFromObjectSpec(&objectSpecs[i])
 		if err != nil {
 			return permissionSpecs, err
 		}

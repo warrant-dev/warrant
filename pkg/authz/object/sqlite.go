@@ -161,6 +161,7 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 
 		switch listParams.AfterValue {
 		case nil:
+			//nolint:gocritic
 			if listParams.SortBy == listParams.DefaultSortBy() {
 				query = fmt.Sprintf("%s AND %s %s ?", query, "objectId", comparisonOp)
 				replacements = append(replacements, listParams.AfterId)
@@ -202,6 +203,7 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 
 		switch listParams.BeforeValue {
 		case nil:
+			//nolint:gocritic
 			if listParams.SortBy == listParams.DefaultSortBy() {
 				query = fmt.Sprintf("%s AND %s %s ?", query, "objectId", comparisonOp)
 				replacements = append(replacements, listParams.BeforeId)

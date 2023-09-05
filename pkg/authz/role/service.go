@@ -79,11 +79,11 @@ func (svc RoleService) List(ctx context.Context, listParams service.ListParams) 
 	roleSpecs := make([]RoleSpec, 0)
 	objectSpecs, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeRole}, listParams)
 	if err != nil {
-		return roleSpecs, nil
+		return roleSpecs, err
 	}
 
-	for _, objectSpec := range objectSpecs {
-		roleSpec, err := NewRoleSpecFromObjectSpec(&objectSpec)
+	for i := range objectSpecs {
+		roleSpec, err := NewRoleSpecFromObjectSpec(&objectSpecs[i])
 		if err != nil {
 			return roleSpecs, err
 		}

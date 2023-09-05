@@ -35,13 +35,13 @@ type Model interface {
 }
 
 type Object struct {
-	ID         int64      `mysql:"id" postgres:"id" sqlite:"id"`
+	ID         int64      `mysql:"id"         postgres:"id"          sqlite:"id"`
 	ObjectType string     `mysql:"objectType" postgres:"object_type" sqlite:"objectType"`
-	ObjectId   string     `mysql:"objectId" postgres:"object_id" sqlite:"objectId"`
-	Meta       *string    `mysql:"meta" postgres:"meta" sqlite:"meta"`
-	CreatedAt  time.Time  `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
-	UpdatedAt  time.Time  `mysql:"updatedAt" postgres:"updated_at" sqlite:"updatedAt"`
-	DeletedAt  *time.Time `mysql:"deletedAt" postgres:"deleted_at" sqlite:"deletedAt"`
+	ObjectId   string     `mysql:"objectId"   postgres:"object_id"   sqlite:"objectId"`
+	Meta       *string    `mysql:"meta"       postgres:"meta"        sqlite:"meta"`
+	CreatedAt  time.Time  `mysql:"createdAt"  postgres:"created_at"  sqlite:"createdAt"`
+	UpdatedAt  time.Time  `mysql:"updatedAt"  postgres:"updated_at"  sqlite:"updatedAt"`
+	DeletedAt  *time.Time `mysql:"deletedAt"  postgres:"deleted_at"  sqlite:"deletedAt"`
 }
 
 func (object Object) GetID() int64 {
@@ -61,7 +61,7 @@ func (object Object) GetMeta() *string {
 }
 
 func (object *Object) SetMeta(newMeta map[string]interface{}) error {
-	if newMeta == nil || len(newMeta) == 0 {
+	if len(newMeta) == 0 {
 		object.Meta = nil
 		return nil
 	}

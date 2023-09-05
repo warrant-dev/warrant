@@ -79,11 +79,11 @@ func (svc TenantService) List(ctx context.Context, listParams service.ListParams
 	tenantSpecs := make([]TenantSpec, 0)
 	objectSpecs, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeTenant}, listParams)
 	if err != nil {
-		return tenantSpecs, nil
+		return tenantSpecs, err
 	}
 
-	for _, objectSpec := range objectSpecs {
-		tenantSpec, err := NewTenantSpecFromObjectSpec(&objectSpec)
+	for i := range objectSpecs {
+		tenantSpec, err := NewTenantSpecFromObjectSpec(&objectSpecs[i])
 		if err != nil {
 			return tenantSpecs, err
 		}
