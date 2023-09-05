@@ -367,6 +367,36 @@
             }
         },
         {
+            "name": "checkNonexistentObjectType",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "nonexistent-object-type",
+                            "objectId": "123456",
+                            "relation": "editor",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 404,
+                "body": {
+                    "code": "not_found",
+                    "message": "ObjectType nonexistent-object-type not found",
+                    "type": "ObjectType",
+                    "key": "nonexistent-object-type"
+                }
+            }
+        },
+        {
             "name": "checkUserBEditorOfReportAInTenantB",
             "request": {
                 "method": "POST",

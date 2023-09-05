@@ -16,7 +16,6 @@ package authz
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -33,7 +32,7 @@ func (m ObjectTypeMap) GetByTypeId(typeId string) (*ObjectTypeSpec, error) {
 		return &val, nil
 	}
 
-	return nil, fmt.Errorf("no object type with typeId %s exists", typeId)
+	return nil, service.NewRecordNotFoundError("ObjectType", typeId)
 }
 
 type ObjectTypeService struct {
