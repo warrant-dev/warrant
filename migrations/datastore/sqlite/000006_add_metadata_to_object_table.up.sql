@@ -3,7 +3,7 @@ ADD COLUMN meta json DEFAULT NULL;
 
 -- backfill tenants
 UPDATE object
-SET meta = JSON_OBJECT("name", tenant.name)
+SET meta = JSON('{"name":"' || tenant.name || '"}')
 FROM tenant
 WHERE
     object.objectId = tenant.tenantId AND
@@ -12,7 +12,7 @@ WHERE
 
 -- backfill users
 UPDATE object
-SET meta = JSON_OBJECT("email", user.email)
+SET meta = JSON('{"email":"' || user.email || '"}')
 FROM user
 WHERE
     object.objectId = user.userId AND
@@ -21,7 +21,7 @@ WHERE
 
 -- backfill roles
 UPDATE object
-SET meta = JSON_OBJECT("name", role.name)
+SET meta = JSON('{"name":"' || role.name || '"}')
 FROM role
 WHERE
     object.objectId = role.roleId AND
@@ -30,7 +30,7 @@ WHERE
     role.description IS NULL;
 
 UPDATE object
-SET meta = JSON_OBJECT("name", role.name, "description", role.description)
+SET meta = JSON('{"name":"' || role.name || '", "description":"' || role.description || '"}')
 FROM role
 WHERE
     object.objectId = role.roleId AND
@@ -40,7 +40,7 @@ WHERE
 
 -- backfill permissions
 UPDATE object
-SET meta = JSON_OBJECT("name", permission.name)
+SET meta = JSON('{"name":"' || permission.name || '"}')
 FROM permission
 WHERE
     object.objectId = permission.permissionId AND
@@ -49,7 +49,7 @@ WHERE
     permission.description IS NULL;
 
 UPDATE object
-SET meta = JSON_OBJECT("name", permission.name, "description", permission.description)
+SET meta = JSON('{"name":"' || permission.name || '", "description":"' || permission.description || '"}')
 FROM permission
 WHERE
     object.objectId = permission.permissionId AND
@@ -59,7 +59,7 @@ WHERE
 
 -- backfill pricing-tiers
 UPDATE object
-SET meta = JSON_OBJECT("name", pricingTier.name)
+SET meta = JSON('{"name":"' || pricingTier.name || '"}')
 FROM pricingTier
 WHERE
     object.objectId = pricingTier.pricingTierId AND
@@ -68,7 +68,7 @@ WHERE
     pricingTier.description IS NULL;
 
 UPDATE object
-SET meta = JSON_OBJECT("name", pricingTier.name, "description", pricingTier.description)
+SET meta = JSON('{"name":"' || pricingTier.name || '", "description":"' || pricingTier.description || '"}')
 FROM pricingTier
 WHERE
     object.objectId = pricingTier.pricingTierId AND
@@ -78,7 +78,7 @@ WHERE
 
 -- backfill features
 UPDATE object
-SET meta = JSON_OBJECT("name", feature.name)
+SET meta = JSON('{"name":"' || feature.name || '"}')
 FROM feature
 WHERE
     object.objectId = feature.featureId AND
@@ -87,7 +87,7 @@ WHERE
     feature.description IS NULL;
 
 UPDATE object
-SET meta = JSON_OBJECT("name", feature.name, "description", feature.description)
+SET meta = JSON('{"name":"' || feature.name || '", "description":"' || feature.description || '"}')
 FROM feature
 WHERE
     object.objectId = feature.featureId AND
