@@ -110,6 +110,38 @@
             }
         },
         {
+            "name": "filterTenantsOnTenantId",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?q=6"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "tenant-6",
+                        "name": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "filterTenantsOnName",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?q=Tenant%20C"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "tenant-5",
+                        "name": "Tenant C"
+                    }
+                ]
+            }
+        },
+        {
             "name": "sortByCreatedAtDESC",
             "request": {
                 "method": "GET",

@@ -126,7 +126,7 @@
             }
         },
         {
-            "name": "filterObjects",
+            "name": "filterObjectsOnObjectId",
             "request": {
                 "method": "GET",
                 "url": "/v1/objects?q=first-object"
@@ -137,6 +137,25 @@
                     {
                         "objectType": "test",
                         "objectId": "first-object"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "filterObjectsOnMeta",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects?q=myVal"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "objectType": "test",
+                        "objectId": "third-object",
+                        "meta": {
+                            "myKey": "myVal"
+                        }
                     }
                 ]
             }

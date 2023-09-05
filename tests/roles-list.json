@@ -29,7 +29,8 @@
                 "url": "/v1/roles",
                 "body": {
                     "roleId": "role-2",
-                    "name": ""
+                    "name": "",
+                    "description": "This is role-2."
                 }
             },
             "expectedResponse": {
@@ -37,7 +38,7 @@
                 "body": {
                     "roleId": "role-2",
                     "name": "",
-                    "description": null
+                    "description": "This is role-2."
                 }
             }
         },
@@ -116,6 +117,57 @@
             }
         },
         {
+            "name": "filterRolesOnRoleId",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?q=6"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-6",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "filterRolesOnName",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?q=Role%20C"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-4",
+                        "name": "Role C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "filterRolesOnDescription",
+            "request": {
+                "method": "GET",
+                "url": "/v1/roles?q=This"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "roleId": "role-2",
+                        "name": "",
+                        "description": "This is role-2."
+                    }
+                ]
+            }
+        },
+        {
             "name": "sortByCreatedAtDESC",
             "request": {
                 "method": "GET",
@@ -147,7 +199,7 @@
                     {
                         "roleId": "role-2",
                         "name": "",
-                        "description": null
+                        "description": "This is role-2."
                     },
                     {
                         "roleId": "role-1",
@@ -201,7 +253,7 @@
                     {
                         "roleId": "role-2",
                         "name": "",
-                        "description": null
+                        "description": "This is role-2."
                     },
                     {
                         "roleId": "role-3",
@@ -243,7 +295,7 @@
                     {
                         "roleId": "role-2",
                         "name": "",
-                        "description": null
+                        "description": "This is role-2."
                     }
                 ]
             }
@@ -275,7 +327,7 @@
                     {
                         "roleId": "role-2",
                         "name": "",
-                        "description": null
+                        "description": "This is role-2."
                     },
                     {
                         "roleId": "role-6",
@@ -380,7 +432,7 @@
                     {
                         "roleId": "role-2",
                         "name": "",
-                        "description": null
+                        "description": "This is role-2."
                     },
                     {
                         "roleId": "role-6",
@@ -456,7 +508,7 @@
                     {
                         "roleId": "role-2",
                         "name": "",
-                        "description": null
+                        "description": "This is role-2."
                     },
                     {
                         "roleId": "role-5",
@@ -549,7 +601,7 @@
                     {
                         "roleId": "role-2",
                         "name": "",
-                        "description": null
+                        "description": "This is role-2."
                     }
                 ]
             }
@@ -632,7 +684,7 @@
                     {
                         "roleId": "role-2",
                         "name": "",
-                        "description": null
+                        "description": "This is role-2."
                     }
                 ]
             }

@@ -29,7 +29,8 @@
                 "url": "/v1/features",
                 "body": {
                     "featureId": "feature-2",
-                    "name": ""
+                    "name": "",
+                    "description": "This is feature-2."
                 }
             },
             "expectedResponse": {
@@ -37,7 +38,7 @@
                 "body": {
                     "featureId": "feature-2",
                     "name": "",
-                    "description": null
+                    "description": "This is feature-2."
                 }
             }
         },
@@ -116,6 +117,57 @@
             }
         },
         {
+            "name": "filterFeaturesOnFeatureId",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?q=6"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-6",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "filterFeaturesOnName",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?q=Feature%20C"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-4",
+                        "name": "Feature C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "filterFeaturesOnDescription",
+            "request": {
+                "method": "GET",
+                "url": "/v1/features?q=This"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "featureId": "feature-2",
+                        "name": "",
+                        "description": "This is feature-2."
+                    }
+                ]
+            }
+        },
+        {
             "name": "sortByCreatedAtDESC",
             "request": {
                 "method": "GET",
@@ -147,7 +199,7 @@
                     {
                         "featureId": "feature-2",
                         "name": "",
-                        "description": null
+                        "description": "This is feature-2."
                     },
                     {
                         "featureId": "feature-1",
@@ -201,7 +253,7 @@
                     {
                         "featureId": "feature-2",
                         "name": "",
-                        "description": null
+                        "description": "This is feature-2."
                     },
                     {
                         "featureId": "feature-3",
@@ -243,7 +295,7 @@
                     {
                         "featureId": "feature-2",
                         "name": "",
-                        "description": null
+                        "description": "This is feature-2."
                     }
                 ]
             }
@@ -275,7 +327,7 @@
                     {
                         "featureId": "feature-2",
                         "name": "",
-                        "description": null
+                        "description": "This is feature-2."
                     },
                     {
                         "featureId": "feature-6",
@@ -380,7 +432,7 @@
                     {
                         "featureId": "feature-2",
                         "name": "",
-                        "description": null
+                        "description": "This is feature-2."
                     },
                     {
                         "featureId": "feature-6",
@@ -456,7 +508,7 @@
                     {
                         "featureId": "feature-2",
                         "name": "",
-                        "description": null
+                        "description": "This is feature-2."
                     },
                     {
                         "featureId": "feature-5",
@@ -549,7 +601,7 @@
                     {
                         "featureId": "feature-2",
                         "name": "",
-                        "description": null
+                        "description": "This is feature-2."
                     }
                 ]
             }
@@ -632,7 +684,7 @@
                     {
                         "featureId": "feature-2",
                         "name": "",
-                        "description": null
+                        "description": "This is feature-2."
                     }
                 ]
             }

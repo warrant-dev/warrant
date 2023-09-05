@@ -110,6 +110,38 @@
             }
         },
         {
+            "name": "filterUsersOnUserId",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?q=6"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-6",
+                        "email": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "filterUsersOnEmail",
+            "request": {
+                "method": "GET",
+                "url": "/v1/users?q=user-c%40warrant.dev"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "userId": "user-4",
+                        "email": "user-c@warrant.dev"
+                    }
+                ]
+            }
+        },
+        {
             "name": "sortByCreatedAtDESC",
             "request": {
                 "method": "GET",
