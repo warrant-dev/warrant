@@ -343,3 +343,63 @@ func (repo SQLiteRepository) DeleteByObjectTypeAndId(ctx context.Context, object
 
 	return nil
 }
+
+func (repo SQLiteRepository) DeleteWarrantsMatchingObject(ctx context.Context, objectType string, objectId string) error {
+	now := time.Now().UTC()
+	_, err := repo.DB.ExecContext(
+		ctx,
+		`
+			UPDATE warrant
+			SET
+				updatedAt = ?,
+				deletedAt = ?
+			WHERE
+				objectType = ? AND
+				objectId = ? AND
+				deletedAt IS NULL
+		`,
+		now,
+		now,
+		objectType,
+		objectId,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		} else {
+			return errors.Wrapf(err, "error deleting warrants matching object %s:%s", objectType, objectId)
+		}
+	}
+
+	return nil
+}
+
+func (repo SQLiteRepository) DeleteWarrantsMatchingSubject(ctx context.Context, subjectType string, subjectId string) error {
+	now := time.Now().UTC()
+	_, err := repo.DB.ExecContext(
+		ctx,
+		`
+			UPDATE warrant
+			SET
+				updatedAt = ?,
+				deletedAt = ?
+			WHERE
+				subjectType = ? AND
+				subjectId = ? AND
+				deletedAt IS NULL
+		`,
+		now,
+		now,
+		subjectType,
+		subjectId,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		} else {
+			return errors.Wrapf(err, "error deleting warrants matching subject %s:%s", subjectType, subjectId)
+		}
+	}
+
+	return nil
+}

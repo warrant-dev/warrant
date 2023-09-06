@@ -332,3 +332,57 @@ func (repo MySQLRepository) DeleteByObjectTypeAndId(ctx context.Context, objectT
 
 	return nil
 }
+
+func (repo MySQLRepository) DeleteWarrantsMatchingObject(ctx context.Context, objectType string, objectId string) error {
+	_, err := repo.DB.ExecContext(
+		ctx,
+		`
+			UPDATE warrant
+			SET
+				updatedAt = CURRENT_TIMESTAMP(6),
+				deletedAt = CURRENT_TIMESTAMP(6)
+			WHERE
+				objectType = ? AND
+				objectId = ? AND
+				deletedAt IS NULL
+		`,
+		objectType,
+		objectId,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		} else {
+			return errors.Wrapf(err, "error deleting warrants matching object %s:%s", objectType, objectId)
+		}
+	}
+
+	return nil
+}
+
+func (repo MySQLRepository) DeleteWarrantsMatchingSubject(ctx context.Context, subjectType string, subjectId string) error {
+	_, err := repo.DB.ExecContext(
+		ctx,
+		`
+			UPDATE warrant
+			SET
+				updatedAt = CURRENT_TIMESTAMP(6),
+				deletedAt = CURRENT_TIMESTAMP(6)
+			WHERE
+				subjectType = ? AND
+				subjectId = ? AND
+				deletedAt IS NULL
+		`,
+		subjectType,
+		subjectId,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		} else {
+			return errors.Wrapf(err, "error deleting warrants matching subject %s:%s", subjectType, subjectId)
+		}
+	}
+
+	return nil
+}

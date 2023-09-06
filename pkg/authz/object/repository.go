@@ -30,6 +30,8 @@ type ObjectRepository interface {
 	List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]Model, error)
 	UpdateByObjectTypeAndId(ctx context.Context, objectType string, objectId string, object Model) error
 	DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) error
+	DeleteWarrantsMatchingObject(ctx context.Context, objectType string, objectId string) error
+	DeleteWarrantsMatchingSubject(ctx context.Context, subjectType string, subjectId string) error
 }
 
 func NewRepository(db database.Database) (ObjectRepository, error) {
