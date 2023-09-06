@@ -27,44 +27,32 @@ const ResourceTypePricingTier = "pricing-tier"
 
 type PricingTierService struct {
 	service.BaseService
-	Repository PricingTierRepository
-	EventSvc   event.Service
-	ObjectSvc  *object.ObjectService
+	EventSvc  event.Service
+	ObjectSvc *object.ObjectService
 }
 
-func NewService(env service.Env, repository PricingTierRepository, eventSvc event.Service, objectSvc *object.ObjectService) *PricingTierService {
+func NewService(env service.Env, eventSvc event.Service, objectSvc *object.ObjectService) *PricingTierService {
 	return &PricingTierService{
 		BaseService: service.NewBaseService(env),
-		Repository:  repository,
 		EventSvc:    eventSvc,
 		ObjectSvc:   objectSvc,
 	}
 }
 
 func (svc PricingTierService) Create(ctx context.Context, pricingTierSpec PricingTierSpec) (*PricingTierSpec, error) {
-	var newPricingTier Model
+	var createdPricingTierSpec *PricingTierSpec
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		createdObject, err := svc.ObjectSvc.Create(txCtx, *pricingTierSpec.ToCreateObjectSpec())
+		objectSpec, err := pricingTierSpec.ToCreateObjectSpec()
 		if err != nil {
 			return err
 		}
 
-		_, err = svc.Repository.GetByPricingTierId(txCtx, pricingTierSpec.PricingTierId)
-		if err == nil {
-			return service.NewDuplicateRecordError("PricingTier", pricingTierSpec.PricingTierId, "A pricing tier with the given pricingTierId already exists")
-		}
-
-		newPricingTierId, err := svc.Repository.Create(txCtx, pricingTierSpec.ToPricingTier(createdObject.ID))
+		createdObjectSpec, err := svc.ObjectSvc.Create(txCtx, *objectSpec)
 		if err != nil {
 			return err
 		}
 
-		newPricingTier, err = svc.Repository.GetById(txCtx, newPricingTierId)
-		if err != nil {
-			return err
-		}
-
-		err = svc.EventSvc.TrackResourceCreated(txCtx, ResourceTypePricingTier, newPricingTier.GetPricingTierId(), newPricingTier.ToPricingTierSpec())
+		createdPricingTierSpec, err = NewPricingTierSpecFromObjectSpec(createdObjectSpec)
 		if err != nil {
 			return err
 		}
@@ -75,28 +63,32 @@ func (svc PricingTierService) Create(ctx context.Context, pricingTierSpec Pricin
 		return nil, err
 	}
 
-	return newPricingTier.ToPricingTierSpec(), nil
+	return createdPricingTierSpec, nil
 }
 
 func (svc PricingTierService) GetByPricingTierId(ctx context.Context, pricingTierId string) (*PricingTierSpec, error) {
-	pricingTier, err := svc.Repository.GetByPricingTierId(ctx, pricingTierId)
+	objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(ctx, objecttype.ObjectTypePricingTier, pricingTierId)
 	if err != nil {
 		return nil, err
 	}
 
-	return pricingTier.ToPricingTierSpec(), nil
+	return NewPricingTierSpecFromObjectSpec(objectSpec)
 }
 
 func (svc PricingTierService) List(ctx context.Context, listParams service.ListParams) ([]PricingTierSpec, error) {
 	pricingTierSpecs := make([]PricingTierSpec, 0)
-
-	pricingTiers, err := svc.Repository.List(ctx, listParams)
+	objectSpecs, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypePricingTier}, listParams)
 	if err != nil {
-		return pricingTierSpecs, nil
+		return pricingTierSpecs, err
 	}
 
-	for _, pricingTier := range pricingTiers {
-		pricingTierSpecs = append(pricingTierSpecs, *pricingTier.ToPricingTierSpec())
+	for i := range objectSpecs {
+		pricingTierSpec, err := NewPricingTierSpecFromObjectSpec(&objectSpecs[i])
+		if err != nil {
+			return pricingTierSpecs, err
+		}
+
+		pricingTierSpecs = append(pricingTierSpecs, *pricingTierSpec)
 	}
 
 	return pricingTierSpecs, nil
@@ -105,32 +97,18 @@ func (svc PricingTierService) List(ctx context.Context, listParams service.ListP
 func (svc PricingTierService) UpdateByPricingTierId(ctx context.Context, pricingTierId string, pricingTierSpec UpdatePricingTierSpec) (*PricingTierSpec, error) {
 	var updatedPricingTierSpec *PricingTierSpec
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		currentPricingTier, err := svc.Repository.GetByPricingTierId(txCtx, pricingTierId)
+		updatedObjectSpec, err := svc.ObjectSvc.UpdateByObjectTypeAndId(txCtx, objecttype.ObjectTypePricingTier, pricingTierId, *pricingTierSpec.ToUpdateObjectSpec())
 		if err != nil {
 			return err
 		}
 
-		currentPricingTier.SetName(pricingTierSpec.Name)
-		currentPricingTier.SetDescription(pricingTierSpec.Description)
-		err = svc.Repository.UpdateByPricingTierId(txCtx, pricingTierId, currentPricingTier)
-		if err != nil {
-			return err
-		}
-
-		updatedPricingTier, err := svc.Repository.GetByPricingTierId(txCtx, pricingTierId)
-		if err != nil {
-			return err
-		}
-
-		updatedPricingTierSpec = updatedPricingTier.ToPricingTierSpec()
-		err = svc.EventSvc.TrackResourceUpdated(txCtx, ResourceTypePricingTier, updatedPricingTier.GetPricingTierId(), updatedPricingTierSpec)
+		updatedPricingTierSpec, err = NewPricingTierSpecFromObjectSpec(updatedObjectSpec)
 		if err != nil {
 			return err
 		}
 
 		return nil
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -139,24 +117,7 @@ func (svc PricingTierService) UpdateByPricingTierId(ctx context.Context, pricing
 }
 
 func (svc PricingTierService) DeleteByPricingTierId(ctx context.Context, pricingTierId string) error {
-	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		err := svc.Repository.DeleteByPricingTierId(txCtx, pricingTierId)
-		if err != nil {
-			return err
-		}
-
-		err = svc.ObjectSvc.DeleteByObjectTypeAndId(txCtx, objecttype.ObjectTypePricingTier, pricingTierId)
-		if err != nil {
-			return err
-		}
-
-		err = svc.EventSvc.TrackResourceDeleted(txCtx, ResourceTypePricingTier, pricingTierId, nil)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+	err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypePricingTier, pricingTierId)
 	if err != nil {
 		return err
 	}

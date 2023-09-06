@@ -39,11 +39,11 @@ import (
 )
 
 const (
-	MySQLDatastoreMigrationVersion     = 000005
+	MySQLDatastoreMigrationVersion     = 000006
 	MySQLEventstoreMigrationVersion    = 000003
-	PostgresDatastoreMigrationVersion  = 000006
+	PostgresDatastoreMigrationVersion  = 000007
 	PostgresEventstoreMigrationVersion = 000004
-	SQLiteDatastoreMigrationVersion    = 000005
+	SQLiteDatastoreMigrationVersion    = 000006
 	SQLiteEventstoreMigrationVersion   = 000003
 )
 
@@ -233,47 +233,23 @@ func main() {
 	}
 	objectSvc := object.NewService(svcEnv, objectRepository, eventSvc, warrantSvc)
 
-	// Init feature repo and service
-	featureRepository, err := feature.NewRepository(svcEnv.DB())
-	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize FeatureRepository")
-	}
-	featureSvc := feature.NewService(&svcEnv, featureRepository, eventSvc, objectSvc)
+	// Init feature service
+	featureSvc := feature.NewService(&svcEnv, eventSvc, objectSvc)
 
-	// Init permission repo and service
-	permissionRepository, err := permission.NewRepository(svcEnv.DB())
-	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize RoleRepository")
-	}
-	permissionSvc := permission.NewService(&svcEnv, permissionRepository, eventSvc, objectSvc)
+	// Init permission service
+	permissionSvc := permission.NewService(&svcEnv, eventSvc, objectSvc)
 
-	// Init pricing tier repo and service
-	pricingTierRepository, err := pricingtier.NewRepository(svcEnv.DB())
-	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize PricingTierRepository")
-	}
-	pricingTierSvc := pricingtier.NewService(&svcEnv, pricingTierRepository, eventSvc, objectSvc)
+	// Init pricing tier service
+	pricingTierSvc := pricingtier.NewService(&svcEnv, eventSvc, objectSvc)
 
-	// Init role repo and service
-	roleRepository, err := role.NewRepository(svcEnv.DB())
-	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize RoleRepository")
-	}
-	roleSvc := role.NewService(&svcEnv, roleRepository, eventSvc, objectSvc)
+	// Init role service
+	roleSvc := role.NewService(&svcEnv, eventSvc, objectSvc)
 
-	// Init tenant repo and service
-	tenantRepository, err := tenant.NewRepository(svcEnv.DB())
-	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize TenantRepository")
-	}
-	tenantSvc := tenant.NewService(&svcEnv, tenantRepository, eventSvc, objectSvc)
+	// Init tenant service
+	tenantSvc := tenant.NewService(&svcEnv, eventSvc, objectSvc)
 
-	// Init user repo and service
-	userRepository, err := user.NewRepository(svcEnv.DB())
-	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize UserRepository")
-	}
-	userSvc := user.NewService(&svcEnv, userRepository, eventSvc, objectSvc)
+	// Init user service
+	userSvc := user.NewService(&svcEnv, eventSvc, objectSvc)
 
 	svcs := []service.Service{
 		checkSvc,

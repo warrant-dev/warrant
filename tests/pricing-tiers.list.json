@@ -29,7 +29,8 @@
                 "url": "/v1/pricing-tiers",
                 "body": {
                     "pricingTierId": "pricing-tier-2",
-                    "name": ""
+                    "name": "",
+                    "description": "This is pricing-tier-2."
                 }
             },
             "expectedResponse": {
@@ -37,7 +38,7 @@
                 "body": {
                     "pricingTierId": "pricing-tier-2",
                     "name": "",
-                    "description": null
+                    "description": "This is pricing-tier-2."
                 }
             }
         },
@@ -116,6 +117,57 @@
             }
         },
         {
+            "name": "filterPricingTierOnPricingTierId",
+            "request": {
+                "method": "GET",
+                "url": "/v1/pricing-tiers?q=6"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "pricingTierId": "pricing-tier-6",
+                        "name": null,
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "filterPricingTierOnName",
+            "request": {
+                "method": "GET",
+                "url": "/v1/pricing-tiers?q=Pricing%20Tier%20C"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "pricingTierId": "pricing-tier-4",
+                        "name": "Pricing Tier C",
+                        "description": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "filterPricingTierOnDescription",
+            "request": {
+                "method": "GET",
+                "url": "/v1/pricing-tiers?q=This"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "pricingTierId": "pricing-tier-2",
+                        "name": "",
+                        "description": "This is pricing-tier-2."
+                    }
+                ]
+            }
+        },
+        {
             "name": "sortByCreatedAtDESC",
             "request": {
                 "method": "GET",
@@ -147,7 +199,7 @@
                     {
                         "pricingTierId": "pricing-tier-2",
                         "name": "",
-                        "description": null
+                        "description": "This is pricing-tier-2."
                     },
                     {
                         "pricingTierId": "pricing-tier-1",
@@ -201,7 +253,7 @@
                     {
                         "pricingTierId": "pricing-tier-2",
                         "name": "",
-                        "description": null
+                        "description": "This is pricing-tier-2."
                     },
                     {
                         "pricingTierId": "pricing-tier-3",
@@ -243,7 +295,7 @@
                     {
                         "pricingTierId": "pricing-tier-2",
                         "name": "",
-                        "description": null
+                        "description": "This is pricing-tier-2."
                     }
                 ]
             }
@@ -275,7 +327,7 @@
                     {
                         "pricingTierId": "pricing-tier-2",
                         "name": "",
-                        "description": null
+                        "description": "This is pricing-tier-2."
                     },
                     {
                         "pricingTierId": "pricing-tier-6",
@@ -380,7 +432,7 @@
                     {
                         "pricingTierId": "pricing-tier-2",
                         "name": "",
-                        "description": null
+                        "description": "This is pricing-tier-2."
                     },
                     {
                         "pricingTierId": "pricing-tier-6",
@@ -456,7 +508,7 @@
                     {
                         "pricingTierId": "pricing-tier-2",
                         "name": "",
-                        "description": null
+                        "description": "This is pricing-tier-2."
                     },
                     {
                         "pricingTierId": "pricing-tier-5",
@@ -549,7 +601,7 @@
                     {
                         "pricingTierId": "pricing-tier-2",
                         "name": "",
-                        "description": null
+                        "description": "This is pricing-tier-2."
                     }
                 ]
             }
@@ -632,7 +684,7 @@
                     {
                         "pricingTierId": "pricing-tier-2",
                         "name": "",
-                        "description": null
+                        "description": "This is pricing-tier-2."
                     }
                 ]
             }

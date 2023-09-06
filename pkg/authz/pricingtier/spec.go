@@ -15,6 +15,7 @@
 package authz
 
 import (
+	"errors"
 	"time"
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
@@ -28,23 +29,77 @@ type PricingTierSpec struct {
 	CreatedAt     time.Time `json:"createdAt"`
 }
 
-func (spec PricingTierSpec) ToPricingTier(objectId int64) Model {
-	return &PricingTier{
-		ObjectId:      objectId,
-		PricingTierId: spec.PricingTierId,
-		Name:          spec.Name,
-		Description:   spec.Description,
+func NewPricingTierSpecFromObjectSpec(objectSpec *object.ObjectSpec) (*PricingTierSpec, error) {
+	var (
+		name        *string
+		description *string
+	)
+
+	if objectSpec.Meta != nil {
+		if _, exists := objectSpec.Meta["name"]; exists {
+			nameStr, ok := objectSpec.Meta["name"].(string)
+			if !ok {
+				return nil, errors.New("pricing-tier name has invalid type in object meta")
+			}
+			name = &nameStr
+		}
+
+		if _, exists := objectSpec.Meta["description"]; exists {
+			descriptionStr, ok := objectSpec.Meta["description"].(string)
+			if !ok {
+				return nil, errors.New("pricing-tier description has invalid type in object meta")
+			}
+			description = &descriptionStr
+		}
 	}
+
+	return &PricingTierSpec{
+		PricingTierId: objectSpec.ObjectId,
+		Name:          name,
+		Description:   description,
+		CreatedAt:     objectSpec.CreatedAt,
+	}, nil
 }
 
-func (spec PricingTierSpec) ToCreateObjectSpec() *object.CreateObjectSpec {
-	return &object.CreateObjectSpec{
+func (spec PricingTierSpec) ToCreateObjectSpec() (*object.CreateObjectSpec, error) {
+	createObjectSpec := object.CreateObjectSpec{
 		ObjectType: objecttype.ObjectTypePricingTier,
 		ObjectId:   spec.PricingTierId,
 	}
+
+	meta := make(map[string]interface{})
+	if spec.Name != nil {
+		meta["name"] = spec.Name
+	}
+
+	if spec.Description != nil {
+		meta["description"] = spec.Description
+	}
+
+	if len(meta) > 0 {
+		createObjectSpec.Meta = meta
+	}
+
+	return &createObjectSpec, nil
 }
 
 type UpdatePricingTierSpec struct {
 	Name        *string `json:"name"`
 	Description *string `json:"description"`
+}
+
+func (updateSpec UpdatePricingTierSpec) ToUpdateObjectSpec() *object.UpdateObjectSpec {
+	meta := make(map[string]interface{})
+
+	if updateSpec.Name != nil {
+		meta["name"] = updateSpec.Name
+	}
+
+	if updateSpec.Description != nil {
+		meta["description"] = updateSpec.Description
+	}
+
+	return &object.UpdateObjectSpec{
+		Meta: meta,
+	}
 }

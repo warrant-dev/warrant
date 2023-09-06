@@ -215,10 +215,10 @@
             "expectedResponse": {
                 "statusCode": 400,
                 "body": {
-                    "type": "User",
-                    "key": "5555555555555",
+                    "type": "Object",
+                    "key": "user:5555555555555",
                     "code": "duplicate_record",
-                    "message": "Duplicate User 5555555555555, A user with the given userId already exists"
+                    "message": "Duplicate Object user:5555555555555, An object with the given objectType and objectId already exists"
                 }
             }
         },

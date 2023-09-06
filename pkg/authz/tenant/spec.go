@@ -15,6 +15,7 @@
 package tenant
 
 import (
+	"errors"
 	"time"
 
 	object "github.com/warrant-dev/warrant/pkg/authz/object"
@@ -27,21 +28,56 @@ type TenantSpec struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-func (spec TenantSpec) ToTenant(objectId int64) *Tenant {
-	return &Tenant{
-		ObjectId: objectId,
-		TenantId: spec.TenantId,
-		Name:     spec.Name,
+func NewTenantSpecFromObjectSpec(objectSpec *object.ObjectSpec) (*TenantSpec, error) {
+	var name *string
+
+	if objectSpec.Meta != nil {
+		if _, exists := objectSpec.Meta["name"]; exists {
+			nameStr, ok := objectSpec.Meta["name"].(string)
+			if !ok {
+				return nil, errors.New("tenant name has invalid type in object meta")
+			}
+			name = &nameStr
+		}
 	}
+
+	return &TenantSpec{
+		TenantId:  objectSpec.ObjectId,
+		Name:      name,
+		CreatedAt: objectSpec.CreatedAt,
+	}, nil
 }
 
-func (spec TenantSpec) ToCreateObjectSpec() *object.CreateObjectSpec {
-	return &object.CreateObjectSpec{
+func (spec TenantSpec) ToCreateObjectSpec() (*object.CreateObjectSpec, error) {
+	createObjectSpec := object.CreateObjectSpec{
 		ObjectType: objecttype.ObjectTypeTenant,
 		ObjectId:   spec.TenantId,
 	}
+
+	meta := make(map[string]interface{})
+	if spec.Name != nil {
+		meta["name"] = spec.Name
+	}
+
+	if len(meta) > 0 {
+		createObjectSpec.Meta = meta
+	}
+
+	return &createObjectSpec, nil
 }
 
 type UpdateTenantSpec struct {
 	Name *string `json:"name"`
+}
+
+func (updateSpec UpdateTenantSpec) ToUpdateObjectSpec() *object.UpdateObjectSpec {
+	meta := make(map[string]interface{})
+
+	if updateSpec.Name != nil {
+		meta["name"] = updateSpec.Name
+	}
+
+	return &object.UpdateObjectSpec{
+		Meta: meta,
+	}
 }

@@ -19,12 +19,10 @@ import (
 	"time"
 )
 
-const DefaultSortBy = "permissionId"
-
 type PermissionListParamParser struct{}
 
 func (parser PermissionListParamParser) GetDefaultSortBy() string {
-	return DefaultSortBy
+	return "permissionId"
 }
 
 func (parser PermissionListParamParser) GetSupportedSortBys() []string {

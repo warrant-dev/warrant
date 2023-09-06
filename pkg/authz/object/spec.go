@@ -14,7 +14,12 @@
 
 package authz
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+
+	"github.com/warrant-dev/warrant/pkg/service"
+)
 
 type FilterOptions struct {
 	ObjectType string
@@ -23,28 +28,58 @@ type FilterOptions struct {
 type ObjectSpec struct {
 	// NOTE: ID is required here for internal use.
 	// However, we don't return it to the client.
-	ID         int64     `json:"-"`
-	ObjectType string    `json:"objectType" validate:"required,valid_object_type"`
-	ObjectId   string    `json:"objectId"   validate:"required,valid_object_id"`
-	CreatedAt  time.Time `json:"createdAt"`
+	ID         int64                  `json:"-"`
+	ObjectType string                 `json:"objectType"     validate:"required,valid_object_type"`
+	ObjectId   string                 `json:"objectId"       validate:"required,valid_object_id"`
+	Meta       map[string]interface{} `json:"meta,omitempty"`
+	CreatedAt  time.Time              `json:"createdAt"`
 }
 
-func (spec ObjectSpec) ToObject() *Object {
+func (spec ObjectSpec) ToObject() (*Object, error) {
+	var meta *string
+	if spec.Meta != nil {
+		m, err := json.Marshal(spec.Meta)
+		if err != nil {
+			return nil, service.NewInvalidParameterError("meta", "invalid request body")
+		}
+
+		metaStr := string(m)
+		meta = &metaStr
+	}
+
 	return &Object{
 		ObjectType: spec.ObjectType,
 		ObjectId:   spec.ObjectId,
+		Meta:       meta,
 		CreatedAt:  spec.CreatedAt,
-	}
+	}, nil
 }
 
 type CreateObjectSpec struct {
-	ObjectType string `json:"objectType" validate:"required"`
-	ObjectId   string `json:"objectId"   validate:"omitempty,valid_object_id"`
+	ObjectType string                 `json:"objectType" validate:"required"`
+	ObjectId   string                 `json:"objectId"   validate:"omitempty,valid_object_id"`
+	Meta       map[string]interface{} `json:"meta"`
 }
 
-func (spec CreateObjectSpec) ToObject() *Object {
+func (spec CreateObjectSpec) ToObject() (*Object, error) {
+	var meta *string
+	if spec.Meta != nil {
+		m, err := json.Marshal(spec.Meta)
+		if err != nil {
+			return nil, service.NewInvalidParameterError("meta", "invalid format")
+		}
+
+		metaStr := string(m)
+		meta = &metaStr
+	}
+
 	return &Object{
 		ObjectType: spec.ObjectType,
 		ObjectId:   spec.ObjectId,
-	}
+		Meta:       meta,
+	}, nil
+}
+
+type UpdateObjectSpec struct {
+	Meta map[string]interface{} `json:"meta"`
 }

@@ -51,19 +51,34 @@ func (svc ObjectService) Create(ctx context.Context, objectSpec CreateObjectSpec
 		objectSpec.ObjectId = generatedUUID.String()
 	}
 
-	var newObject Model
+	var createdObject Model
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		_, err := svc.Repository.GetByObjectTypeAndId(txCtx, objectSpec.ObjectType, objectSpec.ObjectId)
 		if err == nil {
 			return service.NewDuplicateRecordError("Object", fmt.Sprintf("%s:%s", objectSpec.ObjectType, objectSpec.ObjectId), "An object with the given objectType and objectId already exists")
 		}
 
-		newObjectId, err := svc.Repository.Create(txCtx, *objectSpec.ToObject())
+		newObject, err := objectSpec.ToObject()
 		if err != nil {
 			return err
 		}
 
-		newObject, err = svc.Repository.GetById(txCtx, newObjectId)
+		newObjectId, err := svc.Repository.Create(txCtx, newObject)
+		if err != nil {
+			return err
+		}
+
+		createdObject, err = svc.Repository.GetById(txCtx, newObjectId)
+		if err != nil {
+			return err
+		}
+
+		createdObjectSpec, err := createdObject.ToObjectSpec()
+		if err != nil {
+			return err
+		}
+
+		err = svc.EventSvc.TrackResourceCreated(txCtx, createdObject.GetObjectType(), createdObject.GetObjectId(), createdObjectSpec.Meta)
 		if err != nil {
 			return err
 		}
@@ -75,17 +90,98 @@ func (svc ObjectService) Create(ctx context.Context, objectSpec CreateObjectSpec
 		return nil, err
 	}
 
-	return newObject.ToObjectSpec(), nil
+	return createdObject.ToObjectSpec()
+}
+
+func (svc ObjectService) GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (*ObjectSpec, error) {
+	object, err := svc.Repository.GetByObjectTypeAndId(ctx, objectType, objectId)
+	if err != nil {
+		return nil, err
+	}
+
+	return object.ToObjectSpec()
+}
+
+func (svc ObjectService) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]ObjectSpec, error) {
+	objectSpecs := make([]ObjectSpec, 0)
+	objects, err := svc.Repository.List(ctx, filterOptions, listParams)
+	if err != nil {
+		return objectSpecs, err
+	}
+
+	for _, object := range objects {
+		objectSpec, err := object.ToObjectSpec()
+		if err != nil {
+			return objectSpecs, err
+		}
+
+		objectSpecs = append(objectSpecs, *objectSpec)
+	}
+
+	return objectSpecs, nil
+}
+
+func (svc ObjectService) UpdateByObjectTypeAndId(ctx context.Context, objectType string, objectId string, updateSpec UpdateObjectSpec) (*ObjectSpec, error) {
+	var updatedObjectSpec *ObjectSpec
+	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+		currentObject, err := svc.Repository.GetByObjectTypeAndId(txCtx, objectType, objectId)
+		if err != nil {
+			return err
+		}
+
+		err = currentObject.SetMeta(updateSpec.Meta)
+		if err != nil {
+			return err
+		}
+
+		err = svc.Repository.UpdateByObjectTypeAndId(txCtx, objectType, objectId, currentObject)
+		if err != nil {
+			return err
+		}
+
+		updatedObject, err := svc.Repository.GetByObjectTypeAndId(txCtx, objectType, objectId)
+		if err != nil {
+			return err
+		}
+
+		err = svc.EventSvc.TrackResourceUpdated(txCtx, objectType, objectId, updateSpec.Meta)
+		if err != nil {
+			return err
+		}
+
+		updatedObjectSpec, err = updatedObject.ToObjectSpec()
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedObjectSpec, nil
 }
 
 func (svc ObjectService) DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) error {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		err := svc.Repository.DeleteByObjectTypeAndId(txCtx, objectType, objectId)
+		objectSpec, err := svc.GetByObjectTypeAndId(txCtx, objectType, objectId)
+		if err != nil {
+			return err
+		}
+
+		err = svc.Repository.DeleteByObjectTypeAndId(txCtx, objectType, objectId)
 		if err != nil {
 			return err
 		}
 
 		err = svc.WarrantSvc.DeleteRelatedWarrants(txCtx, objectType, objectId)
+		if err != nil {
+			return err
+		}
+
+		err = svc.EventSvc.TrackResourceDeleted(txCtx, objectType, objectId, objectSpec.Meta)
 		if err != nil {
 			return err
 		}
@@ -97,27 +193,4 @@ func (svc ObjectService) DeleteByObjectTypeAndId(ctx context.Context, objectType
 		return err
 	}
 	return nil
-}
-
-func (svc ObjectService) GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (*ObjectSpec, error) {
-	object, err := svc.Repository.GetByObjectTypeAndId(ctx, objectType, objectId)
-	if err != nil {
-		return nil, err
-	}
-
-	return object.ToObjectSpec(), nil
-}
-
-func (svc ObjectService) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]ObjectSpec, error) {
-	objectSpecs := make([]ObjectSpec, 0)
-	objects, err := svc.Repository.List(ctx, filterOptions, listParams)
-	if err != nil {
-		return objectSpecs, err
-	}
-
-	for _, object := range objects {
-		objectSpecs = append(objectSpecs, *object.ToObjectSpec())
-	}
-
-	return objectSpecs, nil
 }
