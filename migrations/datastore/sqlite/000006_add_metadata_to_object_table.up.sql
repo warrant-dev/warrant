@@ -30,6 +30,15 @@ WHERE
     role.description IS NULL;
 
 UPDATE object
+SET meta = JSON('{"desciption":"' || role.desciption || '"}')
+FROM role
+WHERE
+    object.objectId = role.roleId AND
+    object.objectType = "role" AND
+    role.name IS NULL AND
+    role.description IS NOT NULL;
+
+UPDATE object
 SET meta = JSON('{"name":"' || role.name || '", "description":"' || role.description || '"}')
 FROM role
 WHERE
@@ -47,6 +56,15 @@ WHERE
     object.objectType = "permission" AND
     permission.name IS NOT NULL AND
     permission.description IS NULL;
+
+UPDATE object
+SET meta = JSON('{"description":"' || permission.description || '"}')
+FROM permission
+WHERE
+    object.objectId = permission.permissionId AND
+    object.objectType = "permission" AND
+    permission.name IS NULL AND
+    permission.description IS NOT NULL;
 
 UPDATE object
 SET meta = JSON('{"name":"' || permission.name || '", "description":"' || permission.description || '"}')
@@ -68,6 +86,15 @@ WHERE
     pricingTier.description IS NULL;
 
 UPDATE object
+SET meta = JSON('{"description":"' || pricingTier.description || '"}')
+FROM pricingTier
+WHERE
+    object.objectId = pricingTier.pricingTierId AND
+    object.objectType = "pricingTier" AND
+    pricingTier.name IS NULL AND
+    pricingTier.description IS NOT NULL;
+
+UPDATE object
 SET meta = JSON('{"name":"' || pricingTier.name || '", "description":"' || pricingTier.description || '"}')
 FROM pricingTier
 WHERE
@@ -85,6 +112,15 @@ WHERE
     object.objectType = "feature" AND
     feature.name IS NOT NULL AND
     feature.description IS NULL;
+
+UPDATE object
+SET meta = JSON('{"description":"' || feature.description || '"}')
+FROM feature
+WHERE
+    object.objectId = feature.featureId AND
+    object.objectType = "feature" AND
+    feature.name IS NULL AND
+    feature.description IS NOT NULL;
 
 UPDATE object
 SET meta = JSON('{"name":"' || feature.name || '", "description":"' || feature.description || '"}')
