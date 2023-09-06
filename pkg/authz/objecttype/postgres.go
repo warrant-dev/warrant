@@ -355,3 +355,53 @@ func (repo PostgresRepository) DeleteByTypeId(ctx context.Context, typeId string
 
 	return nil
 }
+
+func (repo PostgresRepository) DeleteWarrantsMatchingObjectType(ctx context.Context, objectType string) error {
+	_, err := repo.DB.ExecContext(
+		ctx,
+		`
+			UPDATE warrant
+			SET
+				updated_at = CURRENT_TIMESTAMP(6),
+				deleted_at = CURRENT_TIMESTAMP(6)
+			WHERE
+				object_type = ? AND
+				deleted_at IS NULL
+		`,
+		objectType,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		} else {
+			return errors.Wrapf(err, "error deleting warrants matching object type %s", objectType)
+		}
+	}
+
+	return nil
+}
+
+func (repo PostgresRepository) DeleteWarrantsMatchingSubjectType(ctx context.Context, subjectType string) error {
+	_, err := repo.DB.ExecContext(
+		ctx,
+		`
+			UPDATE warrant
+			SET
+				updated_at = CURRENT_TIMESTAMP(6),
+				deleted_at = CURRENT_TIMESTAMP(6)
+			WHERE
+				subject_type = ? AND
+				deleted_at IS NULL
+		`,
+		subjectType,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		} else {
+			return errors.Wrapf(err, "error deleting warrants matching subject type %s", subjectType)
+		}
+	}
+
+	return nil
+}

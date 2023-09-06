@@ -228,7 +228,7 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize WarrantRepository")
 	}
-	warrantSvc := warrant.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc)
+	warrantSvc := warrant.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, objectSvc)
 
 	// Init check service
 	checkSvc := check.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, cfg.Check, nil)

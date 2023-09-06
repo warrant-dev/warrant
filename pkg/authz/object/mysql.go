@@ -324,7 +324,7 @@ func (repo MySQLRepository) DeleteByObjectTypeAndId(ctx context.Context, objectT
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return service.NewRecordNotFoundError("Object", fmt.Sprintf("%s:%s", objectType, objectId))
+			return nil
 		} else {
 			return errors.Wrapf(err, "error deleting object %s:%s", objectType, objectId)
 		}
