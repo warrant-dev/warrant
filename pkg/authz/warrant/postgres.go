@@ -19,7 +19,6 @@ import (
 	"database/sql"
 	"fmt"
 	"regexp"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -57,6 +56,7 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 			) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 			ON CONFLICT (object_type, object_id, relation, subject_type, subject_id, subject_relation, policy_hash) DO UPDATE SET
 				created_at = CURRENT_TIMESTAMP(6),
+				updated_at = CURRENT_TIMESTAMP(6),
 				deleted_at = NULL
 			RETURNING id
 		`,
@@ -80,12 +80,13 @@ func (repo PostgresRepository) DeleteById(ctx context.Context, ids []int64) erro
 	query, args, err := sqlx.In(
 		`
 			UPDATE warrant
-			SET deleted_at = ?
+			SET
+				updated_at = CURRENT_TIMESTAMP(6),
+				deleted_at = CURRENT_TIMESTAMP(6)
 			WHERE
 				id IN (?) AND
 				deleted_at IS NULL
 		`,
-		time.Now().UTC(),
 		ids,
 	)
 	if err != nil {
@@ -114,7 +115,8 @@ func (repo PostgresRepository) Delete(ctx context.Context, objectType string, ob
 		`
 			UPDATE warrant
 			SET
-				deleted_at = ?
+				updated_at = CURRENT_TIMESTAMP(6),
+				deleted_at = CURRENT_TIMESTAMP(6)
 			WHERE
 				object_type = ? AND
 				object_id = ? AND
@@ -125,7 +127,6 @@ func (repo PostgresRepository) Delete(ctx context.Context, objectType string, ob
 				policy_hash = ? AND
 				deleted_at IS NULL
 		`,
-		time.Now().UTC(),
 		objectType,
 		objectId,
 		relation,

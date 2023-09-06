@@ -52,6 +52,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 			ON CONFLICT (objectType, objectId) DO UPDATE SET
 				meta = ?,
 				createdAt = ?,
+				updatedAt = ?,
 				deletedAt = NULL
 			RETURNING id
 		`,
@@ -61,6 +62,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 		now,
 		now,
 		model.GetMeta(),
+		now,
 		now,
 	)
 	if err != nil {
@@ -85,10 +87,9 @@ func (repo SQLiteRepository) GetById(ctx context.Context, id int64) (Model, erro
 		id,
 	)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, service.NewRecordNotFoundError("Object", id)
-		default:
+		} else {
 			return nil, errors.Wrapf(err, "error getting object %d", id)
 		}
 	}
@@ -113,10 +114,9 @@ func (repo SQLiteRepository) GetByObjectTypeAndId(ctx context.Context, objectTyp
 		objectId,
 	)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, service.NewRecordNotFoundError(objectType, objectId)
-		default:
+		} else {
 			return nil, errors.Wrapf(err, "error getting object %s:%s", objectType, objectId)
 		}
 	}
@@ -274,10 +274,9 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 		replacements...,
 	)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		if errors.Is(err, sql.ErrNoRows) {
 			return models, nil
-		default:
+		} else {
 			return models, errors.Wrap(err, "error listing objects")
 		}
 	}
@@ -290,6 +289,7 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 }
 
 func (repo SQLiteRepository) UpdateByObjectTypeAndId(ctx context.Context, objectType string, objectId string, model Model) error {
+	now := time.Now().UTC()
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -303,7 +303,7 @@ func (repo SQLiteRepository) UpdateByObjectTypeAndId(ctx context.Context, object
 				deletedAt IS NULL
 		`,
 		model.GetMeta(),
-		time.Now().UTC(),
+		now,
 		objectType,
 		objectId,
 	)
@@ -315,26 +315,28 @@ func (repo SQLiteRepository) UpdateByObjectTypeAndId(ctx context.Context, object
 }
 
 func (repo SQLiteRepository) DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) error {
+	now := time.Now().UTC()
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE object
 			SET
+				updatedAt = ?,
 				deletedAt = ?
 			WHERE
 				objectType = ? AND
 				objectId = ? AND
 				deletedAt IS NULL
 		`,
-		time.Now().UTC(),
+		now,
+		now,
 		objectType,
 		objectId,
 	)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return service.NewRecordNotFoundError("Object", fmt.Sprintf("%s:%s", objectType, objectId))
-		default:
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil
+		} else {
 			return errors.Wrapf(err, "error deleting object %s:%s", objectType, objectId)
 		}
 	}

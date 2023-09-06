@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
@@ -47,6 +46,7 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 			ON DUPLICATE KEY UPDATE
 				meta = ?,
 				createdAt = CURRENT_TIMESTAMP(6),
+				updatedAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
 		model.GetObjectType(),
@@ -81,10 +81,9 @@ func (repo MySQLRepository) GetById(ctx context.Context, id int64) (Model, error
 		id,
 	)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, service.NewRecordNotFoundError("Object", id)
-		default:
+		} else {
 			return nil, errors.Wrapf(err, "error getting object %d", id)
 		}
 	}
@@ -109,10 +108,9 @@ func (repo MySQLRepository) GetByObjectTypeAndId(ctx context.Context, objectType
 		objectId,
 	)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		if errors.Is(err, sql.ErrNoRows) {
 			return nil, service.NewRecordNotFoundError(objectType, objectId)
-		default:
+		} else {
 			return nil, errors.Wrapf(err, "error getting object %s:%s", objectType, objectId)
 		}
 	}
@@ -270,10 +268,9 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 		replacements...,
 	)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		if errors.Is(err, sql.ErrNoRows) {
 			return models, nil
-		default:
+		} else {
 			return models, errors.Wrap(err, "error listing objects")
 		}
 	}
@@ -291,7 +288,8 @@ func (repo MySQLRepository) UpdateByObjectTypeAndId(ctx context.Context, objectT
 		`
 			UPDATE object
 			SET
-				meta = ?
+				meta = ?,
+				updatedAt = CURRENT_TIMESTAMP(6)
 			WHERE
 				objectType = ? AND
 				objectId = ? AND
@@ -314,21 +312,20 @@ func (repo MySQLRepository) DeleteByObjectTypeAndId(ctx context.Context, objectT
 		`
 			UPDATE object
 			SET
-				deletedAt = ?
+				updatedAt = CURRENT_TIMESTAMP(6),
+				deletedAt = CURRENT_TIMESTAMP(6)
 			WHERE
 				objectType = ? AND
 				objectId = ? AND
 				deletedAt IS NULL
 		`,
-		time.Now().UTC(),
 		objectType,
 		objectId,
 	)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		if errors.Is(err, sql.ErrNoRows) {
 			return service.NewRecordNotFoundError("Object", fmt.Sprintf("%s:%s", objectType, objectId))
-		default:
+		} else {
 			return errors.Wrapf(err, "error deleting object %s:%s", objectType, objectId)
 		}
 	}

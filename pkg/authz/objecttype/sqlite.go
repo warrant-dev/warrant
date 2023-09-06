@@ -51,6 +51,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 			ON CONFLICT (typeId) DO UPDATE SET
 				definition = ?,
 				createdAt = ?,
+				updatedAt = ?,
 				deletedAt = NULL
 			RETURNING id
 		`,
@@ -59,6 +60,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 		now,
 		now,
 		model.GetDefinition(),
+		now,
 		now,
 	)
 	if err != nil {
@@ -301,6 +303,7 @@ func (repo SQLiteRepository) List(ctx context.Context, listParams service.ListPa
 }
 
 func (repo SQLiteRepository) UpdateByTypeId(ctx context.Context, typeId string, model Model) error {
+	now := time.Now().UTC()
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -313,7 +316,7 @@ func (repo SQLiteRepository) UpdateByTypeId(ctx context.Context, typeId string, 
 				deletedAt IS NULL
 		`,
 		model.GetDefinition(),
-		time.Now().UTC(),
+		now,
 		typeId,
 	)
 	if err != nil {
@@ -324,17 +327,20 @@ func (repo SQLiteRepository) UpdateByTypeId(ctx context.Context, typeId string, 
 }
 
 func (repo SQLiteRepository) DeleteByTypeId(ctx context.Context, typeId string) error {
+	now := time.Now().UTC()
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE objectType
 			SET
+				updatedAt = ?,
 				deletedAt = ?
 			WHERE
 				typeId = ? AND
 				deletedAt IS NULL
 		`,
-		time.Now().UTC(),
+		now,
+		now,
 		typeId,
 	)
 	if err != nil {
