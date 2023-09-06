@@ -132,7 +132,7 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 	replacements := []interface{}{}
 
 	var sortByColumn string
-	if isObjectSortBy(listParams.SortBy) {
+	if IsObjectSortBy(listParams.SortBy) {
 		sortByColumn = listParams.SortBy
 	} else {
 		sortByColumn = fmt.Sprintf("meta->>'$.%s'", listParams.SortBy)

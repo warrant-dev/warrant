@@ -134,7 +134,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 	objectIdColumn := sortRegexp.ReplaceAllString("objectId", `_$1`)
 
 	var sortByColumn string
-	if isObjectSortBy(listParams.SortBy) {
+	if IsObjectSortBy(listParams.SortBy) {
 		sortByColumn = sortRegexp.ReplaceAllString(listParams.SortBy, `_$1`)
 	} else {
 		sortByColumn = fmt.Sprintf("meta->>'%s'", sortRegexp.ReplaceAllString(listParams.SortBy, `_$1`))

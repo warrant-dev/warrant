@@ -51,7 +51,7 @@ func (parser ObjectListParamParser) ParseValue(val string, sortBy string) (inter
 	}
 }
 
-func isObjectSortBy(sortBy string) bool {
+func IsObjectSortBy(sortBy string) bool {
 	for _, supportedSortBy := range supportedSortBys {
 		if sortBy == supportedSortBy {
 			return true

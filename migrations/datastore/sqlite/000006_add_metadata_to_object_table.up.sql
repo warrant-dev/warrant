@@ -30,7 +30,7 @@ WHERE
     role.description IS NULL;
 
 UPDATE object
-SET meta = JSON('{"desciption":"' || role.desciption || '"}')
+SET meta = JSON('{"description":"' || role.description || '"}')
 FROM role
 WHERE
     object.objectId = role.roleId AND
