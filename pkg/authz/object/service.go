@@ -20,7 +20,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -29,15 +28,13 @@ type ObjectService struct {
 	service.BaseService
 	Repository ObjectRepository
 	EventSvc   event.Service
-	WarrantSvc *warrant.WarrantService
 }
 
-func NewService(env service.Env, repository ObjectRepository, eventSvc event.Service, warrantSvc *warrant.WarrantService) *ObjectService {
+func NewService(env service.Env, repository ObjectRepository, eventSvc event.Service) *ObjectService {
 	return &ObjectService{
 		BaseService: service.NewBaseService(env),
 		Repository:  repository,
 		EventSvc:    eventSvc,
-		WarrantSvc:  warrantSvc,
 	}
 }
 
@@ -176,7 +173,14 @@ func (svc ObjectService) DeleteByObjectTypeAndId(ctx context.Context, objectType
 			return err
 		}
 
-		err = svc.WarrantSvc.DeleteRelatedWarrants(txCtx, objectType, objectId)
+		// Delete existing warrants where this object is the object
+		err = svc.Repository.DeleteWarrantsMatchingObject(txCtx, objectType, objectId)
+		if err != nil {
+			return err
+		}
+
+		// Delete existing warrants where this object is the subject
+		err = svc.Repository.DeleteWarrantsMatchingSubject(txCtx, objectType, objectId)
 		if err != nil {
 			return err
 		}

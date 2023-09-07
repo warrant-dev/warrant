@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
@@ -46,6 +45,7 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 			ON DUPLICATE KEY UPDATE
 				definition = ?,
 				createdAt = CURRENT_TIMESTAMP(6),
+				updatedAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
 		model.GetTypeId(),
@@ -302,7 +302,8 @@ func (repo MySQLRepository) UpdateByTypeId(ctx context.Context, typeId string, m
 		`
 			UPDATE objectType
 			SET
-				definition = ?
+				definition = ?,
+				updatedAt = CURRENT_TIMESTAMP(6)
 			WHERE
 				typeId = ? AND
 				deletedAt IS NULL
@@ -323,12 +324,12 @@ func (repo MySQLRepository) DeleteByTypeId(ctx context.Context, typeId string) e
 		`
 			UPDATE objectType
 			SET
-				deletedAt = ?
+				updatedAt = CURRENT_TIMESTAMP(6),
+				deletedAt = CURRENT_TIMESTAMP(6)
 			WHERE
 				typeId = ? AND
 				deletedAt IS NULL
 		`,
-		time.Now().UTC(),
 		typeId,
 	)
 	if err != nil {

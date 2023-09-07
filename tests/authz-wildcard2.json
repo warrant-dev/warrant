@@ -746,6 +746,146 @@
             }
         },
         {
+            "name": "deleteDepartmentA1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/department/dept-A1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteDepartmentB1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/department/dept-B1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteDivisionA1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/division/div-A1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteDivisionB1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/division/div-B1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserDeptManagerA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/dept-manager-A"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserDeptManagerB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/dept-manager-B"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteOrganizationA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/organization/org-A"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteOrganizationB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/organization/org-B"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserDivManagerA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/div-manager-A"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserDivManagerB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/div-manager-B"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserAdminA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/admin-A"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserAdminB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/admin-B"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteScheduleA1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/schedule/schedule-A1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserExternalUser1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/external-user-1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
             "name": "deleteObjectTypeSchedule",
             "request": {
                 "method": "DELETE",

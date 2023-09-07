@@ -19,7 +19,6 @@ import (
 	"database/sql"
 	"fmt"
 	"regexp"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
@@ -51,6 +50,7 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 			ON CONFLICT (type_id) DO UPDATE SET
 				definition = ?,
 				created_at = CURRENT_TIMESTAMP(6),
+				updated_at = CURRENT_TIMESTAMP(6),
 				deleted_at = NULL
 			RETURNING id
 		`,
@@ -312,7 +312,8 @@ func (repo PostgresRepository) UpdateByTypeId(ctx context.Context, typeId string
 		`
 			UPDATE object_type
 			SET
-				definition = ?
+				definition = ?,
+				updated_at = CURRENT_TIMESTAMP(6)
 			WHERE
 				type_id = ? AND
 				deleted_at IS NULL
@@ -333,12 +334,12 @@ func (repo PostgresRepository) DeleteByTypeId(ctx context.Context, typeId string
 		`
 			UPDATE object_type
 			SET
-				deleted_at = ?
+				updated_at = CURRENT_TIMESTAMP(6),
+				deleted_at = CURRENT_TIMESTAMP(6)
 			WHERE
 				type_id = ? AND
 				deleted_at IS NULL
 		`,
-		time.Now().UTC(),
 		typeId,
 	)
 	if err != nil {

@@ -1496,6 +1496,126 @@
             }
         },
         {
+            "name": "deleteReportA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/report/report-a"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteRoleAdminA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/roles/admin-a"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteRoleStandardA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/roles/standard-a"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteReportB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/report/report-b"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteRoleAdminB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/roles/admin-b"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteRoleStandardB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/roles/standard-b"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/user-a"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/user-b"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserC",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/user-c"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserD",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/user-d"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserE",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/user-e"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserF",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/user-f"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
             "name": "deleteObjectTypeReport",
             "request": {
                 "method": "DELETE",

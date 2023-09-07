@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -52,6 +51,7 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 			) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 			ON DUPLICATE KEY UPDATE
 				createdAt = CURRENT_TIMESTAMP(6),
+				updatedAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
 		model.GetObjectType(),
@@ -79,12 +79,13 @@ func (repo MySQLRepository) DeleteById(ctx context.Context, ids []int64) error {
 	query, args, err := sqlx.In(
 		`
 			UPDATE warrant
-			SET deletedAt = ?
+			SET
+				updatedAt = CURRENT_TIMESTAMP(6),
+				deletedAt = CURRENT_TIMESTAMP(6)
 			WHERE
 				id IN (?) AND
 				deletedAt IS NULL
 		`,
-		time.Now().UTC(),
 		ids,
 	)
 	if err != nil {
@@ -113,7 +114,8 @@ func (repo MySQLRepository) Delete(ctx context.Context, objectType string, objec
 		`
 			UPDATE warrant
 			SET
-				deletedAt = ?
+				updatedAt = CURRENT_TIMESTAMP(6),
+				deletedAt = CURRENT_TIMESTAMP(6)
 			WHERE
 				objectType = ? AND
 				objectId = ? AND
@@ -124,7 +126,6 @@ func (repo MySQLRepository) Delete(ctx context.Context, objectType string, objec
 				policyHash = ? AND
 				deletedAt IS NULL
 		`,
-		time.Now().UTC(),
 		objectType,
 		objectId,
 		relation,

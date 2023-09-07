@@ -57,6 +57,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 			ON CONFLICT (objectType, objectId, relation, subjectType, subjectId, subjectRelation, policyHash) DO UPDATE SET
 				createdAt = ?,
+				updatedAt = ?,
 				deletedAt = NULL
 			RETURNING id
 		`,
@@ -71,6 +72,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 		now,
 		now,
 		now,
+		now,
 	)
 	if err != nil {
 		return -1, errors.Wrap(err, "error creating warrant")
@@ -80,15 +82,19 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 }
 
 func (repo SQLiteRepository) DeleteById(ctx context.Context, ids []int64) error {
+	now := time.Now().UTC()
 	query, args, err := sqlx.In(
 		`
 			UPDATE warrant
-			SET deletedAt = ?
+			SET
+				updatedAt = ?,
+				deletedAt = ?
 			WHERE
 				id IN (?) AND
 				deletedAt IS NULL
 		`,
-		time.Now().UTC(),
+		now,
+		now,
 		ids,
 	)
 	if err != nil {
@@ -112,11 +118,13 @@ func (repo SQLiteRepository) DeleteById(ctx context.Context, ids []int64) error 
 }
 
 func (repo SQLiteRepository) Delete(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) error {
+	now := time.Now().UTC()
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
 			UPDATE warrant
 			SET
+				updatedAt = ?,
 				deletedAt = ?
 			WHERE
 				objectType = ? AND
@@ -128,7 +136,8 @@ func (repo SQLiteRepository) Delete(ctx context.Context, objectType string, obje
 				policyHash = ? AND
 				deletedAt IS NULL
 		`,
-		time.Now().UTC(),
+		now,
+		now,
 		objectType,
 		objectId,
 		relation,

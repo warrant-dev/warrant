@@ -216,22 +216,22 @@ func main() {
 	}
 	objectTypeSvc := objecttype.NewService(svcEnv, objectTypeRepository, eventSvc)
 
-	// Init warrant repo and service
-	warrantRepository, err := warrant.NewRepository(svcEnv.DB())
-	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize WarrantRepository")
-	}
-	warrantSvc := warrant.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc)
-
-	// Init check service
-	checkSvc := check.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, cfg.Check, nil)
-
 	// Init object repo and service
 	objectRepository, err := object.NewRepository(svcEnv.DB())
 	if err != nil {
 		log.Fatal().Err(err).Msg("Could not initialize ObjectRepository")
 	}
-	objectSvc := object.NewService(svcEnv, objectRepository, eventSvc, warrantSvc)
+	objectSvc := object.NewService(svcEnv, objectRepository, eventSvc)
+
+	// Init warrant repo and service
+	warrantRepository, err := warrant.NewRepository(svcEnv.DB())
+	if err != nil {
+		log.Fatal().Err(err).Msg("Could not initialize WarrantRepository")
+	}
+	warrantSvc := warrant.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, objectSvc)
+
+	// Init check service
+	checkSvc := check.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, cfg.Check, nil)
 
 	// Init feature service
 	featureSvc := feature.NewService(&svcEnv, eventSvc, objectSvc)

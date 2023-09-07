@@ -737,6 +737,46 @@
             }
         },
         {
+            "name": "deleteClusterUSEast1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/cluster/us-east-1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteRoleAdmin",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/roles/admin"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteBankAccountPersonalChecking",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/bank-account/personal-checking"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/user-a"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
             "name": "deleteObjectTypeApproval",
             "request": {
                 "method": "DELETE",

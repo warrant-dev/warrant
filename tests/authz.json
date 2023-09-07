@@ -890,6 +890,16 @@
             }
         },
         {
+            "name": "deleteReportReportA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/report/report-a"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
             "name": "deleteUserUserb",
             "request": {
                 "method": "DELETE",
