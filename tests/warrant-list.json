@@ -314,6 +314,56 @@
             "expectedResponse": {
                 "statusCode": 200
             }
+        },
+        {
+            "name": "deleteRoleSeniorAccountant",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/roles/senior-accountant"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePermissionViewBalanceSheet",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/permissions/view-balance-sheet"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePermissionEditBalanceSheet",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/permissions/balance-sheet:edit"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/user-a"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/users/user-b"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
         }
     ]
 }
