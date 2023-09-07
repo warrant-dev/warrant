@@ -16,7 +16,6 @@ package authz
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -50,11 +49,6 @@ func (svc ObjectService) Create(ctx context.Context, objectSpec CreateObjectSpec
 
 	var createdObject Model
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		_, err := svc.Repository.GetByObjectTypeAndId(txCtx, objectSpec.ObjectType, objectSpec.ObjectId)
-		if err == nil {
-			return service.NewDuplicateRecordError("Object", fmt.Sprintf("%s:%s", objectSpec.ObjectType, objectSpec.ObjectId), "An object with the given objectType and objectId already exists")
-		}
-
 		newObject, err := objectSpec.ToObject()
 		if err != nil {
 			return err

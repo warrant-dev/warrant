@@ -197,25 +197,6 @@
             }
         },
         {
-            "name": "failToCreateATenantThatAlreadyExists",
-            "request": {
-                "method": "POST",
-                "url": "/v1/tenants",
-                "body": {
-                    "tenantId": "provided-tenant-id"
-                }
-            },
-            "expectedResponse": {
-                "statusCode": 400,
-                "body": {
-                    "type": "Object",
-                    "key": "tenant:provided-tenant-id",
-                    "code": "duplicate_record",
-                    "message": "Duplicate Object tenant:provided-tenant-id, An object with the given objectType and objectId already exists"
-                }
-            }
-        },
-        {
             "name": "failToCreateATenantWithInvalidTenantId",
             "request": {
                 "method": "POST",

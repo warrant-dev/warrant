@@ -204,25 +204,6 @@
             }
         },
         {
-            "name": "failToCreateAUserThatAlreadyExists",
-            "request": {
-                "method": "POST",
-                "url": "/v1/users",
-                "body": {
-                    "userId": "5555555555555"
-                }
-            },
-            "expectedResponse": {
-                "statusCode": 400,
-                "body": {
-                    "type": "Object",
-                    "key": "user:5555555555555",
-                    "code": "duplicate_record",
-                    "message": "Duplicate Object user:5555555555555, An object with the given objectType and objectId already exists"
-                }
-            }
-        },
-        {
             "name": "failToCreateAUserWithInvalidUserId",
             "request": {
                 "method": "POST",

@@ -62,29 +62,49 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 			return service.NewDuplicateRecordError("Warrant", warrantSpec, "A warrant with the given objectType, objectId, relation, subject, and policy already exists")
 		}
 
-		// Create referenced object unless wildcard warrant
+		// Unless objectId is wildcard, create referenced object if it does not already exist
 		if warrantSpec.ObjectId != "*" {
+			objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(txCtx, warrantSpec.ObjectType, warrantSpec.ObjectId)
+			if err != nil {
+				var recordNotFoundError *service.RecordNotFoundError
+				if !errors.As(err, &recordNotFoundError) {
+					return err
+				}
+			}
+
+			if objectSpec == nil {
+				_, err = svc.ObjectSvc.Create(txCtx, object.CreateObjectSpec{
+					ObjectType: warrantSpec.ObjectType,
+					ObjectId:   warrantSpec.ObjectId,
+				})
+				if err != nil {
+					var duplicateRecordError *service.DuplicateRecordError
+					if !errors.As(err, &duplicateRecordError) {
+						return err
+					}
+				}
+			}
+		}
+
+		// Create referenced subject if it does not already exist
+		objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(txCtx, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId)
+		if err != nil {
+			var recordNotFoundError *service.RecordNotFoundError
+			if !errors.As(err, &recordNotFoundError) {
+				return err
+			}
+		}
+
+		if objectSpec == nil {
 			_, err = svc.ObjectSvc.Create(txCtx, object.CreateObjectSpec{
-				ObjectType: warrantSpec.ObjectType,
-				ObjectId:   warrantSpec.ObjectId,
+				ObjectType: warrantSpec.Subject.ObjectType,
+				ObjectId:   warrantSpec.Subject.ObjectId,
 			})
 			if err != nil {
 				var duplicateRecordError *service.DuplicateRecordError
 				if !errors.As(err, &duplicateRecordError) {
 					return err
 				}
-			}
-		}
-
-		// Create referenced subject
-		_, err = svc.ObjectSvc.Create(txCtx, object.CreateObjectSpec{
-			ObjectType: warrantSpec.Subject.ObjectType,
-			ObjectId:   warrantSpec.Subject.ObjectId,
-		})
-		if err != nil {
-			var duplicateRecordError *service.DuplicateRecordError
-			if !errors.As(err, &duplicateRecordError) {
-				return err
 			}
 		}
 
