@@ -115,7 +115,7 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-6"
+                            "resourceId": "user-b"
                         }
                     ],
                     "lastId": "{{ listResourceEventsFilterByType.lastId }}"
@@ -145,7 +145,7 @@
                             "resourceId": "user-a"
                         },
                         {
-                            "type": "created",
+                            "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
                             "resourceId": "user-b"
@@ -154,16 +154,13 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-6"
+                            "resourceId": "user-a"
                         },
                         {
-                            "type": "deleted",
+                            "type": "created",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-5",
-                            "meta": {
-                                "email": ""
-                            }
+                            "resourceId": "user-a"
                         }
                     ],
                     "lastId": "{{ listResourceEventsFilterByResourceType.lastId }}"
@@ -196,10 +193,7 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a",
-                            "meta": {
-                                "email": "user-a@warrant.dev"
-                            }
+                            "resourceId": "user-a"
                         }
                     ],
                     "lastId": "{{ listResourceEventsFilterByResourceTypeAndResourceId.lastId }}"
