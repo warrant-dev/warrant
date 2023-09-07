@@ -18,7 +18,10 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a"
+                            "resourceId": "user-a",
+                            "meta": {
+                                "email": "user-a@warrant.dev"
+                            }
                         },
                         {
                             "type": "deleted",
@@ -56,8 +59,8 @@
                         {
                             "type": "created",
                             "source": "api",
-                            "resourceType": "user",
-                            "resourceId": "user-a"
+                            "resourceType": "permission",
+                            "resourceId": "balance-sheet:edit"
                         }
                     ],
                     "lastId": "{{ listNextTwoResourceEvents.lastId }}"
@@ -91,7 +94,10 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a"
+                            "resourceId": "user-a",
+                            "meta": {
+                                "email": "user-a@warrant.dev"
+                            }
                         },
                         {
                             "type": "deleted",
@@ -136,13 +142,19 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a"
+                            "resourceId": "user-a",
+                            "meta": {
+                                "email": "user-a@warrant.dev"
+                            }
                         },
                         {
                             "type": "created",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a"
+                            "resourceId": "user-a",
+                            "meta": {
+                                "email": "user-a@warrant.dev"
+                            }
                         },
                         {
                             "type": "deleted",
@@ -181,13 +193,19 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a"
+                            "resourceId": "user-a",
+                            "meta": {
+                                "email": "user-a@warrant.dev"
+                            }
                         },
                         {
                             "type": "created",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a"
+                            "resourceId": "user-a",
+                            "meta": {
+                                "email": "user-a@warrant.dev"
+                            }
                         },
                         {
                             "type": "deleted",

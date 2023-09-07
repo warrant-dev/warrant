@@ -4,6 +4,24 @@
     ],
     "tests": [
         {
+            "name": "createUserA",
+            "request": {
+                "method": "POST",
+                "url": "/v1/users",
+                "body": {
+                    "userId": "user-a",
+                    "email": "user-a@warrant.dev"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "userId": "user-a",
+                    "email": "user-a@warrant.dev"
+                }
+            }
+        },
+        {
             "name": "assignPermissionViewBalanceSheetToRoleSeniorAccountant",
             "request": {
                 "method": "POST",
@@ -138,7 +156,7 @@
             }
         },
         {
-            "name": "confirmUserACreated",
+            "name": "confirmUserAUnchanged",
             "request": {
                 "method": "GET",
                 "url": "/v1/users/user-a"
@@ -147,7 +165,7 @@
                 "statusCode": 200,
                 "body": {
                     "userId": "user-a",
-                    "email": null
+                    "email": "user-a@warrant.dev"
                 }
             }
         },
