@@ -15,28 +15,22 @@
                 "body": {
                     "events": [
                         {
-                            "id": "faaee54a-e7a9-47ab-9c66-f21bc2ecef6f",
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a",
-                            "createdAt": "2023-09-06T16:31:53.657231Z"
+                            "resourceId": "user-a"
                         },
                         {
-                            "id": "d48522d7-dbad-480e-a862-c80185efffcf",
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "role",
-                            "resourceId": "senior-accountant",
-                            "createdAt": "2023-09-06T16:31:53.65541Z"
+                            "resourceId": "senior-accountant"
                         },
                         {
-                            "id": "6262d86c-01be-428c-acd8-434aaf969b32",
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "permission",
-                            "resourceId": "view-balance-sheet",
-                            "createdAt": "2023-09-06T16:31:53.653927Z"
+                            "resourceId": "view-balance-sheet"
                         }
                     ],
                     "lastId": "{{ listLastThreeResourceEvents.lastId }}"
@@ -54,20 +48,16 @@
                 "body": {
                     "events": [
                         {
-                            "id": "fec867c0-850e-4279-9a52-c5170184eb32",
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "permission",
-                            "resourceId": "balance-sheet:edit",
-                            "createdAt": "2023-09-06T16:31:53.652344Z"
+                            "resourceId": "balance-sheet:edit"
                         },
                         {
-                            "id": "6cc2794f-ff47-4a0f-aa7b-6dedcec36ccc",
                             "type": "created",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a",
-                            "createdAt": "2023-09-06T16:31:53.633353Z"
+                            "resourceId": "user-a"
                         }
                     ],
                     "lastId": "{{ listNextTwoResourceEvents.lastId }}"
@@ -98,44 +88,34 @@
                 "body": {
                     "events": [
                         {
-                            "id": "faaee54a-e7a9-47ab-9c66-f21bc2ecef6f",
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a",
-                            "createdAt": "2023-09-06T16:31:53.657231Z"
+                            "resourceId": "user-a"
                         },
                         {
-                            "id": "d48522d7-dbad-480e-a862-c80185efffcf",
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "role",
-                            "resourceId": "senior-accountant",
-                            "createdAt": "2023-09-06T16:31:53.65541Z"
+                            "resourceId": "senior-accountant"
                         },
                         {
-                            "id": "6262d86c-01be-428c-acd8-434aaf969b32",
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "permission",
-                            "resourceId": "view-balance-sheet",
-                            "createdAt": "2023-09-06T16:31:53.653927Z"
+                            "resourceId": "view-balance-sheet"
                         },
                         {
-                            "id": "fec867c0-850e-4279-9a52-c5170184eb32",
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "permission",
-                            "resourceId": "balance-sheet:edit",
-                            "createdAt": "2023-09-06T16:31:53.652344Z"
+                            "resourceId": "balance-sheet:edit"
                         },
                         {
-                            "id": "289a30d1-aac0-4faf-8e30-94a2b3ca075c",
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-6",
-                            "createdAt": "2023-09-06T16:31:53.624389Z"
+                            "resourceId": "user-6"
                         }
                     ],
                     "lastId": "{{ listResourceEventsFilterByType.lastId }}"
@@ -153,47 +133,37 @@
                 "body": {
                     "events": [
                         {
-                            "id": "faaee54a-e7a9-47ab-9c66-f21bc2ecef6f",
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a",
-                            "createdAt": "2023-09-06T16:31:53.657231Z"
+                            "resourceId": "user-a"
                         },
                         {
-                            "id": "6cc2794f-ff47-4a0f-aa7b-6dedcec36ccc",
                             "type": "created",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a",
-                            "createdAt": "2023-09-06T16:31:53.633353Z"
+                            "resourceId": "user-a"
                         },
                         {
-                            "id": "77df7b79-41d4-4c00-abbe-bc7bb1e8c641",
                             "type": "created",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-b",
-                            "createdAt": "2023-09-06T16:31:53.630605Z"
+                            "resourceId": "user-b"
                         },
                         {
-                            "id": "289a30d1-aac0-4faf-8e30-94a2b3ca075c",
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-6",
-                            "createdAt": "2023-09-06T16:31:53.624389Z"
+                            "resourceId": "user-6"
                         },
                         {
-                            "id": "ecf54d7a-5e98-4d7f-9cee-298cb4603076",
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
                             "resourceId": "user-5",
                             "meta": {
                                 "email": ""
-                            },
-                            "createdAt": "2023-09-06T16:31:53.622972Z"
+                            }
                         }
                     ],
                     "lastId": "{{ listResourceEventsFilterByResourceType.lastId }}"
@@ -211,31 +181,25 @@
                 "body": {
                     "events": [
                         {
-                            "id": "faaee54a-e7a9-47ab-9c66-f21bc2ecef6f",
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a",
-                            "createdAt": "2023-09-06T16:31:53.657231Z"
+                            "resourceId": "user-a"
                         },
                         {
-                            "id": "6cc2794f-ff47-4a0f-aa7b-6dedcec36ccc",
                             "type": "created",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a",
-                            "createdAt": "2023-09-06T16:31:53.633353Z"
+                            "resourceId": "user-a"
                         },
                         {
-                            "id": "20f3a76f-571f-4568-a693-a2ff7498025f",
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
                             "resourceId": "user-a",
                             "meta": {
                                 "email": "user-a@warrant.dev"
-                            },
-                            "createdAt": "2023-09-06T16:31:53.277681Z"
+                            }
                         }
                     ],
                     "lastId": "{{ listResourceEventsFilterByResourceTypeAndResourceId.lastId }}"
@@ -253,18 +217,15 @@
                 "body": {
                     "events": [
                         {
-                            "id": "4770411b-031d-4e09-966c-7853229b39e2",
                             "type": "access_revoked",
                             "source": "api",
                             "objectType": "permission",
                             "objectId": "view-balance-sheet",
                             "relation": "member",
                             "subjectType": "role",
-                            "subjectId": "senior-accountant",
-                            "createdAt": "2023-09-06T16:31:53.650688Z"
+                            "subjectId": "senior-accountant"
                         },
                         {
-                            "id": "bea7db3b-f3e7-497c-b755-f7242bf8ec07",
                             "type": "access_granted",
                             "source": "api",
                             "objectType": "role",
@@ -274,19 +235,16 @@
                             "subjectId": "user-a",
                             "meta": {
                                 "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
-                            },
-                            "createdAt": "2023-09-06T16:31:53.649344Z"
+                            }
                         },
                         {
-                            "id": "878ae5c2-8bc4-40db-9db4-5d8e8a8a33cb",
                             "type": "access_granted",
                             "source": "api",
                             "objectType": "permission",
                             "objectId": "balance-sheet:edit",
                             "relation": "member",
                             "subjectType": "user",
-                            "subjectId": "user-a",
-                            "createdAt": "2023-09-06T16:31:53.646702Z"
+                            "subjectId": "user-a"
                         }
                     ],
                     "lastId": "{{ listLastThreeAccessEvents.lastId }}"
@@ -304,26 +262,22 @@
                 "body": {
                     "events": [
                         {
-                            "id": "edc44ff1-d97a-4ab5-96e2-febdeab08cee",
                             "type": "access_granted",
                             "source": "api",
                             "objectType": "permission",
                             "objectId": "view-balance-sheet",
                             "relation": "member",
                             "subjectType": "role",
-                            "subjectId": "senior-accountant",
-                            "createdAt": "2023-09-06T16:31:53.64342Z"
+                            "subjectId": "senior-accountant"
                         },
                         {
-                            "id": "f37c97c7-6117-4366-9042-fa116f65c8de",
                             "type": "access_revoked",
                             "source": "api",
                             "objectType": "permission",
                             "objectId": "view-balance-sheet",
                             "relation": "member",
                             "subjectType": "role",
-                            "subjectId": "senior-accountant",
-                            "createdAt": "2023-09-06T16:31:53.641257Z"
+                            "subjectId": "senior-accountant"
                         }
                     ],
                     "lastId": "{{ listNextTwoAccessEvents.lastId }}"
@@ -616,7 +570,6 @@
                 "body": {
                     "events": [
                         {
-                            "id": "bea7db3b-f3e7-497c-b755-f7242bf8ec07",
                             "type": "access_granted",
                             "source": "api",
                             "objectType": "role",
@@ -626,33 +579,27 @@
                             "subjectId": "user-a",
                             "meta": {
                                 "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
-                            },
-                            "createdAt": "2023-09-06T16:31:53.649344Z"
+                            }
                         },
                         {
-                            "id": "878ae5c2-8bc4-40db-9db4-5d8e8a8a33cb",
                             "type": "access_granted",
                             "source": "api",
                             "objectType": "permission",
                             "objectId": "balance-sheet:edit",
                             "relation": "member",
                             "subjectType": "user",
-                            "subjectId": "user-a",
-                            "createdAt": "2023-09-06T16:31:53.646702Z"
+                            "subjectId": "user-a"
                         },
                         {
-                            "id": "d124af74-4ab5-44ed-86b4-585edab5df53",
                             "type": "access_revoked",
                             "source": "api",
                             "objectType": "permission",
                             "objectId": "balance-sheet:edit",
                             "relation": "member",
                             "subjectType": "user",
-                            "subjectId": "user-b",
-                            "createdAt": "2023-09-06T16:31:53.639968Z"
+                            "subjectId": "user-b"
                         },
                         {
-                            "id": "c2f57141-79fa-4893-8f4d-f5278ec7ce9e",
                             "type": "access_revoked",
                             "source": "api",
                             "objectType": "role",
@@ -662,11 +609,9 @@
                             "subjectId": "user-a",
                             "meta": {
                                 "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
-                            },
-                            "createdAt": "2023-09-06T16:31:53.63862Z"
+                            }
                         },
                         {
-                            "id": "4545d75b-0d97-448e-af47-88d8ff4a1a0a",
                             "type": "access_granted",
                             "source": "api",
                             "objectType": "role",
@@ -676,8 +621,7 @@
                             "subjectId": "user-a",
                             "meta": {
                                 "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
-                            },
-                            "createdAt": "2023-09-06T16:31:53.634226Z"
+                            }
                         }
                     ],
                     "lastId": "{{ listAccessEventsFilterBySubjectType.lastId }}"
