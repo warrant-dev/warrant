@@ -19,7 +19,6 @@ import (
 	"database/sql"
 	"fmt"
 	"regexp"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
@@ -341,7 +340,6 @@ func (repo PostgresRepository) DeleteByTypeId(ctx context.Context, typeId string
 				type_id = ? AND
 				deleted_at IS NULL
 		`,
-		time.Now().UTC(),
 		typeId,
 	)
 	if err != nil {
