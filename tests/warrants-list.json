@@ -4,6 +4,40 @@
     ],
     "tests": [
         {
+            "name": "createdObjectTypeReport",
+            "request": {
+                "method": "POST",
+                "url": "/v1/object-types",
+                "body": {
+                    "type": "report",
+                    "relations": {
+                        "owner": {},
+                        "editor": {
+                            "inheritIf": "owner"
+                        },
+                        "viewer": {
+                            "inheritIf": "editor"
+                        }
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "report",
+                    "relations": {
+                        "owner": {},
+                        "editor": {
+                            "inheritIf": "owner"
+                        },
+                        "viewer": {
+                            "inheritIf": "editor"
+                        }
+                    }
+                }
+            }
+        },
+        {
             "name": "assignPermissionViewBalanceSheetToRoleSeniorAccountant",
             "request": {
                 "method": "POST",
@@ -90,6 +124,34 @@
             }
         },
         {
+            "name": "assignUserAOwnerOfReportA",
+            "request": {
+                "method": "POST",
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "report",
+                    "objectId": "report-a",
+                    "relation": "owner",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "report",
+                    "objectId": "report-a",
+                    "relation": "owner",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    }
+                }
+            }
+        },
+        {
             "name": "listLast2WarrantsSortByCreatedAtDesc",
             "request": {
                 "method": "GET",
@@ -99,6 +161,15 @@
                 "statusCode": 200,
                 "body": [
                     {
+                        "objectType": "report",
+                        "objectId": "report-a",
+                        "relation": "owner",
+                        "subject": {
+                            "objectType": "user",
+                            "objectId": "user-a"
+                        }
+                    },
+                    {
                         "objectType": "role",
                         "objectId": "senior-accountant",
                         "relation": "member",
@@ -107,24 +178,15 @@
                             "objectId": "user-a"
                         },
                         "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
-                    },
-                    {
-                        "objectType": "permission",
-                        "objectId": "balance-sheet:edit",
-                        "relation": "member",
-                        "subject": {
-                            "objectType": "user",
-                            "objectId": "user-b"
-                        }
                     }
                 ]
             }
         },
         {
-            "name": "listWarrantsFilterByObjectTypePermission",
+            "name": "listWarrantsFilterByObjectTypePermissionOrReport",
             "request": {
                 "method": "GET",
-                "url": "/v1/warrants?objectType=permission"
+                "url": "/v1/warrants?objectType=permission,report"
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -145,6 +207,15 @@
                         "subject": {
                             "objectType": "user",
                             "objectId": "user-b"
+                        }
+                    },
+                    {
+                        "objectType": "report",
+                        "objectId": "report-a",
+                        "relation": "owner",
+                        "subject": {
+                            "objectType": "user",
+                            "objectId": "user-a"
                         }
                     }
                 ]
@@ -179,7 +250,17 @@
             },
             "expectedResponse": {
                 "statusCode": 200,
-                "body": []
+                "body": [
+                    {
+                        "objectType": "report",
+                        "objectId": "report-a",
+                        "relation": "owner",
+                        "subject": {
+                            "objectType": "user",
+                            "objectId": "user-a"
+                        }
+                    }
+                ]
             }
         },
         {
@@ -209,6 +290,15 @@
                             "objectId": "user-a"
                         },
                         "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
+                    },
+                    {
+                        "objectType": "report",
+                        "objectId": "report-a",
+                        "relation": "owner",
+                        "subject": {
+                            "objectType": "user",
+                            "objectId": "user-a"
+                        }
                     }
                 ]
             }
@@ -231,6 +321,15 @@
                             "objectId": "user-a"
                         },
                         "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
+                    },
+                    {
+                        "objectType": "report",
+                        "objectId": "report-a",
+                        "relation": "owner",
+                        "subject": {
+                            "objectType": "user",
+                            "objectId": "user-a"
+                        }
                     }
                 ]
             }
@@ -346,6 +445,16 @@
             }
         },
         {
+            "name": "deleteReportA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/report/report-a"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
             "name": "deleteUserA",
             "request": {
                 "method": "DELETE",
@@ -360,6 +469,16 @@
             "request": {
                 "method": "DELETE",
                 "url": "/v1/users/user-b"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectTypeReport",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/object-types/report"
             },
             "expectedResponse": {
                 "statusCode": 200

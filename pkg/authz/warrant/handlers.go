@@ -16,6 +16,7 @@ package authz
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -78,24 +79,11 @@ func CreateHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 }
 
 func ListHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
-	listParams := service.GetListParamsFromContext[WarrantListParamParser](r.Context())
-	queryParams := r.URL.Query()
-	filters := FilterOptions{
-		ObjectType: queryParams.Get("objectType"),
-		ObjectId:   queryParams.Get("objectId"),
-		Relation:   queryParams.Get("relation"),
-		Subject: &SubjectSpec{
-			ObjectType: queryParams.Get("subjectType"),
-			ObjectId:   queryParams.Get("subjectId"),
-		},
-		Policy: Policy(queryParams.Get("policy")),
-	}
-	subjectRelation := queryParams.Get("subjectRelation")
-	if subjectRelation != "" {
-		filters.Subject.Relation = subjectRelation
-	}
-
-	warrants, err := svc.List(r.Context(), &filters, listParams)
+	warrants, err := svc.List(
+		r.Context(),
+		buildFilterOptions(r),
+		service.GetListParamsFromContext[WarrantListParamParser](r.Context()),
+	)
 	if err != nil {
 		return err
 	}
@@ -119,4 +107,39 @@ func DeleteHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	return nil
+}
+
+func buildFilterOptions(r *http.Request) *FilterOptions {
+	var filterOptions FilterOptions
+	queryParams := r.URL.Query()
+
+	if queryParams.Has("objectType") {
+		filterOptions.ObjectType = strings.Split(queryParams.Get("objectType"), ",")
+	}
+
+	if queryParams.Has("objectId") {
+		filterOptions.ObjectId = strings.Split(queryParams.Get("objectId"), ",")
+	}
+
+	if queryParams.Has("relation") {
+		filterOptions.Relation = strings.Split(queryParams.Get("relation"), ",")
+	}
+
+	if queryParams.Has("subjectType") {
+		filterOptions.SubjectType = strings.Split(queryParams.Get("subjectType"), ",")
+	}
+
+	if queryParams.Has("subjectId") {
+		filterOptions.SubjectId = strings.Split(queryParams.Get("subjectId"), ",")
+	}
+
+	if queryParams.Has("subjectRelation") {
+		filterOptions.SubjectRelation = strings.Split(queryParams.Get("subjectRelation"), ",")
+	}
+
+	if queryParams.Has("policy") {
+		filterOptions.Policy = Policy(queryParams.Get("policy"))
+	}
+
+	return &filterOptions
 }

@@ -305,38 +305,45 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 	`
 	replacements := []interface{}{}
 
-	if filterOptions.ObjectType != "" {
-		query = fmt.Sprintf(`%s AND object_type = ?`, query)
-		replacements = append(replacements, filterOptions.ObjectType)
-	}
-
-	if filterOptions.ObjectId != "" {
-		query = fmt.Sprintf(`%s AND object_id = ?`, query)
-		replacements = append(replacements, filterOptions.ObjectId)
-	}
-
-	if filterOptions.Relation != "" {
-		query = fmt.Sprintf(`%s AND relation = ?`, query)
-		replacements = append(replacements, filterOptions.Relation)
-	}
-
-	if filterOptions.Subject != nil {
-		if filterOptions.Subject.ObjectType != "" {
-			query = fmt.Sprintf("%s AND subject_type = ?", query)
-
-			replacements = append(replacements, filterOptions.Subject.ObjectType)
+	if len(filterOptions.ObjectType) > 0 {
+		query = fmt.Sprintf("%s AND object_type IN (%s)", query, buildQuestionMarkString(len(filterOptions.ObjectType)))
+		for _, objectType := range filterOptions.ObjectType {
+			replacements = append(replacements, objectType)
 		}
+	}
 
-		if filterOptions.Subject.ObjectId != "" {
-			query = fmt.Sprintf("%s AND subject_id = ?", query)
-
-			replacements = append(replacements, filterOptions.Subject.ObjectId)
+	if len(filterOptions.ObjectId) > 0 {
+		query = fmt.Sprintf("%s AND object_id IN (%s)", query, buildQuestionMarkString(len(filterOptions.ObjectId)))
+		for _, objectId := range filterOptions.ObjectId {
+			replacements = append(replacements, objectId)
 		}
+	}
 
-		if filterOptions.Subject.Relation != "" {
-			query = fmt.Sprintf("%s AND subject_relation = ?", query)
+	if len(filterOptions.Relation) > 0 {
+		query = fmt.Sprintf("%s AND relation IN (%s)", query, buildQuestionMarkString(len(filterOptions.Relation)))
+		for _, relation := range filterOptions.Relation {
+			replacements = append(replacements, relation)
+		}
+	}
 
-			replacements = append(replacements, filterOptions.Subject.Relation)
+	if len(filterOptions.SubjectType) > 0 {
+		query = fmt.Sprintf("%s AND subject_type IN (%s)", query, buildQuestionMarkString(len(filterOptions.SubjectType)))
+		for _, subjectType := range filterOptions.SubjectType {
+			replacements = append(replacements, subjectType)
+		}
+	}
+
+	if len(filterOptions.SubjectId) > 0 {
+		query = fmt.Sprintf("%s AND subject_id IN (%s)", query, buildQuestionMarkString(len(filterOptions.SubjectId)))
+		for _, subjectId := range filterOptions.SubjectId {
+			replacements = append(replacements, subjectId)
+		}
+	}
+
+	if len(filterOptions.SubjectRelation) > 0 {
+		query = fmt.Sprintf("%s AND subject_relation IN (%s)", query, buildQuestionMarkString(len(filterOptions.SubjectRelation)))
+		for _, subjectRelation := range filterOptions.SubjectRelation {
+			replacements = append(replacements, subjectRelation)
 		}
 	}
 
@@ -350,7 +357,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 		query = fmt.Sprintf(`%s ORDER BY %s %s`, query, sortBy, listParams.SortOrder)
 	}
 
-	query = fmt.Sprintf(`%s LIMIT ? OFFSET ?`, query)
+	query = fmt.Sprintf("%s LIMIT ? OFFSET ?", query)
 	replacements = append(replacements, listParams.Limit, offset)
 	err := repo.DB.SelectContext(
 		ctx,

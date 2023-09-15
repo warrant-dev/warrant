@@ -17,6 +17,7 @@ package authz
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
@@ -61,4 +62,13 @@ func NewRepository(db database.Database) (WarrantRepository, error) {
 	default:
 		return nil, errors.New(fmt.Sprintf("unsupported database type %s specified", db.Type()))
 	}
+}
+
+func buildQuestionMarkString(numReplacements int) string {
+	var replacements []string
+	for i := 0; i < numReplacements; i++ {
+		replacements = append(replacements, "?")
+	}
+
+	return strings.Join(replacements, ",")
 }

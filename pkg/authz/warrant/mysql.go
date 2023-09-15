@@ -303,38 +303,45 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 	`
 	replacements := []interface{}{}
 
-	if filterOptions.ObjectType != "" {
-		query = fmt.Sprintf("%s AND objectType = ?", query)
-		replacements = append(replacements, filterOptions.ObjectType)
-	}
-
-	if filterOptions.ObjectId != "" {
-		query = fmt.Sprintf("%s AND objectId = ?", query)
-		replacements = append(replacements, filterOptions.ObjectId)
-	}
-
-	if filterOptions.Relation != "" {
-		query = fmt.Sprintf("%s AND relation = ?", query)
-		replacements = append(replacements, filterOptions.Relation)
-	}
-
-	if filterOptions.Subject != nil {
-		if filterOptions.Subject.ObjectType != "" {
-			query = fmt.Sprintf("%s AND subjectType = ?", query)
-
-			replacements = append(replacements, filterOptions.Subject.ObjectType)
+	if len(filterOptions.ObjectType) > 0 {
+		query = fmt.Sprintf("%s AND objectType IN (%s)", query, buildQuestionMarkString(len(filterOptions.ObjectType)))
+		for _, objectType := range filterOptions.ObjectType {
+			replacements = append(replacements, objectType)
 		}
+	}
 
-		if filterOptions.Subject.ObjectId != "" {
-			query = fmt.Sprintf("%s AND subjectId = ?", query)
-
-			replacements = append(replacements, filterOptions.Subject.ObjectId)
+	if len(filterOptions.ObjectId) > 0 {
+		query = fmt.Sprintf("%s AND objectId IN (%s)", query, buildQuestionMarkString(len(filterOptions.ObjectId)))
+		for _, objectId := range filterOptions.ObjectId {
+			replacements = append(replacements, objectId)
 		}
+	}
 
-		if filterOptions.Subject.Relation != "" {
-			query = fmt.Sprintf("%s AND subjectRelation = ?", query)
+	if len(filterOptions.Relation) > 0 {
+		query = fmt.Sprintf("%s AND relation IN (%s)", query, buildQuestionMarkString(len(filterOptions.Relation)))
+		for _, relation := range filterOptions.Relation {
+			replacements = append(replacements, relation)
+		}
+	}
 
-			replacements = append(replacements, filterOptions.Subject.Relation)
+	if len(filterOptions.SubjectType) > 0 {
+		query = fmt.Sprintf("%s AND subjectType IN (%s)", query, buildQuestionMarkString(len(filterOptions.SubjectType)))
+		for _, subjectType := range filterOptions.SubjectType {
+			replacements = append(replacements, subjectType)
+		}
+	}
+
+	if len(filterOptions.SubjectId) > 0 {
+		query = fmt.Sprintf("%s AND subjectId IN (%s)", query, buildQuestionMarkString(len(filterOptions.SubjectId)))
+		for _, subjectId := range filterOptions.SubjectId {
+			replacements = append(replacements, subjectId)
+		}
+	}
+
+	if len(filterOptions.SubjectRelation) > 0 {
+		query = fmt.Sprintf("%s AND subjectRelation IN (%s)", query, buildQuestionMarkString(len(filterOptions.SubjectRelation)))
+		for _, subjectRelation := range filterOptions.SubjectRelation {
+			replacements = append(replacements, subjectRelation)
 		}
 	}
 
