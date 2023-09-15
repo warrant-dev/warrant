@@ -18,22 +18,19 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a",
-                            "meta": {
-                                "email": "user-a@warrant.dev"
-                            }
+                            "resourceId": "user-b"
                         },
                         {
                             "type": "deleted",
                             "source": "api",
-                            "resourceType": "role",
-                            "resourceId": "senior-accountant"
+                            "resourceType": "user",
+                            "resourceId": "user-a"
                         },
                         {
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "permission",
-                            "resourceId": "view-balance-sheet"
+                            "resourceId": "balance-sheet:edit"
                         }
                     ],
                     "lastId": "{{ listLastThreeResourceEvents.lastId }}"
@@ -54,13 +51,13 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "permission",
-                            "resourceId": "balance-sheet:edit"
+                            "resourceId": "view-balance-sheet"
                         },
                         {
-                            "type": "created",
+                            "type": "deleted",
                             "source": "api",
-                            "resourceType": "permission",
-                            "resourceId": "balance-sheet:edit"
+                            "resourceType": "role",
+                            "resourceId": "senior-accountant"
                         }
                     ],
                     "lastId": "{{ listNextTwoResourceEvents.lastId }}"
@@ -94,22 +91,13 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a",
-                            "meta": {
-                                "email": "user-a@warrant.dev"
-                            }
+                            "resourceId": "user-b"
                         },
                         {
                             "type": "deleted",
                             "source": "api",
-                            "resourceType": "role",
-                            "resourceId": "senior-accountant"
-                        },
-                        {
-                            "type": "deleted",
-                            "source": "api",
-                            "resourceType": "permission",
-                            "resourceId": "view-balance-sheet"
+                            "resourceType": "user",
+                            "resourceId": "user-a"
                         },
                         {
                             "type": "deleted",
@@ -120,8 +108,14 @@
                         {
                             "type": "deleted",
                             "source": "api",
-                            "resourceType": "user",
-                            "resourceId": "user-b"
+                            "resourceType": "permission",
+                            "resourceId": "view-balance-sheet"
+                        },
+                        {
+                            "type": "deleted",
+                            "source": "api",
+                            "resourceType": "role",
+                            "resourceId": "senior-accountant"
                         }
                     ],
                     "lastId": "{{ listResourceEventsFilterByType.lastId }}"
@@ -142,24 +136,6 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a",
-                            "meta": {
-                                "email": "user-a@warrant.dev"
-                            }
-                        },
-                        {
-                            "type": "created",
-                            "source": "api",
-                            "resourceType": "user",
-                            "resourceId": "user-a",
-                            "meta": {
-                                "email": "user-a@warrant.dev"
-                            }
-                        },
-                        {
-                            "type": "deleted",
-                            "source": "api",
-                            "resourceType": "user",
                             "resourceId": "user-b"
                         },
                         {
@@ -173,6 +149,21 @@
                             "source": "api",
                             "resourceType": "user",
                             "resourceId": "user-a"
+                        },
+                        {
+                            "type": "created",
+                            "source": "api",
+                            "resourceType": "user",
+                            "resourceId": "user-b"
+                        },
+                        {
+                            "type": "deleted",
+                            "source": "api",
+                            "resourceType": "user",
+                            "resourceId": "user-a",
+                            "meta": {
+                                "email": "user-a@warrant.dev"
+                            }
                         }
                     ],
                     "lastId": "{{ listResourceEventsFilterByResourceType.lastId }}"
@@ -193,25 +184,22 @@
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a",
-                            "meta": {
-                                "email": "user-a@warrant.dev"
-                            }
+                            "resourceId": "user-a"
                         },
                         {
                             "type": "created",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a",
-                            "meta": {
-                                "email": "user-a@warrant.dev"
-                            }
+                            "resourceId": "user-a"
                         },
                         {
                             "type": "deleted",
                             "source": "api",
                             "resourceType": "user",
-                            "resourceId": "user-a"
+                            "resourceId": "user-a",
+                            "meta": {
+                                "email": "user-a@warrant.dev"
+                            }
                         }
                     ],
                     "lastId": "{{ listResourceEventsFilterByResourceTypeAndResourceId.lastId }}"
@@ -238,7 +226,16 @@
                             "subjectId": "senior-accountant"
                         },
                         {
-                            "type": "access_granted",
+                            "type": "access_revoked",
+                            "source": "api",
+                            "objectType": "permission",
+                            "objectId": "balance-sheet:edit",
+                            "relation": "member",
+                            "subjectType": "user",
+                            "subjectId": "user-b"
+                        },
+                        {
+                            "type": "access_revoked",
                             "source": "api",
                             "objectType": "role",
                             "objectId": "senior-accountant",
@@ -248,15 +245,6 @@
                             "meta": {
                                 "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
                             }
-                        },
-                        {
-                            "type": "access_granted",
-                            "source": "api",
-                            "objectType": "permission",
-                            "objectId": "balance-sheet:edit",
-                            "relation": "member",
-                            "subjectType": "user",
-                            "subjectId": "user-a"
                         }
                     ],
                     "lastId": "{{ listLastThreeAccessEvents.lastId }}"
@@ -276,20 +264,23 @@
                         {
                             "type": "access_granted",
                             "source": "api",
-                            "objectType": "permission",
-                            "objectId": "view-balance-sheet",
+                            "objectType": "role",
+                            "objectId": "senior-accountant",
                             "relation": "member",
-                            "subjectType": "role",
-                            "subjectId": "senior-accountant"
+                            "subjectType": "user",
+                            "subjectId": "user-a",
+                            "meta": {
+                                "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
+                            }
                         },
                         {
-                            "type": "access_revoked",
+                            "type": "access_granted",
                             "source": "api",
                             "objectType": "permission",
-                            "objectId": "view-balance-sheet",
+                            "objectId": "balance-sheet:edit",
                             "relation": "member",
-                            "subjectType": "role",
-                            "subjectId": "senior-accountant"
+                            "subjectType": "user",
+                            "subjectId": "user-b"
                         }
                     ],
                     "lastId": "{{ listNextTwoAccessEvents.lastId }}"
@@ -338,7 +329,7 @@
                             "objectId": "balance-sheet:edit",
                             "relation": "member",
                             "subjectType": "user",
-                            "subjectId": "user-a"
+                            "subjectId": "user-b"
                         },
                         {
                             "type": "access_granted",
@@ -582,27 +573,6 @@
                 "body": {
                     "events": [
                         {
-                            "type": "access_granted",
-                            "source": "api",
-                            "objectType": "role",
-                            "objectId": "senior-accountant",
-                            "relation": "member",
-                            "subjectType": "user",
-                            "subjectId": "user-a",
-                            "meta": {
-                                "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
-                            }
-                        },
-                        {
-                            "type": "access_granted",
-                            "source": "api",
-                            "objectType": "permission",
-                            "objectId": "balance-sheet:edit",
-                            "relation": "member",
-                            "subjectType": "user",
-                            "subjectId": "user-a"
-                        },
-                        {
                             "type": "access_revoked",
                             "source": "api",
                             "objectType": "permission",
@@ -622,6 +592,27 @@
                             "meta": {
                                 "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
                             }
+                        },
+                        {
+                            "type": "access_granted",
+                            "source": "api",
+                            "objectType": "role",
+                            "objectId": "senior-accountant",
+                            "relation": "member",
+                            "subjectType": "user",
+                            "subjectId": "user-a",
+                            "meta": {
+                                "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
+                            }
+                        },
+                        {
+                            "type": "access_granted",
+                            "source": "api",
+                            "objectType": "permission",
+                            "objectId": "balance-sheet:edit",
+                            "relation": "member",
+                            "subjectType": "user",
+                            "subjectId": "user-b"
                         },
                         {
                             "type": "access_granted",
