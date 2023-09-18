@@ -99,7 +99,7 @@ func ApiKeyAndSessionAuthMiddleware(cfg config.Config, next http.Handler) (http.
 		case AuthTypeBearer:
 			if warrantCfg.GetAuthentication().Provider == nil {
 				SendErrorResponse(w, NewInternalError("Error validating token"))
-				logger.Err(fmt.Errorf("invalid authentication provider configuration")).Msg("Must configure an authentication provider to allow requests that use third party auth tokens.")
+				logger.Err(fmt.Errorf("invalid authentication provider configuration")).Msg("auth: must configure an authentication provider to allow requests that use third party auth tokens.")
 				return
 			}
 
@@ -112,7 +112,7 @@ func ApiKeyAndSessionAuthMiddleware(cfg config.Config, next http.Handler) (http.
 				response, err := http.Get(FirebasePublicKeyUrl)
 				if err != nil {
 					SendErrorResponse(w, NewInternalError("Error validating token"))
-					logger.Err(err).Msg("Error fetching Firebase public keys")
+					logger.Err(err).Msg("auth: error fetching Firebase public keys")
 					return
 				}
 
@@ -121,21 +121,21 @@ func ApiKeyAndSessionAuthMiddleware(cfg config.Config, next http.Handler) (http.
 				contents, err := io.ReadAll(response.Body)
 				if err != nil {
 					SendErrorResponse(w, NewInternalError("Error validating token"))
-					logger.Err(err).Msg("Error reading Firebase public keys")
+					logger.Err(err).Msg("auth: error reading Firebase public keys")
 					return
 				}
 
 				err = json.Unmarshal(contents, &publicKeys)
 				if err != nil {
 					SendErrorResponse(w, NewInternalError("Error validating token"))
-					logger.Err(err).Msg("Error unmarshalling Firebase public keys")
+					logger.Err(err).Msg("auth: error unmarshalling Firebase public keys")
 					return
 				}
 			default:
 				publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(warrantCfg.GetAuthentication().Provider.PublicKey))
 				if err != nil {
 					SendErrorResponse(w, NewInternalError("Error validating token"))
-					logger.Err(fmt.Errorf("invalid authentication provider configuration")).Msg("Invalid public key for configured authentication provider")
+					logger.Err(fmt.Errorf("invalid authentication provider configuration")).Msg("auth: invalid public key for configured authentication provider")
 					return
 				}
 			}
@@ -174,7 +174,7 @@ func ApiKeyAndSessionAuthMiddleware(cfg config.Config, next http.Handler) (http.
 			tokenClaims := checkedToken.Claims.(jwt.MapClaims)
 			if _, ok := tokenClaims[warrantCfg.GetAuthentication().Provider.UserIdClaim]; !ok {
 				SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
-				logger.Warn().Msgf("Unable to retrieve user id from token with given identifier: %s", warrantCfg.GetAuthentication().Provider.UserIdClaim)
+				logger.Warn().Msgf("auth: unable to retrieve user id from token with given identifier: %s", warrantCfg.GetAuthentication().Provider.UserIdClaim)
 				return
 			}
 
@@ -185,7 +185,7 @@ func ApiKeyAndSessionAuthMiddleware(cfg config.Config, next http.Handler) (http.
 			if warrantCfg.GetAuthentication().Provider.TenantIdClaim != "" {
 				if _, ok := tokenClaims[warrantCfg.GetAuthentication().Provider.TenantIdClaim]; !ok {
 					SendErrorResponse(w, NewUnauthorizedError("Invalid token"))
-					logger.Warn().Msgf("Unable to retrieve tenant id from token with given identifier: %s", warrantCfg.GetAuthentication().Provider.TenantIdClaim)
+					logger.Warn().Msgf("auth: unable to retrieve tenant id from token with given identifier: %s", warrantCfg.GetAuthentication().Provider.TenantIdClaim)
 				}
 				authInfo.TenantId = tokenClaims[warrantCfg.GetAuthentication().Provider.TenantIdClaim].(string)
 			}

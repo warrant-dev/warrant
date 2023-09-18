@@ -728,7 +728,7 @@ func evalWarrantPolicy(w warrant.Model, policyCtx warrant.PolicyContext) bool {
 
 	policyMatched, err := w.GetPolicy().Eval(policyCtxWithWarrant)
 	if err != nil {
-		log.Err(err).Msgf("Error while evaluating policy %s", w.GetPolicy())
+		log.Err(err).Msgf("check: error while evaluating policy %s", w.GetPolicy())
 		return false
 	}
 

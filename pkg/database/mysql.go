@@ -80,7 +80,7 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 	db.Mapper = reflectx.NewMapperFunc("mysql", func(s string) string { return s })
 
 	ds.Writer = db
-	log.Info().Msgf("Connected to mysql database %s [maxIdleConns: %d, connMaxIdleTime: %s, maxOpenConns: %d, connMaxLifetime: %s]",
+	log.Info().Msgf("init: connected to mysql database %s [maxIdleConns: %d, connMaxIdleTime: %s, maxOpenConns: %d, connMaxLifetime: %s]",
 		ds.Config.Database, ds.Config.MaxIdleConnections, ds.Config.ConnMaxIdleTime, ds.Config.MaxOpenConnections, ds.Config.ConnMaxLifetime)
 
 	// connect to reader if provided
@@ -115,7 +115,7 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 		// map struct attributes to db column names
 		reader.Mapper = reflectx.NewMapperFunc("mysql", func(s string) string { return s })
 		ds.Reader = reader
-		log.Info().Msgf("Connected to mysql reader database %s [maxIdleConns: %d, connMaxIdleTime: %s, maxOpenConns: %d, connMaxLifetime: %s]",
+		log.Info().Msgf("init: connected to mysql reader database %s [maxIdleConns: %d, connMaxIdleTime: %s, maxOpenConns: %d, connMaxLifetime: %s]",
 			ds.Config.Database, ds.Config.ReaderMaxIdleConnections, ds.Config.ConnMaxIdleTime, ds.Config.ReaderMaxOpenConnections, ds.Config.ConnMaxLifetime)
 	}
 
@@ -123,7 +123,7 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 }
 
 func (ds MySQL) Migrate(ctx context.Context, toVersion uint) error {
-	log.Info().Msgf("Migrating mysql database %s", ds.Config.Database)
+	log.Info().Msgf("init: migrating mysql database %s", ds.Config.Database)
 	// migrate database to latest schema
 	mig, err := migrate.New(
 		ds.Config.MigrationSource,
@@ -144,18 +144,18 @@ func (ds MySQL) Migrate(ctx context.Context, toVersion uint) error {
 	}
 
 	if currentVersion == toVersion {
-		log.Info().Msg("Migrations already up-to-date")
+		log.Info().Msg("init: migrations already up-to-date")
 		return nil
 	}
 
 	numStepsToMigrate := toVersion - currentVersion
-	log.Info().Msgf("Applying %d migration(s)", numStepsToMigrate)
+	log.Info().Msgf("init: applying %d migration(s)", numStepsToMigrate)
 	err = mig.Steps(int(numStepsToMigrate))
 	if err != nil {
 		return errors.Wrap(err, "Error migrating mysql database")
 	}
 
-	log.Info().Msgf("Migrations for database %s up-to-date.", ds.Config.Database)
+	log.Info().Msgf("init: migrations for database %s up-to-date.", ds.Config.Database)
 	return nil
 }
 

@@ -337,7 +337,7 @@ type SQLRepository struct {
 
 func NewSQLRepository(db *SQL) SQLRepository {
 	if db == nil {
-		log.Fatal().Msg("Cannot initialize SQLRepository with a nil db parameter")
+		log.Fatal().Msg("init: cannot initialize SQLRepository with a nil db parameter")
 	}
 
 	return SQLRepository{

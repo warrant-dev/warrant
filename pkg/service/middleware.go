@@ -169,7 +169,6 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 		listParamParser := ListParamParser(*new(T))
 		listParams := defaultListParams(listParamParser)
 		urlQueryParams := r.URL.Query()
-		ctx := r.Context()
 
 		if urlQueryParams.Has(paramNameQuery) {
 			query := urlQueryParams.Get(paramNameQuery)
@@ -269,7 +268,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 			listParams.BeforeValue = beforeValue
 		}
 
-		ctx = context.WithValue(r.Context(), contextKeyListParams, &listParams)
+		ctx := context.WithValue(r.Context(), contextKeyListParams, &listParams)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -279,7 +278,7 @@ func GetListParamsFromContext[T ListParamParser](ctx context.Context) ListParams
 	if ctxListParams != nil {
 		listParams, ok := ctxListParams.(*ListParams)
 		if !ok {
-			log.Ctx(ctx).Error().Msg("Unsuccessful type cast of listParams context value to *ListParams type")
+			log.Ctx(ctx).Error().Msg("service: unsuccessful type cast of listParams context value to *ListParams type")
 			return defaultListParams(ListParamParser(*new(T)))
 		}
 

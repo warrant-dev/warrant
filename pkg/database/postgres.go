@@ -97,7 +97,7 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 	db.Mapper = reflectx.NewMapperFunc("postgres", func(s string) string { return s })
 
 	ds.Writer = db
-	log.Info().Msgf("Connected to postgres database %s [maxIdleConns: %d, connMaxIdleTime: %s, maxOpenConns: %d, connMaxLifetime: %s]",
+	log.Info().Msgf("init: connected to postgres database %s [maxIdleConns: %d, connMaxIdleTime: %s, maxOpenConns: %d, connMaxLifetime: %s]",
 		ds.Config.Database, ds.Config.MaxIdleConnections, ds.Config.ConnMaxIdleTime, ds.Config.MaxOpenConnections, ds.Config.ConnMaxLifetime)
 
 	// connect to reader if provided
@@ -128,7 +128,7 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 		reader.Mapper = reflectx.NewMapperFunc("postgres", func(s string) string { return s })
 
 		ds.Reader = reader
-		log.Info().Msgf("Connected to postgres reader database %s [maxIdleConns: %d, connMaxIdleTime: %s, maxOpenConns: %d, connMaxLifetime: %s]",
+		log.Info().Msgf("init: connected to postgres reader database %s [maxIdleConns: %d, connMaxIdleTime: %s, maxOpenConns: %d, connMaxLifetime: %s]",
 			ds.Config.Database, ds.Config.ReaderMaxIdleConnections, ds.Config.ConnMaxIdleTime, ds.Config.ReaderMaxOpenConnections, ds.Config.ConnMaxLifetime)
 	}
 
@@ -136,7 +136,7 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 }
 
 func (ds Postgres) Migrate(ctx context.Context, toVersion uint) error {
-	log.Info().Msgf("Migrating postgres database %s", ds.Config.Database)
+	log.Info().Msgf("init: migrating postgres database %s", ds.Config.Database)
 	// migrate database to latest schema
 	usernamePassword := url.UserPassword(ds.Config.Username, ds.Config.Password).String()
 	mig, err := migrate.New(
@@ -158,18 +158,18 @@ func (ds Postgres) Migrate(ctx context.Context, toVersion uint) error {
 	}
 
 	if currentVersion == toVersion {
-		log.Info().Msg("Migrations already up-to-date")
+		log.Info().Msg("init: migrations already up-to-date")
 		return nil
 	}
 
 	numStepsToMigrate := toVersion - currentVersion
-	log.Info().Msgf("Applying %d migration(s)", numStepsToMigrate)
+	log.Info().Msgf("init: applying %d migration(s)", numStepsToMigrate)
 	err = mig.Steps(int(numStepsToMigrate))
 	if err != nil {
 		return errors.Wrap(err, "Error migrating postgres database")
 	}
 
-	log.Info().Msgf("Migrations for database %s up-to-date.", ds.Config.Database)
+	log.Info().Msgf("init: migrations for database %s up-to-date.", ds.Config.Database)
 	return nil
 }
 

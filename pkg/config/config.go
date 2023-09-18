@@ -199,13 +199,13 @@ func NewConfig() WarrantConfig {
 	_, err := os.ReadFile(ConfigFileName)
 	if err == nil {
 		if err := viper.ReadInConfig(); err != nil {
-			log.Fatal().Err(err).Msg("Error while reading warrant.yaml. Shutting down.")
+			log.Fatal().Err(err).Msg("init: error while reading warrant.yaml. Shutting down.")
 		}
 	} else {
 		if os.IsNotExist(err) {
-			log.Info().Msg("Could not find warrant.yaml. Attempting to use environment variables.")
+			log.Info().Msg("init: could not find warrant.yaml. Attempting to use environment variables.")
 		} else {
-			log.Fatal().Err(err).Msg("Error while reading warrant.yaml. Shutting down.")
+			log.Fatal().Err(err).Msg("init: error while reading warrant.yaml. Shutting down.")
 		}
 	}
 
@@ -220,7 +220,7 @@ func NewConfig() WarrantConfig {
 	}
 
 	if err := viper.Unmarshal(&config); err != nil {
-		log.Fatal().Err(err).Msg("Error while creating config. Shutting down.")
+		log.Fatal().Err(err).Msg("init: error while creating config. Shutting down.")
 	}
 
 	// Configure logger
@@ -233,7 +233,7 @@ func NewConfig() WarrantConfig {
 	}
 
 	if config.GetAuthentication() == nil || config.GetAuthentication().ApiKey == "" {
-		log.Fatal().Msg("Must provide an API key to authenticate incoming requests to Warrant.")
+		log.Fatal().Msg("init: must provide an API key to authenticate incoming requests to Warrant.")
 	}
 
 	return config
