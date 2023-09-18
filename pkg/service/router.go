@@ -57,7 +57,7 @@ func (rh RouteHandler[T]) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Log event
-		logEvent.Msg("ERROR")
+		logEvent.Msg("error log")
 	}
 }
 
@@ -136,7 +136,7 @@ func accessLogMiddleware(next http.Handler) http.Handler {
 			logEvent = logEvent.Str("userAgent", userAgent)
 		}
 
-		logEvent.Msg("ACCESS")
+		logEvent.Msg("access log")
 	})(next)
 }
 

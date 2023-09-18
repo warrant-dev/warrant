@@ -89,13 +89,13 @@ func (ds *SQLite) Connect(ctx context.Context) error {
 	db.Mapper = reflectx.NewMapperFunc("sqlite", func(s string) string { return s })
 
 	ds.Writer = db
-	log.Info().Msgf("Connected to sqlite database %s [maxIdleConns: %d, connMaxIdleTime: %s, maxOpenConns: %d, connMaxLifetime: %s]",
+	log.Info().Msgf("init: connected to sqlite database %s [maxIdleConns: %d, connMaxIdleTime: %s, maxOpenConns: %d, connMaxLifetime: %s]",
 		ds.Config.Database, ds.Config.MaxIdleConnections, ds.Config.ConnMaxIdleTime, ds.Config.MaxOpenConnections, ds.Config.ConnMaxLifetime)
 	return nil
 }
 
 func (ds SQLite) Migrate(ctx context.Context, toVersion uint) error {
-	log.Info().Msgf("Migrating sqlite database %s", ds.Config.Database)
+	log.Info().Msgf("init: migrating sqlite database %s", ds.Config.Database)
 	// migrate database to latest schema
 	instance, err := sqlite3.WithInstance(ds.Writer.DB, &sqlite3.Config{})
 	if err != nil {
@@ -121,18 +121,18 @@ func (ds SQLite) Migrate(ctx context.Context, toVersion uint) error {
 	}
 
 	if currentVersion == toVersion {
-		log.Info().Msg("Migrations already up-to-date")
+		log.Info().Msg("init: migrations already up-to-date")
 		return nil
 	}
 
 	numStepsToMigrate := toVersion - currentVersion
-	log.Info().Msgf("Applying %d migration(s)", numStepsToMigrate)
+	log.Info().Msgf("init: applying %d migration(s)", numStepsToMigrate)
 	err = mig.Steps(int(numStepsToMigrate))
 	if err != nil {
 		return errors.Wrap(err, "Error migrating sqlite database")
 	}
 
-	log.Info().Msgf("Migrations for database %s up-to-date.", ds.Config.Database)
+	log.Info().Msgf("init: migrations for database %s up-to-date.", ds.Config.Database)
 	return nil
 }
 

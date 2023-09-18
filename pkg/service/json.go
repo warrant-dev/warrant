@@ -132,7 +132,7 @@ func ParseJSONBytes(body []byte, obj interface{}) error {
 func ParseJSONBody(body io.Reader, obj interface{}) error {
 	reflectVal := reflect.ValueOf(obj)
 	if reflectVal.Kind() != reflect.Pointer {
-		log.Error().Msg("Second argument to ParseJSONBody must be a reference")
+		log.Error().Msg("service: second argument to ParseJSONBody must be a reference")
 		return NewInternalError("Internal server error")
 	}
 
@@ -162,7 +162,7 @@ func ValidateStruct(obj interface{}) error {
 				objType := reflect.Indirect(reflect.ValueOf(obj)).Type()
 				invalidField, fieldFound := getFieldFromType(err.Field(), objType)
 				if !fieldFound {
-					log.Debug().Msgf("field %s not found on %v", err.Field(), objType)
+					log.Debug().Msgf("service: field %s not found on %v", err.Field(), objType)
 					return NewInvalidRequestError("Invalid request body")
 				}
 

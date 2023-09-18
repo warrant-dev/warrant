@@ -194,39 +194,39 @@ func main() {
 	svcEnv := NewServiceEnv()
 	err := svcEnv.InitDB(cfg)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize and connect to the configured datastore. Shutting down.")
+		log.Fatal().Err(err).Msg("init: could not initialize and connect to the configured datastore. Shutting down.")
 	}
 
 	err = svcEnv.InitEventDB(cfg)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize and connect to the configured eventstore. Shutting down.")
+		log.Fatal().Err(err).Msg("init: could not initialize and connect to the configured eventstore. Shutting down.")
 	}
 
 	// Init event repo and service
 	eventRepository, err := event.NewRepository(svcEnv.EventDB())
 	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize EventRepository")
+		log.Fatal().Err(err).Msg("init: could not initialize EventRepository")
 	}
 	eventSvc := event.NewService(svcEnv, eventRepository, cfg.Eventstore.SynchronizeEvents, nil)
 
 	// Init object type repo and service
 	objectTypeRepository, err := objecttype.NewRepository(svcEnv.DB())
 	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize ObjectTypeRepository")
+		log.Fatal().Err(err).Msg("init: could not initialize ObjectTypeRepository")
 	}
 	objectTypeSvc := objecttype.NewService(svcEnv, objectTypeRepository, eventSvc)
 
 	// Init object repo and service
 	objectRepository, err := object.NewRepository(svcEnv.DB())
 	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize ObjectRepository")
+		log.Fatal().Err(err).Msg("init: could not initialize ObjectRepository")
 	}
 	objectSvc := object.NewService(svcEnv, objectRepository, eventSvc)
 
 	// Init warrant repo and service
 	warrantRepository, err := warrant.NewRepository(svcEnv.DB())
 	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize WarrantRepository")
+		log.Fatal().Err(err).Msg("init: could not initialize WarrantRepository")
 	}
 	warrantSvc := warrant.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, objectSvc)
 
@@ -269,7 +269,7 @@ func main() {
 	for _, svc := range svcs {
 		svcRoutes, err := svc.Routes()
 		if err != nil {
-			log.Fatal().Err(err).Msg("Could not setup routes for service")
+			log.Fatal().Err(err).Msg("init: could not setup routes for service")
 		}
 
 		routes = append(routes, svcRoutes...)
@@ -277,10 +277,10 @@ func main() {
 
 	router, err := service.NewRouter(cfg, "", routes, service.ApiKeyAuthMiddleware, []service.Middleware{}, []service.Middleware{})
 	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize service router")
+		log.Fatal().Err(err).Msg("init: could not initialize service router")
 	}
 
-	log.Info().Msgf("Listening on port %d", cfg.GetPort())
+	log.Info().Msgf("init: listening on port %d", cfg.GetPort())
 	shutdownErr := http.ListenAndServe(fmt.Sprintf(":%d", cfg.GetPort()), router)
-	log.Fatal().Err(shutdownErr).Msg("")
+	log.Fatal().Err(shutdownErr).Msg("shutdown")
 }
