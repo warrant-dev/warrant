@@ -27,7 +27,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/warrant-dev/warrant/pkg/config"
 	"github.com/warrant-dev/warrant/pkg/stats"
-	"github.com/warrant-dev/warrant/pkg/wookie"
 )
 
 type RouteHandler[T Service] struct {
@@ -75,7 +74,7 @@ func NewRouter(config config.Config, pathPrefix string, routes []Route, authMidd
 	}
 	router.Use(hlog.NewHandler(logger))
 	router.Use(stats.RequestStatsMiddleware)
-	router.Use(wookie.WookieMiddleware)
+	router.Use(WookieMiddleware)
 	if config.GetEnableAccessLog() {
 		router.Use(accessLogMiddleware)
 	}

@@ -43,7 +43,7 @@ type CheckService struct {
 func defaultCreateCheckContext(ctx context.Context) (context.Context, error) {
 	checkCtx := stats.BlankContextWithRequestStats(ctx)
 	if wookie.ContainsLatest(ctx) {
-		return wookie.WithLatest(checkCtx), nil
+		return service.WithLatest(checkCtx), nil
 	}
 	return checkCtx, nil
 }

@@ -18,12 +18,13 @@ import (
 	"context"
 	"testing"
 
+	"github.com/warrant-dev/warrant/pkg/service"
 	"github.com/warrant-dev/warrant/pkg/wookie"
 )
 
 func TestBasicSerialization(t *testing.T) {
 	t.Parallel()
-	ctx := wookie.WithLatest(context.Background())
+	ctx := service.WithLatest(context.Background())
 	if !wookie.ContainsLatest(ctx) {
 		t.Fatalf("expected ctx to contain 'latest' wookie")
 	}
