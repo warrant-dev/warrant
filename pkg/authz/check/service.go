@@ -35,7 +35,7 @@ type CheckService struct {
 	service.BaseService
 	WarrantRepository  warrant.WarrantRepository
 	EventSvc           event.Service
-	ObjectTypeSvc      *objecttype.ObjectTypeService
+	ObjectTypeSvc      objecttype.Service
 	CheckConfig        *config.CheckConfig
 	CreateCheckContext CheckContextFunc
 }
@@ -48,7 +48,7 @@ func defaultCreateCheckContext(ctx context.Context) (context.Context, error) {
 	return checkCtx, nil
 }
 
-func NewService(env service.Env, warrantRepo warrant.WarrantRepository, eventSvc event.Service, objectTypeSvc *objecttype.ObjectTypeService, checkConfig *config.CheckConfig, checkContext CheckContextFunc) *CheckService {
+func NewService(env service.Env, warrantRepo warrant.WarrantRepository, eventSvc event.Service, objectTypeSvc objecttype.Service, checkConfig *config.CheckConfig, checkContext CheckContextFunc) *CheckService {
 	svc := &CheckService{
 		BaseService:        service.NewBaseService(env),
 		WarrantRepository:  warrantRepo,

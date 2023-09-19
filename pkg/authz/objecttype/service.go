@@ -35,6 +35,15 @@ func (m ObjectTypeMap) GetByTypeId(typeId string) (*ObjectTypeSpec, error) {
 	return nil, service.NewRecordNotFoundError("ObjectType", typeId)
 }
 
+type Service interface {
+	Create(ctx context.Context, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error)
+	GetByTypeId(ctx context.Context, typeId string) (*ObjectTypeSpec, error)
+	GetTypeMap(ctx context.Context) (*ObjectTypeMap, error)
+	List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, error)
+	UpdateByTypeId(ctx context.Context, typeId string, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error)
+	DeleteByTypeId(ctx context.Context, typeId string) (*wookie.Token, error)
+}
+
 type ObjectTypeService struct {
 	service.BaseService
 	Repository ObjectTypeRepository
@@ -181,7 +190,7 @@ func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, 
 	return updatedObjectTypeSpec, nil
 }
 
-func (svc ObjectTypeService) DeleteByTypeId(ctx context.Context, typeId string) error {
+func (svc ObjectTypeService) DeleteByTypeId(ctx context.Context, typeId string) (*wookie.Token, error) {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		err := svc.Repository.DeleteByTypeId(txCtx, typeId)
 		if err != nil {
@@ -196,7 +205,7 @@ func (svc ObjectTypeService) DeleteByTypeId(ctx context.Context, typeId string) 
 		return nil
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return nil, nil
 }
