@@ -17,6 +17,7 @@ package authz
 import (
 	"encoding/json"
 
+	"github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -45,6 +46,7 @@ type ObjectTypeSpec struct {
 	Type      string                  `json:"type" validate:"required,valid_object_type"`
 	Source    *Source                 `json:"source,omitempty"`
 	Relations map[string]RelationRule `json:"relations" validate:"required,min=1,dive"` // NOTE: map key = name of relation
+	Wookie    *wookie.Token           `json:"-"`
 }
 
 func (spec ObjectTypeSpec) ToObjectType() (*ObjectType, error) {

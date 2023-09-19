@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/warrant-dev/warrant/pkg/authz/wookie"
 )
 
 type Model interface {
@@ -29,7 +30,7 @@ type Model interface {
 	GetCreatedAt() time.Time
 	GetUpdatedAt() time.Time
 	GetDeletedAt() *time.Time
-	ToObjectTypeSpec() (*ObjectTypeSpec, error)
+	ToObjectTypeSpec(token *wookie.Token) (*ObjectTypeSpec, error)
 }
 
 type ObjectType struct {
@@ -69,11 +70,15 @@ func (objectType ObjectType) GetDeletedAt() *time.Time {
 	return objectType.DeletedAt
 }
 
-func (objectType ObjectType) ToObjectTypeSpec() (*ObjectTypeSpec, error) {
+func (objectType ObjectType) ToObjectTypeSpec(token *wookie.Token) (*ObjectTypeSpec, error) {
 	var objectTypeSpec ObjectTypeSpec
 	err := json.Unmarshal([]byte(objectType.Definition), &objectTypeSpec)
 	if err != nil {
 		return nil, errors.Wrapf(err, "error unmarshaling object type %s", objectType.TypeId)
+	}
+
+	if token != nil {
+		objectTypeSpec.Wookie = token
 	}
 
 	return &objectTypeSpec, nil
