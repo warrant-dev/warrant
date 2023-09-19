@@ -17,6 +17,7 @@ package authz
 import (
 	"context"
 
+	"github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -24,11 +25,11 @@ import (
 const ResourceTypeObjectType = "object-type"
 
 type ObjectTypeMap struct {
-	objectTypes map[string]ObjectTypeSpec
+	ObjectTypes map[string]ObjectTypeSpec
 }
 
 func (m ObjectTypeMap) GetByTypeId(typeId string) (*ObjectTypeSpec, error) {
-	if val, ok := m.objectTypes[typeId]; ok {
+	if val, ok := m.ObjectTypes[typeId]; ok {
 		return &val, nil
 	}
 
@@ -130,7 +131,7 @@ func (svc ObjectTypeService) GetTypeMap(ctx context.Context) (*ObjectTypeMap, er
 	}
 
 	return &ObjectTypeMap{
-		objectTypes: typeMap,
+		ObjectTypes: typeMap,
 	}, nil
 }
 
