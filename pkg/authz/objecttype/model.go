@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/warrant-dev/warrant/pkg/authz/wookie"
+	"github.com/warrant-dev/warrant/pkg/wookie"
 )
 
 type Model interface {

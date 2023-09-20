@@ -17,9 +17,9 @@ package authz
 import (
 	"context"
 
-	"github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
+	"github.com/warrant-dev/warrant/pkg/wookie"
 )
 
 const ResourceTypeObjectType = "object-type"

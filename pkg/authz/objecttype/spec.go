@@ -17,8 +17,8 @@ package authz
 import (
 	"encoding/json"
 
-	"github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/service"
+	"github.com/warrant-dev/warrant/pkg/wookie"
 )
 
 const (

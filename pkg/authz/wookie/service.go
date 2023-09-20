@@ -18,6 +18,7 @@ import (
 	"context"
 
 	"github.com/warrant-dev/warrant/pkg/service"
+	"github.com/warrant-dev/warrant/pkg/wookie"
 )
 
 const currentWookieVersion = 1
@@ -34,8 +35,8 @@ func NewService(env service.Env, repository WookieRepository) *WookieService {
 	}
 }
 
-func (svc WookieService) CreateNewWookie(ctx context.Context) (*Token, error) {
-	var newWookie *Token
+func (svc WookieService) CreateNewWookie(ctx context.Context) (*wookie.Token, error) {
+	var newWookie *wookie.Token
 
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		newWookieId, err := svc.Repository.Create(txCtx, currentWookieVersion)
@@ -57,7 +58,7 @@ func (svc WookieService) CreateNewWookie(ctx context.Context) (*Token, error) {
 	return newWookie, nil
 }
 
-func (svc WookieService) GetLatestWookie(ctx context.Context) (*Token, error) {
+func (svc WookieService) GetLatestWookie(ctx context.Context) (*wookie.Token, error) {
 	latestWookie, err := svc.Repository.GetLatest(ctx)
 	if err != nil {
 		return nil, err
