@@ -64,7 +64,7 @@ func defaultCreateEventContext(ctx context.Context, synchronizeEvents bool) (con
 	}
 
 	if wookie.ContainsLatest(ctx) {
-		return service.WithLatest(context.Background()), nil
+		return wookie.WithLatest(context.Background()), nil
 	}
 	return context.Background(), nil
 }

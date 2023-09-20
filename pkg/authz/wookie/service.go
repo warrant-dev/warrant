@@ -58,6 +58,17 @@ func (svc WookieService) CreateNewWookie(ctx context.Context) (*wookie.Token, er
 	return newWookie, nil
 }
 
+func (svc WookieService) GetById(ctx context.Context, id int64) (*wookie.Token, error) {
+	wookie, err := svc.Repository.GetById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	wookieToken := wookie.ToToken()
+
+	return wookieToken, nil
+}
+
 func (svc WookieService) GetLatestWookie(ctx context.Context) (*wookie.Token, error) {
 	latestWookie, err := svc.Repository.GetLatest(ctx)
 	if err != nil {

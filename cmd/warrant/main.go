@@ -32,6 +32,7 @@ import (
 	tenant "github.com/warrant-dev/warrant/pkg/authz/tenant"
 	user "github.com/warrant-dev/warrant/pkg/authz/user"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
+	wookie "github.com/warrant-dev/warrant/pkg/authz/wookie"
 	"github.com/warrant-dev/warrant/pkg/config"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/event"
@@ -251,6 +252,13 @@ func main() {
 	// Init user service
 	userSvc := user.NewService(&svcEnv, eventSvc, objectSvc)
 
+	// Init wookie service
+	wookieRepository, err := wookie.NewRepository(svcEnv.DB())
+	if err != nil {
+		log.Fatal().Err(err).Msg("Could not initialize WookieRepository")
+	}
+	wookieSvc := wookie.NewService(svcEnv, wookieRepository)
+
 	svcs := []service.Service{
 		checkSvc,
 		eventSvc,
@@ -275,7 +283,9 @@ func main() {
 		routes = append(routes, svcRoutes...)
 	}
 
-	router, err := service.NewRouter(cfg, "", routes, service.ApiKeyAuthMiddleware, []service.Middleware{}, []service.Middleware{})
+	requestMiddlewares := []service.Middleware{wookie.GenerateWookieMiddleware(wookieSvc)}
+
+	router, err := service.NewRouter(cfg, "", routes, service.ApiKeyAuthMiddleware, []service.Middleware{}, requestMiddlewares)
 	if err != nil {
 		log.Fatal().Err(err).Msg("init: could not initialize service router")
 	}

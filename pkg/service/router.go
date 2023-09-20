@@ -74,7 +74,6 @@ func NewRouter(config config.Config, pathPrefix string, routes []Route, authMidd
 	}
 	router.Use(hlog.NewHandler(logger))
 	router.Use(stats.RequestStatsMiddleware)
-	router.Use(WookieMiddleware)
 	if config.GetEnableAccessLog() {
 		router.Use(accessLogMiddleware)
 	}

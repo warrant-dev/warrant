@@ -16,11 +16,16 @@ package wookie
 
 import (
 	"context"
+	"net/http"
+
+	"github.com/pkg/errors"
 )
 
+const WarrantTokenHeaderName = "Warrant-Token"
 const Latest = "latest"
 
 type WookieCtxKey struct{}
+type WookieKey struct{}
 
 // Returns true if ctx contains wookie set to 'latest', false otherwise.
 func ContainsLatest(ctx context.Context) bool {
@@ -30,4 +35,23 @@ func ContainsLatest(ctx context.Context) bool {
 		}
 	}
 	return false
+}
+
+func GetWookieFromRequestContext(ctx context.Context) (*Token, error) {
+	wookie, ok := ctx.Value(WookieKey{}).(Token)
+	if !ok {
+		return nil, errors.New("error getting wookie from request context")
+	}
+	return &wookie, nil
+}
+
+// Return a context with wookie set to 'latest'.
+func WithLatest(parent context.Context) context.Context {
+	return context.WithValue(parent, WookieCtxKey{}, Latest)
+}
+
+func AddAsResponseHeader(w http.ResponseWriter, token *Token) {
+	if token != nil {
+		w.Header().Set(WarrantTokenHeaderName, token.String())
+	}
 }
