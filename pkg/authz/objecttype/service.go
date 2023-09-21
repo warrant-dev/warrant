@@ -24,12 +24,10 @@ import (
 
 const ResourceTypeObjectType = "object-type"
 
-type ObjectTypeMap struct {
-	ObjectTypes map[string]ObjectTypeSpec
-}
+type ObjectTypeMap map[string]ObjectTypeSpec
 
 func (m ObjectTypeMap) GetByTypeId(typeId string) (*ObjectTypeSpec, error) {
-	if val, ok := m.ObjectTypes[typeId]; ok {
+	if val, ok := m[typeId]; ok {
 		return &val, nil
 	}
 
@@ -39,7 +37,7 @@ func (m ObjectTypeMap) GetByTypeId(typeId string) (*ObjectTypeSpec, error) {
 type Service interface {
 	Create(ctx context.Context, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error)
 	GetByTypeId(ctx context.Context, typeId string) (*ObjectTypeSpec, error)
-	GetTypeMap(ctx context.Context) (*ObjectTypeMap, error)
+	GetTypeMap(ctx context.Context) (ObjectTypeMap, error)
 	List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, error)
 	UpdateByTypeId(ctx context.Context, typeId string, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error)
 	DeleteByTypeId(ctx context.Context, typeId string) (*wookie.Token, error)
@@ -114,7 +112,7 @@ func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*O
 	return objectTypeSpec, nil
 }
 
-func (svc ObjectTypeService) GetTypeMap(ctx context.Context) (*ObjectTypeMap, error) {
+func (svc ObjectTypeService) GetTypeMap(ctx context.Context) (ObjectTypeMap, error) {
 	objectTypes, err := svc.Repository.ListAll(ctx)
 	if err != nil {
 		return nil, err
@@ -130,9 +128,7 @@ func (svc ObjectTypeService) GetTypeMap(ctx context.Context) (*ObjectTypeMap, er
 		typeMap[objectTypeSpec.Type] = *objectTypeSpec
 	}
 
-	return &ObjectTypeMap{
-		ObjectTypes: typeMap,
-	}, nil
+	return typeMap, nil
 }
 
 func (svc ObjectTypeService) List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, error) {
