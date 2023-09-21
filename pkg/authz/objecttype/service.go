@@ -208,5 +208,7 @@ func (svc ObjectTypeService) DeleteByTypeId(ctx context.Context, typeId string) 
 	if err != nil {
 		return nil, err
 	}
+
+	//nolint:nilnil
 	return nil, nil
 }
