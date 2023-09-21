@@ -82,7 +82,7 @@ func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTy
 			return err
 		}
 
-		newObjectTypeSpec, err = newObjectType.ToObjectTypeSpec(nil)
+		newObjectTypeSpec, err = newObjectType.ToObjectTypeSpec()
 		if err != nil {
 			return err
 		}
@@ -106,7 +106,7 @@ func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*O
 		return nil, err
 	}
 
-	objectTypeSpec, err := objectType.ToObjectTypeSpec(nil)
+	objectTypeSpec, err := objectType.ToObjectTypeSpec()
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (svc ObjectTypeService) GetTypeMap(ctx context.Context) (*ObjectTypeMap, er
 
 	typeMap := make(map[string]ObjectTypeSpec)
 	for _, objectType := range objectTypes {
-		objectTypeSpec, err := objectType.ToObjectTypeSpec(nil)
+		objectTypeSpec, err := objectType.ToObjectTypeSpec()
 		if err != nil {
 			return nil, err
 		}
@@ -144,7 +144,7 @@ func (svc ObjectTypeService) List(ctx context.Context, listParams service.ListPa
 	}
 
 	for _, objectType := range objectTypes {
-		objectTypeSpec, err := objectType.ToObjectTypeSpec(nil)
+		objectTypeSpec, err := objectType.ToObjectTypeSpec()
 		if err != nil {
 			return nil, err
 		}
