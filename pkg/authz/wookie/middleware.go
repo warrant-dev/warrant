@@ -30,7 +30,7 @@ func GenerateWookieMiddleware(wookieSvc *WookieService) service.Middleware {
 
 func wookieMiddleware(next http.Handler, wookieSvc *WookieService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		headerVal := r.Header.Get(wookie.WarrantTokenHeaderName)
+		headerVal := r.Header.Get(wookie.HeaderName)
 
 		switch headerVal {
 		case wookie.Latest:

@@ -21,7 +21,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const WarrantTokenHeaderName = "Warrant-Token"
+const HeaderName = "Warrant-Token"
 const Latest = "latest"
 
 type WookieCtxKey struct{}
@@ -52,6 +52,6 @@ func WithLatest(parent context.Context) context.Context {
 
 func AddAsResponseHeader(w http.ResponseWriter, token *Token) {
 	if token != nil {
-		w.Header().Set(WarrantTokenHeaderName, token.String())
+		w.Header().Set(HeaderName, token.String())
 	}
 }
