@@ -255,7 +255,7 @@ func main() {
 	// Init wookie service
 	wookieRepository, err := wookie.NewRepository(svcEnv.DB())
 	if err != nil {
-		log.Fatal().Err(err).Msg("Could not initialize WookieRepository")
+		log.Fatal().Err(err).Msg("init: could not initialize WookieRepository")
 	}
 	wookieSvc := wookie.NewService(svcEnv, wookieRepository)
 
