@@ -36,9 +36,10 @@ func (repo MySQLRepository) Create(ctx context.Context, version int64) (int64, e
 		ctx,
 		`
 			INSERT INTO wookie (
-				ver
+				ver,
+				createdAt
 			)
-			VALUES (?)
+			VALUES (?, CURRENT_TIMESTAMP(6))
 		`,
 		version,
 	)
