@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -117,6 +118,47 @@ func (repo PostgresRepository) GetByObjectTypeAndId(ctx context.Context, objectT
 	}
 
 	return &object, nil
+}
+
+func (repo PostgresRepository) BatchGetByObjectTypeAndIds(ctx context.Context, objectType string, objectIds []string) ([]Model, error) {
+	models := make([]Model, 0)
+	objects := make([]Object, 0)
+	if len(objectIds) == 0 {
+		return models, nil
+	}
+
+	query, args, err := sqlx.In(
+		`
+			SELECT id, object_type, object_id, meta, created_at, updated_at, deleted_at
+			FROM warrant.object
+			WHERE
+				object_type = ? AND
+				object_id IN (?) AND
+				deleted_at IS NULL
+			ORDER BY object_id ASC
+		`,
+		objectType,
+		objectIds,
+	)
+	if err != nil {
+		return models, errors.Wrap(err, "error getting objects batch")
+	}
+
+	err = repo.DB.SelectContext(
+		ctx,
+		&objects,
+		query,
+		args...,
+	)
+	if err != nil {
+		return models, errors.Wrap(err, "error getting objects batch")
+	}
+
+	for i := range objects {
+		models = append(models, &objects[i])
+	}
+
+	return models, nil
 }
 
 func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]Model, error) {

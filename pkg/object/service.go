@@ -93,6 +93,25 @@ func (svc ObjectService) GetByObjectTypeAndId(ctx context.Context, objectType st
 	return object.ToObjectSpec()
 }
 
+func (svc ObjectService) BatchGetByObjectTypeAndIds(ctx context.Context, objectType string, objectIds []string) ([]ObjectSpec, error) {
+	objects, err := svc.Repository.BatchGetByObjectTypeAndIds(ctx, objectType, objectIds)
+	if err != nil {
+		return nil, err
+	}
+
+	objectSpecs := make([]ObjectSpec, 0)
+	for _, object := range objects {
+		objectSpec, err := object.ToObjectSpec()
+		if err != nil {
+			return nil, err
+		}
+
+		objectSpecs = append(objectSpecs, *objectSpec)
+	}
+
+	return objectSpecs, nil
+}
+
 func (svc ObjectService) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]ObjectSpec, error) {
 	objectSpecs := make([]ObjectSpec, 0)
 	objects, err := svc.Repository.List(ctx, filterOptions, listParams)

@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -122,6 +123,47 @@ func (repo SQLiteRepository) GetByObjectTypeAndId(ctx context.Context, objectTyp
 	}
 
 	return &object, nil
+}
+
+func (repo SQLiteRepository) BatchGetByObjectTypeAndIds(ctx context.Context, objectType string, objectIds []string) ([]Model, error) {
+	models := make([]Model, 0)
+	objects := make([]Object, 0)
+	if len(objectIds) == 0 {
+		return models, nil
+	}
+
+	query, args, err := sqlx.In(
+		`
+			SELECT id, objectType, objectId, meta, createdAt, updatedAt, deletedAt
+			FROM warrant.object
+			WHERE
+				objectType = ? AND
+				objectId IN (?) AND
+				deletedAt IS NULL
+			ORDER BY objectId ASC
+		`,
+		objectType,
+		objectIds,
+	)
+	if err != nil {
+		return models, errors.Wrap(err, "error getting objects batch")
+	}
+
+	err = repo.DB.SelectContext(
+		ctx,
+		&objects,
+		query,
+		args...,
+	)
+	if err != nil {
+		return models, errors.Wrap(err, "error getting objects batch")
+	}
+
+	for i := range objects {
+		models = append(models, &objects[i])
+	}
+
+	return models, nil
 }
 
 func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]Model, error) {
