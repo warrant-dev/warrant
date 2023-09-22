@@ -19,20 +19,28 @@ import (
 
 	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
+	"github.com/warrant-dev/warrant/pkg/wookie"
 )
 
 const ResourceTypeObjectType = "object-type"
 
-type ObjectTypeMap struct {
-	objectTypes map[string]ObjectTypeSpec
-}
+type ObjectTypeMap map[string]ObjectTypeSpec
 
 func (m ObjectTypeMap) GetByTypeId(typeId string) (*ObjectTypeSpec, error) {
-	if val, ok := m.objectTypes[typeId]; ok {
+	if val, ok := m[typeId]; ok {
 		return &val, nil
 	}
 
 	return nil, service.NewRecordNotFoundError("ObjectType", typeId)
+}
+
+type Service interface {
+	Create(ctx context.Context, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error)
+	GetByTypeId(ctx context.Context, typeId string) (*ObjectTypeSpec, error)
+	GetTypeMap(ctx context.Context) (ObjectTypeMap, error)
+	List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, error)
+	UpdateByTypeId(ctx context.Context, typeId string, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, error)
+	DeleteByTypeId(ctx context.Context, typeId string) (*wookie.Token, error)
 }
 
 type ObjectTypeService struct {
@@ -104,7 +112,7 @@ func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*O
 	return objectTypeSpec, nil
 }
 
-func (svc ObjectTypeService) GetTypeMap(ctx context.Context) (*ObjectTypeMap, error) {
+func (svc ObjectTypeService) GetTypeMap(ctx context.Context) (ObjectTypeMap, error) {
 	objectTypes, err := svc.Repository.ListAll(ctx)
 	if err != nil {
 		return nil, err
@@ -120,9 +128,7 @@ func (svc ObjectTypeService) GetTypeMap(ctx context.Context) (*ObjectTypeMap, er
 		typeMap[objectTypeSpec.Type] = *objectTypeSpec
 	}
 
-	return &ObjectTypeMap{
-		objectTypes: typeMap,
-	}, nil
+	return typeMap, nil
 }
 
 func (svc ObjectTypeService) List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, error) {
@@ -181,7 +187,7 @@ func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, 
 	return updatedObjectTypeSpec, nil
 }
 
-func (svc ObjectTypeService) DeleteByTypeId(ctx context.Context, typeId string) error {
+func (svc ObjectTypeService) DeleteByTypeId(ctx context.Context, typeId string) (*wookie.Token, error) {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		err := svc.Repository.DeleteByTypeId(txCtx, typeId)
 		if err != nil {
@@ -196,7 +202,9 @@ func (svc ObjectTypeService) DeleteByTypeId(ctx context.Context, typeId string) 
 		return nil
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+
+	//nolint:nilnil
+	return nil, nil
 }

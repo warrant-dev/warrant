@@ -126,7 +126,7 @@ func UpdateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 
 func DeleteHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	typeId := mux.Vars(r)["type"]
-	err := svc.DeleteByTypeId(r.Context(), typeId)
+	_, err := svc.DeleteByTypeId(r.Context(), typeId)
 	if err != nil {
 		return err
 	}

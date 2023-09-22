@@ -35,7 +35,7 @@ type CheckService struct {
 	service.BaseService
 	WarrantRepository  warrant.WarrantRepository
 	EventSvc           event.Service
-	ObjectTypeSvc      *objecttype.ObjectTypeService
+	ObjectTypeSvc      objecttype.Service
 	CheckConfig        *config.CheckConfig
 	CreateCheckContext CheckContextFunc
 }
@@ -48,7 +48,7 @@ func defaultCreateCheckContext(ctx context.Context) (context.Context, error) {
 	return checkCtx, nil
 }
 
-func NewService(env service.Env, warrantRepo warrant.WarrantRepository, eventSvc event.Service, objectTypeSvc *objecttype.ObjectTypeService, checkConfig *config.CheckConfig, checkContext CheckContextFunc) *CheckService {
+func NewService(env service.Env, warrantRepo warrant.WarrantRepository, eventSvc event.Service, objectTypeSvc objecttype.Service, checkConfig *config.CheckConfig, checkContext CheckContextFunc) *CheckService {
 	svc := &CheckService{
 		BaseService:        service.NewBaseService(env),
 		WarrantRepository:  warrantRepo,
@@ -92,7 +92,7 @@ func (svc CheckService) getWithPolicyMatch(ctx context.Context, checkPipeline *p
 	return nil, nil
 }
 
-func (svc CheckService) getMatchingSubjects(ctx context.Context, checkPipeline *pipeline, objectTypeMap *objecttype.ObjectTypeMap, objectType string, objectId string, relation string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
+func (svc CheckService) getMatchingSubjects(ctx context.Context, checkPipeline *pipeline, objectTypeMap objecttype.ObjectTypeMap, objectType string, objectId string, relation string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
 	checkPipeline.AcquireServiceLock()
 	defer checkPipeline.ReleaseServiceLock()
 
@@ -133,7 +133,7 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, checkPipeline *
 	return warrantSpecs, nil
 }
 
-func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, checkPipeline *pipeline, objectTypeMap *objecttype.ObjectTypeMap, objectType string,
+func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, checkPipeline *pipeline, objectTypeMap objecttype.ObjectTypeMap, objectType string,
 	objectId string, relation string, subjectType string, checkCtx warrant.PolicyContext) ([]warrant.WarrantSpec, error) {
 	checkPipeline.AcquireServiceLock()
 	defer checkPipeline.ReleaseServiceLock()
@@ -378,7 +378,7 @@ type result struct {
 	Err          error
 }
 
-func (svc CheckService) check(level int, checkPipeline *pipeline, ctx context.Context, checkSpec CheckSpec, currentPath []warrant.WarrantSpec, resultC chan<- result, typesMap *objecttype.ObjectTypeMap) {
+func (svc CheckService) check(level int, checkPipeline *pipeline, ctx context.Context, checkSpec CheckSpec, currentPath []warrant.WarrantSpec, resultC chan<- result, typesMap objecttype.ObjectTypeMap) {
 	select {
 	case <-ctx.Done():
 		log.Ctx(ctx).Debug().Msgf("canceled check[%d] [%s]", level, checkSpec)
@@ -435,7 +435,7 @@ func (svc CheckService) check(level int, checkPipeline *pipeline, ctx context.Co
 	}
 }
 
-func (svc CheckService) checkGroup(level int, checkPipeline *pipeline, ctx context.Context, checkSpec CheckSpec, currentPath []warrant.WarrantSpec, resultC chan<- result, typesMap *objecttype.ObjectTypeMap) {
+func (svc CheckService) checkGroup(level int, checkPipeline *pipeline, ctx context.Context, checkSpec CheckSpec, currentPath []warrant.WarrantSpec, resultC chan<- result, typesMap objecttype.ObjectTypeMap) {
 	select {
 	case <-ctx.Done():
 		log.Ctx(ctx).Debug().Msgf("canceled checkGroup[%d] [%s]", level, checkSpec)
@@ -491,7 +491,7 @@ func (svc CheckService) checkGroup(level int, checkPipeline *pipeline, ctx conte
 	}
 }
 
-func (svc CheckService) checkRule(level int, checkPipeline *pipeline, ctx context.Context, checkSpec CheckSpec, currentPath []warrant.WarrantSpec, resultC chan<- result, typesMap *objecttype.ObjectTypeMap, rule *objecttype.RelationRule) {
+func (svc CheckService) checkRule(level int, checkPipeline *pipeline, ctx context.Context, checkSpec CheckSpec, currentPath []warrant.WarrantSpec, resultC chan<- result, typesMap objecttype.ObjectTypeMap, rule *objecttype.RelationRule) {
 	select {
 	case <-ctx.Done():
 		log.Ctx(ctx).Debug().Msgf("canceled checkRule[%d] [%s] [%s]", level, checkSpec, rule)
