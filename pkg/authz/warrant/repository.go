@@ -31,7 +31,7 @@ type WarrantRepository interface {
 	GetAllMatchingObjectRelationAndSubject(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string) ([]Model, error)
 	GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string) ([]Model, error)
 	GetAllMatchingObjectAndRelationBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string) ([]Model, error)
-	List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]Model, error)
+	List(ctx context.Context, filterParams *FilterParams, listParams service.ListParams) ([]Model, error)
 	Delete(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) error
 	DeleteById(ctx context.Context, ids []int64) error
 }
@@ -64,7 +64,7 @@ func NewRepository(db database.Database) (WarrantRepository, error) {
 	}
 }
 
-func buildQuestionMarkString(numReplacements int) string {
+func BuildQuestionMarkString(numReplacements int) string {
 	var replacements []string
 	for i := 0; i < numReplacements; i++ {
 		replacements = append(replacements, "?")

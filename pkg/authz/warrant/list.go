@@ -16,11 +16,11 @@ package authz
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
-// FilterOptions type for the filter options available on the warrant table
-type FilterOptions struct {
+type FilterParams struct {
 	ObjectType      []string
 	ObjectId        []string
 	Relation        []string
@@ -30,18 +30,23 @@ type FilterOptions struct {
 	Policy          Policy
 }
 
-// SortOptions type for sorting filtered results from the warrant table
-type SortOptions struct {
-	Column      string
-	IsAscending bool
+func (fp FilterParams) String() string {
+	return fmt.Sprintf(
+		"objectType: '%s' objectId: '%s' relation: '%s' subjectType: '%s' subjectId: '%s' subjectRelation: '%s' policy: '%s'",
+		strings.Join(fp.ObjectType, ", "),
+		strings.Join(fp.ObjectId, ", "),
+		strings.Join(fp.Relation, ", "),
+		strings.Join(fp.SubjectType, ", "),
+		strings.Join(fp.SubjectId, ", "),
+		strings.Join(fp.SubjectRelation, ", "),
+		fp.Policy,
+	)
 }
-
-const DefaultSortBy = "createdAt"
 
 type WarrantListParamParser struct{}
 
 func (parser WarrantListParamParser) GetDefaultSortBy() string {
-	return DefaultSortBy
+	return "createdAt"
 }
 
 func (parser WarrantListParamParser) GetSupportedSortBys() []string {

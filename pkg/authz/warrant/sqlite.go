@@ -304,7 +304,7 @@ func (repo SQLiteRepository) GetByID(ctx context.Context, id int64) (Model, erro
 	return &warrant, nil
 }
 
-func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]Model, error) {
+func (repo SQLiteRepository) List(ctx context.Context, filterParams *FilterParams, listParams service.ListParams) ([]Model, error) {
 	offset := (listParams.Page - 1) * listParams.Limit
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
@@ -316,51 +316,51 @@ func (repo SQLiteRepository) List(ctx context.Context, filterOptions *FilterOpti
 	`
 	replacements := []interface{}{}
 
-	if len(filterOptions.ObjectType) > 0 {
-		query = fmt.Sprintf("%s AND objectType IN (%s)", query, buildQuestionMarkString(len(filterOptions.ObjectType)))
-		for _, objectType := range filterOptions.ObjectType {
+	if len(filterParams.ObjectType) > 0 {
+		query = fmt.Sprintf("%s AND objectType IN (%s)", query, BuildQuestionMarkString(len(filterParams.ObjectType)))
+		for _, objectType := range filterParams.ObjectType {
 			replacements = append(replacements, objectType)
 		}
 	}
 
-	if len(filterOptions.ObjectId) > 0 {
-		query = fmt.Sprintf("%s AND objectId IN (%s)", query, buildQuestionMarkString(len(filterOptions.ObjectId)))
-		for _, objectId := range filterOptions.ObjectId {
+	if len(filterParams.ObjectId) > 0 {
+		query = fmt.Sprintf("%s AND objectId IN (%s)", query, BuildQuestionMarkString(len(filterParams.ObjectId)))
+		for _, objectId := range filterParams.ObjectId {
 			replacements = append(replacements, objectId)
 		}
 	}
 
-	if len(filterOptions.Relation) > 0 {
-		query = fmt.Sprintf("%s AND relation IN (%s)", query, buildQuestionMarkString(len(filterOptions.Relation)))
-		for _, relation := range filterOptions.Relation {
+	if len(filterParams.Relation) > 0 {
+		query = fmt.Sprintf("%s AND relation IN (%s)", query, BuildQuestionMarkString(len(filterParams.Relation)))
+		for _, relation := range filterParams.Relation {
 			replacements = append(replacements, relation)
 		}
 	}
 
-	if len(filterOptions.SubjectType) > 0 {
-		query = fmt.Sprintf("%s AND subjectType IN (%s)", query, buildQuestionMarkString(len(filterOptions.SubjectType)))
-		for _, subjectType := range filterOptions.SubjectType {
+	if len(filterParams.SubjectType) > 0 {
+		query = fmt.Sprintf("%s AND subjectType IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectType)))
+		for _, subjectType := range filterParams.SubjectType {
 			replacements = append(replacements, subjectType)
 		}
 	}
 
-	if len(filterOptions.SubjectId) > 0 {
-		query = fmt.Sprintf("%s AND subjectId IN (%s)", query, buildQuestionMarkString(len(filterOptions.SubjectId)))
-		for _, subjectId := range filterOptions.SubjectId {
+	if len(filterParams.SubjectId) > 0 {
+		query = fmt.Sprintf("%s AND subjectId IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectId)))
+		for _, subjectId := range filterParams.SubjectId {
 			replacements = append(replacements, subjectId)
 		}
 	}
 
-	if len(filterOptions.SubjectRelation) > 0 {
-		query = fmt.Sprintf("%s AND subjectRelation IN (%s)", query, buildQuestionMarkString(len(filterOptions.SubjectRelation)))
-		for _, subjectRelation := range filterOptions.SubjectRelation {
+	if len(filterParams.SubjectRelation) > 0 {
+		query = fmt.Sprintf("%s AND subjectRelation IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectRelation)))
+		for _, subjectRelation := range filterParams.SubjectRelation {
 			replacements = append(replacements, subjectRelation)
 		}
 	}
 
-	if filterOptions.Policy != "" {
+	if filterParams.Policy != "" {
 		query = fmt.Sprintf("%s AND policyHash = ?", query)
-		replacements = append(replacements, filterOptions.Policy.Hash())
+		replacements = append(replacements, filterParams.Policy.Hash())
 	}
 
 	if listParams.SortBy != "" {

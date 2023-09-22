@@ -109,8 +109,8 @@ func DeleteHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 	return nil
 }
 
-func buildFilterOptions(r *http.Request) *FilterOptions {
-	var filterOptions FilterOptions
+func buildFilterOptions(r *http.Request) *FilterParams {
+	var filterOptions FilterParams
 	queryParams := r.URL.Query()
 
 	if queryParams.Has("objectType") {
