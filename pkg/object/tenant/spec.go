@@ -23,7 +23,7 @@ import (
 )
 
 type TenantSpec struct {
-	TenantId  string    `json:"tenantId" validate:"omitempty,valid_object_id"`
+	TenantId  string    `json:"tenantId"  validate:"omitempty,valid_object_id"`
 	Name      *string   `json:"name"`
 	CreatedAt time.Time `json:"createdAt"`
 }

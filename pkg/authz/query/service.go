@@ -27,7 +27,7 @@ import (
 	baseSvc "github.com/warrant-dev/warrant/pkg/service"
 )
 
-var InvalidQueryErr = errors.New("invalid query")
+var ErrInvalidQuery = errors.New("invalid query")
 
 type Relation struct {
 	Name string
@@ -63,7 +63,7 @@ func (svc QueryService) Query(ctx context.Context, query *Query, listParams serv
 	selectedObjectTypes := make(map[string]bool)
 
 	if (query.SelectObjects == nil && query.SelectSubjects == nil) || (query.SelectObjects != nil && query.SelectSubjects != nil) {
-		return nil, InvalidQueryErr
+		return nil, ErrInvalidQuery
 	}
 
 	objectTypeMap, err := svc.objectTypeSvc.GetTypeMap(ctx)
@@ -78,12 +78,13 @@ func (svc QueryService) Query(ctx context.Context, query *Query, listParams serv
 
 	for res := resultSet.List(); res != nil; res = res.Next() {
 		var isImplicit bool
+		//nolint:gocritic
 		if query.SelectObjects != nil {
 			isImplicit = !matches(query.SelectObjects.ObjectTypes, res.Warrant.ObjectType) || !matches(query.SelectObjects.Relations, res.Warrant.Relation)
 		} else if query.SelectSubjects != nil {
 			isImplicit = !matches(query.SelectSubjects.SubjectTypes, res.Warrant.Subject.ObjectType) || !matches(query.SelectSubjects.Relations, res.Warrant.Relation)
 		} else {
-			return nil, InvalidQueryErr
+			return nil, ErrInvalidQuery
 		}
 
 		result.Results = append(result.Results, QueryResult{
@@ -117,6 +118,7 @@ func (svc QueryService) Query(ctx context.Context, query *Query, listParams serv
 func (svc QueryService) query(ctx context.Context, query *Query, objectTypeMap objecttype.ObjectTypeMap) (*ResultSet, error) {
 	var objectTypes []string
 	var selectObjects bool
+	//nolint:gocritic
 	if query.SelectObjects != nil {
 		selectObjects = true
 		if query.SelectObjects.ObjectTypes[0] == Wildcard {
@@ -136,7 +138,7 @@ func (svc QueryService) query(ctx context.Context, query *Query, objectTypeMap o
 			}
 		}
 	} else {
-		return nil, InvalidQueryErr
+		return nil, ErrInvalidQuery
 	}
 
 	resultSet := NewResultSet()
@@ -330,8 +332,8 @@ func (svc QueryService) matchSetRule(
 	switch setRuleType {
 	case objecttype.InheritIfAllOf:
 		var resultSet *ResultSet
-		for _, rule := range rules {
-			res, err := svc.matchRule(ctx, selectObjects, objectTypes, objectType, relation, &rule, matchFilters, expand)
+		for i := range rules {
+			res, err := svc.matchRule(ctx, selectObjects, objectTypes, objectType, relation, &rules[i], matchFilters, expand)
 			if err != nil {
 				return nil, err
 			}
@@ -351,8 +353,8 @@ func (svc QueryService) matchSetRule(
 		return resultSet, nil
 	case objecttype.InheritIfAnyOf:
 		resultSet := NewResultSet()
-		for _, rule := range rules {
-			res, err := svc.matchRule(ctx, selectObjects, objectTypes, objectType, relation, &rule, matchFilters, expand)
+		for i := range rules {
+			res, err := svc.matchRule(ctx, selectObjects, objectTypes, objectType, relation, &rules[i], matchFilters, expand)
 			if err != nil {
 				return nil, err
 			}
@@ -363,7 +365,7 @@ func (svc QueryService) matchSetRule(
 	case objecttype.InheritIfNoneOf:
 		return nil, service.NewInvalidRequestError("cannot query object-types or relations that use 'noneOf'")
 	default:
-		return nil, InvalidQueryErr
+		return nil, ErrInvalidQuery
 	}
 }
 

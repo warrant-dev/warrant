@@ -23,7 +23,7 @@ import (
 )
 
 type UserSpec struct {
-	UserId    string    `json:"userId" validate:"omitempty,valid_object_id"`
+	UserId    string    `json:"userId"    validate:"omitempty,valid_object_id"`
 	Email     *string   `json:"email"`
 	CreatedAt time.Time `json:"createdAt"`
 }
