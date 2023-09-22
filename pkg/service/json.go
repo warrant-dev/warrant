@@ -28,10 +28,16 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const (
+	ObjectIdPattern   = `^[a-zA-Z0-9_\-\.@\|:]+$`
+	ObjectTypePattern = `^[a-zA-Z0-9_\-]+$`
+	RelationPattern   = `^[a-zA-Z0-9_\-]+$`
+)
+
 var validate *validator.Validate
-var objectIdRegexp = regexp.MustCompile(`^[a-zA-Z0-9_\-\.@\|:]+$`)
-var objectTypeRegexp = regexp.MustCompile(`^[a-zA-Z0-9_\-]+$`)
-var relationRegexp = regexp.MustCompile(`^[a-zA-Z0-9_\-]+$`)
+var objectIdRegexp = regexp.MustCompile(ObjectIdPattern)
+var objectTypeRegexp = regexp.MustCompile(ObjectTypePattern)
+var relationRegexp = regexp.MustCompile(RelationPattern)
 
 //nolint:errcheck
 func init() {

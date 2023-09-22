@@ -24,6 +24,7 @@ import (
 	"github.com/rs/zerolog/log"
 	check "github.com/warrant-dev/warrant/pkg/authz/check"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
+	query "github.com/warrant-dev/warrant/pkg/authz/query"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	"github.com/warrant-dev/warrant/pkg/config"
 	"github.com/warrant-dev/warrant/pkg/database"
@@ -233,6 +234,9 @@ func main() {
 	// Init check service
 	checkSvc := check.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, cfg.Check, nil)
 
+	// Init query service
+	querySvc := query.NewService(svcEnv, objectTypeSvc, warrantSvc, objectSvc)
+
 	// Init feature service
 	featureSvc := feature.NewService(&svcEnv, eventSvc, objectSvc)
 
@@ -259,6 +263,7 @@ func main() {
 		objectTypeSvc,
 		permissionSvc,
 		pricingTierSvc,
+		querySvc,
 		roleSvc,
 		tenantSvc,
 		userSvc,
