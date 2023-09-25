@@ -135,7 +135,7 @@ func (repo SQLiteRepository) BatchGetByObjectTypeAndIds(ctx context.Context, obj
 	query, args, err := sqlx.In(
 		`
 			SELECT id, objectType, objectId, meta, createdAt, updatedAt, deletedAt
-			FROM warrant.object
+			FROM object
 			WHERE
 				objectType = ? AND
 				objectId IN (?) AND

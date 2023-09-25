@@ -317,45 +317,51 @@ func (repo SQLiteRepository) List(ctx context.Context, filterParams *FilterParam
 	replacements := []interface{}{}
 
 	if len(filterParams.ObjectType) > 0 {
-		query = fmt.Sprintf("%s AND objectType IN (%s)", query, BuildQuestionMarkString(len(filterParams.ObjectType)))
+		query = fmt.Sprintf("%s AND objectType IN (%s)", query, BuildQuestionMarkString(len(filterParams.ObjectType)+1))
 		for _, objectType := range filterParams.ObjectType {
 			replacements = append(replacements, objectType)
 		}
+		replacements = append(replacements, Wildcard)
 	}
 
 	if len(filterParams.ObjectId) > 0 {
-		query = fmt.Sprintf("%s AND objectId IN (%s)", query, BuildQuestionMarkString(len(filterParams.ObjectId)))
+		query = fmt.Sprintf("%s AND objectId IN (%s)", query, BuildQuestionMarkString(len(filterParams.ObjectId)+1))
 		for _, objectId := range filterParams.ObjectId {
 			replacements = append(replacements, objectId)
 		}
+		replacements = append(replacements, Wildcard)
 	}
 
 	if len(filterParams.Relation) > 0 {
-		query = fmt.Sprintf("%s AND relation IN (%s)", query, BuildQuestionMarkString(len(filterParams.Relation)))
+		query = fmt.Sprintf("%s AND relation IN (%s)", query, BuildQuestionMarkString(len(filterParams.Relation)+1))
 		for _, relation := range filterParams.Relation {
 			replacements = append(replacements, relation)
 		}
+		replacements = append(replacements, Wildcard)
 	}
 
 	if len(filterParams.SubjectType) > 0 {
-		query = fmt.Sprintf("%s AND subjectType IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectType)))
+		query = fmt.Sprintf("%s AND subjectType IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectType)+1))
 		for _, subjectType := range filterParams.SubjectType {
 			replacements = append(replacements, subjectType)
 		}
+		replacements = append(replacements, Wildcard)
 	}
 
 	if len(filterParams.SubjectId) > 0 {
-		query = fmt.Sprintf("%s AND subjectId IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectId)))
+		query = fmt.Sprintf("%s AND subjectId IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectId)+1))
 		for _, subjectId := range filterParams.SubjectId {
 			replacements = append(replacements, subjectId)
 		}
+		replacements = append(replacements, Wildcard)
 	}
 
 	if len(filterParams.SubjectRelation) > 0 {
-		query = fmt.Sprintf("%s AND subjectRelation IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectRelation)))
+		query = fmt.Sprintf("%s AND subjectRelation IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectRelation)+1))
 		for _, subjectRelation := range filterParams.SubjectRelation {
 			replacements = append(replacements, subjectRelation)
 		}
+		replacements = append(replacements, Wildcard)
 	}
 
 	if filterParams.Policy != "" {

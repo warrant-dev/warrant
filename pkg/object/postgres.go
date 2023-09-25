@@ -130,7 +130,7 @@ func (repo PostgresRepository) BatchGetByObjectTypeAndIds(ctx context.Context, o
 	query, args, err := sqlx.In(
 		`
 			SELECT id, object_type, object_id, meta, created_at, updated_at, deleted_at
-			FROM warrant.object
+			FROM object
 			WHERE
 				object_type = ? AND
 				object_id IN (?) AND
