@@ -672,6 +672,16 @@
                 "body": {
                     "events": [
                         {
+                            "type": "access_granted",
+                            "source": "api",
+                            "objectType": "document",
+                            "objectId": "*",
+                            "relation": "owner",
+                            "subjectType": "role",
+                            "subjectId": "admin",
+                            "subjectRelation": "member"
+                        },
+                        {
                             "type": "access_revoked",
                             "source": "api",
                             "objectType": "report",
@@ -702,19 +712,6 @@
                             "subjectRelation": "member",
                             "meta": {
                                 "policy": "tenant == \"tenant-a\""
-                            }
-                        },
-                        {
-                            "type": "access_revoked",
-                            "source": "api",
-                            "objectType": "report",
-                            "objectId": "*",
-                            "relation": "owner",
-                            "subjectType": "role",
-                            "subjectId": "admin-b",
-                            "subjectRelation": "member",
-                            "meta": {
-                                "policy": "tenant == \"tenant-b\""
                             }
                         }
                     ],

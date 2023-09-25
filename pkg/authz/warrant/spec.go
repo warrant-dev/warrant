@@ -23,6 +23,8 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
+const Wildcard = "*"
+
 type WarrantSpec struct {
 	ObjectType string            `json:"objectType" validate:"required,valid_object_type"`
 	ObjectId   string            `json:"objectId" validate:"required,valid_object_id"`

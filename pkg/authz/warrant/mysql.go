@@ -305,45 +305,51 @@ func (repo MySQLRepository) List(ctx context.Context, filterParams *FilterParams
 	sortByColumn := listParams.SortBy
 
 	if len(filterParams.ObjectType) > 0 {
-		query = fmt.Sprintf("%s AND objectType IN (%s)", query, BuildQuestionMarkString(len(filterParams.ObjectType)))
+		query = fmt.Sprintf("%s AND objectType IN (%s)", query, BuildQuestionMarkString(len(filterParams.ObjectType)+1))
 		for _, objectType := range filterParams.ObjectType {
 			replacements = append(replacements, objectType)
 		}
+		replacements = append(replacements, Wildcard)
 	}
 
 	if len(filterParams.ObjectId) > 0 {
-		query = fmt.Sprintf("%s AND objectId IN (%s)", query, BuildQuestionMarkString(len(filterParams.ObjectId)))
+		query = fmt.Sprintf("%s AND objectId IN (%s)", query, BuildQuestionMarkString(len(filterParams.ObjectId)+1))
 		for _, objectId := range filterParams.ObjectId {
 			replacements = append(replacements, objectId)
 		}
+		replacements = append(replacements, Wildcard)
 	}
 
 	if len(filterParams.Relation) > 0 {
-		query = fmt.Sprintf("%s AND relation IN (%s)", query, BuildQuestionMarkString(len(filterParams.Relation)))
+		query = fmt.Sprintf("%s AND relation IN (%s)", query, BuildQuestionMarkString(len(filterParams.Relation)+1))
 		for _, relation := range filterParams.Relation {
 			replacements = append(replacements, relation)
 		}
+		replacements = append(replacements, Wildcard)
 	}
 
 	if len(filterParams.SubjectType) > 0 {
-		query = fmt.Sprintf("%s AND subjectType IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectType)))
+		query = fmt.Sprintf("%s AND subjectType IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectType)+1))
 		for _, subjectType := range filterParams.SubjectType {
 			replacements = append(replacements, subjectType)
 		}
+		replacements = append(replacements, Wildcard)
 	}
 
 	if len(filterParams.SubjectId) > 0 {
-		query = fmt.Sprintf("%s AND subjectId IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectId)))
+		query = fmt.Sprintf("%s AND subjectId IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectId)+1))
 		for _, subjectId := range filterParams.SubjectId {
 			replacements = append(replacements, subjectId)
 		}
+		replacements = append(replacements, Wildcard)
 	}
 
 	if len(filterParams.SubjectRelation) > 0 {
-		query = fmt.Sprintf("%s AND subjectRelation IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectRelation)))
+		query = fmt.Sprintf("%s AND subjectRelation IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectRelation)+1))
 		for _, subjectRelation := range filterParams.SubjectRelation {
 			replacements = append(replacements, subjectRelation)
 		}
+		replacements = append(replacements, Wildcard)
 	}
 
 	if filterParams.Policy != "" {
@@ -498,7 +504,7 @@ func (repo MySQLRepository) GetAllMatchingObjectRelationAndSubject(ctx context.C
 			FROM warrant
 			WHERE
 				objectType = ? AND
-				(objectId = ? OR objectId = "*") AND
+				(objectId = ? OR objectId = ?) AND
 				relation = ? AND
 				subjectType = ? AND
 				subjectId = ? AND
@@ -507,6 +513,7 @@ func (repo MySQLRepository) GetAllMatchingObjectRelationAndSubject(ctx context.C
 		`,
 		objectType,
 		objectId,
+		Wildcard,
 		relation,
 		subjectType,
 		subjectId,
@@ -539,13 +546,14 @@ func (repo MySQLRepository) GetAllMatchingObjectAndRelation(ctx context.Context,
 			FROM warrant
 			WHERE
 				objectType = ? AND
-				(objectId = ? OR objectId = "*") AND
+				(objectId = ? OR objectId = ?) AND
 				relation = ? AND
 				deletedAt IS NULL
 			ORDER BY createdAt DESC, id DESC
 		`,
 		objectType,
 		objectId,
+		Wildcard,
 		relation,
 	)
 	if err != nil {
@@ -575,7 +583,7 @@ func (repo MySQLRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx con
 			FROM warrant
 			WHERE
 				objectType = ? AND
-				(objectId = ? OR objectId = "*") AND
+				(objectId = ? OR objectId = ?) AND
 				relation = ? AND
 				subjectType = ? AND
 				deletedAt IS NULL
@@ -583,6 +591,7 @@ func (repo MySQLRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx con
 		`,
 		objectType,
 		objectId,
+		Wildcard,
 		relation,
 		subjectType,
 	)

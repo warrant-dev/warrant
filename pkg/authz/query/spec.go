@@ -18,8 +18,6 @@ import (
 	baseWarrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 )
 
-const Wildcard = "*"
-
 type Query struct {
 	Expand         bool
 	SelectSubjects *SelectSubjects

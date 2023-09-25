@@ -20,6 +20,7 @@ import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/pkg/errors"
+	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -150,7 +151,7 @@ func NewQueryFromString(queryString string) (*Query, error) {
 
 		query.SelectObjects = &SelectObjects{
 			ObjectTypes: ast.SelectClause.ObjectTypesOrRelations,
-			Relations:   []string{Wildcard},
+			Relations:   []string{warrant.Wildcard},
 		}
 
 		if ast.WhereClause != nil {

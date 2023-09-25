@@ -183,6 +183,38 @@
             }
         },
         {
+            "skip": true,
+            "name": "listNext2WarrantsSortByCreatedAtDesc",
+            "request": {
+                "method": "GET",
+                "url": "/v1/warrants?limit=2&sortBy=createdAt&sortOrder=DESC&afterId={{ listLast2WarrantsSortByCreatedAtDesc[1] }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "objectType": "report",
+                        "objectId": "report-a",
+                        "relation": "owner",
+                        "subject": {
+                            "objectType": "user",
+                            "objectId": "user-a"
+                        }
+                    },
+                    {
+                        "objectType": "role",
+                        "objectId": "senior-accountant",
+                        "relation": "member",
+                        "subject": {
+                            "objectType": "user",
+                            "objectId": "user-a"
+                        },
+                        "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
+                    }
+                ]
+            }
+        },
+        {
             "name": "listWarrantsFilterByObjectTypePermissionOrReport",
             "request": {
                 "method": "GET",
