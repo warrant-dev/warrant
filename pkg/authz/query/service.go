@@ -216,6 +216,7 @@ func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, 
 
 	for _, matchedWarrant := range matchedWarrants {
 		// match any encountered group warrants
+		//nolint:gocritic
 		if matchedWarrant.Subject.Relation != "" {
 			res, err := svc.matchRelation(ctx, selectSubjects, objectTypes, matchedWarrant.Subject.ObjectType, matchedWarrant.Subject.Relation, warrant.FilterParams{
 				ObjectId:    []string{matchedWarrant.Subject.ObjectId},
@@ -229,11 +230,13 @@ func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, 
 			if selectSubjects {
 				resultSet = resultSet.Union(res)
 			} else if res.Len() > 0 {
+				//nolint:gocritic
 				if matchedWarrant.ObjectId != warrant.Wildcard {
 					resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant)
 				} else if len(matchFilters.ObjectId) > 0 {
 					resultSet.Add(matchedWarrant.ObjectType, matchFilters.ObjectId[0], matchedWarrant)
 				} else {
+					//nolint:gocritic
 					if matchedWarrant.ObjectId != warrant.Wildcard {
 						resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant)
 					} else if len(matchFilters.ObjectId) > 0 {
@@ -316,6 +319,7 @@ func (svc QueryService) matchRule(ctx context.Context, selectSubjects bool, obje
 			if selectSubjects {
 				resultSet = resultSet.Union(res)
 			} else if res.Len() > 0 {
+				//nolint:gocritic
 				if matchedWarrant.ObjectId != warrant.Wildcard {
 					resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant)
 				} else if len(matchFilters.ObjectId) > 0 {
