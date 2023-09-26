@@ -575,20 +575,6 @@
                     "results": [
                         {
                             "objectType": "document",
-                            "objectId": "F3",
-                            "warrant": {
-                                "objectType": "document",
-                                "objectId": "F3",
-                                "relation": "viewer",
-                                "subject": {
-                                    "objectType": "user",
-                                    "objectId": "U3"
-                                }
-                            },
-                            "isImplicit": false
-                        },
-                        {
-                            "objectType": "document",
                             "objectId": "D4",
                             "warrant": {
                                 "objectType": "document",
@@ -632,6 +618,20 @@
                                 "name": "Document 6",
                                 "title": "This is user:U3's document."
                             }
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "F3",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "F3",
+                                "relation": "viewer",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "U3"
+                                }
+                            },
+                            "isImplicit": false
                         }
                     ]
                 }
@@ -663,20 +663,6 @@
                         },
                         {
                             "objectType": "document",
-                            "objectId": "F2",
-                            "warrant": {
-                                "objectType": "document",
-                                "objectId": "F2",
-                                "relation": "parent",
-                                "subject": {
-                                    "objectType": "document",
-                                    "objectId": "F1"
-                                }
-                            },
-                            "isImplicit": true
-                        },
-                        {
-                            "objectType": "document",
                             "objectId": "D2",
                             "warrant": {
                                 "objectType": "document",
@@ -695,20 +681,6 @@
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "D3",
-                                "relation": "parent",
-                                "subject": {
-                                    "objectType": "document",
-                                    "objectId": "F2"
-                                }
-                            },
-                            "isImplicit": true
-                        },
-                        {
-                            "objectType": "document",
-                            "objectId": "F3",
-                            "warrant": {
-                                "objectType": "document",
-                                "objectId": "F3",
                                 "relation": "parent",
                                 "subject": {
                                     "objectType": "document",
@@ -755,6 +727,34 @@
                                 "subject": {
                                     "objectType": "user",
                                     "objectId": "U1"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "F2",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "F2",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "document",
+                                    "objectId": "F1"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "F3",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "F3",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "document",
+                                    "objectId": "F2"
                                 }
                             },
                             "isImplicit": true
@@ -817,20 +817,6 @@
                     "results": [
                         {
                             "objectType": "user",
-                            "objectId": "U3",
-                            "warrant": {
-                                "objectType": "document",
-                                "objectId": "F3",
-                                "relation": "viewer",
-                                "subject": {
-                                    "objectType": "user",
-                                    "objectId": "U3"
-                                }
-                            },
-                            "isImplicit": false
-                        },
-                        {
-                            "objectType": "user",
                             "objectId": "U1",
                             "warrant": {
                                 "objectType": "document",
@@ -845,20 +831,6 @@
                         },
                         {
                             "objectType": "user",
-                            "objectId": "U4",
-                            "warrant": {
-                                "objectType": "role",
-                                "objectId": "admin",
-                                "relation": "member",
-                                "subject": {
-                                    "objectType": "user",
-                                    "objectId": "U4"
-                                }
-                            },
-                            "isImplicit": true
-                        },
-                        {
-                            "objectType": "user",
                             "objectId": "U2",
                             "warrant": {
                                 "objectType": "document",
@@ -867,6 +839,34 @@
                                 "subject": {
                                     "objectType": "user",
                                     "objectId": "U2"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "user",
+                            "objectId": "U3",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "F3",
+                                "relation": "viewer",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "U3"
+                                }
+                            },
+                            "isImplicit": false
+                        },
+                        {
+                            "objectType": "user",
+                            "objectId": "U4",
+                            "warrant": {
+                                "objectType": "role",
+                                "objectId": "admin",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "U4"
                                 }
                             },
                             "isImplicit": true
@@ -887,20 +887,6 @@
                     "results": [
                         {
                             "objectType": "user",
-                            "objectId": "U2",
-                            "warrant": {
-                                "objectType": "document",
-                                "objectId": "F2",
-                                "relation": "editor",
-                                "subject": {
-                                    "objectType": "user",
-                                    "objectId": "U2"
-                                }
-                            },
-                            "isImplicit": true
-                        },
-                        {
-                            "objectType": "user",
                             "objectId": "U1",
                             "warrant": {
                                 "objectType": "document",
@@ -909,6 +895,20 @@
                                 "subject": {
                                     "objectType": "user",
                                     "objectId": "U1"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "user",
+                            "objectId": "U2",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "F2",
+                                "relation": "editor",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "U2"
                                 }
                             },
                             "isImplicit": true
@@ -958,21 +958,6 @@
                         },
                         {
                             "objectType": "document",
-                            "objectId": "F2",
-                            "warrant": {
-                                "objectType": "document",
-                                "objectId": "*",
-                                "relation": "owner",
-                                "subject": {
-                                    "objectType": "role",
-                                    "objectId": "admin",
-                                    "relation": "member"
-                                }
-                            },
-                            "isImplicit": false
-                        },
-                        {
-                            "objectType": "document",
                             "objectId": "D2",
                             "warrant": {
                                 "objectType": "document",
@@ -989,21 +974,6 @@
                         {
                             "objectType": "document",
                             "objectId": "D3",
-                            "warrant": {
-                                "objectType": "document",
-                                "objectId": "*",
-                                "relation": "owner",
-                                "subject": {
-                                    "objectType": "role",
-                                    "objectId": "admin",
-                                    "relation": "member"
-                                }
-                            },
-                            "isImplicit": false
-                        },
-                        {
-                            "objectType": "document",
-                            "objectId": "F3",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1048,21 +1018,6 @@
                         },
                         {
                             "objectType": "document",
-                            "objectId": "F1",
-                            "warrant": {
-                                "objectType": "document",
-                                "objectId": "*",
-                                "relation": "owner",
-                                "subject": {
-                                    "objectType": "role",
-                                    "objectId": "admin",
-                                    "relation": "member"
-                                }
-                            },
-                            "isImplicit": false
-                        },
-                        {
-                            "objectType": "document",
                             "objectId": "D6",
                             "warrant": {
                                 "objectType": "document",
@@ -1079,6 +1034,51 @@
                                 "name": "Document 6",
                                 "title": "This is user:U3's document."
                             }
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "F1",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": false
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "F2",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": false
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "F3",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": false
                         }
                     ]
                 }
@@ -1100,20 +1100,6 @@
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "D1",
-                                "relation": "parent",
-                                "subject": {
-                                    "objectType": "document",
-                                    "objectId": "F1"
-                                }
-                            },
-                            "isImplicit": true
-                        },
-                        {
-                            "objectType": "document",
-                            "objectId": "F2",
-                            "warrant": {
-                                "objectType": "document",
-                                "objectId": "F2",
                                 "relation": "parent",
                                 "subject": {
                                     "objectType": "document",
@@ -1152,20 +1138,6 @@
                         },
                         {
                             "objectType": "document",
-                            "objectId": "F3",
-                            "warrant": {
-                                "objectType": "document",
-                                "objectId": "F3",
-                                "relation": "parent",
-                                "subject": {
-                                    "objectType": "document",
-                                    "objectId": "F2"
-                                }
-                            },
-                            "isImplicit": true
-                        },
-                        {
-                            "objectType": "document",
                             "objectId": "D4",
                             "warrant": {
                                 "objectType": "document",
@@ -1194,6 +1166,25 @@
                         },
                         {
                             "objectType": "document",
+                            "objectId": "D6",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true,
+                            "meta": {
+                                "name": "Document 6",
+                                "title": "This is user:U3's document."
+                            }
+                        },
+                        {
+                            "objectType": "document",
                             "objectId": "F1",
                             "warrant": {
                                 "objectType": "document",
@@ -1207,6 +1198,106 @@
                             },
                             "isImplicit": true
                         },
+                        {
+                            "objectType": "document",
+                            "objectId": "F2",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "F2",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "document",
+                                    "objectId": "F1"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "F3",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "F3",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "document",
+                                    "objectId": "F2"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDesc",
+            "request": {
+                "method": "GET",
+                "url": "/v1/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortBy=objectType&sortOrder=DESC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "document",
+                            "objectId": "F3",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "F3",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "document",
+                                    "objectId": "F2"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "F2",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "F2",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "document",
+                                    "objectId": "F1"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "F1",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ],
+                    "lastId": "{{ selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDesc.lastId }}"
+                }
+            }
+        },
+        {
+            "name": "selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDescAfterId",
+            "request": {
+                "method": "GET",
+                "url": "/v1/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortBy=objectType&sortOrder=DESC&afterId={{ selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDesc.lastId }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
                         {
                             "objectType": "document",
                             "objectId": "D6",
@@ -1225,6 +1316,176 @@
                                 "name": "Document 6",
                                 "title": "This is user:U3's document."
                             }
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D5",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "D5",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "document",
+                                    "objectId": "F3"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D4",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "D4",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "document",
+                                    "objectId": "F3"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ],
+                    "lastId": "{{ selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDescAfterId.lastId }}"
+                }
+            }
+        },
+        {
+            "name": "selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDescAfterId2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortBy=objectType&sortOrder=DESC&afterId={{ selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDescAfterId.lastId }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "document",
+                            "objectId": "D3",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "D3",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "document",
+                                    "objectId": "F2"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D2",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "D2",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "document",
+                                    "objectId": "F2"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D1",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "D1",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "document",
+                                    "objectId": "F1"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "selectMembersOrViewersOfTypeUserLimit3SortByObjectIdDesc",
+            "request": {
+                "method": "GET",
+                "url": "/v1/query?q=select%20member%2Cviewer%20of%20type%20user&limit=3&sortBy=objectId&sortOrder=DESC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "user",
+                            "objectId": "U4",
+                            "warrant": {
+                                "objectType": "role",
+                                "objectId": "admin",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "U4"
+                                }
+                            },
+                            "isImplicit": false
+                        },
+                        {
+                            "objectType": "user",
+                            "objectId": "U3",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "F3",
+                                "relation": "viewer",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "U3"
+                                }
+                            },
+                            "isImplicit": false
+                        },
+                        {
+                            "objectType": "user",
+                            "objectId": "U2",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "F2",
+                                "relation": "editor",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "U2"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ],
+                    "lastId": "{{ selectMembersOrViewersOfTypeUserLimit3SortByObjectIdDesc.lastId }}"
+                }
+            }
+        },
+        {
+            "name": "selectMembersOrViewersOfTypeUserLimit3SortByObjectIdDescAfterId",
+            "request": {
+                "method": "GET",
+                "url": "/v1/query?q=select%20member%2Cviewer%20of%20type%20user&limit=3&sortBy=objectId&sortOrder=DESC&afterId={{ selectMembersOrViewersOfTypeUserLimit3SortByObjectIdDesc.lastId }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "user",
+                            "objectId": "U1",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "F1",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "U1"
+                                }
+                            },
+                            "isImplicit": true
                         }
                     ]
                 }

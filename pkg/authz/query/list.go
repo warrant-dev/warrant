@@ -16,31 +16,18 @@ package authz
 
 import (
 	"fmt"
-	"time"
 )
-
-const DefaultSortBy = "createdAt"
 
 type QueryListParamParser struct{}
 
 func (parser QueryListParamParser) GetDefaultSortBy() string {
-	return DefaultSortBy
+	return "objectType"
 }
 
 func (parser QueryListParamParser) GetSupportedSortBys() []string {
-	return []string{"createdAt", "objectType", "objectId"}
+	return []string{"objectType", "objectId"}
 }
 
 func (parser QueryListParamParser) ParseValue(val string, sortBy string) (interface{}, error) {
-	switch sortBy {
-	case "createdAt":
-		afterValue, err := time.Parse(time.RFC3339, val)
-		if err != nil || afterValue.Equal(time.Time{}) {
-			return nil, fmt.Errorf("must be a valid time in the format %s", time.RFC3339)
-		}
-
-		return &afterValue, nil
-	default:
-		return nil, fmt.Errorf("must match type of selected sortBy attribute %s", sortBy)
-	}
+	return nil, fmt.Errorf("must match type of selected sortBy attribute %s", sortBy)
 }

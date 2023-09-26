@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 
 	"github.com/rs/zerolog/log"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
@@ -46,7 +47,7 @@ func NewService(env service.Env, objectTypeSvc *objecttype.ObjectTypeService, wa
 }
 
 func (svc QueryService) Query(ctx context.Context, query *Query, listParams service.ListParams) (*Result, error) {
-	result := Result{Results: []QueryResult{}}
+	queryResults := []QueryResult{}
 	resultMap := make(map[string]int)
 	objects := make(map[string][]string, 0)
 	selectedObjectTypes := make(map[string]bool)
@@ -76,16 +77,66 @@ func (svc QueryService) Query(ctx context.Context, query *Query, listParams serv
 			return nil, ErrInvalidQuery
 		}
 
-		result.Results = append(result.Results, QueryResult{
+		queryResults = append(queryResults, QueryResult{
 			ObjectType: res.ObjectType,
 			ObjectId:   res.ObjectId,
 			Warrant:    res.Warrant,
 			IsImplicit: isImplicit,
 		})
+	}
 
-		selectedObjectTypes[res.ObjectType] = true
-		objects[res.ObjectType] = append(objects[res.ObjectType], res.ObjectId)
-		resultMap[objectKey(res.ObjectType, res.ObjectId)] = len(result.Results) - 1
+	// handle sorting and pagination
+	switch listParams.SortBy {
+	case "objectType":
+		switch listParams.SortOrder {
+		case service.SortOrderAsc:
+			sort.Sort(ByObjectTypeAsc(queryResults))
+		case service.SortOrderDesc:
+			sort.Sort(ByObjectTypeDesc(queryResults))
+		}
+	case "objectId":
+		switch listParams.SortOrder {
+		case service.SortOrderAsc:
+			sort.Sort(ByObjectIdAsc(queryResults))
+		case service.SortOrderDesc:
+			sort.Sort(ByObjectIdDesc(queryResults))
+		}
+	default:
+		return nil, ErrInvalidQuery
+	}
+
+	index := 0
+	// skip ahead if lastId passed in
+	if listParams.AfterId != nil {
+		lastIdSpec, err := StringToLastIdSpec(*listParams.AfterId)
+		if err != nil {
+			return nil, err
+		}
+
+		for index < len(queryResults) && (queryResults[index].ObjectType != lastIdSpec.ObjectType || queryResults[index].ObjectId != lastIdSpec.ObjectId) {
+			index++
+		}
+	}
+
+	paginatedQueryResults := []QueryResult{}
+	for len(paginatedQueryResults) < listParams.Limit && index < len(queryResults) {
+		paginatedQueryResult := queryResults[index]
+		paginatedQueryResults = append(paginatedQueryResults, paginatedQueryResult)
+		selectedObjectTypes[paginatedQueryResult.ObjectType] = true
+		objects[paginatedQueryResult.ObjectType] = append(objects[paginatedQueryResult.ObjectType], paginatedQueryResult.ObjectId)
+		resultMap[objectKey(paginatedQueryResult.ObjectType, paginatedQueryResult.ObjectId)] = len(paginatedQueryResults) - 1
+		index++
+	}
+
+	lastId := ""
+	if index < len(queryResults) {
+		lastId, err = LastIdSpecToString(LastIdSpec{
+			ObjectType: queryResults[index].ObjectType,
+			ObjectId:   queryResults[index].ObjectId,
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	for selectedObjectType := range selectedObjectTypes {
@@ -96,12 +147,15 @@ func (svc QueryService) Query(ctx context.Context, query *Query, listParams serv
 			}
 
 			for _, objectSpec := range objectSpecs {
-				result.Results[resultMap[objectKey(selectedObjectType, objectSpec.ObjectId)]].Meta = objectSpec.Meta
+				paginatedQueryResults[resultMap[objectKey(selectedObjectType, objectSpec.ObjectId)]].Meta = objectSpec.Meta
 			}
 		}
 	}
 
-	return &result, nil
+	return &Result{
+		Results: paginatedQueryResults,
+		LastId:  lastId,
+	}, nil
 }
 
 func (svc QueryService) query(ctx context.Context, query *Query, objectTypeMap objecttype.ObjectTypeMap) (*ResultSet, error) {
