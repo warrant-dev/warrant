@@ -12,48 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package authz
+package object
 
 import (
 	"fmt"
-	"strings"
 	"time"
 )
 
-type FilterParams struct {
-	ObjectType      []string
-	ObjectId        []string
-	Relation        []string
-	SubjectType     []string
-	SubjectId       []string
-	SubjectRelation []string
-	Policy          Policy
+var supportedSortBys = []string{"createdAt", "objectType", "objectId"}
+
+type ObjectListParamParser struct{}
+
+func (parser ObjectListParamParser) GetDefaultSortBy() string {
+	return "objectId"
 }
 
-func (fp FilterParams) String() string {
-	return fmt.Sprintf(
-		"objectType: '%s' objectId: '%s' relation: '%s' subjectType: '%s' subjectId: '%s' subjectRelation: '%s' policy: '%s'",
-		strings.Join(fp.ObjectType, ", "),
-		strings.Join(fp.ObjectId, ", "),
-		strings.Join(fp.Relation, ", "),
-		strings.Join(fp.SubjectType, ", "),
-		strings.Join(fp.SubjectId, ", "),
-		strings.Join(fp.SubjectRelation, ", "),
-		fp.Policy,
-	)
+func (parser ObjectListParamParser) GetSupportedSortBys() []string {
+	return supportedSortBys
 }
 
-type WarrantListParamParser struct{}
-
-func (parser WarrantListParamParser) GetDefaultSortBy() string {
-	return "createdAt"
-}
-
-func (parser WarrantListParamParser) GetSupportedSortBys() []string {
-	return []string{"createdAt"}
-}
-
-func (parser WarrantListParamParser) ParseValue(val string, sortBy string) (interface{}, error) {
+func (parser ObjectListParamParser) ParseValue(val string, sortBy string) (interface{}, error) {
 	switch sortBy {
 	case "createdAt":
 		afterValue, err := time.Parse(time.RFC3339, val)
@@ -62,7 +40,23 @@ func (parser WarrantListParamParser) ParseValue(val string, sortBy string) (inte
 		}
 
 		return &afterValue, nil
+	case "objectType", "objectId":
+		if val == "" {
+			return nil, fmt.Errorf("must not be empty")
+		}
+
+		return val, nil
 	default:
 		return nil, fmt.Errorf("must match type of selected sortBy attribute %s", sortBy)
 	}
+}
+
+func IsObjectSortBy(sortBy string) bool {
+	for _, supportedSortBy := range supportedSortBys {
+		if sortBy == supportedSortBy {
+			return true
+		}
+	}
+
+	return false
 }

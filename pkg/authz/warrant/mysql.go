@@ -292,7 +292,7 @@ func (repo MySQLRepository) GetByID(ctx context.Context, id int64) (Model, error
 	return &warrant, nil
 }
 
-func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]Model, error) {
+func (repo MySQLRepository) List(ctx context.Context, filterParams *FilterParams, listParams service.ListParams) ([]Model, error) {
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	query := `
@@ -302,54 +302,175 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 			deletedAt IS NULL
 	`
 	replacements := []interface{}{}
+	sortByColumn := listParams.SortBy
 
-	if filterOptions.ObjectType != "" {
-		query = fmt.Sprintf("%s AND objectType = ?", query)
-		replacements = append(replacements, filterOptions.ObjectType)
-	}
-
-	if filterOptions.ObjectId != "" {
-		query = fmt.Sprintf("%s AND objectId = ?", query)
-		replacements = append(replacements, filterOptions.ObjectId)
-	}
-
-	if filterOptions.Relation != "" {
-		query = fmt.Sprintf("%s AND relation = ?", query)
-		replacements = append(replacements, filterOptions.Relation)
-	}
-
-	if filterOptions.Subject != nil {
-		if filterOptions.Subject.ObjectType != "" {
-			query = fmt.Sprintf("%s AND subjectType = ?", query)
-
-			replacements = append(replacements, filterOptions.Subject.ObjectType)
+	if len(filterParams.ObjectType) > 0 {
+		query = fmt.Sprintf("%s AND objectType IN (%s)", query, BuildQuestionMarkString(len(filterParams.ObjectType)+1))
+		for _, objectType := range filterParams.ObjectType {
+			replacements = append(replacements, objectType)
 		}
-
-		if filterOptions.Subject.ObjectId != "" {
-			query = fmt.Sprintf("%s AND subjectId = ?", query)
-
-			replacements = append(replacements, filterOptions.Subject.ObjectId)
-		}
-
-		if filterOptions.Subject.Relation != "" {
-			query = fmt.Sprintf("%s AND subjectRelation = ?", query)
-
-			replacements = append(replacements, filterOptions.Subject.Relation)
-		}
+		replacements = append(replacements, Wildcard)
 	}
 
-	if filterOptions.Policy != "" {
+	if len(filterParams.ObjectId) > 0 {
+		query = fmt.Sprintf("%s AND objectId IN (%s)", query, BuildQuestionMarkString(len(filterParams.ObjectId)+1))
+		for _, objectId := range filterParams.ObjectId {
+			replacements = append(replacements, objectId)
+		}
+		replacements = append(replacements, Wildcard)
+	}
+
+	if len(filterParams.Relation) > 0 {
+		query = fmt.Sprintf("%s AND relation IN (%s)", query, BuildQuestionMarkString(len(filterParams.Relation)+1))
+		for _, relation := range filterParams.Relation {
+			replacements = append(replacements, relation)
+		}
+		replacements = append(replacements, Wildcard)
+	}
+
+	if len(filterParams.SubjectType) > 0 {
+		query = fmt.Sprintf("%s AND subjectType IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectType)+1))
+		for _, subjectType := range filterParams.SubjectType {
+			replacements = append(replacements, subjectType)
+		}
+		replacements = append(replacements, Wildcard)
+	}
+
+	if len(filterParams.SubjectId) > 0 {
+		query = fmt.Sprintf("%s AND subjectId IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectId)+1))
+		for _, subjectId := range filterParams.SubjectId {
+			replacements = append(replacements, subjectId)
+		}
+		replacements = append(replacements, Wildcard)
+	}
+
+	if len(filterParams.SubjectRelation) > 0 {
+		query = fmt.Sprintf("%s AND subjectRelation IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectRelation)+1))
+		for _, subjectRelation := range filterParams.SubjectRelation {
+			replacements = append(replacements, subjectRelation)
+		}
+		replacements = append(replacements, Wildcard)
+	}
+
+	if filterParams.Policy != "" {
 		query = fmt.Sprintf("%s AND policyHash = ?", query)
-		replacements = append(replacements, filterOptions.Policy.Hash())
+		replacements = append(replacements, filterParams.Policy.Hash())
 	}
 
-	if listParams.SortBy != "" {
-		query = fmt.Sprintf("%s ORDER BY %s %s", query, listParams.SortBy, listParams.SortOrder)
+	if listParams.AfterId != nil {
+		comparisonOp := "<"
+		if listParams.SortOrder == service.SortOrderAsc {
+			comparisonOp = ">"
+		}
+
+		switch listParams.AfterValue {
+		case nil:
+			//nolint:gocritic
+			if listParams.SortBy == listParams.DefaultSortBy() {
+				query = fmt.Sprintf("%s AND %s %s ?", query, listParams.DefaultSortBy(), comparisonOp)
+				replacements = append(replacements, listParams.AfterId)
+			} else if listParams.SortOrder == service.SortOrderAsc {
+				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, sortByColumn, listParams.DefaultSortBy(), comparisonOp, sortByColumn)
+				replacements = append(replacements,
+					listParams.AfterId,
+				)
+			} else {
+				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, listParams.DefaultSortBy(), comparisonOp, sortByColumn)
+				replacements = append(replacements,
+					listParams.AfterId,
+				)
+			}
+		default:
+			if listParams.SortOrder == service.SortOrderAsc {
+				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, sortByColumn, comparisonOp, listParams.DefaultSortBy(), comparisonOp, sortByColumn)
+				replacements = append(replacements,
+					listParams.AfterValue,
+					listParams.AfterId,
+					listParams.AfterValue,
+				)
+			} else {
+				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, sortByColumn, comparisonOp, sortByColumn, listParams.DefaultSortBy(), comparisonOp, sortByColumn)
+				replacements = append(replacements,
+					listParams.AfterValue,
+					listParams.AfterId,
+					listParams.AfterValue,
+				)
+			}
+		}
 	}
 
-	offset := (listParams.Page - 1) * listParams.Limit
-	query = fmt.Sprintf("%s LIMIT ?, ?", query)
-	replacements = append(replacements, offset, listParams.Limit)
+	if listParams.BeforeId != nil {
+		comparisonOp := ">"
+		if listParams.SortOrder == service.SortOrderAsc {
+			comparisonOp = "<"
+		}
+
+		switch listParams.BeforeValue {
+		case nil:
+			//nolint:gocritic
+			if listParams.SortBy == listParams.DefaultSortBy() {
+				query = fmt.Sprintf("%s AND %s %s ?", query, listParams.DefaultSortBy(), comparisonOp)
+				replacements = append(replacements, listParams.BeforeId)
+			} else if listParams.SortOrder == service.SortOrderAsc {
+				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, listParams.DefaultSortBy(), comparisonOp, sortByColumn)
+				replacements = append(replacements,
+					listParams.BeforeId,
+				)
+			} else {
+				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, sortByColumn, listParams.DefaultSortBy(), comparisonOp, sortByColumn)
+				replacements = append(replacements,
+					listParams.BeforeId,
+				)
+			}
+		default:
+			if listParams.SortOrder == service.SortOrderAsc {
+				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, sortByColumn, comparisonOp, sortByColumn, listParams.DefaultSortBy(), comparisonOp, sortByColumn)
+				replacements = append(replacements,
+					listParams.BeforeValue,
+					listParams.BeforeId,
+					listParams.BeforeValue,
+				)
+			} else {
+				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, sortByColumn, comparisonOp, listParams.DefaultSortBy(), comparisonOp, sortByColumn)
+				replacements = append(replacements,
+					listParams.BeforeValue,
+					listParams.BeforeId,
+					listParams.BeforeValue,
+				)
+			}
+		}
+	}
+
+	if listParams.BeforeId != nil {
+		if listParams.SortBy != listParams.DefaultSortBy() {
+			if listParams.SortOrder == service.SortOrderAsc {
+				query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, sortByColumn, service.SortOrderDesc, listParams.DefaultSortBy(), service.SortOrderDesc)
+				replacements = append(replacements, listParams.Limit)
+			} else {
+				query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, sortByColumn, service.SortOrderAsc, listParams.DefaultSortBy(), service.SortOrderAsc)
+				replacements = append(replacements, listParams.Limit)
+			}
+			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s, %s %s", query, sortByColumn, listParams.SortOrder, listParams.DefaultSortBy(), listParams.SortOrder)
+		} else {
+			if listParams.SortOrder == service.SortOrderAsc {
+				query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, sortByColumn, service.SortOrderDesc)
+				replacements = append(replacements, listParams.Limit)
+			} else {
+				query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, sortByColumn, service.SortOrderAsc)
+				replacements = append(replacements, listParams.Limit)
+			}
+			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s", query, sortByColumn, listParams.SortOrder)
+		}
+	} else {
+		if listParams.SortBy != listParams.DefaultSortBy() {
+			query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, sortByColumn, listParams.SortOrder, listParams.DefaultSortBy(), listParams.SortOrder)
+			replacements = append(replacements, listParams.Limit)
+		} else {
+			query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, listParams.DefaultSortBy(), listParams.SortOrder)
+			replacements = append(replacements, listParams.Limit)
+		}
+	}
+
 	err := repo.DB.SelectContext(
 		ctx,
 		&warrants,
@@ -383,7 +504,7 @@ func (repo MySQLRepository) GetAllMatchingObjectRelationAndSubject(ctx context.C
 			FROM warrant
 			WHERE
 				objectType = ? AND
-				(objectId = ? OR objectId = "*") AND
+				(objectId = ? OR objectId = ?) AND
 				relation = ? AND
 				subjectType = ? AND
 				subjectId = ? AND
@@ -392,6 +513,7 @@ func (repo MySQLRepository) GetAllMatchingObjectRelationAndSubject(ctx context.C
 		`,
 		objectType,
 		objectId,
+		Wildcard,
 		relation,
 		subjectType,
 		subjectId,
@@ -424,13 +546,14 @@ func (repo MySQLRepository) GetAllMatchingObjectAndRelation(ctx context.Context,
 			FROM warrant
 			WHERE
 				objectType = ? AND
-				(objectId = ? OR objectId = "*") AND
+				(objectId = ? OR objectId = ?) AND
 				relation = ? AND
 				deletedAt IS NULL
 			ORDER BY createdAt DESC, id DESC
 		`,
 		objectType,
 		objectId,
+		Wildcard,
 		relation,
 	)
 	if err != nil {
@@ -460,7 +583,7 @@ func (repo MySQLRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx con
 			FROM warrant
 			WHERE
 				objectType = ? AND
-				(objectId = ? OR objectId = "*") AND
+				(objectId = ? OR objectId = ?) AND
 				relation = ? AND
 				subjectType = ? AND
 				deletedAt IS NULL
@@ -468,6 +591,7 @@ func (repo MySQLRepository) GetAllMatchingObjectAndRelationBySubjectType(ctx con
 		`,
 		objectType,
 		objectId,
+		Wildcard,
 		relation,
 		subjectType,
 	)

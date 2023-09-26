@@ -23,18 +23,19 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	check "github.com/warrant-dev/warrant/pkg/authz/check"
-	feature "github.com/warrant-dev/warrant/pkg/authz/feature"
-	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	permission "github.com/warrant-dev/warrant/pkg/authz/permission"
-	pricingtier "github.com/warrant-dev/warrant/pkg/authz/pricingtier"
-	role "github.com/warrant-dev/warrant/pkg/authz/role"
-	tenant "github.com/warrant-dev/warrant/pkg/authz/tenant"
-	user "github.com/warrant-dev/warrant/pkg/authz/user"
+	query "github.com/warrant-dev/warrant/pkg/authz/query"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	"github.com/warrant-dev/warrant/pkg/config"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/event"
+	object "github.com/warrant-dev/warrant/pkg/object"
+	feature "github.com/warrant-dev/warrant/pkg/object/feature"
+	permission "github.com/warrant-dev/warrant/pkg/object/permission"
+	pricingtier "github.com/warrant-dev/warrant/pkg/object/pricingtier"
+	role "github.com/warrant-dev/warrant/pkg/object/role"
+	tenant "github.com/warrant-dev/warrant/pkg/object/tenant"
+	user "github.com/warrant-dev/warrant/pkg/object/user"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -233,6 +234,9 @@ func main() {
 	// Init check service
 	checkSvc := check.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, cfg.Check, nil)
 
+	// Init query service
+	querySvc := query.NewService(svcEnv, objectTypeSvc, warrantSvc, objectSvc)
+
 	// Init feature service
 	featureSvc := feature.NewService(&svcEnv, eventSvc, objectSvc)
 
@@ -259,6 +263,7 @@ func main() {
 		objectTypeSvc,
 		permissionSvc,
 		pricingTierSvc,
+		querySvc,
 		roleSvc,
 		tenantSvc,
 		userSvc,

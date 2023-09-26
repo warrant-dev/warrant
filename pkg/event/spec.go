@@ -129,7 +129,7 @@ type LastIdSpec struct {
 func LastIdSpecToString(lastIdSpec LastIdSpec) (string, error) {
 	jsonStr, err := json.Marshal(lastIdSpec)
 	if err != nil {
-		return "", errors.Wrapf(err, "error mashaling lastId %v", lastIdSpec)
+		return "", errors.Wrapf(err, "error marshaling lastId %v", lastIdSpec)
 	}
 
 	return base64.StdEncoding.EncodeToString(jsonStr), nil

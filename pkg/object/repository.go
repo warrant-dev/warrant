@@ -12,31 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package authz
+package object
 
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-type WarrantRepository interface {
-	Create(ctx context.Context, warrant Model) (int64, error)
-	Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) (Model, error)
-	GetByID(ctx context.Context, id int64) (Model, error)
-	GetAllMatchingObjectRelationAndSubject(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string) ([]Model, error)
-	GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string) ([]Model, error)
-	GetAllMatchingObjectAndRelationBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string) ([]Model, error)
-	List(ctx context.Context, filterParams *FilterParams, listParams service.ListParams) ([]Model, error)
-	Delete(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) error
-	DeleteById(ctx context.Context, ids []int64) error
+type ObjectRepository interface {
+	Create(ctx context.Context, object Model) (int64, error)
+	GetById(ctx context.Context, id int64) (Model, error)
+	GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (Model, error)
+	BatchGetByObjectTypeAndIds(ctx context.Context, objectType string, objectIds []string) ([]Model, error)
+	List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]Model, error)
+	UpdateByObjectTypeAndId(ctx context.Context, objectType string, objectId string, object Model) error
+	DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) error
+	DeleteWarrantsMatchingObject(ctx context.Context, objectType string, objectId string) error
+	DeleteWarrantsMatchingSubject(ctx context.Context, subjectType string, subjectId string) error
 }
 
-func NewRepository(db database.Database) (WarrantRepository, error) {
+func NewRepository(db database.Database) (ObjectRepository, error) {
 	switch db.Type() {
 	case database.TypeMySQL:
 		mysql, ok := db.(*database.MySQL)
@@ -62,13 +61,4 @@ func NewRepository(db database.Database) (WarrantRepository, error) {
 	default:
 		return nil, errors.New(fmt.Sprintf("unsupported database type %s specified", db.Type()))
 	}
-}
-
-func BuildQuestionMarkString(numReplacements int) string {
-	var replacements []string
-	for i := 0; i < numReplacements; i++ {
-		replacements = append(replacements, "?")
-	}
-
-	return strings.Join(replacements, ",")
 }

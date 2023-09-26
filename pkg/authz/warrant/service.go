@@ -18,9 +18,9 @@ import (
 	"context"
 	"errors"
 
-	object "github.com/warrant-dev/warrant/pkg/authz/object"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	"github.com/warrant-dev/warrant/pkg/event"
+	object "github.com/warrant-dev/warrant/pkg/object"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -143,15 +143,15 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 	return createdWarrant.ToWarrantSpec(), nil
 }
 
-func (svc WarrantService) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]*WarrantSpec, error) {
-	warrantSpecs := make([]*WarrantSpec, 0)
-	warrants, err := svc.Repository.List(ctx, filterOptions, listParams)
+func (svc WarrantService) List(ctx context.Context, filterParams *FilterParams, listParams service.ListParams) ([]WarrantSpec, error) {
+	warrantSpecs := make([]WarrantSpec, 0)
+	warrants, err := svc.Repository.List(ctx, filterParams, listParams)
 	if err != nil {
 		return warrantSpecs, err
 	}
 
 	for _, warrant := range warrants {
-		warrantSpecs = append(warrantSpecs, warrant.ToWarrantSpec())
+		warrantSpecs = append(warrantSpecs, *warrant.ToWarrantSpec())
 	}
 
 	return warrantSpecs, nil
