@@ -41,6 +41,11 @@ func QueryHandler(svc QueryService, w http.ResponseWriter, r *http.Request) erro
 	}
 
 	listParams := service.GetListParamsFromContext[QueryListParamParser](r.Context())
+	lastId := r.URL.Query().Get("lastId")
+	if lastId != "" && listParams.AfterId == nil {
+		listParams.AfterId = &lastId
+	}
+
 	result, err := svc.Query(r.Context(), query, listParams)
 	if err != nil {
 		return err

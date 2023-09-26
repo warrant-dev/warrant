@@ -1467,7 +1467,7 @@
             "name": "selectMembersOrViewersOfTypeUserLimit3SortByObjectIdDescAfterId",
             "request": {
                 "method": "GET",
-                "url": "/v1/query?q=select%20member%2Cviewer%20of%20type%20user&limit=3&sortBy=objectId&sortOrder=DESC&afterId={{ selectMembersOrViewersOfTypeUserLimit3SortByObjectIdDesc.lastId }}"
+                "url": "/v1/query?q=select%20member%2Cviewer%20of%20type%20user&limit=3&sortBy=objectId&sortOrder=DESC&lastId={{ selectMembersOrViewersOfTypeUserLimit3SortByObjectIdDesc.lastId }}"
             },
             "expectedResponse": {
                 "statusCode": 200,
