@@ -303,6 +303,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterParams *FilterPar
 			deleted_at IS NULL
 	`
 	replacements := []interface{}{}
+	defaultSort := sortRegexp.ReplaceAllString(listParams.DefaultSortBy(), `_$1`)
 	sortByColumn := sortRegexp.ReplaceAllString(listParams.SortBy, `_$1`)
 
 	if len(filterParams.ObjectType) > 0 {
@@ -368,29 +369,29 @@ func (repo PostgresRepository) List(ctx context.Context, filterParams *FilterPar
 		case nil:
 			//nolint:gocritic
 			if listParams.SortBy == listParams.DefaultSortBy() {
-				query = fmt.Sprintf("%s AND %s %s ?", query, listParams.DefaultSortBy(), comparisonOp)
+				query = fmt.Sprintf("%s AND %s %s ?", query, defaultSort, comparisonOp)
 				replacements = append(replacements, listParams.AfterId)
 			} else if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, sortByColumn, listParams.DefaultSortBy(), comparisonOp, sortByColumn)
+				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, sortByColumn, defaultSort, comparisonOp, sortByColumn)
 				replacements = append(replacements,
 					listParams.AfterId,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, listParams.DefaultSortBy(), comparisonOp, sortByColumn)
+				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, defaultSort, comparisonOp, sortByColumn)
 				replacements = append(replacements,
 					listParams.AfterId,
 				)
 			}
 		default:
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, sortByColumn, comparisonOp, listParams.DefaultSortBy(), comparisonOp, sortByColumn)
+				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, sortByColumn, comparisonOp, defaultSort, comparisonOp, sortByColumn)
 				replacements = append(replacements,
 					listParams.AfterValue,
 					listParams.AfterId,
 					listParams.AfterValue,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, sortByColumn, comparisonOp, sortByColumn, listParams.DefaultSortBy(), comparisonOp, sortByColumn)
+				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, sortByColumn, comparisonOp, sortByColumn, defaultSort, comparisonOp, sortByColumn)
 				replacements = append(replacements,
 					listParams.AfterValue,
 					listParams.AfterId,
@@ -410,29 +411,29 @@ func (repo PostgresRepository) List(ctx context.Context, filterParams *FilterPar
 		case nil:
 			//nolint:gocritic
 			if listParams.SortBy == listParams.DefaultSortBy() {
-				query = fmt.Sprintf("%s AND %s %s ?", query, listParams.DefaultSortBy(), comparisonOp)
+				query = fmt.Sprintf("%s AND %s %s ?", query, defaultSort, comparisonOp)
 				replacements = append(replacements, listParams.BeforeId)
 			} else if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, listParams.DefaultSortBy(), comparisonOp, sortByColumn)
+				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, defaultSort, comparisonOp, sortByColumn)
 				replacements = append(replacements,
 					listParams.BeforeId,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, sortByColumn, listParams.DefaultSortBy(), comparisonOp, sortByColumn)
+				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, sortByColumn, defaultSort, comparisonOp, sortByColumn)
 				replacements = append(replacements,
 					listParams.BeforeId,
 				)
 			}
 		default:
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, sortByColumn, comparisonOp, sortByColumn, listParams.DefaultSortBy(), comparisonOp, sortByColumn)
+				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, sortByColumn, comparisonOp, sortByColumn, defaultSort, comparisonOp, sortByColumn)
 				replacements = append(replacements,
 					listParams.BeforeValue,
 					listParams.BeforeId,
 					listParams.BeforeValue,
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, sortByColumn, comparisonOp, listParams.DefaultSortBy(), comparisonOp, sortByColumn)
+				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, sortByColumn, comparisonOp, defaultSort, comparisonOp, sortByColumn)
 				replacements = append(replacements,
 					listParams.BeforeValue,
 					listParams.BeforeId,
@@ -442,32 +443,39 @@ func (repo PostgresRepository) List(ctx context.Context, filterParams *FilterPar
 		}
 	}
 
+	nullSortClause := "NULLS LAST"
+	invertedNullSortClause := "NULLS FIRST"
+	if listParams.SortOrder == service.SortOrderAsc {
+		nullSortClause = "NULLS FIRST"
+		invertedNullSortClause = "NULLS LAST"
+	}
+
 	if listParams.BeforeId != nil {
 		if listParams.SortBy != listParams.DefaultSortBy() {
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, sortByColumn, service.SortOrderDesc, listParams.DefaultSortBy(), service.SortOrderDesc)
+				query = fmt.Sprintf("%s ORDER BY %s %s %s, %s %s LIMIT ?", query, sortByColumn, service.SortOrderDesc, invertedNullSortClause, defaultSort, service.SortOrderDesc)
 				replacements = append(replacements, listParams.Limit)
 			} else {
-				query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, sortByColumn, service.SortOrderAsc, listParams.DefaultSortBy(), service.SortOrderAsc)
+				query = fmt.Sprintf("%s ORDER BY %s %s %s, %s %s LIMIT ?", query, sortByColumn, service.SortOrderAsc, invertedNullSortClause, defaultSort, service.SortOrderAsc)
 				replacements = append(replacements, listParams.Limit)
 			}
-			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s, %s %s", query, sortByColumn, listParams.SortOrder, listParams.DefaultSortBy(), listParams.SortOrder)
+			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s %s, %s %s", query, sortByColumn, listParams.SortOrder, nullSortClause, defaultSort, listParams.SortOrder)
 		} else {
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, sortByColumn, service.SortOrderDesc)
+				query = fmt.Sprintf("%s ORDER BY %s %s %s LIMIT ?", query, sortByColumn, service.SortOrderDesc, invertedNullSortClause)
 				replacements = append(replacements, listParams.Limit)
 			} else {
-				query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, sortByColumn, service.SortOrderAsc)
+				query = fmt.Sprintf("%s ORDER BY %s %s %s LIMIT ?", query, sortByColumn, service.SortOrderAsc, invertedNullSortClause)
 				replacements = append(replacements, listParams.Limit)
 			}
-			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s", query, sortByColumn, listParams.SortOrder)
+			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s %s", query, sortByColumn, listParams.SortOrder, nullSortClause)
 		}
 	} else {
 		if listParams.SortBy != listParams.DefaultSortBy() {
-			query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, sortByColumn, listParams.SortOrder, listParams.DefaultSortBy(), listParams.SortOrder)
+			query = fmt.Sprintf("%s ORDER BY %s %s %s, %s %s LIMIT ?", query, sortByColumn, listParams.SortOrder, nullSortClause, defaultSort, listParams.SortOrder)
 			replacements = append(replacements, listParams.Limit)
 		} else {
-			query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, listParams.DefaultSortBy(), listParams.SortOrder)
+			query = fmt.Sprintf("%s ORDER BY %s %s %s LIMIT ?", query, defaultSort, listParams.SortOrder, nullSortClause)
 			replacements = append(replacements, listParams.Limit)
 		}
 	}
