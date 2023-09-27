@@ -23,6 +23,15 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
+type Service interface {
+	Create(ctx context.Context, objectSpec CreateObjectSpec) (*ObjectSpec, error)
+	GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (*ObjectSpec, error)
+	BatchGetByObjectTypeAndIds(ctx context.Context, objectType string, objectIds []string) ([]ObjectSpec, error)
+	List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]ObjectSpec, error)
+	UpdateByObjectTypeAndId(ctx context.Context, objectType string, objectId string, updateSpec UpdateObjectSpec) (*ObjectSpec, error)
+	DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) error
+}
+
 type ObjectService struct {
 	service.BaseService
 	Repository ObjectRepository

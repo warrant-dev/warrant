@@ -33,11 +33,11 @@ var ErrInvalidQuery = errors.New("invalid query")
 type QueryService struct {
 	baseSvc.BaseService
 	objectTypeSvc objecttype.Service
-	warrantSvc    *warrant.WarrantService
-	objectSvc     *object.ObjectService
+	warrantSvc    warrant.Service
+	objectSvc     object.Service
 }
 
-func NewService(env service.Env, objectTypeSvc objecttype.Service, warrantSvc *warrant.WarrantService, objectSvc *object.ObjectService) QueryService {
+func NewService(env service.Env, objectTypeSvc objecttype.Service, warrantSvc warrant.Service, objectSvc object.Service) QueryService {
 	return QueryService{
 		BaseService:   baseSvc.NewBaseService(env),
 		objectTypeSvc: objectTypeSvc,

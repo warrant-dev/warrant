@@ -26,10 +26,10 @@ import (
 type FeatureService struct {
 	service.BaseService
 	EventSvc  event.Service
-	ObjectSvc *object.ObjectService
+	ObjectSvc object.Service
 }
 
-func NewService(env service.Env, eventSvc event.Service, objectSvc *object.ObjectService) *FeatureService {
+func NewService(env service.Env, eventSvc event.Service, objectSvc object.Service) *FeatureService {
 	return &FeatureService{
 		BaseService: service.NewBaseService(env),
 		EventSvc:    eventSvc,

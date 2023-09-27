@@ -28,10 +28,10 @@ const ResourceTypeTenant = "tenant"
 type TenantService struct {
 	service.BaseService
 	EventSvc  event.Service
-	ObjectSvc *object.ObjectService
+	ObjectSvc object.Service
 }
 
-func NewService(env service.Env, eventSvc event.Service, objectSvc *object.ObjectService) *TenantService {
+func NewService(env service.Env, eventSvc event.Service, objectSvc object.Service) *TenantService {
 	return &TenantService{
 		BaseService: service.NewBaseService(env),
 		EventSvc:    eventSvc,

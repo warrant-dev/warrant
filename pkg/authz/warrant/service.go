@@ -24,15 +24,21 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
+type Service interface {
+	Create(ctx context.Context, warrantSpec WarrantSpec) (*WarrantSpec, error)
+	List(ctx context.Context, filterParams *FilterParams, listParams service.ListParams) ([]WarrantSpec, error)
+	Delete(ctx context.Context, warrantSpec WarrantSpec) error
+}
+
 type WarrantService struct {
 	service.BaseService
 	Repository    WarrantRepository
 	EventSvc      event.Service
 	ObjectTypeSvc objecttype.Service
-	ObjectSvc     *object.ObjectService
+	ObjectSvc     object.Service
 }
 
-func NewService(env service.Env, repository WarrantRepository, eventSvc event.Service, objectTypeSvc objecttype.Service, objectSvc *object.ObjectService) *WarrantService {
+func NewService(env service.Env, repository WarrantRepository, eventSvc event.Service, objectTypeSvc objecttype.Service, objectSvc object.Service) *WarrantService {
 	return &WarrantService{
 		BaseService:   service.NewBaseService(env),
 		Repository:    repository,
