@@ -49,6 +49,21 @@ func ContainsLatest(ctx context.Context) bool {
 	return false
 }
 
+func GetServerCreatedWookieFromRequestContext(ctx context.Context) (*Token, error) {
+	wookieCtxVal := ctx.Value(ServerCreatedWookieCtxKey{})
+	if wookieCtxVal == nil {
+		//nolint:nilnil
+		return nil, nil
+	}
+
+	wookieString, ok := wookieCtxVal.(*Token)
+	if !ok {
+		return nil, errors.New("error fetching server created wookie from request context")
+	}
+
+	return wookieString, nil
+}
+
 func GetClientPassedWookieFromRequestContext(ctx context.Context) (string, error) {
 	wookieCtxVal := ctx.Value(ClientPassedWookieCtxKey{})
 	if wookieCtxVal == nil {
@@ -57,7 +72,7 @@ func GetClientPassedWookieFromRequestContext(ctx context.Context) (string, error
 
 	wookieString, ok := wookieCtxVal.(string)
 	if !ok {
-		return "", errors.New("error fetching wookie from request context")
+		return "", errors.New("error fetching client passed wookie from request context")
 	}
 
 	return wookieString, nil
