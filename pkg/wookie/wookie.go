@@ -67,3 +67,9 @@ func GetClientPassedWookieFromRequestContext(ctx context.Context) (string, error
 func WithLatest(parent context.Context) context.Context {
 	return context.WithValue(parent, ClientPassedWookieCtxKey{}, Latest)
 }
+
+func AddAsResponseHeader(w http.ResponseWriter, token *Token) {
+	if token != nil {
+		w.Header().Set(HeaderName, token.String())
+	}
+}
