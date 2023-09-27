@@ -24,6 +24,12 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
+type Service interface {
+	Create(ctx context.Context, warrantSpec WarrantSpec) (*WarrantSpec, error)
+	List(ctx context.Context, filterParams *FilterParams, listParams service.ListParams) ([]WarrantSpec, error)
+	Delete(ctx context.Context, warrantSpec WarrantSpec) error
+}
+
 type WarrantService struct {
 	service.BaseService
 	Repository    WarrantRepository
