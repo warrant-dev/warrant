@@ -25,6 +25,7 @@ const HeaderName = "Warrant-Token"
 const Latest = "latest"
 
 type WookieCtxKey struct{}
+type WookieTxKey struct{}
 
 func WookieMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

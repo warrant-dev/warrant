@@ -79,3 +79,38 @@ func (svc WookieService) GetLatestWookie(ctx context.Context) (*wookie.Token, er
 
 	return latestWookieToken, nil
 }
+
+func (svc WookieService) WithNewWookie(ctx context.Context, txWookieFunc func(txCtx context.Context, newWookieId int64) error) (*wookie.Token, error) {
+	txnWookie, hasTxnWookie := ctx.Value(wookie.WookieTxKey{}).(*wookie.Token)
+	// An update is already in progress so continue with that ctx
+	if hasTxnWookie {
+		e := txWookieFunc(ctx, txnWookie.ID)
+		if e != nil {
+			return nil, e
+		}
+		return txnWookie, nil
+	}
+
+	// Otherwise create a new tx and new update wookie
+	var newWookie *wookie.Token
+	var err error
+	err = svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+		newWookie, err = svc.CreateNewWookie(txCtx)
+		if err != nil {
+			return err
+		}
+
+		wkCtx := context.WithValue(txCtx, wookie.WookieTxKey{}, newWookie)
+		err = txWookieFunc(wkCtx, newWookie.ID)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return newWookie, nil
+}
