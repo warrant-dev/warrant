@@ -80,11 +80,11 @@ func (svc WookieService) GetLatestWookie(ctx context.Context) (*wookie.Token, er
 	return latestWookieToken, nil
 }
 
-func (svc WookieService) WithNewWookie(ctx context.Context, txWookieFunc func(txCtx context.Context) error) (*wookie.Token, error) {
+func (svc WookieService) WithNewWookie(ctx context.Context, txWookieFunc func(txCtx context.Context, createdWookieId int64) error) (*wookie.Token, error) {
 	serverCreatedWookie, hasServerCreatedWookie := ctx.Value(wookie.ServerCreatedWookieCtxKey{}).(*wookie.Token)
 	// An update is already in progress so continue with that ctx
 	if hasServerCreatedWookie {
-		e := txWookieFunc(ctx)
+		e := txWookieFunc(ctx, serverCreatedWookie.ID)
 		if e != nil {
 			return nil, e
 		}
@@ -101,7 +101,7 @@ func (svc WookieService) WithNewWookie(ctx context.Context, txWookieFunc func(tx
 		}
 
 		wkCtx := context.WithValue(txCtx, wookie.ServerCreatedWookieCtxKey{}, newWookie)
-		err = txWookieFunc(wkCtx)
+		err = txWookieFunc(wkCtx, newWookie.ID)
 		if err != nil {
 			return err
 		}
