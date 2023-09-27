@@ -35,10 +35,10 @@ type WarrantService struct {
 	Repository    WarrantRepository
 	EventSvc      event.Service
 	ObjectTypeSvc objecttype.Service
-	ObjectSvc     *object.ObjectService
+	ObjectSvc     object.Service
 }
 
-func NewService(env service.Env, repository WarrantRepository, eventSvc event.Service, objectTypeSvc objecttype.Service, objectSvc *object.ObjectService) *WarrantService {
+func NewService(env service.Env, repository WarrantRepository, eventSvc event.Service, objectTypeSvc objecttype.Service, objectSvc object.Service) *WarrantService {
 	return &WarrantService{
 		BaseService:   service.NewBaseService(env),
 		Repository:    repository,

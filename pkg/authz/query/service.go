@@ -34,10 +34,10 @@ type QueryService struct {
 	baseSvc.BaseService
 	objectTypeSvc objecttype.Service
 	warrantSvc    warrant.Service
-	objectSvc     *object.ObjectService
+	objectSvc     object.Service
 }
 
-func NewService(env service.Env, objectTypeSvc objecttype.Service, warrantSvc warrant.Service, objectSvc *object.ObjectService) QueryService {
+func NewService(env service.Env, objectTypeSvc objecttype.Service, warrantSvc warrant.Service, objectSvc object.Service) QueryService {
 	return QueryService{
 		BaseService:   baseSvc.NewBaseService(env),
 		objectTypeSvc: objectTypeSvc,
