@@ -69,7 +69,7 @@ func CreateHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 		}
 	}
 
-	createdWarrant, err := svc.Create(r.Context(), warrantSpec)
+	createdWarrant, _, err := svc.Create(r.Context(), warrantSpec)
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func DeleteHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
-	err = svc.Delete(r.Context(), warrantSpec)
+	_, err = svc.Delete(r.Context(), warrantSpec)
 	if err != nil {
 		return err
 	}
