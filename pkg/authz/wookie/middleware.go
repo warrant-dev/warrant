@@ -39,8 +39,7 @@ func wookieMiddleware(next http.Handler, wookieSvc *WookieService) http.Handler 
 		headerVal := r.Header.Get(wookie.HeaderName)
 
 		switch headerVal {
-		case wookie.Latest:
-		case "":
+		case wookie.Latest, "":
 			token, err := wookieSvc.GetLatestWookie(r.Context())
 			if err != nil {
 				service.SendErrorResponse(w, service.NewInvalidRequestError("invalid warrant token"))
