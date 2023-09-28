@@ -22,12 +22,13 @@ import (
 	"github.com/warrant-dev/warrant/pkg/event"
 	object "github.com/warrant-dev/warrant/pkg/object"
 	"github.com/warrant-dev/warrant/pkg/service"
+	"github.com/warrant-dev/warrant/pkg/wookie"
 )
 
 type Service interface {
-	Create(ctx context.Context, warrantSpec WarrantSpec) (*WarrantSpec, error)
+	Create(ctx context.Context, warrantSpec WarrantSpec) (*WarrantSpec, *wookie.Token, error)
 	List(ctx context.Context, filterParams *FilterParams, listParams service.ListParams) ([]WarrantSpec, error)
-	Delete(ctx context.Context, warrantSpec WarrantSpec) error
+	Delete(ctx context.Context, warrantSpec WarrantSpec) (*wookie.Token, error)
 }
 
 type WarrantService struct {
@@ -48,7 +49,7 @@ func NewService(env service.Env, repository WarrantRepository, eventSvc event.Se
 	}
 }
 
-func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (*WarrantSpec, error) {
+func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (*WarrantSpec, *wookie.Token, error) {
 	var createdWarrant Model
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		// Check that objectType is valid
@@ -143,10 +144,10 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return createdWarrant.ToWarrantSpec(), nil
+	return createdWarrant.ToWarrantSpec(), nil, nil
 }
 
 func (svc WarrantService) List(ctx context.Context, filterParams *FilterParams, listParams service.ListParams) ([]WarrantSpec, error) {
@@ -163,7 +164,7 @@ func (svc WarrantService) List(ctx context.Context, filterParams *FilterParams, 
 	return warrantSpecs, nil
 }
 
-func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) error {
+func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) (*wookie.Token, error) {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		warrantToDelete, err := warrantSpec.ToWarrant()
 		if err != nil {
@@ -194,8 +195,9 @@ func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) e
 		return nil
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	//nolint:nilnil
+	return nil, nil
 }

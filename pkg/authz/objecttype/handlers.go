@@ -76,7 +76,7 @@ func CreateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 		return err
 	}
 
-	createdObjectTypeSpec, err := svc.Create(r.Context(), objectTypeSpec)
+	createdObjectTypeSpec, _, err := svc.Create(r.Context(), objectTypeSpec)
 	if err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func UpdateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 	}
 
 	typeId := mux.Vars(r)["type"]
-	updatedObjectTypeSpec, err := svc.UpdateByTypeId(r.Context(), typeId, objectTypeSpec)
+	updatedObjectTypeSpec, _, err := svc.UpdateByTypeId(r.Context(), typeId, objectTypeSpec)
 	if err != nil {
 		return err
 	}
