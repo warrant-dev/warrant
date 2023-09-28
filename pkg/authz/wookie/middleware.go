@@ -18,6 +18,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/rs/zerolog/hlog"
 	"github.com/warrant-dev/warrant/pkg/service"
 	"github.com/warrant-dev/warrant/pkg/wookie"
 )
