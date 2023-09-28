@@ -32,8 +32,8 @@ func WarrantTokenMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		headerVal := r.Header.Get(HeaderName)
 		if headerVal != "" {
-			wookieCtx := context.WithValue(r.Context(), WarrantTokenCtxKey{}, headerVal)
-			next.ServeHTTP(w, r.WithContext(wookieCtx))
+			warrantTokenCtx := context.WithValue(r.Context(), WarrantTokenCtxKey{}, headerVal)
+			next.ServeHTTP(w, r.WithContext(warrantTokenCtx))
 			return
 		}
 		next.ServeHTTP(w, r)
