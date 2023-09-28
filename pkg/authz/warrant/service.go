@@ -168,7 +168,7 @@ func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) (
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		warrantToDelete, err := warrantSpec.ToWarrant()
 		if err != nil {
-			return nil
+			return err
 		}
 
 		_, err = svc.Repository.Get(txCtx, warrantToDelete.GetObjectType(), warrantToDelete.GetObjectId(), warrantToDelete.GetRelation(), warrantToDelete.GetSubjectType(), warrantToDelete.GetSubjectId(), warrantToDelete.GetSubjectRelation(), warrantToDelete.GetPolicyHash())
