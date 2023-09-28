@@ -42,7 +42,8 @@ func wookieMiddleware(next http.Handler, wookieSvc *WookieService) http.Handler 
 		case wookie.Latest, "":
 			token, err := wookieSvc.GetLatestWookie(r.Context())
 			if err != nil {
-				service.SendErrorResponse(w, service.NewInvalidRequestError("invalid warrant token"))
+				hlog.FromRequest(r).Error().Err(err).Msg("wookie: error fetching latest wookie")
+				service.SendErrorResponse(w, service.NewInternalError("Something went wrong"))
 				return
 			}
 
