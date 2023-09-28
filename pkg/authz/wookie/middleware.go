@@ -30,8 +30,8 @@ func GenerateWookieMiddleware(wookieSvc *WookieService) service.Middleware {
 
 func wookieMiddleware(next http.Handler, wookieSvc *WookieService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := wookie.GetClientPassedWookieFromRequestContext(r.Context())
-		if err == nil {
+		clientPassedWookieFromCtx, _ := wookie.GetClientPassedWookieFromRequestContext(r.Context())
+		if clientPassedWookieFromCtx != nil {
 			next.ServeHTTP(w, r)
 			return
 		}
