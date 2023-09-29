@@ -15,7 +15,6 @@
 package authz
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/rs/zerolog/hlog"
@@ -31,7 +30,7 @@ func GenerateWookieMiddleware(wookieSvc *WookieService) service.Middleware {
 
 func wookieMiddleware(next http.Handler, wookieSvc *WookieService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		clientPassedWookieFromCtx, _ := wookie.GetClientPassedWookieFromRequestContext(r.Context())
+		clientPassedWookieFromCtx, _ := wookie.GetWookieFromRequestContext(r.Context())
 		if clientPassedWookieFromCtx != nil {
 			next.ServeHTTP(w, r)
 			return
@@ -48,8 +47,8 @@ func wookieMiddleware(next http.Handler, wookieSvc *WookieService) http.Handler 
 				return
 			}
 
-			ctxWithToken := context.WithValue(r.Context(), wookie.ClientPassedWookieCtxKey{}, *token)
-			next.ServeHTTP(w, r.WithContext(ctxWithToken))
+			ctxWithWookie := wookie.WithWookie(r.Context(), token)
+			next.ServeHTTP(w, r.WithContext(ctxWithWookie))
 		default:
 			token, err := wookie.FromString(headerVal)
 			if err != nil {
@@ -58,8 +57,8 @@ func wookieMiddleware(next http.Handler, wookieSvc *WookieService) http.Handler 
 				return
 			}
 
-			ctxWithToken := context.WithValue(r.Context(), wookie.ClientPassedWookieCtxKey{}, token)
-			next.ServeHTTP(w, r.WithContext(ctxWithToken))
+			ctxWithWookie := wookie.WithWookie(r.Context(), token)
+			next.ServeHTTP(w, r.WithContext(ctxWithWookie))
 		}
 	})
 }

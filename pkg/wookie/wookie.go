@@ -25,8 +25,7 @@ const HeaderName = "Warrant-Token"
 const Latest = "latest"
 
 type WarrantTokenCtxKey struct{}
-type ClientPassedWookieCtxKey struct{}
-type ServerCreatedWookieCtxKey struct{}
+type WookieCtxKey struct{}
 
 func WarrantTokenMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -50,8 +49,8 @@ func ContainsLatest(ctx context.Context) bool {
 	return false
 }
 
-func GetServerCreatedWookieFromRequestContext(ctx context.Context) (*Token, error) {
-	wookieCtxVal := ctx.Value(ServerCreatedWookieCtxKey{})
+func GetWookieFromRequestContext(ctx context.Context) (*Token, error) {
+	wookieCtxVal := ctx.Value(WookieCtxKey{})
 	if wookieCtxVal == nil {
 		//nolint:nilnil
 		return nil, nil
@@ -59,30 +58,20 @@ func GetServerCreatedWookieFromRequestContext(ctx context.Context) (*Token, erro
 
 	wookieToken, ok := wookieCtxVal.(Token)
 	if !ok {
-		return nil, errors.New("error fetching server created wookie from request context")
+		return nil, errors.New("error fetching wookie from request context")
 	}
 
 	return &wookieToken, nil
 }
 
-func GetClientPassedWookieFromRequestContext(ctx context.Context) (*Token, error) {
-	wookieCtxVal := ctx.Value(ClientPassedWookieCtxKey{})
-	if wookieCtxVal == nil {
-		//nolint:nilnil
-		return nil, nil
-	}
-
-	wookieToken, ok := wookieCtxVal.(Token)
-	if !ok {
-		return nil, errors.New("error fetching client passed wookie from request context")
-	}
-
-	return &wookieToken, nil
-}
-
-// Return a context with wookie set to 'latest'.
+// Return a context with Warrant-Token set to 'latest'.
 func WithLatest(parent context.Context) context.Context {
 	return context.WithValue(parent, WarrantTokenCtxKey{}, Latest)
+}
+
+// Return context with wookie set to specified Token.
+func WithWookie(parent context.Context, wookie *Token) context.Context {
+	return context.WithValue(parent, WookieCtxKey{}, *wookie)
 }
 
 func AddAsResponseHeader(w http.ResponseWriter, token *Token) {
