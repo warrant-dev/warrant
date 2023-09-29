@@ -208,8 +208,9 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 
 	if warrantCheck.Op == objecttype.InheritIfAllOf {
 		var processingTime int64
+		var isImplicit bool
 		for _, warrantSpec := range warrantCheck.Warrants {
-			match, decisionPath, err := svc.Check(ctx, authInfo, CheckSpec{
+			match, decisionPath, implicit, err := svc.Check(ctx, authInfo, CheckSpec{
 				CheckWarrantSpec: warrantSpec,
 				Debug:            warrantCheck.Debug,
 			})
@@ -217,6 +218,7 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 				return nil, err
 			}
 
+			isImplicit = isImplicit || implicit
 			if warrantCheck.Debug {
 				checkResult.ProcessingTime = processingTime + time.Since(start).Milliseconds()
 				if len(decisionPath) > 0 {
@@ -238,6 +240,7 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 
 				checkResult.Code = http.StatusForbidden
 				checkResult.Result = NotAuthorized
+				checkResult.IsImplicit = false
 				return &checkResult, nil
 			}
 
@@ -249,13 +252,14 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 
 		checkResult.Code = http.StatusOK
 		checkResult.Result = Authorized
+		checkResult.IsImplicit = isImplicit
 		return &checkResult, nil
 	}
 
 	if warrantCheck.Op == objecttype.InheritIfAnyOf {
 		var processingTime int64
 		for _, warrantSpec := range warrantCheck.Warrants {
-			match, decisionPath, err := svc.Check(ctx, authInfo, CheckSpec{
+			match, decisionPath, isImplicit, err := svc.Check(ctx, authInfo, CheckSpec{
 				CheckWarrantSpec: warrantSpec,
 				Debug:            warrantCheck.Debug,
 			})
@@ -284,6 +288,7 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 
 				checkResult.Code = http.StatusOK
 				checkResult.Result = Authorized
+				checkResult.IsImplicit = isImplicit
 				return &checkResult, nil
 			}
 
@@ -297,6 +302,7 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 
 		checkResult.Code = http.StatusForbidden
 		checkResult.Result = NotAuthorized
+		checkResult.IsImplicit = false
 		return &checkResult, nil
 	}
 
@@ -305,7 +311,7 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 	}
 
 	warrantSpec := warrantCheck.Warrants[0]
-	match, decisionPath, err := svc.Check(ctx, authInfo, CheckSpec{
+	match, decisionPath, isImplicit, err := svc.Check(ctx, authInfo, CheckSpec{
 		CheckWarrantSpec: warrantSpec,
 		Debug:            warrantCheck.Debug,
 	})
@@ -334,6 +340,7 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 
 		checkResult.Code = http.StatusOK
 		checkResult.Result = Authorized
+		checkResult.IsImplicit = isImplicit
 		return &checkResult, nil
 	}
 
@@ -344,11 +351,12 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 
 	checkResult.Code = http.StatusForbidden
 	checkResult.Result = NotAuthorized
+	checkResult.IsImplicit = false
 	return &checkResult, nil
 }
 
 // Check returns true if the subject has a warrant (explicitly or implicitly) for given objectType:objectId#relation and context.
-func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, warrantCheck CheckSpec) (bool, []warrant.WarrantSpec, error) {
+func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, warrantCheck CheckSpec) (bool, []warrant.WarrantSpec, bool, error) {
 	// Used to automatically append tenant context for session token w/ tenantId checks
 	if authInfo != nil && authInfo.TenantId != "" {
 		if warrantCheck.CheckWarrantSpec.Context == nil {
@@ -365,7 +373,7 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 
 	checkCtx, err := svc.CreateCheckContext(ctx)
 	if err != nil {
-		return false, nil, err
+		return false, nil, false, err
 	}
 	childCtx, cancelFunc := context.WithTimeout(checkCtx, svc.CheckConfig.Timeout)
 	defer cancelFunc()
@@ -377,14 +385,14 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 	result := <-resultsC
 
 	if result.Err != nil {
-		return false, nil, result.Err
+		return false, nil, false, result.Err
 	}
 
 	if result.Matched {
-		return true, result.DecisionPath, nil
+		return true, result.DecisionPath, len(result.DecisionPath) != 1 || result.DecisionPath[0].Relation != warrantCheck.Relation, nil
 	}
 
-	return false, nil, nil
+	return false, nil, false, nil
 }
 
 type result struct {

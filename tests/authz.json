@@ -77,7 +77,7 @@
             }
         },
         {
-            "name": "createUserUsera",
+            "name": "createUserUserA",
             "request": {
                 "method": "POST",
                 "url": "/v1/users",
@@ -95,7 +95,7 @@
             }
         },
         {
-            "name": "createUserUserb",
+            "name": "createUserUserB",
             "request": {
                 "method": "POST",
                 "url": "/v1/users",
@@ -425,6 +425,7 @@
                 "body": {
                     "code": 200,
                     "result": "Authorized",
+                    "isImplicit": true,
                     "decisionPath": {
                         "report:report-a#editor@user:user-b[tenant=tenant-b]": [
                             {
@@ -481,6 +482,7 @@
                 "body": {
                     "code": 200,
                     "result": "Authorized",
+                    "isImplicit": true,
                     "decisionPath": {
                         "report:report-a#editor@user:user-b[tenant=tenant-b]": [
                             {
@@ -537,6 +539,7 @@
                 "body": {
                     "code": 200,
                     "result": "Authorized",
+                    "isImplicit": true,
                     "decisionPath": {
                         "permission:edit-balance-sheet#member@user:user-a[tenant=tenant-a]": [
                             {
@@ -591,7 +594,8 @@
                 "statusCode": 200,
                 "body": {
                     "code": 403,
-                    "result": "Not Authorized"
+                    "result": "Not Authorized",
+                    "isImplicit": false
                 }
             }
         },
@@ -621,6 +625,7 @@
                 "body": {
                     "code": 200,
                     "result": "Authorized",
+                    "isImplicit": false,
                     "decisionPath": {
                         "report:report-a#editor@user:user-a": [
                             {
@@ -663,6 +668,7 @@
                 "body": {
                     "code": 200,
                     "result": "Authorized",
+                    "isImplicit": true,
                     "decisionPath": {
                         "report:report-a#viewer@user:user-a": [
                             {
@@ -705,6 +711,7 @@
                 "body": {
                     "code": 200,
                     "result": "Authorized",
+                    "isImplicit": true,
                     "decisionPath": {
                         "report:report-a#editor-viewer@user:user-a": [
                             {
@@ -745,7 +752,8 @@
                 "statusCode": 200,
                 "body": {
                     "code": 200,
-                    "result": "Authorized"
+                    "result": "Authorized",
+                    "isImplicit": true
                 }
             }
         },
@@ -900,7 +908,7 @@
             }
         },
         {
-            "name": "deleteUserUserb",
+            "name": "deleteUserUserB",
             "request": {
                 "method": "DELETE",
                 "url": "/v1/users/user-b"
@@ -910,7 +918,7 @@
             }
         },
         {
-            "name": "deleteUserUsera",
+            "name": "deleteUserUserA",
             "request": {
                 "method": "DELETE",
                 "url": "/v1/users/user-a"

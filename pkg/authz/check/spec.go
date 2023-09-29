@@ -128,6 +128,7 @@ func (spec SessionCheckManySpec) ToMap() map[string]interface{} {
 type CheckResultSpec struct {
 	Code           int64                            `json:"code,omitempty"`
 	Result         string                           `json:"result"`
+	IsImplicit     bool                             `json:"isImplicit"`
 	ProcessingTime int64                            `json:"processingTime,omitempty"`
 	DecisionPath   map[string][]warrant.WarrantSpec `json:"decisionPath,omitempty"`
 }
