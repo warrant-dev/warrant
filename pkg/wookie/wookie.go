@@ -24,14 +24,14 @@ import (
 const HeaderName = "Warrant-Token"
 const Latest = "latest"
 
-type WarrantTokenCtxKey struct{}
-type WookieCtxKey struct{}
+type warrantTokenCtxKey struct{}
+type wookieCtxKey struct{}
 
 func WarrantTokenMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		headerVal := r.Header.Get(HeaderName)
 		if headerVal != "" {
-			warrantTokenCtx := context.WithValue(r.Context(), WarrantTokenCtxKey{}, headerVal)
+			warrantTokenCtx := context.WithValue(r.Context(), warrantTokenCtxKey{}, headerVal)
 			next.ServeHTTP(w, r.WithContext(warrantTokenCtx))
 			return
 		}
@@ -41,7 +41,7 @@ func WarrantTokenMiddleware(next http.Handler) http.Handler {
 
 // Returns true if ctx contains wookie set to 'latest', false otherwise.
 func ContainsLatest(ctx context.Context) bool {
-	if val, ok := ctx.Value(WarrantTokenCtxKey{}).(string); ok {
+	if val, ok := ctx.Value(warrantTokenCtxKey{}).(string); ok {
 		if val == Latest {
 			return true
 		}
@@ -50,7 +50,7 @@ func ContainsLatest(ctx context.Context) bool {
 }
 
 func GetWookieFromRequestContext(ctx context.Context) (*Token, error) {
-	wookieCtxVal := ctx.Value(WookieCtxKey{})
+	wookieCtxVal := ctx.Value(wookieCtxKey{})
 	if wookieCtxVal == nil {
 		//nolint:nilnil
 		return nil, nil
@@ -66,12 +66,12 @@ func GetWookieFromRequestContext(ctx context.Context) (*Token, error) {
 
 // Return a context with Warrant-Token set to 'latest'.
 func WithLatest(parent context.Context) context.Context {
-	return context.WithValue(parent, WarrantTokenCtxKey{}, Latest)
+	return context.WithValue(parent, warrantTokenCtxKey{}, Latest)
 }
 
 // Return context with wookie set to specified Token.
 func WithWookie(parent context.Context, wookie *Token) context.Context {
-	return context.WithValue(parent, WookieCtxKey{}, *wookie)
+	return context.WithValue(parent, wookieCtxKey{}, *wookie)
 }
 
 func AddAsResponseHeader(w http.ResponseWriter, token *Token) {
