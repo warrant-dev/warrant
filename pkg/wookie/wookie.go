@@ -57,12 +57,12 @@ func GetServerCreatedWookieFromRequestContext(ctx context.Context) (*Token, erro
 		return nil, nil
 	}
 
-	wookieToken, ok := wookieCtxVal.(*Token)
+	wookieToken, ok := wookieCtxVal.(Token)
 	if !ok {
 		return nil, errors.New("error fetching server created wookie from request context")
 	}
 
-	return wookieToken, nil
+	return &wookieToken, nil
 }
 
 func GetClientPassedWookieFromRequestContext(ctx context.Context) (*Token, error) {
@@ -72,12 +72,12 @@ func GetClientPassedWookieFromRequestContext(ctx context.Context) (*Token, error
 		return nil, nil
 	}
 
-	wookieToken, ok := wookieCtxVal.(*Token)
+	wookieToken, ok := wookieCtxVal.(Token)
 	if !ok {
 		return nil, errors.New("error fetching client passed wookie from request context")
 	}
 
-	return wookieToken, nil
+	return &wookieToken, nil
 }
 
 // Return a context with wookie set to 'latest'.
