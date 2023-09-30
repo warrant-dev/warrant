@@ -23,6 +23,8 @@ import (
 
 const currentWookieVersion = 1
 
+type withNewWookieCtxKey struct{}
+
 type WookieService struct {
 	service.BaseService
 	Repository WookieRepository
@@ -81,29 +83,31 @@ func (svc WookieService) GetLatestWookie(ctx context.Context) (*wookie.Token, er
 }
 
 func (svc WookieService) WithNewWookie(ctx context.Context, txWookieFunc func(txCtx context.Context, createdWookieId int64) error) (*wookie.Token, error) {
-	serverCreatedWookie, err := wookie.GetWookieFromRequestContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-	// An update is already in progress so continue with that ctx
-	if serverCreatedWookie != nil {
-		e := txWookieFunc(ctx, serverCreatedWookie.ID)
-		if e != nil {
-			return nil, e
+	withNewWookieAlreadyInvoked := ctx.Value(withNewWookieCtxKey{})
+	// WithNewWookie was already invoked higher in the call chain, so continue with that ctx.
+	if withNewWookieAlreadyInvoked != nil {
+		serverCreatedWookie, err := wookie.GetWookieFromRequestContext(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		err = txWookieFunc(ctx, serverCreatedWookie.ID)
+		if err != nil {
+			return nil, err
 		}
 		return serverCreatedWookie, nil
 	}
 
 	// Otherwise, create a new tx and a new wookie for writes in txWookieFunc to use.
 	var newWookie *wookie.Token
-	err = svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		newWookie, err = svc.CreateNewWookie(txCtx)
+	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+		newWookie, err := svc.CreateNewWookie(txCtx)
 		if err != nil {
 			return err
 		}
 
-		wkCtx := wookie.WithWookie(txCtx, newWookie)
-		err = txWookieFunc(wkCtx, newWookie.ID)
+		wkCtx := context.WithValue(txCtx, withNewWookieCtxKey{}, struct{}{})
+		err = txWookieFunc(wookie.WithWookie(wkCtx, newWookie), newWookie.ID)
 		if err != nil {
 			return err
 		}
