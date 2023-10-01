@@ -147,41 +147,6 @@
             }
         },
         {
-            "name": "failToCreateDuplicateWarrantWithPolicy",
-            "request": {
-                "method": "POST",
-                "url": "/v1/warrants",
-                "body": {
-                    "objectType": "cluster",
-                    "objectId": "us-east-1",
-                    "relation": "editor",
-                    "subject": {
-                        "objectType": "user",
-                        "objectId": "user-a"
-                    },
-                    "policy": "clientIp matches \"192\\\\.168\\\\..*\\\\..*\""
-                }
-            },
-            "expectedResponse": {
-                "statusCode": 400,
-                "body": {
-                    "code": "duplicate_record",
-                    "message": "Duplicate Warrant cluster:us-east-1#editor@user:user-a[clientIp matches \"192\\\\.168\\\\..*\\\\..*\"], A warrant with the given objectType, objectId, relation, subject, and policy already exists",
-                    "type": "Warrant",
-                    "key": {
-                        "objectType": "cluster",
-                        "objectId": "us-east-1",
-                        "relation": "editor",
-                        "subject": {
-                            "objectType": "user",
-                            "objectId": "user-a"
-                        },
-                        "policy": "clientIp matches \"192\\\\.168\\\\..*\\\\..*\""
-                    }
-                }
-            }
-        },
-        {
             "name": "checkUserIsEditorOfCluster",
             "request": {
                 "method": "POST",

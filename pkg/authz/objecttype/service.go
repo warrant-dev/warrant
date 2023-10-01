@@ -60,11 +60,6 @@ func NewService(env service.Env, repository ObjectTypeRepository, eventSvc event
 func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, *wookie.Token, error) {
 	var newObjectTypeSpec *ObjectTypeSpec
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		_, err := svc.Repository.GetByTypeId(txCtx, objectTypeSpec.Type)
-		if err == nil {
-			return service.NewDuplicateRecordError("ObjectType", objectTypeSpec.Type, "An objectType with the given type already exists")
-		}
-
 		objectType, err := objectTypeSpec.ToObjectType()
 		if err != nil {
 			return err

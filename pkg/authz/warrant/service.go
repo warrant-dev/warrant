@@ -63,12 +63,6 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 			return service.NewInvalidParameterError("relation", "An object type with the given relation does not exist.")
 		}
 
-		// Check that warrant does not already exist
-		_, err = svc.Repository.Get(txCtx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, warrantSpec.Policy.Hash())
-		if err == nil {
-			return service.NewDuplicateRecordError("Warrant", warrantSpec, "A warrant with the given objectType, objectId, relation, subject, and policy already exists")
-		}
-
 		// Unless objectId is wildcard, create referenced object if it does not already exist
 		if warrantSpec.ObjectId != "*" {
 			objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(txCtx, warrantSpec.ObjectType, warrantSpec.ObjectId)
