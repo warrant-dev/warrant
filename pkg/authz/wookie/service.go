@@ -82,16 +82,16 @@ func (svc WookieService) GetLatestWookie(ctx context.Context) (*wookie.Token, er
 	return latestWookieToken, nil
 }
 
-func (svc WookieService) WithNewWookie(ctx context.Context, txWookieFunc func(txCtx context.Context, createdWookieId int64) error) (*wookie.Token, error) {
+func (svc WookieService) WithNewWookie(ctx context.Context, txWookieFunc func(context.Context) error) (*wookie.Token, error) {
 	withNewWookieAlreadyInvoked := ctx.Value(withNewWookieCtxKey{})
 	// WithNewWookie was already invoked higher in the call chain, so continue with that ctx.
 	if withNewWookieAlreadyInvoked != nil {
-		serverCreatedWookie, err := wookie.GetWookieFromRequestContext(ctx)
+		serverCreatedWookie, err := wookie.GetWookieFromContext(ctx)
 		if err != nil {
 			return nil, err
 		}
 
-		err = txWookieFunc(ctx, serverCreatedWookie.ID)
+		err = txWookieFunc(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -100,14 +100,15 @@ func (svc WookieService) WithNewWookie(ctx context.Context, txWookieFunc func(tx
 
 	// Otherwise, create a new tx and a new wookie for writes in txWookieFunc to use.
 	var newWookie *wookie.Token
-	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		newWookie, err := svc.CreateNewWookie(txCtx)
+	var err error
+	err = svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
+		newWookie, err = svc.CreateNewWookie(txCtx)
 		if err != nil {
 			return err
 		}
 
 		wkCtx := context.WithValue(txCtx, withNewWookieCtxKey{}, struct{}{})
-		err = txWookieFunc(wookie.WithWookie(wkCtx, newWookie), newWookie.ID)
+		err = txWookieFunc(wookie.WithWookie(wkCtx, newWookie))
 		if err != nil {
 			return err
 		}

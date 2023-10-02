@@ -33,7 +33,6 @@ type WarrantRepository interface {
 	GetAllMatchingObjectAndRelationBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string) ([]Model, error)
 	List(ctx context.Context, filterParams *FilterParams, listParams service.ListParams) ([]Model, error)
 	Delete(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) error
-	DeleteById(ctx context.Context, ids []int64) error
 }
 
 func NewRepository(db database.Database) (WarrantRepository, error) {
