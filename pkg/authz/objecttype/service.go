@@ -24,20 +24,9 @@ import (
 
 const ResourceTypeObjectType = "object-type"
 
-type ObjectTypeMap map[string]ObjectTypeSpec
-
-func (m ObjectTypeMap) GetByTypeId(typeId string) (*ObjectTypeSpec, error) {
-	if val, ok := m[typeId]; ok {
-		return &val, nil
-	}
-
-	return nil, service.NewRecordNotFoundError("ObjectType", typeId)
-}
-
 type Service interface {
 	Create(ctx context.Context, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, *wookie.Token, error)
 	GetByTypeId(ctx context.Context, typeId string) (*ObjectTypeSpec, error)
-	GetTypeMap(ctx context.Context) (ObjectTypeMap, error)
 	List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, error)
 	UpdateByTypeId(ctx context.Context, typeId string, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, *wookie.Token, error)
 	DeleteByTypeId(ctx context.Context, typeId string) (*wookie.Token, error)
@@ -105,25 +94,6 @@ func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*O
 	}
 
 	return objectTypeSpec, nil
-}
-
-func (svc ObjectTypeService) GetTypeMap(ctx context.Context) (ObjectTypeMap, error) {
-	objectTypes, err := svc.Repository.ListAll(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	typeMap := make(map[string]ObjectTypeSpec)
-	for _, objectType := range objectTypes {
-		objectTypeSpec, err := objectType.ToObjectTypeSpec()
-		if err != nil {
-			return nil, err
-		}
-
-		typeMap[objectTypeSpec.Type] = *objectTypeSpec
-	}
-
-	return typeMap, nil
 }
 
 func (svc ObjectTypeService) List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, error) {
