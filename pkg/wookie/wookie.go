@@ -49,16 +49,15 @@ func ContainsLatest(ctx context.Context) bool {
 	return false
 }
 
-func GetWookieFromRequestContext(ctx context.Context) (*Token, error) {
+func GetWookieFromContext(ctx context.Context) (*Token, error) {
 	wookieCtxVal := ctx.Value(wookieCtxKey{})
 	if wookieCtxVal == nil {
-		//nolint:nilnil
-		return nil, nil
+		return nil, errors.New("wookie not found in context")
 	}
 
 	wookieToken, ok := wookieCtxVal.(Token)
 	if !ok {
-		return nil, errors.New("error fetching wookie from request context")
+		return nil, errors.New("error fetching wookie from context")
 	}
 
 	return &wookieToken, nil
