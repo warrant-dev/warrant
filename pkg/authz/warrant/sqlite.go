@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -79,42 +78,6 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 	}
 
 	return newWarrantId, nil
-}
-
-func (repo SQLiteRepository) DeleteById(ctx context.Context, ids []int64) error {
-	now := time.Now().UTC()
-	query, args, err := sqlx.In(
-		`
-			UPDATE warrant
-			SET
-				updatedAt = ?,
-				deletedAt = ?
-			WHERE
-				id IN (?) AND
-				deletedAt IS NULL
-		`,
-		now,
-		now,
-		ids,
-	)
-	if err != nil {
-		return errors.Wrapf(err, "error deleting warrants %v", ids)
-	}
-	_, err = repo.DB.ExecContext(
-		ctx,
-		query,
-		args...,
-	)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return nil
-		default:
-			return errors.Wrapf(err, "error deleting warrants %v", ids)
-		}
-	}
-
-	return nil
 }
 
 func (repo SQLiteRepository) Delete(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) error {

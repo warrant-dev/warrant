@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/database"
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -74,39 +73,6 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 	}
 
 	return newWarrantId, nil
-}
-
-func (repo PostgresRepository) DeleteById(ctx context.Context, ids []int64) error {
-	query, args, err := sqlx.In(
-		`
-			UPDATE warrant
-			SET
-				updated_at = CURRENT_TIMESTAMP(6),
-				deleted_at = CURRENT_TIMESTAMP(6)
-			WHERE
-				id IN (?) AND
-				deleted_at IS NULL
-		`,
-		ids,
-	)
-	if err != nil {
-		return errors.Wrapf(err, "error deleting warrants %v", ids)
-	}
-	_, err = repo.DB.ExecContext(
-		ctx,
-		query,
-		args...,
-	)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return nil
-		default:
-			return errors.Wrapf(err, "error deleting warrants %v", ids)
-		}
-	}
-
-	return nil
 }
 
 func (repo PostgresRepository) Delete(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) error {
