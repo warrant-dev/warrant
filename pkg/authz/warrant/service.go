@@ -52,15 +52,20 @@ func NewService(env service.Env, repository WarrantRepository, eventSvc event.Se
 func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (*WarrantSpec, *wookie.Token, error) {
 	var createdWarrant Model
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		// Check that objectType is valid
+		// Check that objectType exists
 		objectTypeDef, err := svc.ObjectTypeSvc.GetByTypeId(txCtx, warrantSpec.ObjectType)
 		if err != nil {
-			return service.NewInvalidParameterError("objectType", "The given object type does not exist.")
+			var recordNotFoundError *service.RecordNotFoundError
+			if errors.As(err, &recordNotFoundError) {
+				return service.NewInvalidParameterError("objectType", "the object type does not exist.")
+			}
+
+			return err
 		}
 
 		// Check that relation is valid for objectType
 		if _, exists := objectTypeDef.Relations[warrantSpec.Relation]; !exists {
-			return service.NewInvalidParameterError("relation", "An object type with the given relation does not exist.")
+			return service.NewInvalidParameterError("relation", "the relation does not exist on the specified object type.")
 		}
 
 		// Unless objectId is wildcard, create referenced object if it does not already exist
