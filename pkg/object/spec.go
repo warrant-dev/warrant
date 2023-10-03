@@ -56,7 +56,7 @@ func (spec ObjectSpec) ToObject() (*Object, error) {
 }
 
 type CreateObjectSpec struct {
-	ObjectType string                 `json:"objectType" validate:"required"`
+	ObjectType string                 `json:"objectType" validate:"required,valid_object_type"`
 	ObjectId   string                 `json:"objectId"   validate:"omitempty,valid_object_id"`
 	Meta       map[string]interface{} `json:"meta"`
 }
