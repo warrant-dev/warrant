@@ -22,6 +22,44 @@
             }
         },
         {
+            "name": "createObjectInvalidObjectType",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "test$$&-",
+                    "objectId": "second-object"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 400,
+                "body": {
+                    "code": "invalid_parameter",
+                    "parameter": "objectType",
+                    "message": "can only contain lower-case alphanumeric characters and/or '-' and '_'"
+                }
+            }
+        },
+        {
+            "name": "createObjectInvalidObjectId",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "test",
+                    "objectId": "second-object$$^"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 400,
+                "body": {
+                    "code": "invalid_parameter",
+                    "parameter": "objectId",
+                    "message": "can only contain alphanumeric characters and/or '-', '_', '@', ':', and '|'"
+                }
+            }
+        },
+        {
             "name": "createObject2",
             "request": {
                 "method": "POST",
