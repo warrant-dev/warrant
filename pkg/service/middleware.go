@@ -85,6 +85,34 @@ type ListParams struct {
 	defaultSortBy string
 }
 
+func (lp ListParams) String() string {
+	s := fmt.Sprintf("page=%d&limit=%d&sortBy=%s&sortOrder=%d&defaultSortBy=%s",
+		lp.Page,
+		lp.Limit,
+		lp.SortBy,
+		lp.SortOrder,
+		lp.defaultSortBy,
+	)
+
+	if lp.Query != nil {
+		s = fmt.Sprintf("%s&q=%s", s, *lp.Query)
+	}
+	if lp.AfterId != nil {
+		s = fmt.Sprintf("%s&afterId=%s", s, *lp.AfterId)
+	}
+	if lp.BeforeId != nil {
+		s = fmt.Sprintf("%s&beforeId=%s", s, *lp.BeforeId)
+	}
+	if lp.AfterValue != nil {
+		s = fmt.Sprintf("%s&afterValue=%v", s, lp.AfterValue)
+	}
+	if lp.BeforeValue != nil {
+		s = fmt.Sprintf("%s&beforeValue=%v", s, lp.BeforeValue)
+	}
+
+	return s
+}
+
 func (lp ListParams) DefaultSortBy() string {
 	return lp.defaultSortBy
 }

@@ -25,13 +25,17 @@ import (
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	object "github.com/warrant-dev/warrant/pkg/object"
 	"github.com/warrant-dev/warrant/pkg/service"
-	baseSvc "github.com/warrant-dev/warrant/pkg/service"
+)
+
+const (
+	MaxObjectTypes = 1000
+	MaxEdges       = 5000
 )
 
 var ErrInvalidQuery = errors.New("invalid query")
 
 type QueryService struct {
-	baseSvc.BaseService
+	service.BaseService
 	objectTypeSvc objecttype.Service
 	warrantSvc    warrant.Service
 	objectSvc     object.Service
@@ -39,7 +43,7 @@ type QueryService struct {
 
 func NewService(env service.Env, objectTypeSvc objecttype.Service, warrantSvc warrant.Service, objectSvc object.Service) QueryService {
 	return QueryService{
-		BaseService:   baseSvc.NewBaseService(env),
+		BaseService:   service.NewBaseService(env),
 		objectTypeSvc: objectTypeSvc,
 		warrantSvc:    warrantSvc,
 		objectSvc:     objectSvc,
@@ -56,12 +60,7 @@ func (svc QueryService) Query(ctx context.Context, query *Query, listParams serv
 		return nil, ErrInvalidQuery
 	}
 
-	objectTypeMap, err := svc.objectTypeSvc.GetTypeMap(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	resultSet, err := svc.query(ctx, query, objectTypeMap)
+	resultSet, err := svc.query(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -158,15 +157,21 @@ func (svc QueryService) Query(ctx context.Context, query *Query, listParams serv
 	}, nil
 }
 
-func (svc QueryService) query(ctx context.Context, query *Query, objectTypeMap objecttype.ObjectTypeMap) (*ResultSet, error) {
+func (svc QueryService) query(ctx context.Context, query *Query) (*ResultSet, error) {
 	var objectTypes []string
 	var selectSubjects bool
+	objectTypesListParams := service.DefaultListParams(objecttype.ObjectTypeListParamParser{})
+	objectTypesListParams.Limit = MaxObjectTypes
+	typesList, err := svc.objectTypeSvc.List(ctx, objectTypesListParams)
+	if err != nil {
+		return nil, err
+	}
 	//nolint:gocritic
 	if query.SelectObjects != nil {
 		selectSubjects = false
 		if query.SelectObjects.ObjectTypes[0] == warrant.Wildcard {
-			for objectType := range objectTypeMap {
-				objectTypes = append(objectTypes, objectType)
+			for _, objectType := range typesList {
+				objectTypes = append(objectTypes, objectType.Type)
 			}
 		} else {
 			objectTypes = append(objectTypes, query.SelectObjects.ObjectTypes...)
@@ -176,8 +181,8 @@ func (svc QueryService) query(ctx context.Context, query *Query, objectTypeMap o
 		if query.SelectSubjects.ForObject != nil {
 			objectTypes = append(objectTypes, query.SelectSubjects.ForObject.Type)
 		} else {
-			for objectType := range objectTypeMap {
-				objectTypes = append(objectTypes, objectType)
+			for _, objectType := range typesList {
+				objectTypes = append(objectTypes, objectType.Type)
 			}
 		}
 	} else {
@@ -187,7 +192,7 @@ func (svc QueryService) query(ctx context.Context, query *Query, objectTypeMap o
 	resultSet := NewResultSet()
 	for _, objectType := range objectTypes {
 		var relations []string
-		objectTypeDef, err := objectTypeMap.GetByTypeId(objectType)
+		objectTypeDef, err := svc.objectTypeSvc.GetByTypeId(ctx, objectType)
 		if err != nil {
 			return nil, err
 		}
@@ -230,7 +235,7 @@ func (svc QueryService) query(ctx context.Context, query *Query, objectTypeMap o
 				}
 			}
 
-			res, err := svc.matchRelation(ctx, selectSubjects, objectTypeMap, objectType, relation, matchFilters, query.Expand)
+			res, err := svc.matchRelation(ctx, selectSubjects, objectType, relation, matchFilters, query.Expand)
 			if err != nil {
 				return nil, err
 			}
@@ -242,13 +247,13 @@ func (svc QueryService) query(ctx context.Context, query *Query, objectTypeMap o
 	return resultSet, nil
 }
 
-func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, objectTypes objecttype.ObjectTypeMap, objectType string, relation string, matchFilters warrant.FilterParams, expand bool) (*ResultSet, error) {
+func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, objectType string, relation string, matchFilters warrant.FilterParams, expand bool) (*ResultSet, error) {
 	log.Ctx(ctx).Debug().
 		Str("objectType", objectType).
 		Str("relation", relation).
 		Str("filters", matchFilters.String()).
 		Msg("matchRelation")
-	objectTypeDef, err := objectTypes.GetByTypeId(objectType)
+	objectTypeDef, err := svc.objectTypeSvc.GetByTypeId(ctx, objectType)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +277,7 @@ func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, 
 		// match any encountered group warrants
 		//nolint:gocritic
 		if matchedWarrant.Subject.Relation != "" {
-			res, err := svc.matchRelation(ctx, selectSubjects, objectTypes, matchedWarrant.Subject.ObjectType, matchedWarrant.Subject.Relation, warrant.FilterParams{
+			res, err := svc.matchRelation(ctx, selectSubjects, matchedWarrant.Subject.ObjectType, matchedWarrant.Subject.Relation, warrant.FilterParams{
 				ObjectId:    []string{matchedWarrant.Subject.ObjectId},
 				SubjectType: matchFilters.SubjectType,
 				SubjectId:   matchFilters.SubjectId,
@@ -321,7 +326,7 @@ func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, 
 	// explore following levels if requested
 	if expand {
 		rule := objectTypeDef.Relations[relation]
-		res, err := svc.matchRule(ctx, selectSubjects, objectTypes, objectType, relation, &rule, matchFilters, expand)
+		res, err := svc.matchRule(ctx, selectSubjects, objectType, relation, &rule, matchFilters, expand)
 		if err != nil {
 			return nil, err
 		}
@@ -331,18 +336,18 @@ func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, 
 	return resultSet, nil
 }
 
-func (svc QueryService) matchRule(ctx context.Context, selectSubjects bool, objectTypes objecttype.ObjectTypeMap, objectType string, relation string, rule *objecttype.RelationRule, matchFilters warrant.FilterParams, expand bool) (*ResultSet, error) {
+func (svc QueryService) matchRule(ctx context.Context, selectSubjects bool, objectType string, relation string, rule *objecttype.RelationRule, matchFilters warrant.FilterParams, expand bool) (*ResultSet, error) {
 	switch rule.InheritIf {
 	case "":
 		// Do nothing, explicit matches already explored in matchRelation
 		return NewResultSet(), nil
 	case objecttype.InheritIfAllOf, objecttype.InheritIfAnyOf, objecttype.InheritIfNoneOf:
-		return svc.matchSetRule(ctx, selectSubjects, objectTypes, objectType, relation, rule.InheritIf, rule.Rules, matchFilters, expand)
+		return svc.matchSetRule(ctx, selectSubjects, objectType, relation, rule.InheritIf, rule.Rules, matchFilters, expand)
 	default:
 		// inherit relation if subject has:
 		// (1) InheritIf on this object
 		if rule.OfType == "" && rule.WithRelation == "" {
-			return svc.matchRelation(ctx, selectSubjects, objectTypes, objectType, rule.InheritIf, matchFilters, expand)
+			return svc.matchRelation(ctx, selectSubjects, objectType, rule.InheritIf, matchFilters, expand)
 		}
 
 		// inherit relation if subject has:
@@ -360,7 +365,7 @@ func (svc QueryService) matchRule(ctx context.Context, selectSubjects bool, obje
 
 		resultSet := NewResultSet()
 		for _, matchedWarrant := range matchedWarrants {
-			res, err := svc.matchRelation(ctx, selectSubjects, objectTypes, rule.OfType, rule.InheritIf, warrant.FilterParams{
+			res, err := svc.matchRelation(ctx, selectSubjects, rule.OfType, rule.InheritIf, warrant.FilterParams{
 				ObjectType:  matchFilters.ObjectType,
 				ObjectId:    []string{matchedWarrant.Subject.ObjectId},
 				SubjectType: matchFilters.SubjectType,
@@ -402,7 +407,6 @@ func (svc QueryService) matchRule(ctx context.Context, selectSubjects bool, obje
 func (svc QueryService) matchSetRule(
 	ctx context.Context,
 	selectSubjects bool,
-	objectTypes objecttype.ObjectTypeMap,
 	objectType string,
 	relation string,
 	setRuleType string,
@@ -414,7 +418,7 @@ func (svc QueryService) matchSetRule(
 	case objecttype.InheritIfAllOf:
 		var resultSet *ResultSet
 		for i := range rules {
-			res, err := svc.matchRule(ctx, selectSubjects, objectTypes, objectType, relation, &rules[i], matchFilters, expand)
+			res, err := svc.matchRule(ctx, selectSubjects, objectType, relation, &rules[i], matchFilters, expand)
 			if err != nil {
 				return nil, err
 			}
@@ -435,7 +439,7 @@ func (svc QueryService) matchSetRule(
 	case objecttype.InheritIfAnyOf:
 		resultSet := NewResultSet()
 		for i := range rules {
-			res, err := svc.matchRule(ctx, selectSubjects, objectTypes, objectType, relation, &rules[i], matchFilters, expand)
+			res, err := svc.matchRule(ctx, selectSubjects, objectType, relation, &rules[i], matchFilters, expand)
 			if err != nil {
 				return nil, err
 			}
@@ -452,7 +456,7 @@ func (svc QueryService) matchSetRule(
 
 func (svc QueryService) matchWarrants(ctx context.Context, matchFilters warrant.FilterParams) ([]warrant.WarrantSpec, error) {
 	warrantListParams := service.DefaultListParams(warrant.WarrantListParamParser{})
-	warrantListParams.Limit = 1000 // explore up to 1000 edges
+	warrantListParams.Limit = MaxEdges
 	return svc.warrantSvc.List(ctx, &matchFilters, warrantListParams)
 }
 
