@@ -80,6 +80,34 @@
             }
         },
         {
+            "name": "createDuplicateWarrant",
+            "request": {
+                "method": "POST",
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "view-balance-sheet",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "senior-accountant"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "view-balance-sheet",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "senior-accountant"
+                    }
+                }
+            }
+        },
+        {
             "name": "assignPermissionEditBalanceSheetToUserUsera",
             "request": {
                 "method": "POST",

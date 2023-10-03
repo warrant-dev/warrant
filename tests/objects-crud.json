@@ -81,6 +81,24 @@
             }
         },
         {
+            "name": "createDuplicateObject2",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "test",
+                    "objectId": "second-object"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "test",
+                    "objectId": "second-object"
+                }
+            }
+        },
+        {
             "name": "getObjectById",
             "request": {
                 "method": "GET",
@@ -105,6 +123,10 @@
                 "body": [
                     {
                         "objectType": "test",
+                        "objectId": "second-object"
+                    },
+                    {
+                        "objectType": "test",
                         "objectId": "third-object",
                         "meta": {
                             "myKey": "myVal"
@@ -113,10 +135,6 @@
                     {
                         "objectType": "test",
                         "objectId": "{{ createObjectWithGeneratedId.objectId }}"
-                    },
-                    {
-                        "objectType": "test",
-                        "objectId": "second-object"
                     },
                     {
                         "objectType": "test",

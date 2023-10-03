@@ -147,6 +147,36 @@
             }
         },
         {
+            "name": "createDuplicateWarrantWithPolicy",
+            "request": {
+                "method": "POST",
+                "url": "/v1/warrants",
+                "body": {
+                    "objectType": "cluster",
+                    "objectId": "us-east-1",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "clientIp matches \"192\\\\.168\\\\..*\\\\..*\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "cluster",
+                    "objectId": "us-east-1",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "clientIp matches \"192\\\\.168\\\\..*\\\\..*\""
+                }
+            }
+        },
+        {
             "name": "checkUserIsEditorOfCluster",
             "request": {
                 "method": "POST",
