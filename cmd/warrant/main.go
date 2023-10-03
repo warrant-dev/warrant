@@ -232,7 +232,7 @@ func main() {
 	warrantSvc := warrant.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, objectSvc)
 
 	// Init check service
-	checkSvc := check.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, cfg.Check, nil)
+	checkSvc := check.NewService(svcEnv, warrantSvc, eventSvc, objectTypeSvc, cfg.Check, nil)
 
 	// Init query service
 	querySvc := query.NewService(svcEnv, objectTypeSvc, warrantSvc, objectSvc)
