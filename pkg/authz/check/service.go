@@ -29,11 +29,15 @@ import (
 	"github.com/warrant-dev/warrant/pkg/wookie"
 )
 
+const (
+	MaxWarrants = 5000
+)
+
 type CheckContextFunc func(ctx context.Context) (context.Context, error)
 
 type CheckService struct {
 	service.BaseService
-	WarrantRepository  warrant.WarrantRepository
+	warrantSvc         warrant.Service
 	EventSvc           event.Service
 	ObjectTypeSvc      objecttype.Service
 	CheckConfig        *config.CheckConfig
@@ -48,10 +52,10 @@ func defaultCreateCheckContext(ctx context.Context) (context.Context, error) {
 	return checkCtx, nil
 }
 
-func NewService(env service.Env, warrantRepo warrant.WarrantRepository, eventSvc event.Service, objectTypeSvc objecttype.Service, checkConfig *config.CheckConfig, checkContext CheckContextFunc) *CheckService {
+func NewService(env service.Env, warrantSvc warrant.Service, eventSvc event.Service, objectTypeSvc objecttype.Service, checkConfig *config.CheckConfig, checkContext CheckContextFunc) *CheckService {
 	svc := &CheckService{
 		BaseService:        service.NewBaseService(env),
-		WarrantRepository:  warrantRepo,
+		warrantSvc:         warrantSvc,
 		EventSvc:           eventSvc,
 		ObjectTypeSvc:      objectTypeSvc,
 		CheckConfig:        checkConfig,
@@ -69,22 +73,35 @@ func (svc CheckService) getWithPolicyMatch(ctx context.Context, checkPipeline *p
 	checkPipeline.AcquireServiceLock()
 	defer checkPipeline.ReleaseServiceLock()
 
-	warrants, err := svc.WarrantRepository.GetAllMatchingObjectRelationAndSubject(ctx, spec.ObjectType, spec.ObjectId, spec.Relation, spec.Subject.ObjectType, spec.Subject.ObjectId, spec.Subject.Relation)
-	if err != nil || len(warrants) == 0 {
+	listParams := service.DefaultListParams(warrant.WarrantListParamParser{})
+	listParams.Limit = MaxWarrants
+	warrantSpecs, err := svc.warrantSvc.List(
+		ctx,
+		&warrant.FilterParams{
+			ObjectType:      []string{spec.ObjectType},
+			ObjectId:        []string{spec.ObjectId},
+			Relation:        []string{spec.Relation},
+			SubjectType:     []string{spec.Subject.ObjectType},
+			SubjectId:       []string{spec.Subject.ObjectId},
+			SubjectRelation: []string{spec.Subject.Relation},
+		},
+		listParams,
+	)
+	if err != nil || len(warrantSpecs) == 0 {
 		return nil, err
 	}
 
 	// if a warrant without a policy is found, match it
-	for _, warrant := range warrants {
-		if warrant.GetPolicy() == "" {
-			return warrant.ToWarrantSpec(), nil
+	for _, warrant := range warrantSpecs {
+		if warrant.Policy == "" {
+			return &warrant, nil
 		}
 	}
 
-	for _, warrant := range warrants {
-		if warrant.GetPolicy() != "" {
+	for _, warrant := range warrantSpecs {
+		if warrant.Policy != "" {
 			if policyMatched := evalWarrantPolicy(warrant, spec.Context); policyMatched {
-				return warrant.ToWarrantSpec(), nil
+				return &warrant, nil
 			}
 		}
 	}
@@ -106,31 +123,33 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, checkPipeline *
 		return warrantSpecs, nil
 	}
 
-	warrants, err := svc.WarrantRepository.GetAllMatchingObjectAndRelation(
+	listParams := service.DefaultListParams(warrant.WarrantListParamParser{})
+	listParams.Limit = MaxWarrants
+	warrantSpecs, err = svc.warrantSvc.List(
 		ctx,
-		objectType,
-		objectId,
-		relation,
+		&warrant.FilterParams{
+			ObjectType: []string{objectType},
+			ObjectId:   []string{objectId},
+			Relation:   []string{relation},
+		},
+		listParams,
 	)
 	if err != nil {
 		return warrantSpecs, err
 	}
 
-	for _, warrant := range warrants {
-		if warrant.GetPolicy() == "" {
-			warrantSpecs = append(warrantSpecs, *warrant.ToWarrantSpec())
+	matchingSpecs := make([]warrant.WarrantSpec, 0)
+	for _, warrant := range warrantSpecs {
+		if warrant.Policy == "" {
+			matchingSpecs = append(matchingSpecs, warrant)
 		} else {
 			if policyMatched := evalWarrantPolicy(warrant, checkCtx); policyMatched {
-				warrantSpecs = append(warrantSpecs, *warrant.ToWarrantSpec())
+				matchingSpecs = append(matchingSpecs, warrant)
 			}
 		}
 	}
 
-	if err != nil {
-		return warrantSpecs, err
-	}
-
-	return warrantSpecs, nil
+	return matchingSpecs, nil
 }
 
 func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, checkPipeline *pipeline, objectType string,
@@ -148,32 +167,34 @@ func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, ch
 		return warrantSpecs, nil
 	}
 
-	warrants, err := svc.WarrantRepository.GetAllMatchingObjectAndRelationBySubjectType(
+	listParams := service.DefaultListParams(warrant.WarrantListParamParser{})
+	listParams.Limit = MaxWarrants
+	warrantSpecs, err = svc.warrantSvc.List(
 		ctx,
-		objectType,
-		objectId,
-		relation,
-		subjectType,
+		&warrant.FilterParams{
+			ObjectType:  []string{objectType},
+			ObjectId:    []string{objectId},
+			Relation:    []string{relation},
+			SubjectType: []string{subjectType},
+		},
+		listParams,
 	)
 	if err != nil {
 		return warrantSpecs, err
 	}
 
-	for _, warrant := range warrants {
-		if warrant.GetPolicy() == "" {
-			warrantSpecs = append(warrantSpecs, *warrant.ToWarrantSpec())
+	matchingSpecs := make([]warrant.WarrantSpec, 0)
+	for _, warrant := range warrantSpecs {
+		if warrant.Policy == "" {
+			matchingSpecs = append(matchingSpecs, warrant)
 		} else {
 			if policyMatched := evalWarrantPolicy(warrant, checkCtx); policyMatched {
-				warrantSpecs = append(warrantSpecs, *warrant.ToWarrantSpec())
+				matchingSpecs = append(matchingSpecs, warrant)
 			}
 		}
 	}
 
-	if err != nil {
-		return warrantSpecs, err
-	}
-
-	return warrantSpecs, nil
+	return matchingSpecs, nil
 }
 
 func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInfo, warrantCheck *CheckManySpec) (*CheckResultSpec, error) {
@@ -713,16 +734,16 @@ func (p *pipeline) execTasks(ctx context.Context, parentResultC chan<- result, t
 	}
 }
 
-func evalWarrantPolicy(w warrant.Model, policyCtx warrant.PolicyContext) bool {
+func evalWarrantPolicy(w warrant.WarrantSpec, policyCtx warrant.PolicyContext) bool {
 	policyCtxWithWarrant := make(warrant.PolicyContext)
 	for k, v := range policyCtx {
 		policyCtxWithWarrant[k] = v
 	}
 	policyCtxWithWarrant["warrant"] = w
 
-	policyMatched, err := w.GetPolicy().Eval(policyCtxWithWarrant)
+	policyMatched, err := w.Policy.Eval(policyCtxWithWarrant)
 	if err != nil {
-		log.Err(err).Msgf("check: error while evaluating policy %s", w.GetPolicy())
+		log.Err(err).Msgf("check: error while evaluating policy %s", w.Policy)
 		return false
 	}
 

@@ -28,9 +28,6 @@ type WarrantRepository interface {
 	Create(ctx context.Context, warrant Model) (int64, error)
 	Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) (Model, error)
 	GetByID(ctx context.Context, id int64) (Model, error)
-	GetAllMatchingObjectRelationAndSubject(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string) ([]Model, error)
-	GetAllMatchingObjectAndRelation(ctx context.Context, objectType string, objectId string, relation string) ([]Model, error)
-	GetAllMatchingObjectAndRelationBySubjectType(ctx context.Context, objectType string, objectId string, relation string, subjectType string) ([]Model, error)
 	List(ctx context.Context, filterParams *FilterParams, listParams service.ListParams) ([]Model, error)
 	Delete(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) error
 }
