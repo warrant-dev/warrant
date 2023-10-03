@@ -86,15 +86,22 @@ type ListParams struct {
 }
 
 func (lp ListParams) String() string {
-	s := fmt.Sprintf("page=%d&limit=%d&sortBy=%s&sortOrder=%d&defaultSortBy=%s", lp.Page, lp.Limit, lp.SortBy, lp.SortOrder, lp.defaultSortBy)
+	s := fmt.Sprintf("page=%d&limit=%d&sortBy=%s&sortOrder=%d&defaultSortBy=%s",
+		lp.Page,
+		lp.Limit,
+		lp.SortBy,
+		lp.SortOrder,
+		lp.defaultSortBy,
+	)
+
 	if lp.Query != nil {
-		s = s + "&q=" + *lp.Query
+		s = fmt.Sprintf("%s&q=%s", s, *lp.Query)
 	}
 	if lp.AfterId != nil {
-		s = s + "&afterId=" + *lp.AfterId
+		s = fmt.Sprintf("%s&afterId=%s", s, *lp.AfterId)
 	}
 	if lp.BeforeId != nil {
-		s = s + "&beforeId=" + *lp.BeforeId
+		s = fmt.Sprintf("%s&beforeId=%s", s, *lp.BeforeId)
 	}
 	if lp.AfterValue != nil {
 		s = fmt.Sprintf("%s&afterValue=%v", s, lp.AfterValue)

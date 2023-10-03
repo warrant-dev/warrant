@@ -25,13 +25,17 @@ import (
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	object "github.com/warrant-dev/warrant/pkg/object"
 	"github.com/warrant-dev/warrant/pkg/service"
-	baseSvc "github.com/warrant-dev/warrant/pkg/service"
+)
+
+const (
+	MaxObjectTypes = 1000
+	MaxEdges       = 5000
 )
 
 var ErrInvalidQuery = errors.New("invalid query")
 
 type QueryService struct {
-	baseSvc.BaseService
+	service.BaseService
 	objectTypeSvc objecttype.Service
 	warrantSvc    warrant.Service
 	objectSvc     object.Service
@@ -39,7 +43,7 @@ type QueryService struct {
 
 func NewService(env service.Env, objectTypeSvc objecttype.Service, warrantSvc warrant.Service, objectSvc object.Service) QueryService {
 	return QueryService{
-		BaseService:   baseSvc.NewBaseService(env),
+		BaseService:   service.NewBaseService(env),
 		objectTypeSvc: objectTypeSvc,
 		warrantSvc:    warrantSvc,
 		objectSvc:     objectSvc,
@@ -156,7 +160,9 @@ func (svc QueryService) Query(ctx context.Context, query *Query, listParams serv
 func (svc QueryService) query(ctx context.Context, query *Query) (*ResultSet, error) {
 	var objectTypes []string
 	var selectSubjects bool
-	typesList, err := svc.objectTypeSvc.List(ctx, service.ListParams{})
+	objectTypesListParams := service.DefaultListParams(objecttype.ObjectTypeListParamParser{})
+	objectTypesListParams.Limit = MaxObjectTypes
+	typesList, err := svc.objectTypeSvc.List(ctx, objectTypesListParams)
 	if err != nil {
 		return nil, err
 	}
@@ -450,7 +456,7 @@ func (svc QueryService) matchSetRule(
 
 func (svc QueryService) matchWarrants(ctx context.Context, matchFilters warrant.FilterParams) ([]warrant.WarrantSpec, error) {
 	warrantListParams := service.DefaultListParams(warrant.WarrantListParamParser{})
-	warrantListParams.Limit = 1000 // explore up to 1000 edges
+	warrantListParams.Limit = MaxEdges
 	return svc.warrantSvc.List(ctx, &matchFilters, warrantListParams)
 }
 
