@@ -17,6 +17,8 @@ package object
 import (
 	"context"
 
+	"github.com/warrant-dev/warrant/pkg/wookie"
+
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/warrant-dev/warrant/pkg/event"
@@ -29,7 +31,7 @@ type Service interface {
 	BatchGetByObjectTypeAndIds(ctx context.Context, objectType string, objectIds []string) ([]ObjectSpec, error)
 	List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]ObjectSpec, error)
 	UpdateByObjectTypeAndId(ctx context.Context, objectType string, objectId string, updateSpec UpdateObjectSpec) (*ObjectSpec, error)
-	DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) error
+	DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (*wookie.Token, error)
 }
 
 type ObjectService struct {
@@ -183,7 +185,7 @@ func (svc ObjectService) UpdateByObjectTypeAndId(ctx context.Context, objectType
 	return updatedObjectSpec, nil
 }
 
-func (svc ObjectService) DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) error {
+func (svc ObjectService) DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (*wookie.Token, error) {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		objectSpec, err := svc.GetByObjectTypeAndId(txCtx, objectType, objectId)
 		if err != nil {
@@ -216,7 +218,9 @@ func (svc ObjectService) DeleteByObjectTypeAndId(ctx context.Context, objectType
 	})
 
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+
+	//nolint:nilnil
+	return nil, nil
 }

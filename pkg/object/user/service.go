@@ -117,7 +117,7 @@ func (svc UserService) UpdateByUserId(ctx context.Context, userId string, userSp
 }
 
 func (svc UserService) DeleteByUserId(ctx context.Context, userId string) error {
-	err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypeUser, userId)
+	_, err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypeUser, userId)
 	if err != nil {
 		return err
 	}

@@ -115,7 +115,7 @@ func (svc FeatureService) UpdateByFeatureId(ctx context.Context, featureId strin
 }
 
 func (svc FeatureService) DeleteByFeatureId(ctx context.Context, featureId string) error {
-	err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypeFeature, featureId)
+	_, err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypeFeature, featureId)
 	if err != nil {
 		return err
 	}
