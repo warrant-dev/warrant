@@ -117,7 +117,7 @@ func (svc RoleService) UpdateByRoleId(ctx context.Context, roleId string, roleSp
 }
 
 func (svc RoleService) DeleteByRoleId(ctx context.Context, roleId string) error {
-	err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypeRole, roleId)
+	_, err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypeRole, roleId)
 	if err != nil {
 		return err
 	}

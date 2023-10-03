@@ -117,7 +117,7 @@ func (svc PermissionService) UpdateByPermissionId(ctx context.Context, permissio
 }
 
 func (svc PermissionService) DeleteByPermissionId(ctx context.Context, permissionId string) error {
-	err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypePermission, permissionId)
+	_, err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypePermission, permissionId)
 	if err != nil {
 		return err
 	}

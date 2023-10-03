@@ -117,7 +117,7 @@ func (svc PricingTierService) UpdateByPricingTierId(ctx context.Context, pricing
 }
 
 func (svc PricingTierService) DeleteByPricingTierId(ctx context.Context, pricingTierId string) error {
-	err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypePricingTier, pricingTierId)
+	_, err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypePricingTier, pricingTierId)
 	if err != nil {
 		return err
 	}

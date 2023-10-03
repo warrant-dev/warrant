@@ -117,7 +117,7 @@ func (svc TenantService) UpdateByTenantId(ctx context.Context, tenantId string, 
 }
 
 func (svc TenantService) DeleteByTenantId(ctx context.Context, tenantId string) error {
-	err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypeTenant, tenantId)
+	_, err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypeTenant, tenantId)
 	if err != nil {
 		return err
 	}
