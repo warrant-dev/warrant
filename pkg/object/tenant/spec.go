@@ -19,6 +19,7 @@ import (
 	"time"
 
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
+	query "github.com/warrant-dev/warrant/pkg/authz/query"
 	object "github.com/warrant-dev/warrant/pkg/object"
 )
 
@@ -45,6 +46,26 @@ func NewTenantSpecFromObjectSpec(objectSpec *object.ObjectSpec) (*TenantSpec, er
 		TenantId:  objectSpec.ObjectId,
 		Name:      name,
 		CreatedAt: objectSpec.CreatedAt,
+	}, nil
+}
+
+func NewTenantSpecFromQueryResult(queryResult *query.QueryResult) (*TenantSpec, error) {
+	var name *string
+
+	if queryResult.Meta != nil {
+		if _, exists := queryResult.Meta["name"]; exists {
+			nameStr, ok := queryResult.Meta["name"].(string)
+			if !ok {
+				return nil, errors.New("tenant name has invalid type in result meta")
+			}
+			name = &nameStr
+		}
+	}
+
+	return &TenantSpec{
+		TenantId:  queryResult.ObjectId,
+		Name:      name,
+		CreatedAt: queryResult.Warrant.CreatedAt,
 	}, nil
 }
 
