@@ -50,10 +50,17 @@ func wookieMiddleware(next http.Handler, wookieSvc *WookieService) http.Handler 
 			ctxWithWookie := wookie.WithWookie(r.Context(), token)
 			next.ServeHTTP(w, r.WithContext(ctxWithWookie))
 		default:
-			token, err := wookie.FromString(headerVal)
+			tokenFromString, err := wookie.FromString(headerVal)
 			if err != nil {
-				hlog.FromRequest(r).Error().Err(err).Msg("wookie: error deserializing wookie from string")
-				service.SendErrorResponse(w, service.NewInternalError("Something went wrong"))
+				hlog.FromRequest(r).Warn().Err(err).Msgf("wookie: invalid client provided wookie %s", headerVal)
+				service.SendErrorResponse(w, service.NewInvalidRequestError("Invalid Warrant-Token provided"))
+				return
+			}
+
+			token, err := wookieSvc.GetById(r.Context(), tokenFromString.ID)
+			if err != nil {
+				hlog.FromRequest(r).Error().Err(err).Msgf("wookie: error fetching wookie %d from db", tokenFromString.ID)
+				service.SendErrorResponse(w, service.NewInvalidRequestError("Invalid Warrant-Token provided"))
 				return
 			}
 

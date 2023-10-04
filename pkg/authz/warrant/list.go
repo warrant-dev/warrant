@@ -31,16 +31,36 @@ type FilterParams struct {
 }
 
 func (fp FilterParams) String() string {
-	return fmt.Sprintf(
-		"objectType: '%s' objectId: '%s' relation: '%s' subjectType: '%s' subjectId: '%s' subjectRelation: '%s' policy: '%s'",
-		strings.Join(fp.ObjectType, ", "),
-		strings.Join(fp.ObjectId, ", "),
-		strings.Join(fp.Relation, ", "),
-		strings.Join(fp.SubjectType, ", "),
-		strings.Join(fp.SubjectId, ", "),
-		strings.Join(fp.SubjectRelation, ", "),
-		fp.Policy,
-	)
+	s := ""
+	if len(fp.ObjectType) > 0 {
+		s = fmt.Sprintf("%s&objectType=%s", s, strings.Join(fp.ObjectType, ","))
+	}
+
+	if len(fp.ObjectId) > 0 {
+		s = fmt.Sprintf("%s&objectId=%s", s, strings.Join(fp.ObjectId, ","))
+	}
+
+	if len(fp.Relation) > 0 {
+		s = fmt.Sprintf("%s&relation=%s", s, strings.Join(fp.Relation, ","))
+	}
+
+	if len(fp.SubjectType) > 0 {
+		s = fmt.Sprintf("%s&subjectType=%s", s, strings.Join(fp.SubjectType, ","))
+	}
+
+	if len(fp.SubjectId) > 0 {
+		s = fmt.Sprintf("%s&subjectId=%s", s, strings.Join(fp.SubjectId, ","))
+	}
+
+	if len(fp.SubjectRelation) > 0 {
+		s = fmt.Sprintf("%s&subjectRelation=%s", s, strings.Join(fp.SubjectRelation, ","))
+	}
+
+	if fp.Policy != "" {
+		s = fmt.Sprintf("%s&policy=%s", s, fp.Policy)
+	}
+
+	return strings.TrimPrefix(s, "&")
 }
 
 type WarrantListParamParser struct{}
