@@ -19,6 +19,7 @@ import (
 	"time"
 
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
+	query "github.com/warrant-dev/warrant/pkg/authz/query"
 	object "github.com/warrant-dev/warrant/pkg/object"
 )
 
@@ -58,6 +59,38 @@ func NewPricingTierSpecFromObjectSpec(objectSpec *object.ObjectSpec) (*PricingTi
 		Name:          name,
 		Description:   description,
 		CreatedAt:     objectSpec.CreatedAt,
+	}, nil
+}
+
+func NewPricingTierSpecFromQueryResult(queryResult *query.QueryResult) (*PricingTierSpec, error) {
+	var (
+		name        *string
+		description *string
+	)
+
+	if queryResult.Meta != nil {
+		if _, exists := queryResult.Meta["name"]; exists {
+			nameStr, ok := queryResult.Meta["name"].(string)
+			if !ok {
+				return nil, errors.New("pricing tier name has invalid type in result meta")
+			}
+			name = &nameStr
+		}
+
+		if _, exists := queryResult.Meta["description"]; exists {
+			descriptionStr, ok := queryResult.Meta["description"].(string)
+			if !ok {
+				return nil, errors.New("pricing tier description has invalid type in result meta")
+			}
+			description = &descriptionStr
+		}
+	}
+
+	return &PricingTierSpec{
+		PricingTierId: queryResult.ObjectId,
+		Name:          name,
+		Description:   description,
+		CreatedAt:     queryResult.Warrant.CreatedAt,
 	}, nil
 }
 

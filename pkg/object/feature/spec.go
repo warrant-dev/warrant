@@ -19,6 +19,7 @@ import (
 
 	"github.com/pkg/errors"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
+	query "github.com/warrant-dev/warrant/pkg/authz/query"
 	object "github.com/warrant-dev/warrant/pkg/object"
 )
 
@@ -58,6 +59,38 @@ func NewFeatureSpecFromObjectSpec(objectSpec *object.ObjectSpec) (*FeatureSpec, 
 		Name:        name,
 		Description: description,
 		CreatedAt:   objectSpec.CreatedAt,
+	}, nil
+}
+
+func NewFeatureSpecFromQueryResult(queryResult *query.QueryResult) (*FeatureSpec, error) {
+	var (
+		name        *string
+		description *string
+	)
+
+	if queryResult.Meta != nil {
+		if _, exists := queryResult.Meta["name"]; exists {
+			nameStr, ok := queryResult.Meta["name"].(string)
+			if !ok {
+				return nil, errors.New("feature name has invalid type in result meta")
+			}
+			name = &nameStr
+		}
+
+		if _, exists := queryResult.Meta["description"]; exists {
+			descriptionStr, ok := queryResult.Meta["description"].(string)
+			if !ok {
+				return nil, errors.New("feature description has invalid type in result meta")
+			}
+			description = &descriptionStr
+		}
+	}
+
+	return &FeatureSpec{
+		FeatureId:   queryResult.ObjectId,
+		Name:        name,
+		Description: description,
+		CreatedAt:   queryResult.Warrant.CreatedAt,
 	}, nil
 }
 
