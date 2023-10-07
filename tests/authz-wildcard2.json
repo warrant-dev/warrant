@@ -495,7 +495,8 @@
                 "statusCode": 200,
                 "body": {
                     "code": 200,
-                    "result": "Authorized"
+                    "result": "Authorized",
+                    "isImplicit": true
                 }
             }
         },
@@ -523,7 +524,8 @@
                 "statusCode": 200,
                 "body": {
                     "code": 403,
-                    "result": "Not Authorized"
+                    "result": "Not Authorized",
+                    "isImplicit": false
                 }
             }
         },
@@ -551,7 +553,8 @@
                 "statusCode": 200,
                 "body": {
                     "code": 200,
-                    "result": "Authorized"
+                    "result": "Authorized",
+                    "isImplicit": false
                 }
             }
         },
