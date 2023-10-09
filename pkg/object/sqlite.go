@@ -52,7 +52,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 			) VALUES (?, ?, ?, ?, ?)
 			ON CONFLICT (objectType, objectId) DO UPDATE SET
 				meta = ?,
-				createdAt = ?,
+				createdAt = IIF(object.deletedAt IS NULL, object.createdAt, ?),
 				updatedAt = ?,
 				deletedAt = NULL
 			RETURNING id

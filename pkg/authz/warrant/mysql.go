@@ -49,7 +49,7 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 				policyHash
 			) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 			ON DUPLICATE KEY UPDATE
-				createdAt = CURRENT_TIMESTAMP(6),
+				createdAt = IF(warrant.deletedAt IS NULL, warrant.createdAt, CURRENT_TIMESTAMP(6)),
 				updatedAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,

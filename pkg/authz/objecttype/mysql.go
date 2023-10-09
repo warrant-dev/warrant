@@ -44,7 +44,7 @@ func (repo MySQLRepository) Create(ctx context.Context, model Model) (int64, err
 			) VALUES (?, ?)
 			ON DUPLICATE KEY UPDATE
 				definition = ?,
-				createdAt = CURRENT_TIMESTAMP(6),
+				createdAt = IF(objectType.deletedAt IS NULL, objectType.createdAt, CURRENT_TIMESTAMP(6)),
 				updatedAt = CURRENT_TIMESTAMP(6),
 				deletedAt = NULL
 		`,
