@@ -55,7 +55,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 				updatedAt
 			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 			ON CONFLICT (objectType, objectId, relation, subjectType, subjectId, subjectRelation, policyHash) DO UPDATE SET
-				createdAt = ?,
+				createdAt = IIF(warrant.deletedAt IS NULL, warrant.createdAt, ?),
 				updatedAt = ?,
 				deletedAt = NULL
 			RETURNING id

@@ -54,7 +54,10 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 				policy_hash
 			) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 			ON CONFLICT (object_type, object_id, relation, subject_type, subject_id, subject_relation, policy_hash) DO UPDATE SET
-				created_at = CURRENT_TIMESTAMP(6),
+				created_at = CASE
+					WHEN warrant.deleted_at IS NULL THEN warrant.created_at
+					ELSE CURRENT_TIMESTAMP(6)
+				END,
 				updated_at = CURRENT_TIMESTAMP(6),
 				deleted_at = NULL
 			RETURNING id

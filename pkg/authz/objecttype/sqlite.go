@@ -50,7 +50,7 @@ func (repo SQLiteRepository) Create(ctx context.Context, model Model) (int64, er
 			) VALUES (?, ?, ?, ?)
 			ON CONFLICT (typeId) DO UPDATE SET
 				definition = ?,
-				createdAt = ?,
+				createdAt = IIF(objectType.deletedAt IS NULL, objectType.createdAt, ?),
 				updatedAt = ?,
 				deletedAt = NULL
 			RETURNING id
