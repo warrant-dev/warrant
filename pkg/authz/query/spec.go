@@ -27,6 +27,11 @@ type Query struct {
 	SelectSubjects *SelectSubjects
 	SelectObjects  *SelectObjects
 	Context        *baseWarrant.PolicyContext
+	rawString      string
+}
+
+func (q Query) String() string {
+	return q.rawString
 }
 
 type SelectSubjects struct {

@@ -172,5 +172,7 @@ func NewQueryFromString(queryString string) (*Query, error) {
 		}
 	}
 
+	query.rawString = queryString
+
 	return &query, nil
 }
