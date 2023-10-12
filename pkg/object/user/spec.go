@@ -19,7 +19,6 @@ import (
 	"time"
 
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	query "github.com/warrant-dev/warrant/pkg/authz/query"
 	object "github.com/warrant-dev/warrant/pkg/object"
 )
 
@@ -46,26 +45,6 @@ func NewUserSpecFromObjectSpec(objectSpec *object.ObjectSpec) (*UserSpec, error)
 		UserId:    objectSpec.ObjectId,
 		Email:     email,
 		CreatedAt: objectSpec.CreatedAt,
-	}, nil
-}
-
-func NewUserSpecFromQueryResult(queryResult *query.QueryResult) (*UserSpec, error) {
-	var email *string
-
-	if queryResult.Meta != nil {
-		if _, exists := queryResult.Meta["email"]; exists {
-			emailStr, ok := queryResult.Meta["email"].(string)
-			if !ok {
-				return nil, errors.New("user email has invalid type in result meta")
-			}
-			email = &emailStr
-		}
-	}
-
-	return &UserSpec{
-		UserId:    queryResult.ObjectId,
-		Email:     email,
-		CreatedAt: queryResult.Warrant.CreatedAt,
 	}, nil
 }
 

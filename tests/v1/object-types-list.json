@@ -1,0 +1,259 @@
+{
+    "ignoredFields": [
+        "createdAt"
+    ],
+    "tests": [
+        {
+            "name": "defaultSortLimit3",
+            "request": {
+                "method": "GET",
+                "url": "/v1/object-types?limit=3"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "type": "feature",
+                        "relations": {
+                            "member": {
+                                "inheritIf": "anyOf",
+                                "rules": [
+                                    {
+                                        "inheritIf": "member",
+                                        "ofType": "feature",
+                                        "withRelation": "member"
+                                    },
+                                    {
+                                        "inheritIf": "member",
+                                        "ofType": "pricing-tier",
+                                        "withRelation": "member"
+                                    },
+                                    {
+                                        "inheritIf": "member",
+                                        "ofType": "tenant",
+                                        "withRelation": "member"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "type": "permission",
+                        "relations": {
+                            "member": {
+                                "inheritIf": "anyOf",
+                                "rules": [
+                                    {
+                                        "inheritIf": "member",
+                                        "ofType": "permission",
+                                        "withRelation": "member"
+                                    },
+                                    {
+                                        "inheritIf": "member",
+                                        "ofType": "role",
+                                        "withRelation": "member"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "type": "pricing-tier",
+                        "relations": {
+                            "member": {
+                                "inheritIf": "anyOf",
+                                "rules": [
+                                    {
+                                        "inheritIf": "member",
+                                        "ofType": "pricing-tier",
+                                        "withRelation": "member"
+                                    },
+                                    {
+                                        "inheritIf": "member",
+                                        "ofType": "tenant",
+                                        "withRelation": "member"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "defaultSortLimit3AfterId1",
+            "request": {
+                "method": "GET",
+                "url": "/v1/object-types?limit=3&afterId=pricing-tier"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "type": "role",
+                        "relations": {
+                            "member": {
+                                "inheritIf": "member",
+                                "ofType": "role",
+                                "withRelation": "member"
+                            }
+                        }
+                    },
+                    {
+                        "type": "tenant",
+                        "relations": {
+                            "admin": {},
+                            "manager": {
+                                "inheritIf": "admin"
+                            },
+                            "member": {
+                                "inheritIf": "manager"
+                            }
+                        }
+                    },
+                    {
+                        "type": "user",
+                        "relations": {
+                            "parent": {
+                                "inheritIf": "parent",
+                                "ofType": "user",
+                                "withRelation": "parent"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "defaultSortLimit3AfterId2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/object-types?limit=3&afterId=user"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": []
+            }
+        },
+        {
+            "name": "createObjectTypeA",
+            "request": {
+                "method": "POST",
+                "url": "/v1/object-types",
+                "body": {
+                    "type": "A",
+                    "relations": {
+                        "testing": {}
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "A",
+                    "relations": {
+                        "testing": {}
+                    }
+                }
+            }
+        },
+        {
+            "name": "createObjectTypeB",
+            "request": {
+                "method": "POST",
+                "url": "/v1/object-types",
+                "body": {
+                    "type": "B",
+                    "relations": {
+                        "testing": {}
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "B",
+                    "relations": {
+                        "testing": {}
+                    }
+                }
+            }
+        },
+        {
+            "name": "createObjectTypeC",
+            "request": {
+                "method": "POST",
+                "url": "/v1/object-types",
+                "body": {
+                    "type": "C",
+                    "relations": {
+                        "testing": {}
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "C",
+                    "relations": {
+                        "testing": {}
+                    }
+                }
+            }
+        },
+        {
+            "name": "sortByCreatedAtDESCLimit2",
+            "request": {
+                "method": "GET",
+                "url": "/v1/object-types?sortBy=createdAt&sortOrder=DESC&limit=2"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "type": "C",
+                        "relations": {
+                            "testing": {}
+                        }
+                    },
+                    {
+                        "type": "B",
+                        "relations": {
+                            "testing": {}
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "deleteObjectTypeA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/object-types/A"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectTypeB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/object-types/B"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectTypeC",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/object-types/C"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}

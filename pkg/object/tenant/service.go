@@ -77,7 +77,7 @@ func (svc TenantService) GetByTenantId(ctx context.Context, tenantId string) (*T
 
 func (svc TenantService) List(ctx context.Context, listParams service.ListParams) ([]TenantSpec, error) {
 	tenantSpecs := make([]TenantSpec, 0)
-	objectSpecs, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeTenant}, listParams)
+	objectSpecs, _, _, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeTenant}, listParams)
 	if err != nil {
 		return tenantSpecs, err
 	}

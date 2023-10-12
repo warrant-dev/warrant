@@ -7,7 +7,7 @@
             "name": "createObject1",
             "request": {
                 "method": "POST",
-                "url": "/v1/objects",
+                "url": "/v2/objects",
                 "body": {
                     "objectType": "test",
                     "objectId": "first-object"
@@ -22,10 +22,10 @@
             }
         },
         {
-            "name": "createObjectInvalidObjectType",
+            "name": "failToCreateObjectWithInvalidObjectType",
             "request": {
                 "method": "POST",
-                "url": "/v1/objects",
+                "url": "/v2/objects",
                 "body": {
                     "objectType": "test$$&-",
                     "objectId": "second-object"
@@ -41,10 +41,10 @@
             }
         },
         {
-            "name": "createObjectInvalidObjectId",
+            "name": "failToCreateObjectWithInvalidObjectId",
             "request": {
                 "method": "POST",
-                "url": "/v1/objects",
+                "url": "/v2/objects",
                 "body": {
                     "objectType": "test",
                     "objectId": "second-object$$^"
@@ -63,7 +63,7 @@
             "name": "createObject2",
             "request": {
                 "method": "POST",
-                "url": "/v1/objects",
+                "url": "/v2/objects",
                 "body": {
                     "objectType": "test",
                     "objectId": "second-object"
@@ -81,7 +81,7 @@
             "name": "createObjectWithGeneratedId",
             "request": {
                 "method": "POST",
-                "url": "/v1/objects",
+                "url": "/v2/objects",
                 "body": {
                     "objectType": "test"
                 }
@@ -98,7 +98,7 @@
             "name": "createObjectWithMetadata",
             "request": {
                 "method": "POST",
-                "url": "/v1/objects",
+                "url": "/v2/objects",
                 "body": {
                     "objectType": "test",
                     "objectId": "third-object",
@@ -122,7 +122,7 @@
             "name": "createDuplicateObject2",
             "request": {
                 "method": "POST",
-                "url": "/v1/objects",
+                "url": "/v2/objects",
                 "body": {
                     "objectType": "test",
                     "objectId": "second-object"
@@ -140,7 +140,7 @@
             "name": "getObjectById",
             "request": {
                 "method": "GET",
-                "url": "/v1/objects/test/first-object"
+                "url": "/v2/objects/test/first-object"
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -154,73 +154,79 @@
             "name": "getObjects",
             "request": {
                 "method": "GET",
-                "url": "/v1/objects?sortBy=createdAt&sortOrder=DESC"
+                "url": "/v2/objects?sortBy=createdAt&sortOrder=DESC"
             },
             "expectedResponse": {
                 "statusCode": 200,
-                "body": [
-                    {
-                        "objectType": "test",
-                        "objectId": "third-object",
-                        "meta": {
-                            "myKey": "myVal"
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "test",
+                            "objectId": "third-object",
+                            "meta": {
+                                "myKey": "myVal"
+                            }
+                        },
+                        {
+                            "objectType": "test",
+                            "objectId": "{{ createObjectWithGeneratedId.objectId }}"
+                        },
+                        {
+                            "objectType": "test",
+                            "objectId": "second-object"
+                        },
+                        {
+                            "objectType": "test",
+                            "objectId": "first-object"
                         }
-                    },
-                    {
-                        "objectType": "test",
-                        "objectId": "{{ createObjectWithGeneratedId.objectId }}"
-                    },
-                    {
-                        "objectType": "test",
-                        "objectId": "second-object"
-                    },
-                    {
-                        "objectType": "test",
-                        "objectId": "first-object"
-                    }
-                ]
+                    ]
+                }
             }
         },
         {
             "name": "filterObjectsOnObjectId",
             "request": {
                 "method": "GET",
-                "url": "/v1/objects?q=first-object"
+                "url": "/v2/objects?q=first-object"
             },
             "expectedResponse": {
                 "statusCode": 200,
-                "body": [
-                    {
-                        "objectType": "test",
-                        "objectId": "first-object"
-                    }
-                ]
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "test",
+                            "objectId": "first-object"
+                        }
+                    ]
+                }
             }
         },
         {
             "name": "filterObjectsOnMeta",
             "request": {
                 "method": "GET",
-                "url": "/v1/objects?q=myVal"
+                "url": "/v2/objects?q=myVal"
             },
             "expectedResponse": {
                 "statusCode": 200,
-                "body": [
-                    {
-                        "objectType": "test",
-                        "objectId": "third-object",
-                        "meta": {
-                            "myKey": "myVal"
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "test",
+                            "objectId": "third-object",
+                            "meta": {
+                                "myKey": "myVal"
+                            }
                         }
-                    }
-                ]
+                    ]
+                }
             }
         },
         {
             "name": "updateObjectWithMetadata",
             "request": {
                 "method": "PUT",
-                "url": "/v1/objects/test/third-object",
+                "url": "/v2/objects/test/third-object",
                 "body": {
                     "meta": {
                         "myUpdatedKey": "myUpdatedValue"
@@ -242,7 +248,7 @@
             "name": "getUpdatedObjectWithMetadata",
             "request": {
                 "method": "GET",
-                "url": "/v1/objects/test/third-object"
+                "url": "/v2/objects/test/third-object"
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -259,7 +265,7 @@
             "name": "deleteObject1",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/objects/test/first-object"
+                "url": "/v2/objects/test/first-object"
             },
             "expectedResponse": {
                 "statusCode": 200
@@ -269,7 +275,7 @@
             "name": "deleteObject2",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/objects/test/second-object"
+                "url": "/v2/objects/test/second-object"
             },
             "expectedResponse": {
                 "statusCode": 200
@@ -279,7 +285,7 @@
             "name": "deleteObjectWithGeneratedId",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/objects/test/{{ createObjectWithGeneratedId.objectId }}"
+                "url": "/v2/objects/test/{{ createObjectWithGeneratedId.objectId }}"
             },
             "expectedResponse": {
                 "statusCode": 200
@@ -289,7 +295,7 @@
             "name": "deleteObjectWithMetadata",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/objects/test/third-object"
+                "url": "/v2/objects/test/third-object"
             },
             "expectedResponse": {
                 "statusCode": 200

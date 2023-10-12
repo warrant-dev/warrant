@@ -21,7 +21,6 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-// GetRoutes registers all route handlers for this module
 func (svc PricingTierService) Routes() ([]service.Route, error) {
 	return []service.Route{
 		// create
@@ -31,7 +30,7 @@ func (svc PricingTierService) Routes() ([]service.Route, error) {
 			Handler: service.NewRouteHandler(svc, CreateHandler),
 		},
 
-		// get
+		// list
 		service.WarrantRoute{
 			Pattern: "/v1/pricing-tiers",
 			Method:  "GET",
@@ -40,6 +39,8 @@ func (svc PricingTierService) Routes() ([]service.Route, error) {
 				service.ListMiddleware[PricingTierListParamParser],
 			),
 		},
+
+		// get
 		service.WarrantRoute{
 			Pattern: "/v1/pricing-tiers/{pricingTierId}",
 			Method:  "GET",

@@ -28,7 +28,7 @@ type ObjectRepository interface {
 	GetById(ctx context.Context, id int64) (Model, error)
 	GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (Model, error)
 	BatchGetByObjectTypeAndIds(ctx context.Context, objectType string, objectIds []string) ([]Model, error)
-	List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]Model, error)
+	List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]Model, *service.Cursor, *service.Cursor, error)
 	UpdateByObjectTypeAndId(ctx context.Context, objectType string, objectId string, object Model) error
 	DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) error
 	DeleteWarrantsMatchingObject(ctx context.Context, objectType string, objectId string) error

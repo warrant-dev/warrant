@@ -1,0 +1,347 @@
+{
+    "ignoredFields": [
+        "createdAt"
+    ],
+    "tests": [
+        {
+            "name": "failToCreateObjectWithoutRelations",
+            "request": {
+                "method": "POST",
+                "url": "/v2/object-types",
+                "body": {
+                    "type": "A"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 400,
+                "body": {
+                    "code": "missing_required_parameter",
+                    "message": "Missing required parameter relations",
+                    "parameter": "relations"
+                }
+            }
+        },
+        {
+            "name": "createObjectTypeReport",
+            "request": {
+                "method": "POST",
+                "url": "/v2/object-types",
+                "body": {
+                    "type": "report",
+                    "relations": {
+                        "owner": {},
+                        "editor": {
+                            "inheritIf": "owner"
+                        },
+                        "viewer": {
+                            "inheritIf": "editor"
+                        },
+                        "editor-viewer": {
+                            "inheritIf": "allOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "editor"
+                                },
+                                {
+                                    "inheritIf": "viewer"
+                                }
+                            ]
+                        },
+                        "non-owner": {
+                            "inheritIf": "noneOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "owner"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "report",
+                    "relations": {
+                        "owner": {},
+                        "editor": {
+                            "inheritIf": "owner"
+                        },
+                        "viewer": {
+                            "inheritIf": "editor"
+                        },
+                        "editor-viewer": {
+                            "inheritIf": "allOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "editor"
+                                },
+                                {
+                                    "inheritIf": "viewer"
+                                }
+                            ]
+                        },
+                        "non-owner": {
+                            "inheritIf": "noneOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "owner"
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "getObjectTypeReport",
+            "request": {
+                "method": "GET",
+                "url": "/v2/object-types/report"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "report",
+                    "relations": {
+                        "owner": {},
+                        "editor": {
+                            "inheritIf": "owner"
+                        },
+                        "viewer": {
+                            "inheritIf": "editor"
+                        },
+                        "editor-viewer": {
+                            "inheritIf": "allOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "editor"
+                                },
+                                {
+                                    "inheritIf": "viewer"
+                                }
+                            ]
+                        },
+                        "non-owner": {
+                            "inheritIf": "noneOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "owner"
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "createObjectTypeA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/object-types",
+                "body": {
+                    "type": "A",
+                    "relations": {
+                        "testing": {}
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "A",
+                    "relations": {
+                        "testing": {}
+                    }
+                }
+            }
+        },
+        {
+            "name": "updateObjectTypeReport",
+            "request": {
+                "method": "PUT",
+                "url": "/v2/object-types/report",
+                "body": {
+                    "type": "A",
+                    "relations": {
+                        "rel1": {}
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "report",
+                    "relations": {
+                        "rel1": {}
+                    }
+                }
+            }
+        },
+        {
+            "name": "createDuplicateObjectTypeA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/object-types",
+                "body": {
+                    "type": "A",
+                    "relations": {
+                        "testing": {}
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "A",
+                    "relations": {
+                        "testing": {}
+                    }
+                }
+            }
+        },
+        {
+            "name": "listObjectTypes",
+            "request": {
+                "method": "GET",
+                "url": "/v2/object-types"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "type": "A",
+                            "relations": {
+                                "testing": {}
+                            }
+                        },
+                        {
+                            "type": "feature",
+                            "relations": {
+                                "member": {
+                                    "inheritIf": "anyOf",
+                                    "rules": [
+                                        {
+                                            "inheritIf": "member",
+                                            "ofType": "feature",
+                                            "withRelation": "member"
+                                        },
+                                        {
+                                            "inheritIf": "member",
+                                            "ofType": "pricing-tier",
+                                            "withRelation": "member"
+                                        },
+                                        {
+                                            "inheritIf": "member",
+                                            "ofType": "tenant",
+                                            "withRelation": "member"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "type": "permission",
+                            "relations": {
+                                "member": {
+                                    "inheritIf": "anyOf",
+                                    "rules": [
+                                        {
+                                            "inheritIf": "member",
+                                            "ofType": "permission",
+                                            "withRelation": "member"
+                                        },
+                                        {
+                                            "inheritIf": "member",
+                                            "ofType": "role",
+                                            "withRelation": "member"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "type": "pricing-tier",
+                            "relations": {
+                                "member": {
+                                    "inheritIf": "anyOf",
+                                    "rules": [
+                                        {
+                                            "inheritIf": "member",
+                                            "ofType": "pricing-tier",
+                                            "withRelation": "member"
+                                        },
+                                        {
+                                            "inheritIf": "member",
+                                            "ofType": "tenant",
+                                            "withRelation": "member"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "type": "report",
+                            "relations": {
+                                "rel1": {}
+                            }
+                        },
+                        {
+                            "type": "role",
+                            "relations": {
+                                "member": {
+                                    "inheritIf": "member",
+                                    "ofType": "role",
+                                    "withRelation": "member"
+                                }
+                            }
+                        },
+                        {
+                            "type": "tenant",
+                            "relations": {
+                                "admin": {},
+                                "manager": {
+                                    "inheritIf": "admin"
+                                },
+                                "member": {
+                                    "inheritIf": "manager"
+                                }
+                            }
+                        },
+                        {
+                            "type": "user",
+                            "relations": {
+                                "parent": {
+                                    "inheritIf": "parent",
+                                    "ofType": "user",
+                                    "withRelation": "parent"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "deleteObjectTypeReport",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/object-types/report"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectTypeA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/object-types/A"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}

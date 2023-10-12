@@ -30,12 +30,7 @@ func (svc UserService) Routes() ([]service.Route, error) {
 			Handler: service.NewRouteHandler(svc, CreateHandler),
 		},
 
-		// get
-		service.WarrantRoute{
-			Pattern: "/v1/users/{userId}",
-			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, GetHandler),
-		},
+		// list
 		service.WarrantRoute{
 			Pattern: "/v1/users",
 			Method:  "GET",
@@ -43,6 +38,13 @@ func (svc UserService) Routes() ([]service.Route, error) {
 				service.NewRouteHandler(svc, ListHandler),
 				service.ListMiddleware[UserListParamParser],
 			),
+		},
+
+		// get
+		service.WarrantRoute{
+			Pattern: "/v1/users/{userId}",
+			Method:  "GET",
+			Handler: service.NewRouteHandler(svc, GetHandler),
 		},
 
 		// delete

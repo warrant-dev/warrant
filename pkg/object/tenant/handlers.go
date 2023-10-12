@@ -21,7 +21,6 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-// GetRoutes registers all route handlers for this module
 func (svc TenantService) Routes() ([]service.Route, error) {
 	return []service.Route{
 		// create
@@ -31,12 +30,7 @@ func (svc TenantService) Routes() ([]service.Route, error) {
 			Handler: service.NewRouteHandler(svc, CreateHandler),
 		},
 
-		// get
-		service.WarrantRoute{
-			Pattern: "/v1/tenants/{tenantId}",
-			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, GetHandler),
-		},
+		// list
 		service.WarrantRoute{
 			Pattern: "/v1/tenants",
 			Method:  "GET",
@@ -44,6 +38,13 @@ func (svc TenantService) Routes() ([]service.Route, error) {
 				service.NewRouteHandler(svc, ListHandler),
 				service.ListMiddleware[TenantListParamParser],
 			),
+		},
+
+		// get
+		service.WarrantRoute{
+			Pattern: "/v1/tenants/{tenantId}",
+			Method:  "GET",
+			Handler: service.NewRouteHandler(svc, GetHandler),
 		},
 
 		// update

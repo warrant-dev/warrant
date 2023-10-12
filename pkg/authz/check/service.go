@@ -75,9 +75,9 @@ func (svc CheckService) getWithPolicyMatch(ctx context.Context, checkPipeline *p
 
 	listParams := service.DefaultListParams(warrant.WarrantListParamParser{})
 	listParams.Limit = MaxWarrants
-	warrantSpecs, err := svc.warrantSvc.List(
+	warrantSpecs, _, _, err := svc.warrantSvc.List(
 		ctx,
-		&warrant.FilterParams{
+		warrant.FilterParams{
 			ObjectType:      []string{spec.ObjectType},
 			ObjectId:        []string{spec.ObjectId},
 			Relation:        []string{spec.Relation},
@@ -125,9 +125,9 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, checkPipeline *
 
 	listParams := service.DefaultListParams(warrant.WarrantListParamParser{})
 	listParams.Limit = MaxWarrants
-	warrantSpecs, err = svc.warrantSvc.List(
+	warrantSpecs, _, _, err = svc.warrantSvc.List(
 		ctx,
-		&warrant.FilterParams{
+		warrant.FilterParams{
 			ObjectType: []string{objectType},
 			ObjectId:   []string{objectId},
 			Relation:   []string{relation},
@@ -169,9 +169,9 @@ func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, ch
 
 	listParams := service.DefaultListParams(warrant.WarrantListParamParser{})
 	listParams.Limit = MaxWarrants
-	warrantSpecs, err = svc.warrantSvc.List(
+	warrantSpecs, _, _, err = svc.warrantSvc.List(
 		ctx,
-		&warrant.FilterParams{
+		warrant.FilterParams{
 			ObjectType:  []string{objectType},
 			ObjectId:    []string{objectId},
 			Relation:    []string{relation},

@@ -18,6 +18,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 
+	"github.com/warrant-dev/warrant/pkg/service"
+
 	"github.com/pkg/errors"
 	baseWarrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 )
@@ -68,8 +70,10 @@ type QueryResult struct {
 }
 
 type Result struct {
-	Results []QueryResult `json:"results"`
-	LastId  string        `json:"lastId,omitempty"`
+	Results    []QueryResult   `json:"results"`
+	PrevCursor *service.Cursor `json:"prevCursor,omitempty"`
+	NextCursor *service.Cursor `json:"nextCursor,omitempty"`
+	LastId     string          `json:"lastId,omitempty"`
 }
 
 type ByObjectTypeAsc []QueryResult

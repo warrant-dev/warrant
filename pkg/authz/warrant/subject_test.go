@@ -21,38 +21,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestToMapDirectSubjectSpec(t *testing.T) {
-	subject := SubjectSpec{
-		ObjectType: "user",
-		ObjectId:   "user-A",
-	}
-	expectedMap := map[string]interface{}{
-		"objectType": "user",
-		"objectId":   "user-A",
-	}
-	actualMap := subject.ToMap()
-	if !cmp.Equal(actualMap, expectedMap) {
-		t.Fatalf("Expected subject string to be %s, but it was %s", expectedMap, actualMap)
-	}
-}
-
-func TestToMapGroupSubjectSpec(t *testing.T) {
-	subject := SubjectSpec{
-		ObjectType: "role",
-		ObjectId:   "admin",
-		Relation:   "member",
-	}
-	expectedMap := map[string]interface{}{
-		"objectType": "role",
-		"objectId":   "admin",
-		"relation":   "member",
-	}
-	actualMap := subject.ToMap()
-	if !cmp.Equal(actualMap, expectedMap) {
-		t.Fatalf("Expected subject string to be %s, but it was %s", expectedMap, actualMap)
-	}
-}
-
 func TestToStringDirectSubjectSpec(t *testing.T) {
 	subject := SubjectSpec{
 		ObjectType: "user",

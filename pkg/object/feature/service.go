@@ -75,7 +75,7 @@ func (svc FeatureService) GetByFeatureId(ctx context.Context, featureId string) 
 
 func (svc FeatureService) List(ctx context.Context, listParams service.ListParams) ([]FeatureSpec, error) {
 	featureSpecs := make([]FeatureSpec, 0)
-	objectSpecs, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeFeature}, listParams)
+	objectSpecs, _, _, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeFeature}, listParams)
 	if err != nil {
 		return featureSpecs, err
 	}

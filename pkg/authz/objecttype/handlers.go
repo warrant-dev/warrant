@@ -21,7 +21,6 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-// GetRoutes registers all route handlers for this module
 func (svc ObjectTypeService) Routes() ([]service.Route, error) {
 	return []service.Route{
 		// create
@@ -30,20 +29,38 @@ func (svc ObjectTypeService) Routes() ([]service.Route, error) {
 			Method:  "POST",
 			Handler: service.NewRouteHandler(svc, CreateHandler),
 		},
-
-		// get
 		service.WarrantRoute{
-			Pattern: "/v1/object-types",
-			Method:  "GET",
-			Handler: service.ChainMiddleware(
-				service.NewRouteHandler(svc, ListHandler),
-				service.ListMiddleware[ObjectTypeListParamParser],
-			),
+			Pattern: "/v2/object-types",
+			Method:  "POST",
+			Handler: service.NewRouteHandler(svc, CreateHandler),
 		},
 
 		// list
 		service.WarrantRoute{
+			Pattern: "/v1/object-types",
+			Method:  "GET",
+			Handler: service.ChainMiddleware(
+				service.NewRouteHandler(svc, ListHandlerV1),
+				service.ListMiddleware[ObjectTypeListParamParser],
+			),
+		},
+		service.WarrantRoute{
+			Pattern: "/v2/object-types",
+			Method:  "GET",
+			Handler: service.ChainMiddleware(
+				service.NewRouteHandler(svc, ListHandlerV2),
+				service.ListMiddleware[ObjectTypeListParamParser],
+			),
+		},
+
+		// get
+		service.WarrantRoute{
 			Pattern: "/v1/object-types/{type}",
+			Method:  "GET",
+			Handler: service.NewRouteHandler(svc, GetHandler),
+		},
+		service.WarrantRoute{
+			Pattern: "/v2/object-types/{type}",
 			Method:  "GET",
 			Handler: service.NewRouteHandler(svc, GetHandler),
 		},
@@ -59,6 +76,16 @@ func (svc ObjectTypeService) Routes() ([]service.Route, error) {
 			Method:  "PUT",
 			Handler: service.NewRouteHandler(svc, UpdateHandler),
 		},
+		service.WarrantRoute{
+			Pattern: "/v2/object-types/{type}",
+			Method:  "POST",
+			Handler: service.NewRouteHandler(svc, UpdateHandler),
+		},
+		service.WarrantRoute{
+			Pattern: "/v2/object-types/{type}",
+			Method:  "PUT",
+			Handler: service.NewRouteHandler(svc, UpdateHandler),
+		},
 
 		// delete
 		service.WarrantRoute{
@@ -66,17 +93,22 @@ func (svc ObjectTypeService) Routes() ([]service.Route, error) {
 			Method:  "DELETE",
 			Handler: service.NewRouteHandler(svc, DeleteHandler),
 		},
+		service.WarrantRoute{
+			Pattern: "/v2/object-types/{type}",
+			Method:  "DELETE",
+			Handler: service.NewRouteHandler(svc, DeleteHandler),
+		},
 	}, nil
 }
 
 func CreateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
-	var objectTypeSpec ObjectTypeSpec
-	err := service.ParseJSONBody(r.Body, &objectTypeSpec)
+	var spec CreateObjectTypeSpec
+	err := service.ParseJSONBody(r.Body, &spec)
 	if err != nil {
 		return err
 	}
 
-	createdObjectTypeSpec, _, err := svc.Create(r.Context(), objectTypeSpec)
+	createdObjectTypeSpec, _, err := svc.Create(r.Context(), spec)
 	if err != nil {
 		return err
 	}
@@ -85,14 +117,29 @@ func CreateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 	return nil
 }
 
-func ListHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
+func ListHandlerV1(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	listParams := service.GetListParamsFromContext[ObjectTypeListParamParser](r.Context())
-	objectTypeSpecs, err := svc.List(r.Context(), listParams)
+	objectTypeSpecs, _, _, err := svc.List(r.Context(), listParams)
 	if err != nil {
 		return err
 	}
 
 	service.SendJSONResponse(w, objectTypeSpecs)
+	return nil
+}
+
+func ListHandlerV2(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
+	listParams := service.GetListParamsFromContext[ObjectTypeListParamParser](r.Context())
+	objectTypeSpecs, prevCursor, nextCursor, err := svc.List(r.Context(), listParams)
+	if err != nil {
+		return err
+	}
+
+	service.SendJSONResponse(w, ListObjectTypesSpecV2{
+		Results:    objectTypeSpecs,
+		PrevCursor: prevCursor,
+		NextCursor: nextCursor,
+	})
 	return nil
 }
 
@@ -108,14 +155,14 @@ func GetHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) e
 }
 
 func UpdateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
-	var objectTypeSpec ObjectTypeSpec
-	err := service.ParseJSONBody(r.Body, &objectTypeSpec)
+	var spec UpdateObjectTypeSpec
+	err := service.ParseJSONBody(r.Body, &spec)
 	if err != nil {
 		return err
 	}
 
 	typeId := mux.Vars(r)["type"]
-	updatedObjectTypeSpec, _, err := svc.UpdateByTypeId(r.Context(), typeId, objectTypeSpec)
+	updatedObjectTypeSpec, _, err := svc.UpdateByTypeId(r.Context(), typeId, spec)
 	if err != nil {
 		return err
 	}

@@ -106,8 +106,8 @@ func (svc QueryService) Query(ctx context.Context, query *Query, listParams serv
 
 	index := 0
 	// skip ahead if lastId passed in
-	if listParams.AfterId != nil {
-		lastIdSpec, err := StringToLastIdSpec(*listParams.AfterId)
+	if listParams.NextCursor != nil {
+		lastIdSpec, err := StringToLastIdSpec(listParams.NextCursor.ID())
 		if err != nil {
 			return nil, err
 		}
@@ -162,7 +162,7 @@ func (svc QueryService) query(ctx context.Context, query *Query) (*ResultSet, er
 	var selectSubjects bool
 	objectTypesListParams := service.DefaultListParams(objecttype.ObjectTypeListParamParser{})
 	objectTypesListParams.Limit = MaxObjectTypes
-	typesList, err := svc.objectTypeSvc.List(ctx, objectTypesListParams)
+	typesList, _, _, err := svc.objectTypeSvc.List(ctx, objectTypesListParams)
 	if err != nil {
 		return nil, err
 	}
@@ -258,13 +258,13 @@ func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, 
 		return nil, err
 	}
 
+	resultSet := NewResultSet()
 	if _, exists := objectTypeDef.Relations[relation]; !exists {
-		return NewResultSet(), nil
+		return resultSet, nil
 	}
 
-	resultSet := NewResultSet()
 	// match any warrants at this level
-	matchedWarrants, err := svc.matchWarrants(ctx, warrant.FilterParams{
+	matchedWarrants, _, _, err := svc.matchWarrants(ctx, warrant.FilterParams{
 		ObjectType: []string{objectType},
 		ObjectId:   matchFilters.ObjectId,
 		Relation:   []string{relation},
@@ -301,7 +301,7 @@ func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, 
 					} else if len(matchFilters.ObjectId) > 0 {
 						resultSet.Add(matchedWarrant.ObjectType, matchFilters.ObjectId[0], matchedWarrant)
 					} else {
-						wcWarrantMatches, err := svc.matchWarrants(ctx, warrant.FilterParams{
+						wcWarrantMatches, _, _, err := svc.matchWarrants(ctx, warrant.FilterParams{
 							ObjectType: []string{matchedWarrant.ObjectType},
 						})
 						if err != nil {
@@ -353,7 +353,7 @@ func (svc QueryService) matchRule(ctx context.Context, selectSubjects bool, obje
 		// inherit relation if subject has:
 		// (1) InheritIf on object (2) of type OfType
 		// (3) with relation WithRelation on this object
-		matchedWarrants, err := svc.matchWarrants(ctx, warrant.FilterParams{
+		matchedWarrants, _, _, err := svc.matchWarrants(ctx, warrant.FilterParams{
 			ObjectType:  []string{objectType},
 			Relation:    []string{rule.WithRelation},
 			ObjectId:    matchFilters.ObjectId,
@@ -384,7 +384,7 @@ func (svc QueryService) matchRule(ctx context.Context, selectSubjects bool, obje
 				} else if len(matchFilters.ObjectId) > 0 {
 					resultSet.Add(matchedWarrant.ObjectType, matchFilters.ObjectId[0], matchedWarrant)
 				} else {
-					wcWarrantMatches, err := svc.matchWarrants(ctx, warrant.FilterParams{
+					wcWarrantMatches, _, _, err := svc.matchWarrants(ctx, warrant.FilterParams{
 						ObjectType: []string{matchedWarrant.ObjectType},
 					})
 					if err != nil {
@@ -454,10 +454,10 @@ func (svc QueryService) matchSetRule(
 	}
 }
 
-func (svc QueryService) matchWarrants(ctx context.Context, matchFilters warrant.FilterParams) ([]warrant.WarrantSpec, error) {
+func (svc QueryService) matchWarrants(ctx context.Context, matchFilters warrant.FilterParams) ([]warrant.WarrantSpec, *service.Cursor, *service.Cursor, error) {
 	warrantListParams := service.DefaultListParams(warrant.WarrantListParamParser{})
 	warrantListParams.Limit = MaxEdges
-	return svc.warrantSvc.List(ctx, &matchFilters, warrantListParams)
+	return svc.warrantSvc.List(ctx, matchFilters, warrantListParams)
 }
 
 func matches(set []string, target string) bool {

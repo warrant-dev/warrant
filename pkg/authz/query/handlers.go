@@ -30,6 +30,14 @@ func (svc QueryService) Routes() ([]service.Route, error) {
 				service.ListMiddleware[QueryListParamParser],
 			),
 		},
+		service.WarrantRoute{
+			Pattern: "/v2/query",
+			Method:  "GET",
+			Handler: service.ChainMiddleware(
+				service.NewRouteHandler(svc, QueryHandler),
+				service.ListMiddleware[QueryListParamParser],
+			),
+		},
 	}, nil
 }
 
@@ -42,8 +50,8 @@ func QueryHandler(svc QueryService, w http.ResponseWriter, r *http.Request) erro
 
 	listParams := service.GetListParamsFromContext[QueryListParamParser](r.Context())
 	lastId := r.URL.Query().Get("lastId")
-	if lastId != "" && listParams.AfterId == nil {
-		listParams.AfterId = &lastId
+	if lastId != "" && listParams.NextCursor == nil {
+		listParams.NextCursor = service.NewCursor(lastId, nil)
 	}
 
 	result, err := svc.Query(r.Context(), query, listParams)

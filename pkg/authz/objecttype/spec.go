@@ -16,6 +16,7 @@ package authz
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -42,12 +43,39 @@ const (
 )
 
 type ObjectTypeSpec struct {
-	Type      string                  `json:"type" validate:"required,valid_object_type"`
+	Type      string                  `json:"type"`
 	Source    *Source                 `json:"source,omitempty"`
-	Relations map[string]RelationRule `json:"relations" validate:"required,min=1,dive"` // NOTE: map key = name of relation
+	Relations map[string]RelationRule `json:"relations"`
+	CreatedAt time.Time               `json:"createdAt,omitempty"`
 }
 
-func (spec ObjectTypeSpec) ToObjectType() (*ObjectType, error) {
+type CreateObjectTypeSpec struct {
+	Type      string                  `json:"type"             validate:"required,valid_object_type"`
+	Source    *Source                 `json:"source,omitempty"`
+	Relations map[string]RelationRule `json:"relations"        validate:"required,min=1,dive"` // NOTE: map key = name of relation
+}
+
+func (spec CreateObjectTypeSpec) ToObjectType() (*ObjectType, error) {
+	definition, err := json.Marshal(spec)
+	if err != nil {
+		return nil, service.NewInvalidRequestError("invalid request body")
+	}
+
+	return &ObjectType{
+		TypeId:     spec.Type,
+		Definition: string(definition),
+	}, nil
+}
+
+type UpdateObjectTypeSpec struct {
+	Type      string                  `json:"type"` // NOTE: used internally for updates, but value from request is ignored
+	Source    *Source                 `json:"source,omitempty"`
+	Relations map[string]RelationRule `json:"relations"        validate:"required,min=1,dive"` // NOTE: map key = name of relation
+}
+
+func (spec *UpdateObjectTypeSpec) ToObjectType(typeId string) (*ObjectType, error) {
+	// Use the passed in typeId because it is not allowed to be updated
+	spec.Type = typeId
 	definition, err := json.Marshal(spec)
 	if err != nil {
 		return nil, service.NewInvalidRequestError("invalid request body")
@@ -60,25 +88,25 @@ func (spec ObjectTypeSpec) ToObjectType() (*ObjectType, error) {
 }
 
 type Source struct {
-	DatabaseType string           `json:"dbType" validate:"required"`
-	DatabaseName string           `json:"dbName" validate:"required"`
-	Table        string           `json:"table" validate:"required"`
-	PrimaryKey   []string         `json:"primaryKey" validate:"min=1"`
+	DatabaseType string           `json:"dbType"                validate:"required"`
+	DatabaseName string           `json:"dbName"                validate:"required"`
+	Table        string           `json:"table"                 validate:"required"`
+	PrimaryKey   []string         `json:"primarySortKey"        validate:"min=1"`
 	ForeignKeys  []ForeignKeySpec `json:"foreignKeys,omitempty"`
 }
 
 type ForeignKeySpec struct {
-	Column   string `json:"column" validate:"required"`
+	Column   string `json:"column"   validate:"required"`
 	Relation string `json:"relation" validate:"required,valid_relation"`
-	Type     string `json:"type" validate:"required,valid_object_type"`
-	Subject  string `json:"subject" validate:"required"`
+	Type     string `json:"type"     validate:"required,valid_object_type"`
+	Subject  string `json:"subject"  validate:"required"`
 }
 
 // RelationRule type represents the rule or set of rules that imply a particular relation if met
 type RelationRule struct {
-	InheritIf    string         `json:"inheritIf,omitempty" validate:"required_with=Rules OfType WithRelation,valid_inheritif"`
-	Rules        []RelationRule `json:"rules,omitempty" validate:"required_if_oneof=InheritIf anyOf allOf noneOf,omitempty,min=1,dive"` // Required if InheritIf is "anyOf", "allOf", or "noneOf", empty otherwise
-	OfType       string         `json:"ofType,omitempty" validate:"required_with=WithRelation,valid_relation"`
+	InheritIf    string         `json:"inheritIf,omitempty"    validate:"required_with=Rules OfType WithRelation,valid_inheritif"`
+	Rules        []RelationRule `json:"rules,omitempty"        validate:"required_if_oneof=InheritIf anyOf allOf noneOf,omitempty,min=1,dive"` // Required if InheritIf is "anyOf", "allOf", or "noneOf", empty otherwise
+	OfType       string         `json:"ofType,omitempty"       validate:"required_with=WithRelation,valid_relation"`
 	WithRelation string         `json:"withRelation,omitempty" validate:"required_with=OfType,valid_relation"`
 }
 
@@ -199,4 +227,12 @@ var FeatureObjectTypeSpec = ObjectTypeSpec{
 			},
 		},
 	},
+}
+
+type ListObjectTypesSpecV1 []ObjectTypeSpec
+
+type ListObjectTypesSpecV2 struct {
+	Results    []ObjectTypeSpec `json:"results"`
+	PrevCursor *service.Cursor  `json:"prevCursor,omitempty"`
+	NextCursor *service.Cursor  `json:"nextCursor,omitempty"`
 }

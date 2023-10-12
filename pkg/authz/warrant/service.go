@@ -26,9 +26,9 @@ import (
 )
 
 type Service interface {
-	Create(ctx context.Context, warrantSpec WarrantSpec) (*WarrantSpec, *wookie.Token, error)
-	List(ctx context.Context, filterParams *FilterParams, listParams service.ListParams) ([]WarrantSpec, error)
-	Delete(ctx context.Context, warrantSpec WarrantSpec) (*wookie.Token, error)
+	Create(context.Context, CreateWarrantSpec) (*WarrantSpec, *wookie.Token, error)
+	List(context.Context, FilterParams, service.ListParams) ([]WarrantSpec, *service.Cursor, *service.Cursor, error)
+	Delete(context.Context, DeleteWarrantSpec) (*wookie.Token, error)
 }
 
 type WarrantService struct {
@@ -49,11 +49,11 @@ func NewService(env service.Env, repository WarrantRepository, eventSvc event.Se
 	}
 }
 
-func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (*WarrantSpec, *wookie.Token, error) {
+func (svc WarrantService) Create(ctx context.Context, spec CreateWarrantSpec) (*WarrantSpec, *wookie.Token, error) {
 	var createdWarrant Model
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		// Check that objectType exists
-		objectTypeDef, err := svc.ObjectTypeSvc.GetByTypeId(txCtx, warrantSpec.ObjectType)
+		objectTypeDef, err := svc.ObjectTypeSvc.GetByTypeId(txCtx, spec.ObjectType)
 		if err != nil {
 			var recordNotFoundError *service.RecordNotFoundError
 			if errors.As(err, &recordNotFoundError) {
@@ -64,13 +64,13 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 		}
 
 		// Check that relation is valid for objectType
-		if _, exists := objectTypeDef.Relations[warrantSpec.Relation]; !exists {
+		if _, exists := objectTypeDef.Relations[spec.Relation]; !exists {
 			return service.NewInvalidParameterError("relation", "the relation does not exist on the specified object type.")
 		}
 
 		// Unless objectId is wildcard, create referenced object if it does not already exist
-		if warrantSpec.ObjectId != Wildcard {
-			objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(txCtx, warrantSpec.ObjectType, warrantSpec.ObjectId)
+		if spec.ObjectId != Wildcard {
+			objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(txCtx, spec.ObjectType, spec.ObjectId)
 			if err != nil {
 				var recordNotFoundError *service.RecordNotFoundError
 				if !errors.As(err, &recordNotFoundError) {
@@ -80,8 +80,8 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 
 			if objectSpec == nil {
 				_, err = svc.ObjectSvc.Create(txCtx, object.CreateObjectSpec{
-					ObjectType: warrantSpec.ObjectType,
-					ObjectId:   warrantSpec.ObjectId,
+					ObjectType: spec.ObjectType,
+					ObjectId:   spec.ObjectId,
 				})
 				if err != nil {
 					var duplicateRecordError *service.DuplicateRecordError
@@ -93,8 +93,8 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 		}
 
 		// Unless subject objectId is wildcard, create referenced subject if it does not already exist
-		if warrantSpec.Subject.ObjectId != Wildcard {
-			objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(txCtx, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId)
+		if spec.Subject.ObjectId != Wildcard {
+			objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(txCtx, spec.Subject.ObjectType, spec.Subject.ObjectId)
 			if err != nil {
 				var recordNotFoundError *service.RecordNotFoundError
 				if !errors.As(err, &recordNotFoundError) {
@@ -104,8 +104,8 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 
 			if objectSpec == nil {
 				_, err = svc.ObjectSvc.Create(txCtx, object.CreateObjectSpec{
-					ObjectType: warrantSpec.Subject.ObjectType,
-					ObjectId:   warrantSpec.Subject.ObjectId,
+					ObjectType: spec.Subject.ObjectType,
+					ObjectId:   spec.Subject.ObjectId,
 				})
 				if err != nil {
 					var duplicateRecordError *service.DuplicateRecordError
@@ -116,7 +116,7 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 			}
 		}
 
-		warrant, err := warrantSpec.ToWarrant()
+		warrant, err := spec.ToWarrant()
 		if err != nil {
 			return err
 		}
@@ -151,23 +151,23 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 	return createdWarrant.ToWarrantSpec(), nil, nil
 }
 
-func (svc WarrantService) List(ctx context.Context, filterParams *FilterParams, listParams service.ListParams) ([]WarrantSpec, error) {
+func (svc WarrantService) List(ctx context.Context, filterParams FilterParams, listParams service.ListParams) ([]WarrantSpec, *service.Cursor, *service.Cursor, error) {
 	warrantSpecs := make([]WarrantSpec, 0)
-	warrants, err := svc.Repository.List(ctx, filterParams, listParams)
+	warrants, prevCursor, nextCursor, err := svc.Repository.List(ctx, filterParams, listParams)
 	if err != nil {
-		return warrantSpecs, err
+		return warrantSpecs, prevCursor, nextCursor, err
 	}
 
 	for _, warrant := range warrants {
 		warrantSpecs = append(warrantSpecs, *warrant.ToWarrantSpec())
 	}
 
-	return warrantSpecs, nil
+	return warrantSpecs, prevCursor, nextCursor, nil
 }
 
-func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) (*wookie.Token, error) {
+func (svc WarrantService) Delete(ctx context.Context, spec DeleteWarrantSpec) (*wookie.Token, error) {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		warrantToDelete, err := warrantSpec.ToWarrant()
+		warrantToDelete, err := spec.ToWarrant()
 		if err != nil {
 			return err
 		}
@@ -183,12 +183,12 @@ func (svc WarrantService) Delete(ctx context.Context, warrantSpec WarrantSpec) (
 		}
 
 		var eventMeta map[string]interface{}
-		if warrantSpec.Policy != "" {
+		if spec.Policy != "" {
 			eventMeta = make(map[string]interface{})
-			eventMeta["policy"] = warrantSpec.Policy
+			eventMeta["policy"] = spec.Policy
 		}
 
-		err = svc.EventSvc.TrackAccessRevokedEvent(txCtx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
+		err = svc.EventSvc.TrackAccessRevokedEvent(txCtx, spec.ObjectType, spec.ObjectId, spec.Relation, spec.Subject.ObjectType, spec.Subject.ObjectId, spec.Subject.Relation, eventMeta)
 		if err != nil {
 			return err
 		}

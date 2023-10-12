@@ -77,7 +77,7 @@ func (svc PricingTierService) GetByPricingTierId(ctx context.Context, pricingTie
 
 func (svc PricingTierService) List(ctx context.Context, listParams service.ListParams) ([]PricingTierSpec, error) {
 	pricingTierSpecs := make([]PricingTierSpec, 0)
-	objectSpecs, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypePricingTier}, listParams)
+	objectSpecs, _, _, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypePricingTier}, listParams)
 	if err != nil {
 		return pricingTierSpecs, err
 	}

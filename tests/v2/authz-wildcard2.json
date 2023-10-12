@@ -1,0 +1,932 @@
+{
+    "ignoredFields": [
+        "createdAt"
+    ],
+    "tests": [
+        {
+            "name": "createObjectTypeDepartment",
+            "request": {
+                "method": "POST",
+                "url": "/v2/object-types",
+                "body": {
+                    "type": "department",
+                    "relations": {
+                        "manager": {
+                            "inheritIf": "manager",
+                            "ofType": "division",
+                            "withRelation": "parent"
+                        },
+                        "member": {
+                            "inheritIf": "manager"
+                        },
+                        "parent": {
+                            "inheritIf": "parent",
+                            "ofType": "division",
+                            "withRelation": "parent"
+                        }
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "department",
+                    "relations": {
+                        "manager": {
+                            "inheritIf": "manager",
+                            "ofType": "division",
+                            "withRelation": "parent"
+                        },
+                        "member": {
+                            "inheritIf": "manager"
+                        },
+                        "parent": {
+                            "inheritIf": "parent",
+                            "ofType": "division",
+                            "withRelation": "parent"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "createObjectTypeDivision",
+            "request": {
+                "method": "POST",
+                "url": "/v2/object-types",
+                "body": {
+                    "type": "division",
+                    "relations": {
+                        "manager": {
+                            "inheritIf": "admin",
+                            "ofType": "organization",
+                            "withRelation": "parent"
+                        },
+                        "member": {
+                            "inheritIf": "manager"
+                        },
+                        "parent": {}
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "division",
+                    "relations": {
+                        "manager": {
+                            "inheritIf": "admin",
+                            "ofType": "organization",
+                            "withRelation": "parent"
+                        },
+                        "member": {
+                            "inheritIf": "manager"
+                        },
+                        "parent": {}
+                    }
+                }
+            }
+        },
+        {
+            "name": "createObjectTypeOrganization",
+            "request": {
+                "method": "POST",
+                "url": "/v2/object-types",
+                "body": {
+                    "type": "organization",
+                    "relations": {
+                        "admin": {},
+                        "member": {
+                            "inheritIf": "admin"
+                        }
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "organization",
+                    "relations": {
+                        "admin": {},
+                        "member": {
+                            "inheritIf": "admin"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "createObjectTypeSchedule",
+            "request": {
+                "method": "POST",
+                "url": "/v2/object-types",
+                "body": {
+                    "type": "schedule",
+                    "relations": {
+                        "editor": {
+                            "inheritIf": "anyOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "manager",
+                                    "ofType": "department",
+                                    "withRelation": "parent"
+                                },
+                                {
+                                    "inheritIf": "manager",
+                                    "ofType": "division",
+                                    "withRelation": "parent"
+                                },
+                                {
+                                    "inheritIf": "admin",
+                                    "ofType": "organization",
+                                    "withRelation": "parent"
+                                }
+                            ]
+                        },
+                        "parent": {
+                            "inheritIf": "parent",
+                            "ofType": "department",
+                            "withRelation": "parent"
+                        },
+                        "viewer": {
+                            "inheritIf": "editor"
+                        }
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "schedule",
+                    "relations": {
+                        "editor": {
+                            "inheritIf": "anyOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "manager",
+                                    "ofType": "department",
+                                    "withRelation": "parent"
+                                },
+                                {
+                                    "inheritIf": "manager",
+                                    "ofType": "division",
+                                    "withRelation": "parent"
+                                },
+                                {
+                                    "inheritIf": "admin",
+                                    "ofType": "organization",
+                                    "withRelation": "parent"
+                                }
+                            ]
+                        },
+                        "parent": {
+                            "inheritIf": "parent",
+                            "ofType": "department",
+                            "withRelation": "parent"
+                        },
+                        "viewer": {
+                            "inheritIf": "editor"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignDepartmentA1ManagerToUserDeptManagerA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "department",
+                    "objectId": "dept-A1",
+                    "relation": "manager",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "dept-manager-A"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "department",
+                    "objectId": "dept-A1",
+                    "relation": "manager",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "dept-manager-A"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignDepartmentA1ParentToDivisionDivA1",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "department",
+                    "objectId": "dept-A1",
+                    "relation": "parent",
+                    "subject": {
+                        "objectType": "division",
+                        "objectId": "div-A1"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "department",
+                    "objectId": "dept-A1",
+                    "relation": "parent",
+                    "subject": {
+                        "objectType": "division",
+                        "objectId": "div-A1"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignDepartmentB1ManagerToUserDeptManagerB",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "department",
+                    "objectId": "dept-B1",
+                    "relation": "manager",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "dept-manager-B"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "department",
+                    "objectId": "dept-B1",
+                    "relation": "manager",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "dept-manager-B"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignOrganizationOrgAAsParentOfAnyDivision",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "division",
+                    "objectId": "*",
+                    "relation": "parent",
+                    "subject": {
+                        "objectType": "organization",
+                        "objectId": "org-A"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "division",
+                    "objectId": "*",
+                    "relation": "parent",
+                    "subject": {
+                        "objectType": "organization",
+                        "objectId": "org-A"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignDivisionDivA1ManagerToUserDivManagerA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "division",
+                    "objectId": "div-A1",
+                    "relation": "manager",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "div-manager-A"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "division",
+                    "objectId": "div-A1",
+                    "relation": "manager",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "div-manager-A"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignDivisionDivB1ManagerToUserDivManagerB",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "division",
+                    "objectId": "div-B1",
+                    "relation": "manager",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "div-manager-B"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "division",
+                    "objectId": "div-B1",
+                    "relation": "manager",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "div-manager-B"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignOrganizationOrgAAdminToUserAdminA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "organization",
+                    "objectId": "org-A",
+                    "relation": "admin",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "admin-A"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "organization",
+                    "objectId": "org-A",
+                    "relation": "admin",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "admin-A"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignOrganizationOrgBAdminToUserAdminB",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "organization",
+                    "objectId": "org-B",
+                    "relation": "admin",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "admin-B"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "organization",
+                    "objectId": "org-B",
+                    "relation": "admin",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "admin-B"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignScheduleScheduleA1ParentToDepartmentDeptA1",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "schedule",
+                    "objectId": "schedule-A1",
+                    "relation": "parent",
+                    "subject": {
+                        "objectType": "department",
+                        "objectId": "dept-A1"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "schedule",
+                    "objectId": "schedule-A1",
+                    "relation": "parent",
+                    "subject": {
+                        "objectType": "department",
+                        "objectId": "dept-A1"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignScheduleScheduleA1ViewerToUserExternalUser1",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "schedule",
+                    "objectId": "schedule-A1",
+                    "relation": "viewer",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "external-user-1"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "schedule",
+                    "objectId": "schedule-A1",
+                    "relation": "viewer",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "external-user-1"
+                    }
+                }
+            }
+        },
+        {
+            "name": "checkUserAdminAIsViewerOfScheduleA1",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "schedule",
+                            "objectId": "schedule-A1",
+                            "relation": "viewer",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "admin-A"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized",
+                    "isImplicit": true
+                }
+            }
+        },
+        {
+            "name": "checkUserAdminBIsNotViewerOfScheduleA1",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "schedule",
+                            "objectId": "schedule-A1",
+                            "relation": "viewer",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "admin-B"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserExternalUser1IsViewerOfScheduleA1",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "schedule",
+                            "objectId": "schedule-A1",
+                            "relation": "viewer",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "external-user-1"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "removeDepartmentA1ManagerFromUserDeptManagerA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "department",
+                    "objectId": "dept-A1",
+                    "relation": "manager",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "dept-manager-A"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeDepartmentA1ParentFromDivisionDivA1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "department",
+                    "objectId": "dept-A1",
+                    "relation": "parent",
+                    "subject": {
+                        "objectType": "division",
+                        "objectId": "div-A1"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeDepartmentB1ManagerFromUserDeptManagerB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "department",
+                    "objectId": "dept-B1",
+                    "relation": "manager",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "dept-manager-B"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeOrganizationOrgAAsParentOfAnyDivision",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "division",
+                    "objectId": "*",
+                    "relation": "parent",
+                    "subject": {
+                        "objectType": "organization",
+                        "objectId": "org-A"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeDivisionDivA1ManagerFromUserDivManagerA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "division",
+                    "objectId": "div-A1",
+                    "relation": "manager",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "div-manager-A"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeDivisionDivB1ManagerFromUserDivManagerB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "division",
+                    "objectId": "div-B1",
+                    "relation": "manager",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "div-manager-B"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeOrganizationOrgAAdminFromUserAdminA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "organization",
+                    "objectId": "org-A",
+                    "relation": "admin",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "admin-A"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeOrganizationOrgBAdminFromUserAdminB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "organization",
+                    "objectId": "org-B",
+                    "relation": "admin",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "admin-B"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeScheduleScheduleA1ParentFromDepartmentDeptA1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "schedule",
+                    "objectId": "schedule-A1",
+                    "relation": "parent",
+                    "subject": {
+                        "objectType": "department",
+                        "objectId": "dept-A1"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeScheduleScheduleA1ViewerFromUserExternalUser1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "schedule",
+                    "objectId": "schedule-A1",
+                    "relation": "viewer",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "external-user-1"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteDepartmentA1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/department/dept-A1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteDepartmentB1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/department/dept-B1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteDivisionA1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/division/div-A1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteDivisionB1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/division/div-B1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserDeptManagerA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/dept-manager-A"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserDeptManagerB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/dept-manager-B"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteOrganizationA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/organization/org-A"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteOrganizationB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/organization/org-B"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserDivManagerA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/div-manager-A"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserDivManagerB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/div-manager-B"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserAdminA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/admin-A"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserAdminB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/admin-B"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteScheduleA1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/schedule/schedule-A1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserExternalUser1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/external-user-1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectTypeSchedule",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/object-types/schedule"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectTypeOrganization",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/object-types/organization"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectTypeDivision",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/object-types/division"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectTypeDepartment",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/object-types/department"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}

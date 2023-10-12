@@ -25,10 +25,10 @@ import (
 const ResourceTypeObjectType = "object-type"
 
 type Service interface {
-	Create(ctx context.Context, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, *wookie.Token, error)
+	Create(ctx context.Context, spec CreateObjectTypeSpec) (*ObjectTypeSpec, *wookie.Token, error)
 	GetByTypeId(ctx context.Context, typeId string) (*ObjectTypeSpec, error)
-	List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, error)
-	UpdateByTypeId(ctx context.Context, typeId string, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, *wookie.Token, error)
+	List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, *service.Cursor, *service.Cursor, error)
+	UpdateByTypeId(ctx context.Context, typeId string, spec UpdateObjectTypeSpec) (*ObjectTypeSpec, *wookie.Token, error)
 	DeleteByTypeId(ctx context.Context, typeId string) (*wookie.Token, error)
 }
 
@@ -46,10 +46,10 @@ func NewService(env service.Env, repository ObjectTypeRepository, eventSvc event
 	}
 }
 
-func (svc ObjectTypeService) Create(ctx context.Context, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, *wookie.Token, error) {
+func (svc ObjectTypeService) Create(ctx context.Context, spec CreateObjectTypeSpec) (*ObjectTypeSpec, *wookie.Token, error) {
 	var newObjectTypeSpec *ObjectTypeSpec
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		objectType, err := objectTypeSpec.ToObjectType()
+		objectType, err := spec.ToObjectType()
 		if err != nil {
 			return err
 		}
@@ -96,34 +96,34 @@ func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*O
 	return objectTypeSpec, nil
 }
 
-func (svc ObjectTypeService) List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, error) {
+func (svc ObjectTypeService) List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, *service.Cursor, *service.Cursor, error) {
 	objectTypeSpecs := make([]ObjectTypeSpec, 0)
-
-	objectTypes, err := svc.Repository.List(ctx, listParams)
+	objectTypes, prevCursor, nextCursor, err := svc.Repository.List(ctx, listParams)
 	if err != nil {
-		return objectTypeSpecs, err
+		return objectTypeSpecs, prevCursor, nextCursor, err
 	}
 
 	for _, objectType := range objectTypes {
 		objectTypeSpec, err := objectType.ToObjectTypeSpec()
 		if err != nil {
-			return nil, err
+			return nil, prevCursor, nextCursor, err
 		}
 
 		objectTypeSpecs = append(objectTypeSpecs, *objectTypeSpec)
 	}
 
-	return objectTypeSpecs, nil
+	return objectTypeSpecs, prevCursor, nextCursor, nil
 }
 
-func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, objectTypeSpec ObjectTypeSpec) (*ObjectTypeSpec, *wookie.Token, error) {
+func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, spec UpdateObjectTypeSpec) (*ObjectTypeSpec, *wookie.Token, error) {
 	var updatedObjectTypeSpec *ObjectTypeSpec
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
 		currentObjectType, err := svc.Repository.GetByTypeId(txCtx, typeId)
 		if err != nil {
 			return err
 		}
-		updateTo, err := objectTypeSpec.ToObjectType()
+
+		updateTo, err := spec.ToObjectType(typeId)
 		if err != nil {
 			return err
 		}

@@ -35,7 +35,11 @@ func (svc CheckService) Routes() ([]service.Route, error) {
 }
 
 func AuthorizeHandler(svc CheckService, w http.ResponseWriter, r *http.Request) error {
-	authInfo := service.GetAuthInfoFromRequestContext(r.Context())
+	authInfo, err := service.GetAuthInfoFromRequestContext(r.Context())
+	if err != nil {
+		return err
+	}
+
 	if authInfo != nil && authInfo.UserId != "" {
 		var sessionCheckManySpec SessionCheckManySpec
 		err := service.ParseJSONBody(r.Body, &sessionCheckManySpec)
@@ -73,7 +77,7 @@ func AuthorizeHandler(svc CheckService, w http.ResponseWriter, r *http.Request) 
 	}
 
 	var checkManySpec CheckManySpec
-	err := service.ParseJSONBody(r.Body, &checkManySpec)
+	err = service.ParseJSONBody(r.Body, &checkManySpec)
 	if err != nil {
 		return err
 	}

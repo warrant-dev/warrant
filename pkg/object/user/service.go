@@ -77,7 +77,7 @@ func (svc UserService) GetByUserId(ctx context.Context, userId string) (*UserSpe
 
 func (svc UserService) List(ctx context.Context, listParams service.ListParams) ([]UserSpec, error) {
 	userSpecs := make([]UserSpec, 0)
-	objectSpecs, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeUser}, listParams)
+	objectSpecs, _, _, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeUser}, listParams)
 	if err != nil {
 		return userSpecs, err
 	}

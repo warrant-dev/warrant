@@ -129,17 +129,3 @@ func (warrant Warrant) String() string {
 
 	return str
 }
-
-func StringToWarrant(warrantString string) (*Warrant, error) {
-	warrantSpec, err := StringToWarrantSpec(warrantString)
-	if err != nil {
-		return nil, err
-	}
-
-	warrant, err := warrantSpec.ToWarrant()
-	if err != nil {
-		return nil, err
-	}
-
-	return warrant, nil
-}

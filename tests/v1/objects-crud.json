@@ -1,0 +1,299 @@
+{
+    "ignoredFields": [
+        "createdAt"
+    ],
+    "tests": [
+        {
+            "name": "createObject1",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "test",
+                    "objectId": "first-object"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "test",
+                    "objectId": "first-object"
+                }
+            }
+        },
+        {
+            "name": "failToCreateObjectWithInvalidObjectType",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "test$$&-",
+                    "objectId": "second-object"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 400,
+                "body": {
+                    "code": "invalid_parameter",
+                    "parameter": "objectType",
+                    "message": "can only contain lower-case alphanumeric characters and/or '-' and '_'"
+                }
+            }
+        },
+        {
+            "name": "failToCreateObjectWithInvalidObjectId",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "test",
+                    "objectId": "second-object$$^"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 400,
+                "body": {
+                    "code": "invalid_parameter",
+                    "parameter": "objectId",
+                    "message": "can only contain alphanumeric characters and/or '-', '_', '@', ':', and '|'"
+                }
+            }
+        },
+        {
+            "name": "createObject2",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "test",
+                    "objectId": "second-object"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "test",
+                    "objectId": "second-object"
+                }
+            }
+        },
+        {
+            "name": "createObjectWithGeneratedId",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "test"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "test",
+                    "objectId": "{{ createObjectWithGeneratedId.objectId }}"
+                }
+            }
+        },
+        {
+            "name": "createObjectWithMetadata",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "test",
+                    "objectId": "third-object",
+                    "meta": {
+                        "myKey": "myVal"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "test",
+                    "objectId": "third-object",
+                    "meta": {
+                        "myKey": "myVal"
+                    }
+                }
+            }
+        },
+        {
+            "name": "createDuplicateObject2",
+            "request": {
+                "method": "POST",
+                "url": "/v1/objects",
+                "body": {
+                    "objectType": "test",
+                    "objectId": "second-object"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "test",
+                    "objectId": "second-object"
+                }
+            }
+        },
+        {
+            "name": "getObjectById",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects/test/first-object"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "test",
+                    "objectId": "first-object"
+                }
+            }
+        },
+        {
+            "name": "getObjects",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects?sortBy=createdAt&sortOrder=DESC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "objectType": "test",
+                        "objectId": "third-object",
+                        "meta": {
+                            "myKey": "myVal"
+                        }
+                    },
+                    {
+                        "objectType": "test",
+                        "objectId": "{{ createObjectWithGeneratedId.objectId }}"
+                    },
+                    {
+                        "objectType": "test",
+                        "objectId": "second-object"
+                    },
+                    {
+                        "objectType": "test",
+                        "objectId": "first-object"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "filterObjectsOnObjectId",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects?q=first-object"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "objectType": "test",
+                        "objectId": "first-object"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "filterObjectsOnMeta",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects?q=myVal"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "objectType": "test",
+                        "objectId": "third-object",
+                        "meta": {
+                            "myKey": "myVal"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "updateObjectWithMetadata",
+            "request": {
+                "method": "PUT",
+                "url": "/v1/objects/test/third-object",
+                "body": {
+                    "meta": {
+                        "myUpdatedKey": "myUpdatedValue"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "test",
+                    "objectId": "third-object",
+                    "meta": {
+                        "myUpdatedKey": "myUpdatedValue"
+                    }
+                }
+            }
+        },
+        {
+            "name": "getUpdatedObjectWithMetadata",
+            "request": {
+                "method": "GET",
+                "url": "/v1/objects/test/third-object"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "test",
+                    "objectId": "third-object",
+                    "meta": {
+                        "myUpdatedKey": "myUpdatedValue"
+                    }
+                }
+            }
+        },
+        {
+            "name": "deleteObject1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/test/first-object"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObject2",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/test/second-object"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectWithGeneratedId",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/test/{{ createObjectWithGeneratedId.objectId }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectWithMetadata",
+            "request": {
+                "method": "DELETE",
+                "url": "/v1/objects/test/third-object"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}
