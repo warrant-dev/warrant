@@ -69,7 +69,7 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 		}
 
 		// Unless objectId is wildcard, create referenced object if it does not already exist
-		if warrantSpec.ObjectId != "*" {
+		if warrantSpec.ObjectId != Wildcard {
 			objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(txCtx, warrantSpec.ObjectType, warrantSpec.ObjectId)
 			if err != nil {
 				var recordNotFoundError *service.RecordNotFoundError
@@ -92,24 +92,26 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 			}
 		}
 
-		// Create referenced subject if it does not already exist
-		objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(txCtx, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId)
-		if err != nil {
-			var recordNotFoundError *service.RecordNotFoundError
-			if !errors.As(err, &recordNotFoundError) {
-				return err
-			}
-		}
-
-		if objectSpec == nil {
-			_, err = svc.ObjectSvc.Create(txCtx, object.CreateObjectSpec{
-				ObjectType: warrantSpec.Subject.ObjectType,
-				ObjectId:   warrantSpec.Subject.ObjectId,
-			})
+		// Unless subject objectId is wildcard, create referenced subject if it does not already exist
+		if warrantSpec.Subject.ObjectId != Wildcard {
+			objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(txCtx, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId)
 			if err != nil {
-				var duplicateRecordError *service.DuplicateRecordError
-				if !errors.As(err, &duplicateRecordError) {
+				var recordNotFoundError *service.RecordNotFoundError
+				if !errors.As(err, &recordNotFoundError) {
 					return err
+				}
+			}
+
+			if objectSpec == nil {
+				_, err = svc.ObjectSvc.Create(txCtx, object.CreateObjectSpec{
+					ObjectType: warrantSpec.Subject.ObjectType,
+					ObjectId:   warrantSpec.Subject.ObjectId,
+				})
+				if err != nil {
+					var duplicateRecordError *service.DuplicateRecordError
+					if !errors.As(err, &duplicateRecordError) {
+						return err
+					}
 				}
 			}
 		}
