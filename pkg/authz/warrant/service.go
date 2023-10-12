@@ -69,7 +69,7 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 		}
 
 		// Unless objectId is wildcard, create referenced object if it does not already exist
-		if warrantSpec.ObjectId != "*" {
+		if warrantSpec.ObjectId != Wildcard {
 			objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(txCtx, warrantSpec.ObjectType, warrantSpec.ObjectId)
 			if err != nil {
 				var recordNotFoundError *service.RecordNotFoundError
@@ -93,7 +93,7 @@ func (svc WarrantService) Create(ctx context.Context, warrantSpec WarrantSpec) (
 		}
 
 		// Unless subject objectId is wildcard, create referenced subject if it does not already exist
-		if warrantSpec.Subject.ObjectId != "*" {
+		if warrantSpec.Subject.ObjectId != Wildcard {
 			objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(txCtx, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId)
 			if err != nil {
 				var recordNotFoundError *service.RecordNotFoundError
