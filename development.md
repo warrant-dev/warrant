@@ -86,5 +86,5 @@ In a separate shell, run the tests:
 
 ```shell
 cd tests/
-apirunner .
+apirunner . '.*'
 ```

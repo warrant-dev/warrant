@@ -58,7 +58,7 @@ jobs:
       - name: Run apirunner tests
         run: |
           sleep 3
-          apirunner tests/ tests/ci-apirunner.conf
+          apirunner tests/ '.*' tests/ci-apirunner.conf
       - name: Shutdown test server
         if: success() || (failure() && steps.start-server.outcome == 'success')
         run: kill -9 `lsof -i:8000 -t`
