@@ -122,9 +122,17 @@ func (svc EventService) TrackResourceEvent(ctx context.Context, resourceEventSpe
 
 	if !svc.SynchronizeEvents {
 		go func() {
+			// Panics during event sending should not crash program
+			defer func() {
+				if err := recover(); err != nil {
+					log.Error().Msgf("event: panic: %v", err)
+				}
+			}()
+
 			resourceEvent, err := resourceEventSpec.ToResourceEvent()
 			if err != nil {
 				log.Ctx(ctx).Err(err).Msgf("event: error tracking resource event %s", resourceEventSpec.Type)
+				return
 			}
 
 			err = svc.Repository.TrackResourceEvent(eventCtx, *resourceEvent)
@@ -132,6 +140,7 @@ func (svc EventService) TrackResourceEvent(ctx context.Context, resourceEventSpe
 				log.Ctx(ctx).Err(err).Msgf("event: error tracking resource event %s", resourceEvent.Type)
 			}
 		}()
+
 		return nil
 	}
 
@@ -151,11 +160,19 @@ func (svc EventService) TrackResourceEvents(ctx context.Context, resourceEventSp
 
 	if !svc.SynchronizeEvents {
 		go func() {
+			// Panics during event sending should not crash program
+			defer func() {
+				if err := recover(); err != nil {
+					log.Error().Msgf("event: panic: %v", err)
+				}
+			}()
+
 			resourceEvents := make([]ResourceEventModel, 0)
 			for _, resourceEventSpec := range resourceEventSpecs {
 				resourceEvent, err := resourceEventSpec.ToResourceEvent()
 				if err != nil {
-					log.Ctx(ctx).Err(err).Msgf("event: error tracking resource events")
+					log.Ctx(ctx).Err(err).Msgf("event: error tracking resource event %s", resourceEventSpec.Type)
+					continue
 				}
 
 				resourceEvents = append(resourceEvents, *resourceEvent)
@@ -166,6 +183,7 @@ func (svc EventService) TrackResourceEvents(ctx context.Context, resourceEventSp
 				log.Ctx(ctx).Err(err).Msgf("event: error tracking resource events")
 			}
 		}()
+
 		return nil
 	}
 
@@ -265,9 +283,17 @@ func (svc EventService) TrackAccessEvent(ctx context.Context, accessEventSpec Cr
 
 	if !svc.SynchronizeEvents {
 		go func() {
+			// Panics during event sending should not crash program
+			defer func() {
+				if err := recover(); err != nil {
+					log.Error().Msgf("event: panic: %v", err)
+				}
+			}()
+
 			accessEvent, err := accessEventSpec.ToAccessEvent()
 			if err != nil {
-				log.Ctx(ctx).Err(err).Msgf("event: error tracking access event %s", accessEvent.Type)
+				log.Ctx(ctx).Err(err).Msgf("event: error tracking access event %s", accessEventSpec.Type)
+				return
 			}
 
 			err = svc.Repository.TrackAccessEvent(eventCtx, *accessEvent)
@@ -275,6 +301,7 @@ func (svc EventService) TrackAccessEvent(ctx context.Context, accessEventSpec Cr
 				log.Ctx(ctx).Err(err).Msgf("event: error tracking access event %s", accessEvent.Type)
 			}
 		}()
+
 		return nil
 	}
 
@@ -294,11 +321,19 @@ func (svc EventService) TrackAccessEvents(ctx context.Context, accessEventSpecs 
 
 	if !svc.SynchronizeEvents {
 		go func() {
+			// Panics during event sending should not crash program
+			defer func() {
+				if err := recover(); err != nil {
+					log.Error().Msgf("event: panic: %v", err)
+				}
+			}()
+
 			accessEvents := make([]AccessEventModel, 0)
 			for _, accessEventSpec := range accessEventSpecs {
 				accessEvent, err := accessEventSpec.ToAccessEvent()
 				if err != nil {
-					log.Ctx(ctx).Err(err).Msg("event: error tracking access events")
+					log.Ctx(ctx).Err(err).Msgf("event: error tracking access event %s", accessEventSpec.Type)
+					continue
 				}
 
 				accessEvents = append(accessEvents, *accessEvent)
@@ -309,6 +344,7 @@ func (svc EventService) TrackAccessEvents(ctx context.Context, accessEventSpecs 
 				log.Ctx(ctx).Err(err).Msg("event: error tracking access events")
 			}
 		}()
+
 		return nil
 	}
 

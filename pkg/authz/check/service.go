@@ -16,9 +16,11 @@ package authz
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
@@ -379,6 +381,15 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 	defer cancelFunc()
 
 	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				resultsC <- result{
+					Matched: false,
+					Err:     errors.New(fmt.Sprintf("check: panic: %v", err)),
+				}
+			}
+		}()
+
 		svc.check(0, pipeline, childCtx, warrantCheck, make([]warrant.WarrantSpec, 0), resultsC)
 	}()
 
@@ -708,6 +719,15 @@ func (p *pipeline) execTasks(ctx context.Context, parentResultC chan<- result, t
 	childResultC := make(chan result, len(tasks))
 
 	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				parentResultC <- result{
+					Matched: false,
+					Err:     errors.New(fmt.Sprintf("check: panic: %v", err)),
+				}
+			}
+		}()
+
 		// Monitor task results, short-circuit as needed
 		defer childCtxCancelFunc()
 		resultsReceived := 0
@@ -732,8 +752,15 @@ func (p *pipeline) execTasks(ctx context.Context, parentResultC chan<- result, t
 		case p.subtaskSemaphore <- struct{}{}:
 			go func() {
 				defer func() {
+					if err := recover(); err != nil {
+						childResultC <- result{
+							Matched: false,
+							Err:     errors.New(fmt.Sprintf("check: panic: %v", err)),
+						}
+					}
 					<-p.subtaskSemaphore
 				}()
+
 				task(childContext, childResultC)
 			}()
 		default:
