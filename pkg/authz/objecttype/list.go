@@ -21,7 +21,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const primarySortKey = "typeId"
+const PrimarySortKey = "typeId"
 
 type ObjectTypeListParamParser struct{}
 

@@ -86,7 +86,7 @@ func (svc QueryService) Query(ctx context.Context, query *Query, listParams serv
 
 	// handle sorting and pagination
 	switch listParams.SortBy {
-	case primarySortKey:
+	case PrimarySortKey:
 		switch listParams.SortOrder {
 		case service.SortOrderAsc:
 			sort.Sort(ByObjectTypeAndObjectIdAsc(queryResults))
@@ -145,7 +145,7 @@ func (svc QueryService) Query(ctx context.Context, query *Query, listParams serv
 	if start > 0 {
 		var value interface{} = nil
 		switch listParams.SortBy {
-		case primarySortKey:
+		case PrimarySortKey:
 			// do nothing
 		case "createdAt":
 			value = queryResults[start].Warrant.CreatedAt
@@ -160,7 +160,7 @@ func (svc QueryService) Query(ctx context.Context, query *Query, listParams serv
 	if end < len(queryResults) {
 		var value interface{} = nil
 		switch listParams.SortBy {
-		case primarySortKey:
+		case PrimarySortKey:
 			// do nothing
 		case "createdAt":
 			value = queryResults[end].Warrant.CreatedAt

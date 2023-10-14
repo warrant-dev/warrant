@@ -91,7 +91,7 @@ type Source struct {
 	DatabaseType string           `json:"dbType"                validate:"required"`
 	DatabaseName string           `json:"dbName"                validate:"required"`
 	Table        string           `json:"table"                 validate:"required"`
-	PrimaryKey   []string         `json:"primarySortKey"        validate:"min=1"`
+	PrimaryKey   []string         `json:"primaryKey"            validate:"min=1"`
 	ForeignKeys  []ForeignKeySpec `json:"foreignKeys,omitempty"`
 }
 

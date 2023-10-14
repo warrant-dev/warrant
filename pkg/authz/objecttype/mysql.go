@@ -153,7 +153,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 
 	if listParams.Query != nil {
 		searchTermReplacement := fmt.Sprintf("%%%s%%", *listParams.Query)
-		query = fmt.Sprintf("%s AND %s LIKE ?", query, "typeId")
+		query = fmt.Sprintf("%s AND typeId LIKE ?", query)
 		replacements = append(replacements, searchTermReplacement, searchTermReplacement)
 	}
 
@@ -166,30 +166,30 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 		switch listParams.NextCursor.Value() {
 		case nil:
 			//nolint:gocritic
-			if listParams.SortBy == primarySortKey {
-				query = fmt.Sprintf("%s AND %s %s ?", query, primarySortKey, comparisonOp)
+			if listParams.SortBy == PrimarySortKey {
+				query = fmt.Sprintf("%s AND %s %s ?", query, PrimarySortKey, comparisonOp)
 				replacements = append(replacements, listParams.NextCursor.ID())
 			} else if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, listParams.SortBy, primarySortKey, comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, listParams.SortBy, PrimarySortKey, comparisonOp, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.NextCursor.ID(),
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, primarySortKey, comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, PrimarySortKey, comparisonOp, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.NextCursor.ID(),
 				)
 			}
 		default:
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, primarySortKey, comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, PrimarySortKey, comparisonOp, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.NextCursor.Value(),
 					listParams.NextCursor.ID(),
 					listParams.NextCursor.Value(),
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, listParams.SortBy, primarySortKey, comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, listParams.SortBy, PrimarySortKey, comparisonOp, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.NextCursor.Value(),
 					listParams.NextCursor.ID(),
@@ -208,30 +208,30 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 		switch listParams.PrevCursor.Value() {
 		case nil:
 			//nolint:gocritic
-			if listParams.SortBy == primarySortKey {
-				query = fmt.Sprintf("%s AND %s %s ?", query, primarySortKey, comparisonOp)
+			if listParams.SortBy == PrimarySortKey {
+				query = fmt.Sprintf("%s AND %s %s ?", query, PrimarySortKey, comparisonOp)
 				replacements = append(replacements, listParams.PrevCursor.ID())
 			} else if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, primarySortKey, comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? AND %s IS NULL)", query, PrimarySortKey, comparisonOp, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.PrevCursor.ID(),
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, listParams.SortBy, primarySortKey, comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s IS NOT NULL OR (%s %s ? AND %s IS NULL))", query, listParams.SortBy, PrimarySortKey, comparisonOp, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.PrevCursor.ID(),
 				)
 			}
 		default:
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, listParams.SortBy, primarySortKey, comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? OR %s IS NULL OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, listParams.SortBy, PrimarySortKey, comparisonOp, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.PrevCursor.Value(),
 					listParams.PrevCursor.ID(),
 					listParams.PrevCursor.Value(),
 				)
 			} else {
-				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, primarySortKey, comparisonOp, listParams.SortBy)
+				query = fmt.Sprintf("%s AND (%s %s ? OR (%s %s ? AND %s = ?))", query, listParams.SortBy, comparisonOp, PrimarySortKey, comparisonOp, listParams.SortBy)
 				replacements = append(replacements,
 					listParams.PrevCursor.Value(),
 					listParams.PrevCursor.ID(),
@@ -242,15 +242,15 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 	}
 
 	if listParams.PrevCursor != nil {
-		if listParams.SortBy != primarySortKey {
+		if listParams.SortBy != PrimarySortKey {
 			if listParams.SortOrder == service.SortOrderAsc {
-				query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, listParams.SortBy, service.SortOrderDesc, primarySortKey, service.SortOrderDesc)
+				query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, listParams.SortBy, service.SortOrderDesc, PrimarySortKey, service.SortOrderDesc)
 				replacements = append(replacements, listParams.Limit+1)
 			} else {
-				query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, listParams.SortBy, service.SortOrderAsc, primarySortKey, service.SortOrderAsc)
+				query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, listParams.SortBy, service.SortOrderAsc, PrimarySortKey, service.SortOrderAsc)
 				replacements = append(replacements, listParams.Limit+1)
 			}
-			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s, %s %s", query, listParams.SortBy, listParams.SortOrder, primarySortKey, listParams.SortOrder)
+			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s, %s %s", query, listParams.SortBy, listParams.SortOrder, PrimarySortKey, listParams.SortOrder)
 		} else {
 			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, listParams.SortBy, service.SortOrderDesc)
@@ -262,11 +262,11 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s", query, listParams.SortBy, listParams.SortOrder)
 		}
 	} else {
-		if listParams.SortBy != primarySortKey {
-			query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, listParams.SortBy, listParams.SortOrder, primarySortKey, listParams.SortOrder)
+		if listParams.SortBy != PrimarySortKey {
+			query = fmt.Sprintf("%s ORDER BY %s %s, %s %s LIMIT ?", query, listParams.SortBy, listParams.SortOrder, PrimarySortKey, listParams.SortOrder)
 			replacements = append(replacements, listParams.Limit+1)
 		} else {
-			query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, primarySortKey, listParams.SortOrder)
+			query = fmt.Sprintf("%s ORDER BY %s %s LIMIT ?", query, PrimarySortKey, listParams.SortOrder)
 			replacements = append(replacements, listParams.Limit+1)
 		}
 	}
@@ -281,7 +281,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 		if errors.Is(err, sql.ErrNoRows) {
 			return models, nil, nil, nil
 		}
-		return nil, nil, nil, errors.Wrap(err, "error listing warrants")
+		return nil, nil, nil, errors.Wrap(err, "error listing object types")
 	}
 
 	if len(objectTypes) == 0 {
@@ -298,7 +298,7 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 	var firstValue interface{} = nil
 	var lastValue interface{} = nil
 	switch listParams.SortBy {
-	case primarySortKey:
+	case PrimarySortKey:
 		// do nothing
 	case "createdAt":
 		firstValue = firstElem.GetCreatedAt()

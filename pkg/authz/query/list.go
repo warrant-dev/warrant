@@ -16,13 +16,12 @@ package authz
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
 )
 
-const primarySortKey = "id"
+const PrimarySortKey = "id"
 
 type QueryListParamParser struct{}
 
@@ -36,13 +35,6 @@ func (parser QueryListParamParser) GetSupportedSortBys() []string {
 
 func (parser QueryListParamParser) ParseValue(val string, sortBy string) (interface{}, error) {
 	switch sortBy {
-	case "id":
-		value, err := strconv.ParseInt(val, 10, 64)
-		if err != nil || value == 0 {
-			return nil, errors.New("must be a valid value")
-		}
-
-		return &value, nil
 	//nolint:goconst
 	case "createdAt":
 		value, err := time.Parse(time.RFC3339, val)

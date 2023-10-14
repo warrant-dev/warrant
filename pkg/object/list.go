@@ -21,7 +21,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const primarySortKey = "objectId"
+const PrimarySortKey = "objectId"
 
 var supportedSortBys = []string{"objectId", "createdAt", "objectType"}
 

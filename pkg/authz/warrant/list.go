@@ -16,7 +16,6 @@ package authz
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -66,7 +65,7 @@ func (fp FilterParams) String() string {
 	return strings.TrimPrefix(s, "&")
 }
 
-const primarySortKey = "id"
+const PrimarySortKey = "id"
 
 type WarrantListParamParser struct{}
 
@@ -82,13 +81,6 @@ func (parser WarrantListParamParser) GetSupportedSortBys() []string {
 func (parser WarrantListParamParser) ParseValue(val string, sortBy string) (interface{}, error) {
 	// TODO: add support for more sortBy columns
 	switch sortBy {
-	case "id":
-		value, err := strconv.ParseInt(val, 10, 64)
-		if err != nil || value == 0 {
-			return nil, errors.New("must be a valid value")
-		}
-
-		return &value, nil
 	case "createdAt":
 		value, err := time.Parse(time.RFC3339, val)
 		if err != nil || value.Equal(time.Time{}) {

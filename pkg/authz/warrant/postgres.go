@@ -201,7 +201,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterParams FilterPara
 			deleted_at IS NULL
 	`
 	replacements := []interface{}{}
-	primarySortKeyColumn := sortRegexp.ReplaceAllString(primarySortKey, `_$1`)
+	primarySortKeyColumn := sortRegexp.ReplaceAllString(PrimarySortKey, `_$1`)
 	sortByColumn := sortRegexp.ReplaceAllString(listParams.SortBy, `_$1`)
 
 	if len(filterParams.ObjectType) > 0 {
@@ -266,7 +266,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterParams FilterPara
 		switch listParams.NextCursor.Value() {
 		case nil:
 			//nolint:gocritic
-			if listParams.SortBy == primarySortKey {
+			if listParams.SortBy == PrimarySortKey {
 				query = fmt.Sprintf("%s AND %s %s ?", query, primarySortKeyColumn, comparisonOp)
 				replacements = append(replacements, listParams.NextCursor.ID())
 			} else if listParams.SortOrder == service.SortOrderAsc {
@@ -308,7 +308,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterParams FilterPara
 		switch listParams.PrevCursor.Value() {
 		case nil:
 			//nolint:gocritic
-			if listParams.SortBy == primarySortKey {
+			if listParams.SortBy == PrimarySortKey {
 				query = fmt.Sprintf("%s AND %s %s ?", query, primarySortKeyColumn, comparisonOp)
 				replacements = append(replacements, listParams.PrevCursor.ID())
 			} else if listParams.SortOrder == service.SortOrderAsc {
@@ -349,7 +349,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterParams FilterPara
 	}
 
 	if listParams.PrevCursor != nil {
-		if listParams.SortBy != primarySortKey {
+		if listParams.SortBy != PrimarySortKey {
 			if listParams.SortOrder == service.SortOrderAsc {
 				query = fmt.Sprintf("%s ORDER BY %s %s %s, %s %s LIMIT ?", query, sortByColumn, service.SortOrderDesc, invertedNullSortClause, primarySortKeyColumn, service.SortOrderDesc)
 				replacements = append(replacements, listParams.Limit+1)
@@ -369,7 +369,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterParams FilterPara
 			query = fmt.Sprintf("With result_set AS (%s) SELECT * FROM result_set ORDER BY %s %s %s", query, sortByColumn, listParams.SortOrder, nullSortClause)
 		}
 	} else {
-		if listParams.SortBy != primarySortKey {
+		if listParams.SortBy != PrimarySortKey {
 			query = fmt.Sprintf("%s ORDER BY %s %s %s, %s %s LIMIT ?", query, sortByColumn, listParams.SortOrder, nullSortClause, primarySortKeyColumn, listParams.SortOrder)
 			replacements = append(replacements, listParams.Limit+1)
 		} else {
@@ -405,7 +405,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterParams FilterPara
 	var firstValue interface{} = nil
 	var lastValue interface{} = nil
 	switch listParams.SortBy {
-	case primarySortKey:
+	case PrimarySortKey:
 		// do nothing
 	case "createdAt":
 		firstValue = firstElem.GetCreatedAt()
