@@ -1231,10 +1231,10 @@
             }
         },
         {
-            "name": "selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDesc",
+            "name": "selectDocumentsWhereUserU4IsViewerLimit3SortOrderDesc",
             "request": {
                 "method": "GET",
-                "url": "/v1/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortBy=objectType&sortOrder=DESC"
+                "url": "/v1/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortOrder=DESC"
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1284,15 +1284,15 @@
                             "isImplicit": true
                         }
                     ],
-                    "lastId": "{{ selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDesc.lastId }}"
+                    "lastId": "{{ selectDocumentsWhereUserU4IsViewerLimit3SortOrderDesc.lastId }}"
                 }
             }
         },
         {
-            "name": "selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDescAfterId",
+            "name": "selectDocumentsWhereUserU4IsViewerLimit3SortOrderDescAfterId1",
             "request": {
                 "method": "GET",
-                "url": "/v1/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortBy=objectType&sortOrder=DESC&afterId={{ selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDesc.lastId }}"
+                "url": "/v1/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortOrder=DESC&afterId={{ selectDocumentsWhereUserU4IsViewerLimit3SortOrderDesc.lastId }}"
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1346,15 +1346,15 @@
                             "isImplicit": true
                         }
                     ],
-                    "lastId": "{{ selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDescAfterId.lastId }}"
+                    "lastId": "{{ selectDocumentsWhereUserU4IsViewerLimit3SortOrderDescAfterId1.lastId }}"
                 }
             }
         },
         {
-            "name": "selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDescAfterId2",
+            "name": "selectDocumentsWhereUserU4IsViewerLimit3SortOrderDescAfterId2",
             "request": {
                 "method": "GET",
-                "url": "/v1/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortBy=objectType&sortOrder=DESC&afterId={{ selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDescAfterId.lastId }}"
+                "url": "/v1/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortOrder=DESC&afterId={{ selectDocumentsWhereUserU4IsViewerLimit3SortOrderDescAfterId1.lastId }}"
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1407,10 +1407,10 @@
             }
         },
         {
-            "name": "selectMembersOrViewersOfTypeUserLimit3SortByObjectIdDesc",
+            "name": "selectMembersOrViewersOfTypeUserLimit3SortOrderDesc",
             "request": {
                 "method": "GET",
-                "url": "/v1/query?q=select%20member%2Cviewer%20of%20type%20user&limit=3&sortBy=objectId&sortOrder=DESC"
+                "url": "/v1/query?q=select%20member%2Cviewer%20of%20type%20user&limit=3&sortOrder=DESC"
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1459,15 +1459,15 @@
                             "isImplicit": true
                         }
                     ],
-                    "lastId": "{{ selectMembersOrViewersOfTypeUserLimit3SortByObjectIdDesc.lastId }}"
+                    "lastId": "{{ selectMembersOrViewersOfTypeUserLimit3SortOrderDesc.lastId }}"
                 }
             }
         },
         {
-            "name": "selectMembersOrViewersOfTypeUserLimit3SortByObjectIdDescAfterId",
+            "name": "selectMembersOrViewersOfTypeUserLimit3SortOrderDescAfterId1",
             "request": {
                 "method": "GET",
-                "url": "/v1/query?q=select%20member%2Cviewer%20of%20type%20user&limit=3&sortBy=objectId&sortOrder=DESC&lastId={{ selectMembersOrViewersOfTypeUserLimit3SortByObjectIdDesc.lastId }}"
+                "url": "/v1/query?q=select%20member%2Cviewer%20of%20type%20user&limit=3&sortOrder=DESC&lastId={{ selectMembersOrViewersOfTypeUserLimit3SortOrderDesc.lastId }}"
             },
             "expectedResponse": {
                 "statusCode": 200,

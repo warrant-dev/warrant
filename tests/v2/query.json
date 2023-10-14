@@ -1231,10 +1231,10 @@
             }
         },
         {
-            "name": "selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDesc",
+            "name": "selectDocumentsWhereUserU4IsViewerLimit3SortOrderDesc",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortBy=objectType&sortOrder=DESC"
+                "url": "/v2/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortOrder=DESC"
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1284,15 +1284,15 @@
                             "isImplicit": true
                         }
                     ],
-                    "lastId": "{{ selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDesc.lastId }}"
+                    "nextCursor": "{{ selectDocumentsWhereUserU4IsViewerLimit3SortOrderDesc.nextCursor }}"
                 }
             }
         },
         {
-            "name": "selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDescAfterId",
+            "name": "selectDocumentsWhereUserU4IsViewerLimit3SortOrderDescNextCursor1",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortBy=objectType&sortOrder=DESC&afterId={{ selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDesc.lastId }}"
+                "url": "/v2/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortOrder=DESC&nextCursor={{ selectDocumentsWhereUserU4IsViewerLimit3SortOrderDesc.nextCursor }}"
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1346,15 +1346,16 @@
                             "isImplicit": true
                         }
                     ],
-                    "lastId": "{{ selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDescAfterId.lastId }}"
+                    "prevCursor": "{{ selectDocumentsWhereUserU4IsViewerLimit3SortOrderDescNextCursor1.prevCursor }}",
+                    "nextCursor": "{{ selectDocumentsWhereUserU4IsViewerLimit3SortOrderDescNextCursor1.nextCursor }}"
                 }
             }
         },
         {
-            "name": "selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDescAfterId2",
+            "name": "selectDocumentsWhereUserU4IsViewerLimit3SortOrderDescNextCursor2",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortBy=objectType&sortOrder=DESC&afterId={{ selectDocumentsWhereUserU4IsViewerLimit3SortByObjectTypeDescAfterId.lastId }}"
+                "url": "/v2/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortOrder=DESC&nextCursor={{ selectDocumentsWhereUserU4IsViewerLimit3SortOrderDescNextCursor1.nextCursor }}"
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1402,15 +1403,16 @@
                             },
                             "isImplicit": true
                         }
-                    ]
+                    ],
+                    "prevCursor": "{{ selectDocumentsWhereUserU4IsViewerLimit3SortOrderDescNextCursor2.prevCursor }}"
                 }
             }
         },
         {
-            "name": "selectMembersOrViewersOfTypeUserLimit3SortByObjectIdDesc",
+            "name": "selectMembersOrViewersOfTypeUserLimit3SortOrderDesc",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20member%2Cviewer%20of%20type%20user&limit=3&sortBy=objectId&sortOrder=DESC"
+                "url": "/v2/query?q=select%20member%2Cviewer%20of%20type%20user&limit=3&sortOrder=DESC"
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1459,15 +1461,15 @@
                             "isImplicit": true
                         }
                     ],
-                    "lastId": "{{ selectMembersOrViewersOfTypeUserLimit3SortByObjectIdDesc.lastId }}"
+                    "nextCursor": "{{ selectMembersOrViewersOfTypeUserLimit3SortOrderDesc.nextCursor }}"
                 }
             }
         },
         {
-            "name": "selectMembersOrViewersOfTypeUserLimit3SortByObjectIdDescAfterId",
+            "name": "selectMembersOrViewersOfTypeUserLimit3SortOrderDescNextCursor1",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20member%2Cviewer%20of%20type%20user&limit=3&sortBy=objectId&sortOrder=DESC&lastId={{ selectMembersOrViewersOfTypeUserLimit3SortByObjectIdDesc.lastId }}"
+                "url": "/v2/query?q=select%20member%2Cviewer%20of%20type%20user&limit=3&sortOrder=DESC&nextCursor={{ selectMembersOrViewersOfTypeUserLimit3SortOrderDesc.nextCursor }}"
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1487,7 +1489,180 @@
                             },
                             "isImplicit": true
                         }
-                    ]
+                    ],
+                    "prevCursor": "{{ selectMembersOrViewersOfTypeUserLimit3SortOrderDescNextCursor1.prevCursor }}"
+                }
+            }
+        },
+        {
+            "name": "selectMembersOrViewersOfTypeUserLimit3SortOrderDescPrevCursor1",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20member%2Cviewer%20of%20type%20user&limit=3&sortOrder=DESC&prevCursor={{ selectMembersOrViewersOfTypeUserLimit3SortOrderDescNextCursor1.prevCursor }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "user",
+                            "objectId": "U4",
+                            "warrant": {
+                                "objectType": "role",
+                                "objectId": "admin",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "U4"
+                                }
+                            },
+                            "isImplicit": false
+                        },
+                        {
+                            "objectType": "user",
+                            "objectId": "U3",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "F3",
+                                "relation": "viewer",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "U3"
+                                }
+                            },
+                            "isImplicit": false
+                        },
+                        {
+                            "objectType": "user",
+                            "objectId": "U2",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "F2",
+                                "relation": "editor",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "U2"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ],
+                    "nextCursor": "{{ selectMembersOrViewersOfTypeUserLimit3SortOrderDesc.nextCursor }}"
+                }
+            }
+        },
+        {
+            "name": "selectParentsOfTypeDocumentLimit2SortByCreatedAtAsc",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20parent%20of%20type%20document&limit=2&sortBy=createdAt&sortOrder=ASC"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "document",
+                            "objectId": "F1",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "D1",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "document",
+                                    "objectId": "F1"
+                                }
+                            },
+                            "isImplicit": false
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "F2",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "D2",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "document",
+                                    "objectId": "F2"
+                                }
+                            },
+                            "isImplicit": false
+                        }
+                    ],
+                    "nextCursor": "{{ selectParentsOfTypeDocumentLimit2SortByCreatedAtAsc.nextCursor }}"
+                }
+            }
+        },
+        {
+            "name": "selectParentsOfTypeDocumentLimit2SortByCreatedAtAscNextCursor1",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20parent%20of%20type%20document&limit=2&sortBy=createdAt&sortOrder=ASC&nextCursor={{ selectParentsOfTypeDocumentLimit2SortByCreatedAtAsc.nextCursor }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "document",
+                            "objectId": "F3",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "D4",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "document",
+                                    "objectId": "F3"
+                                }
+                            },
+                            "isImplicit": false
+                        }
+                    ],
+                    "prevCursor": "{{ selectParentsOfTypeDocumentLimit2SortByCreatedAtAscNextCursor1.prevCursor }}"
+                }
+            }
+        },
+        {
+            "name": "selectParentsOfTypeDocumentLimit2SortByCreatedAtAscPrevCursor1",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20parent%20of%20type%20document&limit=2&sortBy=createdAt&sortOrder=ASC&prevCursor={{ selectParentsOfTypeDocumentLimit2SortByCreatedAtAscNextCursor1.prevCursor }}"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "document",
+                            "objectId": "F1",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "D1",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "document",
+                                    "objectId": "F1"
+                                }
+                            },
+                            "isImplicit": false
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "F2",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "D2",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "document",
+                                    "objectId": "F2"
+                                }
+                            },
+                            "isImplicit": false
+                        }
+                    ],
+                    "nextCursor": "{{ selectParentsOfTypeDocumentLimit2SortByCreatedAtAsc.nextCursor }}"
                 }
             }
         },

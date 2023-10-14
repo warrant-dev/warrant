@@ -19,8 +19,8 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 
-	"github.com/rs/zerolog/log"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	object "github.com/warrant-dev/warrant/pkg/object"
@@ -50,19 +50,19 @@ func NewService(env service.Env, objectTypeSvc objecttype.Service, warrantSvc wa
 	}
 }
 
-func (svc QueryService) Query(ctx context.Context, query *Query, listParams service.ListParams) (*Result, error) {
-	queryResults := []QueryResult{}
+func (svc QueryService) Query(ctx context.Context, query *Query, listParams service.ListParams) ([]QueryResult, *service.Cursor, *service.Cursor, error) {
+	queryResults := make([]QueryResult, 0)
 	resultMap := make(map[string]int)
-	objects := make(map[string][]string, 0)
+	objects := make(map[string][]string)
 	selectedObjectTypes := make(map[string]bool)
 
 	if (query.SelectObjects == nil && query.SelectSubjects == nil) || (query.SelectObjects != nil && query.SelectSubjects != nil) {
-		return nil, ErrInvalidQuery
+		return nil, nil, nil, ErrInvalidQuery
 	}
 
 	resultSet, err := svc.query(ctx, query)
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, err
 	}
 
 	for res := resultSet.List(); res != nil; res = res.Next() {
@@ -73,7 +73,7 @@ func (svc QueryService) Query(ctx context.Context, query *Query, listParams serv
 		} else if query.SelectSubjects != nil {
 			isImplicit = !matches(query.SelectSubjects.SubjectTypes, res.Warrant.Subject.ObjectType) || !matches(query.SelectSubjects.Relations, res.Warrant.Relation)
 		} else {
-			return nil, ErrInvalidQuery
+			return nil, nil, nil, ErrInvalidQuery
 		}
 
 		queryResults = append(queryResults, QueryResult{
@@ -86,63 +86,105 @@ func (svc QueryService) Query(ctx context.Context, query *Query, listParams serv
 
 	// handle sorting and pagination
 	switch listParams.SortBy {
-	case "objectType":
+	case primarySortKey:
 		switch listParams.SortOrder {
 		case service.SortOrderAsc:
-			sort.Sort(ByObjectTypeAsc(queryResults))
+			sort.Sort(ByObjectTypeAndObjectIdAsc(queryResults))
 		case service.SortOrderDesc:
-			sort.Sort(ByObjectTypeDesc(queryResults))
+			sort.Sort(ByObjectTypeAndObjectIdDesc(queryResults))
 		}
-	case "objectId":
+	case "createdAt":
 		switch listParams.SortOrder {
 		case service.SortOrderAsc:
-			sort.Sort(ByObjectIdAsc(queryResults))
+			sort.Sort(ByCreatedAtAsc(queryResults))
 		case service.SortOrderDesc:
-			sort.Sort(ByObjectIdDesc(queryResults))
+			sort.Sort(ByCreatedAtDesc(queryResults))
 		}
 	default:
-		return nil, ErrInvalidQuery
+		return nil, nil, nil, ErrInvalidQuery
 	}
 
-	index := 0
-	// skip ahead if lastId passed in
-	if listParams.NextCursor != nil {
-		lastIdSpec, err := StringToLastIdSpec(listParams.NextCursor.ID())
+	var (
+		prevCursor *service.Cursor
+		nextCursor *service.Cursor
+		start      int
+		end        int
+	)
+	paginatedQueryResults := make([]QueryResult, 0)
+	//nolint:gocritic
+	if listParams.NextCursor != nil { // seek forward if NextCursor passed in
+		lastObjectType, lastObjectId, err := objectTypeAndObjectIdFromCursor(listParams.NextCursor)
 		if err != nil {
-			return nil, err
+			return nil, nil, nil, service.NewInvalidParameterError("nextCursor", "invalid cursor")
 		}
 
-		for index < len(queryResults) && (queryResults[index].ObjectType != lastIdSpec.ObjectType || queryResults[index].ObjectId != lastIdSpec.ObjectId) {
-			index++
+		start = 0
+		for start < len(queryResults) && (queryResults[start].ObjectType != lastObjectType || queryResults[start].ObjectId != lastObjectId) {
+			start++
 		}
+
+		end = start + listParams.Limit
+	} else if listParams.PrevCursor != nil { // seek backward if PrevCursor passed in
+		lastObjectType, lastObjectId, err := objectTypeAndObjectIdFromCursor(listParams.PrevCursor)
+		if err != nil {
+			return nil, nil, nil, service.NewInvalidParameterError("prevCursor", "invalid cursor")
+		}
+
+		end = len(queryResults) - 1
+		for end > 0 && (queryResults[end].ObjectType != lastObjectType || queryResults[end].ObjectId != lastObjectId) {
+			end--
+		}
+
+		start = end - listParams.Limit
+	} else {
+		start = 0
+		end = start + listParams.Limit
 	}
 
-	paginatedQueryResults := []QueryResult{}
-	for len(paginatedQueryResults) < listParams.Limit && index < len(queryResults) {
-		paginatedQueryResult := queryResults[index]
+	// if there are more results backward
+	if start > 0 {
+		var value interface{} = nil
+		switch listParams.SortBy {
+		case primarySortKey:
+			// do nothing
+		case "createdAt":
+			value = queryResults[start].Warrant.CreatedAt
+		default:
+			value = queryResults[start].Meta[listParams.SortBy]
+		}
+
+		prevCursor = service.NewCursor(objectKey(queryResults[start].ObjectType, queryResults[start].ObjectId), value)
+	}
+
+	// if there are more results forward
+	if end < len(queryResults) {
+		var value interface{} = nil
+		switch listParams.SortBy {
+		case primarySortKey:
+			// do nothing
+		case "createdAt":
+			value = queryResults[end].Warrant.CreatedAt
+		default:
+			value = queryResults[end].Meta[listParams.SortBy]
+		}
+
+		nextCursor = service.NewCursor(objectKey(queryResults[end].ObjectType, queryResults[end].ObjectId), value)
+	}
+
+	for start < end && start < len(queryResults) {
+		paginatedQueryResult := queryResults[start]
 		paginatedQueryResults = append(paginatedQueryResults, paginatedQueryResult)
 		selectedObjectTypes[paginatedQueryResult.ObjectType] = true
 		objects[paginatedQueryResult.ObjectType] = append(objects[paginatedQueryResult.ObjectType], paginatedQueryResult.ObjectId)
 		resultMap[objectKey(paginatedQueryResult.ObjectType, paginatedQueryResult.ObjectId)] = len(paginatedQueryResults) - 1
-		index++
-	}
-
-	lastId := ""
-	if index < len(queryResults) {
-		lastId, err = LastIdSpecToString(LastIdSpec{
-			ObjectType: queryResults[index].ObjectType,
-			ObjectId:   queryResults[index].ObjectId,
-		})
-		if err != nil {
-			return nil, err
-		}
+		start++
 	}
 
 	for selectedObjectType := range selectedObjectTypes {
 		if len(objects[selectedObjectType]) > 0 {
 			objectSpecs, err := svc.objectSvc.BatchGetByObjectTypeAndIds(ctx, selectedObjectType, objects[selectedObjectType])
 			if err != nil {
-				return nil, err
+				return nil, nil, nil, err
 			}
 
 			for _, objectSpec := range objectSpecs {
@@ -151,10 +193,7 @@ func (svc QueryService) Query(ctx context.Context, query *Query, listParams serv
 		}
 	}
 
-	return &Result{
-		Results: paginatedQueryResults,
-		LastId:  lastId,
-	}, nil
+	return paginatedQueryResults, prevCursor, nextCursor, nil
 }
 
 func (svc QueryService) query(ctx context.Context, query *Query) (*ResultSet, error) {
@@ -248,11 +287,6 @@ func (svc QueryService) query(ctx context.Context, query *Query) (*ResultSet, er
 }
 
 func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, objectType string, relation string, matchFilters warrant.FilterParams, expand bool) (*ResultSet, error) {
-	log.Ctx(ctx).Debug().
-		Str("objectType", objectType).
-		Str("relation", relation).
-		Str("filters", matchFilters.String()).
-		Msg("matchRelation")
 	objectTypeDef, err := svc.objectTypeSvc.GetByTypeId(ctx, objectType)
 	if err != nil {
 		return nil, err
@@ -476,4 +510,13 @@ func matches(set []string, target string) bool {
 
 func objectKey(objectType string, objectId string) string {
 	return fmt.Sprintf("%s:%s", objectType, objectId)
+}
+
+func objectTypeAndObjectIdFromCursor(cursor *service.Cursor) (string, string, error) {
+	objectType, objectId, found := strings.Cut(cursor.ID(), ":")
+	if !found {
+		return "", "", errors.New("invalid cursor")
+	}
+
+	return objectType, objectId, nil
 }

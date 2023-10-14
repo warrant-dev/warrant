@@ -119,6 +119,32 @@ func NewCursor(id string, value interface{}) *Cursor {
 	}
 }
 
+func NewCursorFromBase64String(base64CursorStr string) (*Cursor, error) {
+	var cursor Cursor
+	jsonStr, err := base64.StdEncoding.DecodeString(base64CursorStr)
+	if err != nil {
+		return nil, errors.Wrapf(err, "invalid cursor %s", base64CursorStr)
+	}
+
+	var m map[string]string
+	err = json.Unmarshal(jsonStr, &m)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("invalid cursor %s", base64CursorStr))
+	}
+
+	if id, exists := m["id"]; exists {
+		cursor.id = id
+	} else {
+		return nil, errors.New(fmt.Sprintf("invalid cursor %s", base64CursorStr))
+	}
+
+	if rawValue, exists := m["value"]; exists {
+		cursor.value = rawValue
+	}
+
+	return &cursor, nil
+}
+
 type ListParamParser interface {
 	GetDefaultSortBy() string
 	GetSupportedSortBys() []string
