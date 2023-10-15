@@ -137,6 +137,22 @@ func (spec CreateWarrantSpec) ToWarrant() (*Warrant, error) {
 	return warrant, nil
 }
 
+func (spec CreateWarrantSpec) String() string {
+	str := fmt.Sprintf(
+		"%s:%s#%s@%s",
+		spec.ObjectType,
+		spec.ObjectId,
+		spec.Relation,
+		spec.Subject.String(),
+	)
+
+	if spec.Policy != "" {
+		str = fmt.Sprintf("%s[%s]", str, spec.Policy)
+	}
+
+	return str
+}
+
 type DeleteWarrantSpec struct {
 	ObjectType string            `json:"objectType"        validate:"required,valid_object_type"`
 	ObjectId   string            `json:"objectId"          validate:"required,valid_object_id"`
@@ -182,6 +198,22 @@ func (spec DeleteWarrantSpec) ToWarrant() (*Warrant, error) {
 	}
 
 	return warrant, nil
+}
+
+func (spec DeleteWarrantSpec) String() string {
+	str := fmt.Sprintf(
+		"%s:%s#%s@%s",
+		spec.ObjectType,
+		spec.ObjectId,
+		spec.Relation,
+		spec.Subject.String(),
+	)
+
+	if spec.Policy != "" {
+		str = fmt.Sprintf("%s[%s]", str, spec.Policy)
+	}
+
+	return str
 }
 
 type ListWarrantsSpecV1 []WarrantSpec
