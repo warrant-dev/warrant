@@ -77,7 +77,7 @@ func (svc PermissionService) GetByPermissionId(ctx context.Context, permissionId
 
 func (svc PermissionService) List(ctx context.Context, listParams service.ListParams) ([]PermissionSpec, error) {
 	permissionSpecs := make([]PermissionSpec, 0)
-	objectSpecs, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypePermission}, listParams)
+	objectSpecs, _, _, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypePermission}, listParams)
 	if err != nil {
 		return permissionSpecs, err
 	}

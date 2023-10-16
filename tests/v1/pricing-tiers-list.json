@@ -4,129 +4,129 @@
     ],
     "tests": [
         {
-            "name": "createPermission1",
+            "name": "createPricingTier1",
             "request": {
                 "method": "POST",
-                "url": "/v1/permissions",
+                "url": "/v1/pricing-tiers",
                 "body": {
-                    "permissionId": "permission-1",
-                    "name": "Permission B"
+                    "pricingTierId": "pricing-tier-1",
+                    "name": "Pricing Tier B"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "permissionId": "permission-1",
-                    "name": "Permission B",
+                    "pricingTierId": "pricing-tier-1",
+                    "name": "Pricing Tier B",
                     "description": null
                 }
             }
         },
         {
-            "name": "createPermission2",
+            "name": "createPricingTier2",
             "request": {
                 "method": "POST",
-                "url": "/v1/permissions",
+                "url": "/v1/pricing-tiers",
                 "body": {
-                    "permissionId": "permission-2",
+                    "pricingTierId": "pricing-tier-2",
                     "name": "",
-                    "description": "This is permission-2."
+                    "description": "This is pricing-tier-2."
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "permissionId": "permission-2",
+                    "pricingTierId": "pricing-tier-2",
                     "name": "",
-                    "description": "This is permission-2."
+                    "description": "This is pricing-tier-2."
                 }
             }
         },
         {
-            "name": "createPermission3",
+            "name": "createPricingTier3",
             "request": {
                 "method": "POST",
-                "url": "/v1/permissions",
+                "url": "/v1/pricing-tiers",
                 "body": {
-                    "permissionId": "permission-3"
+                    "pricingTierId": "pricing-tier-3"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "permissionId": "permission-3",
+                    "pricingTierId": "pricing-tier-3",
                     "name": null,
                     "description": null
                 }
             }
         },
         {
-            "name": "createPermission4",
+            "name": "createPricingTier4",
             "request": {
                 "method": "POST",
-                "url": "/v1/permissions",
+                "url": "/v1/pricing-tiers",
                 "body": {
-                    "permissionId": "permission-4",
-                    "name": "Permission C"
+                    "pricingTierId": "pricing-tier-4",
+                    "name": "Pricing Tier C"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "permissionId": "permission-4",
-                    "name": "Permission C",
+                    "pricingTierId": "pricing-tier-4",
+                    "name": "Pricing Tier C",
                     "description": null
                 }
             }
         },
         {
-            "name": "createPermission5",
+            "name": "createPricingTier5",
             "request": {
                 "method": "POST",
-                "url": "/v1/permissions",
+                "url": "/v1/pricing-tiers",
                 "body": {
-                    "permissionId": "permission-5",
+                    "pricingTierId": "pricing-tier-5",
                     "name": ""
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "permissionId": "permission-5",
+                    "pricingTierId": "pricing-tier-5",
                     "name": "",
                     "description": null
                 }
             }
         },
         {
-            "name": "createPermission6",
+            "name": "createPricingTier6",
             "request": {
                 "method": "POST",
-                "url": "/v1/permissions",
+                "url": "/v1/pricing-tiers",
                 "body": {
-                    "permissionId": "permission-6"
+                    "pricingTierId": "pricing-tier-6"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "permissionId": "permission-6",
+                    "pricingTierId": "pricing-tier-6",
                     "name": null,
                     "description": null
                 }
             }
         },
         {
-            "name": "filterPermissionsOnPermissionId",
+            "name": "filterPricingTierOnPricingTierId",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?q=6"
+                "url": "/v1/pricing-tiers?q=6"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-6",
+                        "pricingTierId": "pricing-tier-6",
                         "name": null,
                         "description": null
                     }
@@ -134,35 +134,35 @@
             }
         },
         {
-            "name": "filterPermissionsOnName",
+            "name": "filterPricingTierOnName",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?q=Permission%20C"
+                "url": "/v1/pricing-tiers?q=Pricing%20Tier%20C"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-4",
-                        "name": "Permission C",
+                        "pricingTierId": "pricing-tier-4",
+                        "name": "Pricing Tier C",
                         "description": null
                     }
                 ]
             }
         },
         {
-            "name": "filterPermissionsOnDescription",
+            "name": "filterPricingTierOnDescription",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?q=This"
+                "url": "/v1/pricing-tiers?q=This"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-2",
+                        "pricingTierId": "pricing-tier-2",
                         "name": "",
-                        "description": "This is permission-2."
+                        "description": "This is pricing-tier-2."
                     }
                 ]
             }
@@ -171,39 +171,39 @@
             "name": "sortByCreatedAtDESC",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=createdAt&sortOrder=DESC"
+                "url": "/v1/pricing-tiers?sortBy=createdAt&sortOrder=DESC"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-6",
+                        "pricingTierId": "pricing-tier-6",
                         "name": null,
                         "description": null
                     },
                     {
-                        "permissionId": "permission-5",
+                        "pricingTierId": "pricing-tier-5",
                         "name": "",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-4",
-                        "name": "Permission C",
+                        "pricingTierId": "pricing-tier-4",
+                        "name": "Pricing Tier C",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-3",
+                        "pricingTierId": "pricing-tier-3",
                         "name": null,
                         "description": null
                     },
                     {
-                        "permissionId": "permission-2",
+                        "pricingTierId": "pricing-tier-2",
                         "name": "",
-                        "description": "This is permission-2."
+                        "description": "This is pricing-tier-2."
                     },
                     {
-                        "permissionId": "permission-1",
-                        "name": "Permission B",
+                        "pricingTierId": "pricing-tier-1",
+                        "name": "Pricing Tier B",
                         "description": null
                     }
                 ]
@@ -213,24 +213,24 @@
             "name": "sortByCreatedAtDESCWithLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=createdAt&sortOrder=DESC&limit=3"
+                "url": "/v1/pricing-tiers?sortBy=createdAt&sortOrder=DESC&limit=3"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-6",
+                        "pricingTierId": "pricing-tier-6",
                         "name": null,
                         "description": null
                     },
                     {
-                        "permissionId": "permission-5",
+                        "pricingTierId": "pricing-tier-5",
                         "name": "",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-4",
-                        "name": "Permission C",
+                        "pricingTierId": "pricing-tier-4",
+                        "name": "Pricing Tier C",
                         "description": null
                     }
                 ]
@@ -240,38 +240,38 @@
             "name": "sortByCreatedAtASC",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=createdAt&sortOrder=ASC"
+                "url": "/v1/pricing-tiers?sortBy=createdAt&sortOrder=ASC"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-1",
-                        "name": "Permission B",
+                        "pricingTierId": "pricing-tier-1",
+                        "name": "Pricing Tier B",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-2",
+                        "pricingTierId": "pricing-tier-2",
                         "name": "",
-                        "description": "This is permission-2."
+                        "description": "This is pricing-tier-2."
                     },
                     {
-                        "permissionId": "permission-3",
+                        "pricingTierId": "pricing-tier-3",
                         "name": null,
                         "description": null
                     },
                     {
-                        "permissionId": "permission-4",
-                        "name": "Permission C",
+                        "pricingTierId": "pricing-tier-4",
+                        "name": "Pricing Tier C",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-5",
+                        "pricingTierId": "pricing-tier-5",
                         "name": "",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-6",
+                        "pricingTierId": "pricing-tier-6",
                         "name": null,
                         "description": null
                     }
@@ -282,20 +282,20 @@
             "name": "sortByCreatedAtASCWithLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=createdAt&sortOrder=ASC&limit=2"
+                "url": "/v1/pricing-tiers?sortBy=createdAt&sortOrder=ASC&limit=2"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-1",
-                        "name": "Permission B",
+                        "pricingTierId": "pricing-tier-1",
+                        "name": "Pricing Tier B",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-2",
+                        "pricingTierId": "pricing-tier-2",
                         "name": "",
-                        "description": "This is permission-2."
+                        "description": "This is pricing-tier-2."
                     }
                 ]
             }
@@ -304,38 +304,38 @@
             "name": "sortByNameDESC",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=DESC"
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=DESC"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-4",
-                        "name": "Permission C",
+                        "pricingTierId": "pricing-tier-4",
+                        "name": "Pricing Tier C",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-1",
-                        "name": "Permission B",
+                        "pricingTierId": "pricing-tier-1",
+                        "name": "Pricing Tier B",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-5",
+                        "pricingTierId": "pricing-tier-5",
                         "name": "",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-2",
+                        "pricingTierId": "pricing-tier-2",
                         "name": "",
-                        "description": "This is permission-2."
+                        "description": "This is pricing-tier-2."
                     },
                     {
-                        "permissionId": "permission-6",
+                        "pricingTierId": "pricing-tier-6",
                         "name": null,
                         "description": null
                     },
                     {
-                        "permissionId": "permission-3",
+                        "pricingTierId": "pricing-tier-3",
                         "name": null,
                         "description": null
                     }
@@ -346,23 +346,23 @@
             "name": "sortByNameDESCWithLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=DESC&limit=3"
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=DESC&limit=3"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-4",
-                        "name": "Permission C",
+                        "pricingTierId": "pricing-tier-4",
+                        "name": "Pricing Tier C",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-1",
-                        "name": "Permission B",
+                        "pricingTierId": "pricing-tier-1",
+                        "name": "Pricing Tier B",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-5",
+                        "pricingTierId": "pricing-tier-5",
                         "name": "",
                         "description": null
                     }
@@ -373,15 +373,15 @@
             "name": "sortByNameDESCBeforeValueNull",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=DESC&limit=1&beforeId=permission-3"
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=DESC&limit=1&beforeId=pricing-tier-3"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-6",
-                        "name": null,
-                        "description": null
+                        "pricingTierId": "pricing-tier-2",
+                        "name": "",
+                        "description": "This is pricing-tier-2."
                     }
                 ]
             }
@@ -390,13 +390,13 @@
             "name": "sortByNameDESCAfterValueNull",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=DESC&limit=1&afterId=permission-6"
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=DESC&limit=1&afterId=pricing-tier-6"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-3",
+                        "pricingTierId": "pricing-tier-3",
                         "name": null,
                         "description": null
                     }
@@ -407,14 +407,14 @@
             "name": "sortByNameDESCBeforeValueEmptyString",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=DESC&limit=1&beforeId=permission-5&beforeValue="
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=DESC&limit=1&beforeId=pricing-tier-5&beforeValue="
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-1",
-                        "name": "Permission B",
+                        "pricingTierId": "pricing-tier-4",
+                        "name": "Pricing Tier C",
                         "description": null
                     }
                 ]
@@ -424,23 +424,23 @@
             "name": "sortByNameDESCAfterValueEmptyString",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=DESC&limit=3&afterId=permission-5&afterValue="
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=DESC&limit=3&afterId=pricing-tier-5&afterValue="
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-2",
+                        "pricingTierId": "pricing-tier-2",
                         "name": "",
-                        "description": "This is permission-2."
+                        "description": "This is pricing-tier-2."
                     },
                     {
-                        "permissionId": "permission-6",
+                        "pricingTierId": "pricing-tier-6",
                         "name": null,
                         "description": null
                     },
                     {
-                        "permissionId": "permission-3",
+                        "pricingTierId": "pricing-tier-3",
                         "name": null,
                         "description": null
                     }
@@ -451,14 +451,14 @@
             "name": "sortByNameDESCValidBeforeValue",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=DESC&limit=1&beforeId=permission-1&beforeValue=Permission%20B"
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=DESC&limit=1&beforeId=pricing-tier-1&beforeValue=Pricing%20Tier%20B"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-4",
-                        "name": "Permission C",
+                        "pricingTierId": "pricing-tier-4",
+                        "name": "Pricing Tier C",
                         "description": null
                     }
                 ]
@@ -468,18 +468,18 @@
             "name": "sortByNameDESCValidAfterValue",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=DESC&limit=2&afterId=permission-4&afterValue=Permission%20C"
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=DESC&limit=2&afterId=pricing-tier-4&afterValue=Pricing%20Tier%20C"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-1",
-                        "name": "Permission B",
+                        "pricingTierId": "pricing-tier-1",
+                        "name": "Pricing Tier B",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-5",
+                        "pricingTierId": "pricing-tier-5",
                         "name": "",
                         "description": null
                     }
@@ -490,39 +490,39 @@
             "name": "sortByNameASC",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=ASC"
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=ASC"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-3",
+                        "pricingTierId": "pricing-tier-3",
                         "name": null,
                         "description": null
                     },
                     {
-                        "permissionId": "permission-6",
+                        "pricingTierId": "pricing-tier-6",
                         "name": null,
                         "description": null
                     },
                     {
-                        "permissionId": "permission-2",
+                        "pricingTierId": "pricing-tier-2",
                         "name": "",
-                        "description": "This is permission-2."
+                        "description": "This is pricing-tier-2."
                     },
                     {
-                        "permissionId": "permission-5",
+                        "pricingTierId": "pricing-tier-5",
                         "name": "",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-1",
-                        "name": "Permission B",
+                        "pricingTierId": "pricing-tier-1",
+                        "name": "Pricing Tier B",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-4",
-                        "name": "Permission C",
+                        "pricingTierId": "pricing-tier-4",
+                        "name": "Pricing Tier C",
                         "description": null
                     }
                 ]
@@ -532,18 +532,18 @@
             "name": "sortByNameASCWithLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=ASC&limit=2"
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=ASC&limit=2"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-3",
+                        "pricingTierId": "pricing-tier-3",
                         "name": null,
                         "description": null
                     },
                     {
-                        "permissionId": "permission-6",
+                        "pricingTierId": "pricing-tier-6",
                         "name": null,
                         "description": null
                     }
@@ -554,13 +554,13 @@
             "name": "sortByNameASCBeforeValueNull",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=ASC&limit=1&beforeId=permission-6"
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=ASC&limit=1&beforeId=pricing-tier-6"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-3",
+                        "pricingTierId": "pricing-tier-3",
                         "name": null,
                         "description": null
                     }
@@ -571,13 +571,13 @@
             "name": "sortByNameASCAfterValueNull",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=ASC&limit=1&afterId=permission-3"
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=ASC&limit=1&afterId=pricing-tier-3"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-6",
+                        "pricingTierId": "pricing-tier-6",
                         "name": null,
                         "description": null
                     }
@@ -588,20 +588,20 @@
             "name": "sortByNameASCBeforeValueEmptyString",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=ASC&limit=2&beforeId=permission-5&beforeValue="
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=ASC&limit=2&beforeId=pricing-tier-5&beforeValue="
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-6",
+                        "pricingTierId": "pricing-tier-3",
                         "name": null,
                         "description": null
                     },
                     {
-                        "permissionId": "permission-2",
-                        "name": "",
-                        "description": "This is permission-2."
+                        "pricingTierId": "pricing-tier-6",
+                        "name": null,
+                        "description": null
                     }
                 ]
             }
@@ -610,19 +610,19 @@
             "name": "sortByNameASCAfterValueEmptyString",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=ASC&limit=2&afterId=permission-2&afterValue="
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=ASC&limit=2&afterId=pricing-tier-2&afterValue="
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-5",
+                        "pricingTierId": "pricing-tier-5",
                         "name": "",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-1",
-                        "name": "Permission B",
+                        "pricingTierId": "pricing-tier-1",
+                        "name": "Pricing Tier B",
                         "description": null
                     }
                 ]
@@ -632,19 +632,19 @@
             "name": "sortByNameASCValidBeforeValue",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=ASC&limit=2&beforeId=permission-4&beforeValue=Permission%20C"
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=ASC&limit=2&beforeId=pricing-tier-4&beforeValue=Pricing%20Tier%20C"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-5",
+                        "pricingTierId": "pricing-tier-2",
                         "name": "",
-                        "description": null
+                        "description": "This is pricing-tier-2."
                     },
                     {
-                        "permissionId": "permission-1",
-                        "name": "Permission B",
+                        "pricingTierId": "pricing-tier-5",
+                        "name": "",
                         "description": null
                     }
                 ]
@@ -654,14 +654,14 @@
             "name": "sortByNameASCValidAfterValue",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?sortBy=name&sortOrder=ASC&limit=2&afterId=permission-1&afterValue=Permission%20B"
+                "url": "/v1/pricing-tiers?sortBy=name&sortOrder=ASC&limit=2&afterId=pricing-tier-1&afterValue=Pricing%20Tier%20B"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-4",
-                        "name": "Permission C",
+                        "pricingTierId": "pricing-tier-4",
+                        "name": "Pricing Tier C",
                         "description": null
                     }
                 ]
@@ -671,20 +671,20 @@
             "name": "noSortWithLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?limit=2"
+                "url": "/v1/pricing-tiers?limit=2"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-1",
-                        "name": "Permission B",
+                        "pricingTierId": "pricing-tier-1",
+                        "name": "Pricing Tier B",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-2",
+                        "pricingTierId": "pricing-tier-2",
                         "name": "",
-                        "description": "This is permission-2."
+                        "description": "This is pricing-tier-2."
                     }
                 ]
             }
@@ -693,19 +693,19 @@
             "name": "noSortWithLimitAndValidAfterId",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?limit=2&afterId=permission-2"
+                "url": "/v1/pricing-tiers?limit=2&afterId=pricing-tier-2"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-3",
+                        "pricingTierId": "pricing-tier-3",
                         "name": null,
                         "description": null
                     },
                     {
-                        "permissionId": "permission-4",
-                        "name": "Permission C",
+                        "pricingTierId": "pricing-tier-4",
+                        "name": "Pricing Tier C",
                         "description": null
                     }
                 ]
@@ -715,18 +715,18 @@
             "name": "noSortResultSmallerThanLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/permissions?limit=3&afterId=permission-4"
+                "url": "/v1/pricing-tiers?limit=3&afterId=pricing-tier-4"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-5",
+                        "pricingTierId": "pricing-tier-5",
                         "name": "",
                         "description": null
                     },
                     {
-                        "permissionId": "permission-6",
+                        "pricingTierId": "pricing-tier-6",
                         "name": null,
                         "description": null
                     }
@@ -734,60 +734,60 @@
             }
         },
         {
-            "name": "deletePermission1",
+            "name": "deletePricingTier1",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/permissions/permission-1"
+                "url": "/v1/pricing-tiers/pricing-tier-1"
             },
             "expectedResponse": {
                 "statusCode": 200
             }
         },
         {
-            "name": "deletePermission2",
+            "name": "deletePricingTier2",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/permissions/permission-2"
+                "url": "/v1/pricing-tiers/pricing-tier-2"
             },
             "expectedResponse": {
                 "statusCode": 200
             }
         },
         {
-            "name": "deletePermission3",
+            "name": "deletePricingTier3",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/permissions/permission-3"
+                "url": "/v1/pricing-tiers/pricing-tier-3"
             },
             "expectedResponse": {
                 "statusCode": 200
             }
         },
         {
-            "name": "deletePermission4",
+            "name": "deletePricingTier4",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/permissions/permission-4"
+                "url": "/v1/pricing-tiers/pricing-tier-4"
             },
             "expectedResponse": {
                 "statusCode": 200
             }
         },
         {
-            "name": "deletePermission5",
+            "name": "deletePricingTier5",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/permissions/permission-5"
+                "url": "/v1/pricing-tiers/pricing-tier-5"
             },
             "expectedResponse": {
                 "statusCode": 200
             }
         },
         {
-            "name": "deletePermission6",
+            "name": "deletePricingTier6",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/permissions/permission-6"
+                "url": "/v1/pricing-tiers/pricing-tier-6"
             },
             "expectedResponse": {
                 "statusCode": 200

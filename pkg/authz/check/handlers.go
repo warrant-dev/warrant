@@ -28,14 +28,18 @@ func (svc CheckService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern:                    "/v2/authorize",
 			Method:                     "POST",
-			Handler:                    service.NewRouteHandler(svc, AuthorizeHandler),
+			Handler:                    service.NewRouteHandler(svc, authorizeHandler),
 			OverrideAuthMiddlewareFunc: service.ApiKeyAndSessionAuthMiddleware,
 		},
 	}, nil
 }
 
-func AuthorizeHandler(svc CheckService, w http.ResponseWriter, r *http.Request) error {
-	authInfo := service.GetAuthInfoFromRequestContext(r.Context())
+func authorizeHandler(svc CheckService, w http.ResponseWriter, r *http.Request) error {
+	authInfo, err := service.GetAuthInfoFromRequestContext(r.Context())
+	if err != nil {
+		return err
+	}
+
 	if authInfo != nil && authInfo.UserId != "" {
 		var sessionCheckManySpec SessionCheckManySpec
 		err := service.ParseJSONBody(r.Body, &sessionCheckManySpec)
@@ -73,7 +77,7 @@ func AuthorizeHandler(svc CheckService, w http.ResponseWriter, r *http.Request) 
 	}
 
 	var checkManySpec CheckManySpec
-	err := service.ParseJSONBody(r.Body, &checkManySpec)
+	err = service.ParseJSONBody(r.Body, &checkManySpec)
 	if err != nil {
 		return err
 	}

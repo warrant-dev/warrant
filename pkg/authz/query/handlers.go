@@ -26,14 +26,22 @@ func (svc QueryService) Routes() ([]service.Route, error) {
 			Pattern: "/v1/query",
 			Method:  "GET",
 			Handler: service.ChainMiddleware(
-				service.NewRouteHandler(svc, QueryHandler),
+				service.NewRouteHandler(svc, queryV1),
+				service.ListMiddleware[QueryListParamParser],
+			),
+		},
+		service.WarrantRoute{
+			Pattern: "/v2/query",
+			Method:  "GET",
+			Handler: service.ChainMiddleware(
+				service.NewRouteHandler(svc, queryV2),
 				service.ListMiddleware[QueryListParamParser],
 			),
 		},
 	}, nil
 }
 
-func QueryHandler(svc QueryService, w http.ResponseWriter, r *http.Request) error {
+func queryV1(svc QueryService, w http.ResponseWriter, r *http.Request) error {
 	queryString := r.URL.Query().Get("q")
 	query, err := NewQueryFromString(queryString)
 	if err != nil {
@@ -41,16 +49,61 @@ func QueryHandler(svc QueryService, w http.ResponseWriter, r *http.Request) erro
 	}
 
 	listParams := service.GetListParamsFromContext[QueryListParamParser](r.Context())
-	lastId := r.URL.Query().Get("lastId")
-	if lastId != "" && listParams.AfterId == nil {
-		listParams.AfterId = &lastId
+	// create next cursor from lastId or afterId param
+	if r.URL.Query().Has("lastId") {
+		lastIdCursor, err := service.NewCursorFromBase64String(r.URL.Query().Get("lastId"))
+		if err != nil {
+			return service.NewInvalidParameterError("lastId", "invalid lastId")
+		}
+
+		listParams.NextCursor = lastIdCursor
+	} else if r.URL.Query().Has("afterId") {
+		afterIdCursor, err := service.NewCursorFromBase64String(r.URL.Query().Get("afterId"))
+		if err != nil {
+			return service.NewInvalidParameterError("afterId", "invalid afterId")
+		}
+
+		listParams.NextCursor = afterIdCursor
 	}
 
-	result, err := svc.Query(r.Context(), query, listParams)
+	results, _, nextCursor, err := svc.Query(r.Context(), query, listParams)
 	if err != nil {
 		return err
 	}
 
-	service.SendJSONResponse(w, result)
+	var newLastId string
+	if nextCursor != nil {
+		base64EncodedNextCursor, err := nextCursor.ToBase64String()
+		if err != nil {
+			return err
+		}
+		newLastId = base64EncodedNextCursor
+	}
+
+	service.SendJSONResponse(w, QueryResponseV1{
+		Results: results,
+		LastId:  newLastId,
+	})
+	return nil
+}
+
+func queryV2(svc QueryService, w http.ResponseWriter, r *http.Request) error {
+	queryString := r.URL.Query().Get("q")
+	query, err := NewQueryFromString(queryString)
+	if err != nil {
+		return err
+	}
+
+	listParams := service.GetListParamsFromContext[QueryListParamParser](r.Context())
+	results, prevCursor, nextCursor, err := svc.Query(r.Context(), query, listParams)
+	if err != nil {
+		return err
+	}
+
+	service.SendJSONResponse(w, QueryResponseV2{
+		Results:    results,
+		PrevCursor: prevCursor,
+		NextCursor: nextCursor,
+	})
 	return nil
 }

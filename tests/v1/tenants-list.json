@@ -4,139 +4,139 @@
     ],
     "tests": [
         {
-            "name": "createUser1",
+            "name": "createTenant1",
             "request": {
                 "method": "POST",
-                "url": "/v1/users",
+                "url": "/v1/tenants",
                 "body": {
-                    "userId": "user-1",
-                    "email": "user-b@warrant.dev"
+                    "tenantId": "tenant-1",
+                    "name": "Tenant B"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "userId": "user-1",
-                    "email": "user-b@warrant.dev"
+                    "tenantId": "tenant-1",
+                    "name": "Tenant B"
                 }
             }
         },
         {
-            "name": "createUser2",
+            "name": "createTenant2",
             "request": {
                 "method": "POST",
-                "url": "/v1/users",
+                "url": "/v1/tenants",
                 "body": {
-                    "userId": "user-2",
-                    "email": ""
+                    "tenantId": "tenant-2",
+                    "name": ""
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "userId": "user-2",
-                    "email": ""
+                    "tenantId": "tenant-2",
+                    "name": ""
                 }
             }
         },
         {
-            "name": "createUser3",
+            "name": "createTenant3",
             "request": {
                 "method": "POST",
-                "url": "/v1/users",
+                "url": "/v1/tenants",
                 "body": {
-                    "userId": "user-3"
+                    "tenantId": "tenant-3",
+                    "name": ""
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "userId": "user-3",
-                    "email": null
+                    "tenantId": "tenant-3",
+                    "name": ""
                 }
             }
         },
         {
-            "name": "createUser4",
+            "name": "createTenant4",
             "request": {
                 "method": "POST",
-                "url": "/v1/users",
+                "url": "/v1/tenants",
                 "body": {
-                    "userId": "user-4",
-                    "email": "user-c@warrant.dev"
+                    "tenantId": "tenant-4"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "userId": "user-4",
-                    "email": "user-c@warrant.dev"
+                    "tenantId": "tenant-4",
+                    "name": null
                 }
             }
         },
         {
-            "name": "createUser5",
+            "name": "createTenant5",
             "request": {
                 "method": "POST",
-                "url": "/v1/users",
+                "url": "/v1/tenants",
                 "body": {
-                    "userId": "user-5",
-                    "email": ""
+                    "tenantId": "tenant-5",
+                    "name": "Tenant C"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "userId": "user-5",
-                    "email": ""
+                    "tenantId": "tenant-5",
+                    "name": "Tenant C"
                 }
             }
         },
         {
-            "name": "createUser6",
+            "name": "createTenant6",
             "request": {
                 "method": "POST",
-                "url": "/v1/users",
+                "url": "/v1/tenants",
                 "body": {
-                    "userId": "user-6"
+                    "tenantId": "tenant-6"
                 }
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
-                    "userId": "user-6",
-                    "email": null
+                    "tenantId": "tenant-6",
+                    "name": null
                 }
             }
         },
         {
-            "name": "filterUsersOnUserId",
+            "name": "filterTenantsOnTenantId",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?q=6"
+                "url": "/v1/tenants?q=6"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-6",
-                        "email": null
+                        "tenantId": "tenant-6",
+                        "name": null
                     }
                 ]
             }
         },
         {
-            "name": "filterUsersOnEmail",
+            "name": "filterTenantsOnName",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?q=user-c%40warrant.dev"
+                "url": "/v1/tenants?q=Tenant%20C"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-4",
-                        "email": "user-c@warrant.dev"
+                        "tenantId": "tenant-5",
+                        "name": "Tenant C"
                     }
                 ]
             }
@@ -145,34 +145,34 @@
             "name": "sortByCreatedAtDESC",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?sortBy=createdAt&sortOrder=DESC"
+                "url": "/v1/tenants?sortBy=createdAt&sortOrder=DESC"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-6",
-                        "email": null
+                        "tenantId": "tenant-6",
+                        "name": null
                     },
                     {
-                        "userId": "user-5",
-                        "email": ""
+                        "tenantId": "tenant-5",
+                        "name": "Tenant C"
                     },
                     {
-                        "userId": "user-4",
-                        "email": "user-c@warrant.dev"
+                        "tenantId": "tenant-4",
+                        "name": null
                     },
                     {
-                        "userId": "user-3",
-                        "email": null
+                        "tenantId": "tenant-3",
+                        "name": ""
                     },
                     {
-                        "userId": "user-2",
-                        "email": ""
+                        "tenantId": "tenant-2",
+                        "name": ""
                     },
                     {
-                        "userId": "user-1",
-                        "email": "user-b@warrant.dev"
+                        "tenantId": "tenant-1",
+                        "name": "Tenant B"
                     }
                 ]
             }
@@ -181,22 +181,22 @@
             "name": "sortByCreatedAtDESCWithLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?sortBy=createdAt&sortOrder=DESC&limit=3"
+                "url": "/v1/tenants?sortBy=createdAt&sortOrder=DESC&limit=3"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-6",
-                        "email": null
+                        "tenantId": "tenant-6",
+                        "name": null
                     },
                     {
-                        "userId": "user-5",
-                        "email": ""
+                        "tenantId": "tenant-5",
+                        "name": "Tenant C"
                     },
                     {
-                        "userId": "user-4",
-                        "email": "user-c@warrant.dev"
+                        "tenantId": "tenant-4",
+                        "name": null
                     }
                 ]
             }
@@ -205,34 +205,34 @@
             "name": "sortByCreatedAtASC",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?sortBy=createdAt&sortOrder=ASC"
+                "url": "/v1/tenants?sortBy=createdAt&sortOrder=ASC"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-1",
-                        "email": "user-b@warrant.dev"
+                        "tenantId": "tenant-1",
+                        "name": "Tenant B"
                     },
                     {
-                        "userId": "user-2",
-                        "email": ""
+                        "tenantId": "tenant-2",
+                        "name": ""
                     },
                     {
-                        "userId": "user-3",
-                        "email": null
+                        "tenantId": "tenant-3",
+                        "name": ""
                     },
                     {
-                        "userId": "user-4",
-                        "email": "user-c@warrant.dev"
+                        "tenantId": "tenant-4",
+                        "name": null
                     },
                     {
-                        "userId": "user-5",
-                        "email": ""
+                        "tenantId": "tenant-5",
+                        "name": "Tenant C"
                     },
                     {
-                        "userId": "user-6",
-                        "email": null
+                        "tenantId": "tenant-6",
+                        "name": null
                     }
                 ]
             }
@@ -241,350 +241,346 @@
             "name": "sortByCreatedAtASCWithLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?sortBy=createdAt&sortOrder=ASC&limit=2"
+                "url": "/v1/tenants?sortBy=createdAt&sortOrder=ASC&limit=2"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-1",
-                        "email": "user-b@warrant.dev"
+                        "tenantId": "tenant-1",
+                        "name": "Tenant B"
                     },
                     {
-                        "userId": "user-2",
-                        "email": ""
+                        "tenantId": "tenant-2",
+                        "name": ""
                     }
                 ]
             }
         },
         {
-            "name": "sortByEmailDESC",
+            "name": "sortByNameDESC",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=DESC"
+                "url": "/v1/tenants?sortBy=name&sortOrder=DESC"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-4",
-                        "email": "user-c@warrant.dev"
+                        "tenantId": "tenant-5",
+                        "name": "Tenant C"
                     },
                     {
-                        "userId": "user-1",
-                        "email": "user-b@warrant.dev"
+                        "tenantId": "tenant-1",
+                        "name": "Tenant B"
                     },
                     {
-                        "userId": "user-5",
-                        "email": ""
+                        "tenantId": "tenant-3",
+                        "name": ""
                     },
                     {
-                        "userId": "user-2",
-                        "email": ""
+                        "tenantId": "tenant-2",
+                        "name": ""
                     },
                     {
-                        "userId": "user-6",
-                        "email": null
+                        "tenantId": "tenant-6",
+                        "name": null
                     },
                     {
-                        "userId": "user-3",
-                        "email": null
+                        "tenantId": "tenant-4",
+                        "name": null
                     }
                 ]
             }
         },
         {
-            "name": "sortByEmailDESCWithLimit",
+            "name": "sortByNameDESCWithLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=DESC&limit=3"
+                "url": "/v1/tenants?sortBy=name&sortOrder=DESC&limit=3"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-4",
-                        "email": "user-c@warrant.dev"
+                        "tenantId": "tenant-5",
+                        "name": "Tenant C"
                     },
                     {
-                        "userId": "user-1",
-                        "email": "user-b@warrant.dev"
+                        "tenantId": "tenant-1",
+                        "name": "Tenant B"
                     },
                     {
-                        "userId": "user-5",
-                        "email": ""
+                        "tenantId": "tenant-3",
+                        "name": ""
                     }
                 ]
             }
         },
         {
-            "name": "sortByEmailDESCBeforeValueNull",
+            "name": "sortByNameDESCBeforeValueNull",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=DESC&limit=1&beforeId=user-3"
+                "url": "/v1/tenants?sortBy=name&sortOrder=DESC&limit=1&beforeId=tenant-4"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-6",
-                        "email": null
+                        "tenantId": "tenant-2",
+                        "name": ""
                     }
                 ]
             }
         },
         {
-            "name": "sortByEmailDESCAfterValueNull",
+            "name": "sortByNameDESCAfterValueNull",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=DESC&limit=1&afterId=user-6"
+                "url": "/v1/tenants?sortBy=name&sortOrder=DESC&limit=1&afterId=tenant-6"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-3",
-                        "email": null
+                        "tenantId": "tenant-4",
+                        "name": null
                     }
                 ]
             }
         },
         {
-            "name": "sortByEmailDESCBeforeValueEmptyString",
+            "name": "sortByNameDESCBeforeValueEmptyString",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=DESC&limit=1&beforeId=user-5&beforeValue="
+                "url": "/v1/tenants?sortBy=name&sortOrder=DESC&limit=1&beforeId=tenant-3&beforeValue="
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-1",
-                        "email": "user-b@warrant.dev"
+                        "tenantId": "tenant-5",
+                        "name": "Tenant C"
                     }
                 ]
             }
         },
         {
-            "name": "sortByEmailDESCAfterValueEmptyString",
+            "name": "sortByNameDESCAfterValueEmptyString",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=DESC&limit=3&afterId=user-5&afterValue="
+                "url": "/v1/tenants?sortBy=name&sortOrder=DESC&limit=3&afterId=tenant-3&afterValue="
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-2",
-                        "email": ""
+                        "tenantId": "tenant-2",
+                        "name": ""
                     },
                     {
-                        "userId": "user-6",
-                        "email": null
+                        "tenantId": "tenant-6",
+                        "name": null
                     },
                     {
-                        "userId": "user-3",
-                        "email": null
+                        "tenantId": "tenant-4",
+                        "name": null
                     }
                 ]
             }
         },
         {
-            "name": "sortByEmailDESCValidBeforeValue",
+            "name": "sortByNameDESCValidBeforeValue",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=DESC&limit=1&beforeId=user-1&beforeValue=user-b%40warrant.dev"
+                "url": "/v1/tenants?sortBy=name&sortOrder=DESC&limit=1&beforeId=tenant-1&beforeValue=Tenant%20B"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-4",
-                        "email": "user-c@warrant.dev"
+                        "tenantId": "tenant-5",
+                        "name": "Tenant C"
                     }
                 ]
             }
         },
         {
-            "name": "sortByEmailDESCValidAfterValue",
+            "name": "sortByNameDESCValidAfterValue",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=DESC&limit=2&afterId=user-4&afterValue=user-c%40warrant.dev"
+                "url": "/v1/tenants?sortBy=name&sortOrder=DESC&limit=2&afterId=tenant-5&afterValue=Tenant%20C"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-1",
-                        "email": "user-b@warrant.dev"
+                        "tenantId": "tenant-1",
+                        "name": "Tenant B"
                     },
                     {
-                        "userId": "user-5",
-                        "email": ""
+                        "tenantId": "tenant-3",
+                        "name": ""
                     }
                 ]
             }
         },
         {
-            "name": "sortByEmailASC",
+            "name": "sortByNameASC",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=ASC"
+                "url": "/v1/tenants?sortBy=name&sortOrder=ASC"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-3",
-                        "email": null
+                        "tenantId": "tenant-4",
+                        "name": null
                     },
                     {
-                        "userId": "user-6",
-                        "email": null
+                        "tenantId": "tenant-6",
+                        "name": null
                     },
                     {
-                        "userId": "user-2",
-                        "email": ""
+                        "tenantId": "tenant-2",
+                        "name": ""
                     },
                     {
-                        "userId": "user-5",
-                        "email": ""
+                        "tenantId": "tenant-3",
+                        "name": ""
                     },
                     {
-                        "userId": "user-1",
-                        "email": "user-b@warrant.dev"
+                        "tenantId": "tenant-1",
+                        "name": "Tenant B"
                     },
                     {
-                        "userId": "user-4",
-                        "email": "user-c@warrant.dev"
+                        "tenantId": "tenant-5",
+                        "name": "Tenant C"
                     }
                 ]
             }
         },
         {
-            "name": "sortByEmailASCWithLimit",
+            "name": "sortByNameASCWithLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=2"
+                "url": "/v1/tenants?sortBy=name&sortOrder=ASC&limit=1"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-3",
-                        "email": null
+                        "tenantId": "tenant-4",
+                        "name": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCBeforeValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?sortBy=name&sortOrder=ASC&limit=1&beforeId=tenant-6"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "tenant-4",
+                        "name": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCAfterValueNull",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?sortBy=name&sortOrder=ASC&limit=1&afterId=tenant-4"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "tenant-6",
+                        "name": null
+                    }
+                ]
+            }
+        },
+        {
+            "name": "sortByNameASCBeforeValueEmptyString",
+            "request": {
+                "method": "GET",
+                "url": "/v1/tenants?sortBy=name&sortOrder=ASC&limit=2&beforeId=tenant-3&beforeValue="
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": [
+                    {
+                        "tenantId": "tenant-4",
+                        "name": null
                     },
                     {
-                        "userId": "user-6",
-                        "email": null
+                        "tenantId": "tenant-6",
+                        "name": null
                     }
                 ]
             }
         },
         {
-            "name": "sortByEmailASCBeforeValueNull",
+            "name": "sortByNameASCAfterValueEmptyString",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=1&beforeId=user-6"
+                "url": "/v1/tenants?sortBy=name&sortOrder=ASC&limit=2&afterId=tenant-2&afterValue="
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-3",
-                        "email": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByEmailASCAfterValueNull",
-            "request": {
-                "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=1&afterId=user-3"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "userId": "user-6",
-                        "email": null
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByEmailASCBeforeValueEmptyString",
-            "request": {
-                "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=2&beforeId=user-5&beforeValue="
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "userId": "user-6",
-                        "email": null
+                        "tenantId": "tenant-3",
+                        "name": ""
                     },
                     {
-                        "userId": "user-2",
-                        "email": ""
+                        "tenantId": "tenant-1",
+                        "name": "Tenant B"
                     }
                 ]
             }
         },
         {
-            "name": "sortByEmailASCAfterValueEmptyString",
+            "name": "sortByNameASCValidBeforeValue",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=2&afterId=user-2&afterValue="
+                "url": "/v1/tenants?sortBy=name&sortOrder=ASC&limit=2&beforeId=tenant-5&beforeValue=Tenant%20C"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-5",
-                        "email": ""
+                        "tenantId": "tenant-2",
+                        "name": ""
                     },
                     {
-                        "userId": "user-1",
-                        "email": "user-b@warrant.dev"
+                        "tenantId": "tenant-3",
+                        "name": ""
                     }
                 ]
             }
         },
         {
-            "name": "sortByEmailASCValidBeforeValue",
+            "name": "sortByNameASCValidAfterValue",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=2&beforeId=user-4&beforeValue=user-c%40warrant.dev"
+                "url": "/v1/tenants?sortBy=name&sortOrder=ASC&limit=2&afterId=tenant-1&afterValue=Tenant%20B"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-5",
-                        "email": ""
-                    },
-                    {
-                        "userId": "user-1",
-                        "email": "user-b@warrant.dev"
-                    }
-                ]
-            }
-        },
-        {
-            "name": "sortByEmailASCValidAfterValue",
-            "request": {
-                "method": "GET",
-                "url": "/v1/users?sortBy=email&sortOrder=ASC&limit=2&afterId=user-1&afterValue=user-b%40warrant.dev"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": [
-                    {
-                        "userId": "user-4",
-                        "email": "user-c@warrant.dev"
+                        "tenantId": "tenant-5",
+                        "name": "Tenant C"
                     }
                 ]
             }
@@ -593,18 +589,18 @@
             "name": "noSortWithLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?limit=2"
+                "url": "/v1/tenants?limit=2"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-1",
-                        "email": "user-b@warrant.dev"
+                        "tenantId": "tenant-1",
+                        "name": "Tenant B"
                     },
                     {
-                        "userId": "user-2",
-                        "email": ""
+                        "tenantId": "tenant-2",
+                        "name": ""
                     }
                 ]
             }
@@ -613,18 +609,18 @@
             "name": "noSortWithLimitAndValidAfterId",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?limit=2&afterId=user-2"
+                "url": "/v1/tenants?limit=2&afterId=tenant-2"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-3",
-                        "email": null
+                        "tenantId": "tenant-3",
+                        "name": ""
                     },
                     {
-                        "userId": "user-4",
-                        "email": "user-c@warrant.dev"
+                        "tenantId": "tenant-4",
+                        "name": null
                     }
                 ]
             }
@@ -633,77 +629,77 @@
             "name": "noSortResultSmallerThanLimit",
             "request": {
                 "method": "GET",
-                "url": "/v1/users?limit=3&afterId=user-4"
+                "url": "/v1/tenants?limit=2&afterId=tenant-4"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-5",
-                        "email": ""
+                        "tenantId": "tenant-5",
+                        "name": "Tenant C"
                     },
                     {
-                        "userId": "user-6",
-                        "email": null
+                        "tenantId": "tenant-6",
+                        "name": null
                     }
                 ]
             }
         },
         {
-            "name": "deleteUser1",
+            "name": "deleteTenant1",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/users/user-1"
+                "url": "/v1/tenants/tenant-1"
             },
             "expectedResponse": {
                 "statusCode": 200
             }
         },
         {
-            "name": "deleteUser2",
+            "name": "deleteTenant2",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/users/user-2"
+                "url": "/v1/tenants/tenant-2"
             },
             "expectedResponse": {
                 "statusCode": 200
             }
         },
         {
-            "name": "deleteUser3",
+            "name": "deleteTenant3",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/users/user-3"
+                "url": "/v1/tenants/tenant-3"
             },
             "expectedResponse": {
                 "statusCode": 200
             }
         },
         {
-            "name": "deleteUser4",
+            "name": "deleteTenant4",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/users/user-4"
+                "url": "/v1/tenants/tenant-4"
             },
             "expectedResponse": {
                 "statusCode": 200
             }
         },
         {
-            "name": "deleteUser5",
+            "name": "deleteTenant5",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/users/user-5"
+                "url": "/v1/tenants/tenant-5"
             },
             "expectedResponse": {
                 "statusCode": 200
             }
         },
         {
-            "name": "deleteUser6",
+            "name": "deleteTenant6",
             "request": {
                 "method": "DELETE",
-                "url": "/v1/users/user-6"
+                "url": "/v1/tenants/tenant-6"
             },
             "expectedResponse": {
                 "statusCode": 200

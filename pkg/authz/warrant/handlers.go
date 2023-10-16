@@ -21,7 +21,6 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-// GetRoutes registers all route handlers for this module
 func (svc WarrantService) Routes() ([]service.Route, error) {
 	return []service.Route{
 		// create
@@ -29,7 +28,14 @@ func (svc WarrantService) Routes() ([]service.Route, error) {
 			Pattern: "/v1/warrants",
 			Method:  "POST",
 			Handler: service.ChainMiddleware(
-				service.NewRouteHandler(svc, CreateHandler),
+				service.NewRouteHandler(svc, createHandler),
+			),
+		},
+		service.WarrantRoute{
+			Pattern: "/v2/warrants",
+			Method:  "POST",
+			Handler: service.ChainMiddleware(
+				service.NewRouteHandler(svc, createHandler),
 			),
 		},
 
@@ -38,7 +44,15 @@ func (svc WarrantService) Routes() ([]service.Route, error) {
 			Pattern: "/v1/warrants",
 			Method:  "GET",
 			Handler: service.ChainMiddleware(
-				service.NewRouteHandler(svc, ListHandler),
+				service.NewRouteHandler(svc, listV1Handler),
+				service.ListMiddleware[WarrantListParamParser],
+			),
+		},
+		service.WarrantRoute{
+			Pattern: "/v2/warrants",
+			Method:  "GET",
+			Handler: service.ChainMiddleware(
+				service.NewRouteHandler(svc, listV2Handler),
 				service.ListMiddleware[WarrantListParamParser],
 			),
 		},
@@ -48,28 +62,35 @@ func (svc WarrantService) Routes() ([]service.Route, error) {
 			Pattern: "/v1/warrants",
 			Method:  "DELETE",
 			Handler: service.ChainMiddleware(
-				service.NewRouteHandler(svc, DeleteHandler),
+				service.NewRouteHandler(svc, deleteHandler),
+			),
+		},
+		service.WarrantRoute{
+			Pattern: "/v2/warrants",
+			Method:  "DELETE",
+			Handler: service.ChainMiddleware(
+				service.NewRouteHandler(svc, deleteHandler),
 			),
 		},
 	}, nil
 }
 
-func CreateHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
-	var warrantSpec WarrantSpec
-	err := service.ParseJSONBody(r.Body, &warrantSpec)
+func createHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
+	var spec CreateWarrantSpec
+	err := service.ParseJSONBody(r.Body, &spec)
 	if err != nil {
 		return err
 	}
 
 	// TODO: move into a custom golang-validate function
-	if warrantSpec.Policy != "" {
-		err := warrantSpec.Policy.Validate()
+	if spec.Policy != "" {
+		err := spec.Policy.Validate()
 		if err != nil {
 			return service.NewInvalidParameterError("policy", err.Error())
 		}
 	}
 
-	createdWarrant, _, err := svc.Create(r.Context(), warrantSpec)
+	createdWarrant, _, err := svc.Create(r.Context(), spec)
 	if err != nil {
 		return err
 	}
@@ -78,10 +99,10 @@ func CreateHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 	return nil
 }
 
-func ListHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
-	warrants, err := svc.List(
+func listV1Handler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
+	warrants, _, _, err := svc.List(
 		r.Context(),
-		buildFilterOptions(r),
+		*buildFilterOptions(r),
 		service.GetListParamsFromContext[WarrantListParamParser](r.Context()),
 	)
 	if err != nil {
@@ -92,14 +113,32 @@ func ListHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) err
 	return nil
 }
 
-func DeleteHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
-	var warrantSpec WarrantSpec
-	err := service.ParseJSONBody(r.Body, &warrantSpec)
+func listV2Handler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
+	warrants, prevCursor, nextCursor, err := svc.List(
+		r.Context(),
+		*buildFilterOptions(r),
+		service.GetListParamsFromContext[WarrantListParamParser](r.Context()),
+	)
 	if err != nil {
 		return err
 	}
 
-	_, err = svc.Delete(r.Context(), warrantSpec)
+	service.SendJSONResponse(w, ListWarrantsSpecV2{
+		Results:    warrants,
+		PrevCursor: prevCursor,
+		NextCursor: nextCursor,
+	})
+	return nil
+}
+
+func deleteHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
+	var spec DeleteWarrantSpec
+	err := service.ParseJSONBody(r.Body, &spec)
+	if err != nil {
+		return err
+	}
+
+	_, err = svc.Delete(r.Context(), spec)
 	if err != nil {
 		return err
 	}

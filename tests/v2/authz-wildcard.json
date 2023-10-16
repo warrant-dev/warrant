@@ -1,0 +1,1653 @@
+{
+    "ignoredFields": [
+        "createdAt"
+    ],
+    "tests": [
+        {
+            "name": "createObjectTypeReport",
+            "request": {
+                "method": "POST",
+                "url": "/v2/object-types",
+                "body": {
+                    "type": "report",
+                    "relations": {
+                        "owner": {
+                            "inheritIf": "manager",
+                            "ofType": "user",
+                            "withRelation": "owner"
+                        },
+                        "editor": {
+                            "inheritIf": "anyOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "owner"
+                                },
+                                {
+                                    "inheritIf": "manager",
+                                    "ofType": "user",
+                                    "withRelation": "editor"
+                                }
+                            ]
+                        },
+                        "viewer": {
+                            "inheritIf": "allOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "editor"
+                                },
+                                {
+                                    "inheritIf": "manager",
+                                    "ofType": "user",
+                                    "withRelation": "viewer"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "report",
+                    "relations": {
+                        "owner": {
+                            "inheritIf": "manager",
+                            "ofType": "user",
+                            "withRelation": "owner"
+                        },
+                        "editor": {
+                            "inheritIf": "anyOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "owner"
+                                },
+                                {
+                                    "inheritIf": "manager",
+                                    "ofType": "user",
+                                    "withRelation": "editor"
+                                }
+                            ]
+                        },
+                        "viewer": {
+                            "inheritIf": "allOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "editor"
+                                },
+                                {
+                                    "inheritIf": "manager",
+                                    "ofType": "user",
+                                    "withRelation": "viewer"
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "updateObjectTypeUser",
+            "request": {
+                "method": "PUT",
+                "url": "/v2/object-types/user",
+                "body": {
+                    "type": "user",
+                    "relations": {
+                        "manager": {
+                            "inheritIf": "manager",
+                            "ofType": "user",
+                            "withRelation": "manager"
+                        }
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "user",
+                    "relations": {
+                        "manager": {
+                            "inheritIf": "manager",
+                            "ofType": "user",
+                            "withRelation": "manager"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignRoleStandardAToUserA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "standard-a",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "tenant == \"tenant-a\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "role",
+                    "objectId": "standard-a",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "tenant == \"tenant-a\""
+                }
+            }
+        },
+        {
+            "name": "assignRoleStandardBToUserB",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "standard-b",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-b"
+                    },
+                    "policy": "tenant == \"tenant-b\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "role",
+                    "objectId": "standard-b",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-b"
+                    },
+                    "policy": "tenant == \"tenant-b\""
+                }
+            }
+        },
+        {
+            "name": "assignRoleAdminAToUserC",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "admin-a",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-c"
+                    },
+                    "policy": "tenant == \"tenant-a\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "role",
+                    "objectId": "admin-a",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-c"
+                    },
+                    "policy": "tenant == \"tenant-a\""
+                }
+            }
+        },
+        {
+            "name": "assignRoleAdminBToUserD",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "admin-b",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-d"
+                    },
+                    "policy": "tenant == \"tenant-b\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "role",
+                    "objectId": "admin-b",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-d"
+                    },
+                    "policy": "tenant == \"tenant-b\""
+                }
+            }
+        },
+        {
+            "name": "assignRoleStandardAToUserE",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "standard-a",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-e"
+                    },
+                    "policy": "tenant == \"tenant-a\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "role",
+                    "objectId": "standard-a",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-e"
+                    },
+                    "policy": "tenant == \"tenant-a\""
+                }
+            }
+        },
+        {
+            "name": "assignRoleStandardBToUserF",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "standard-b",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-f"
+                    },
+                    "policy": "tenant == \"tenant-b\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "role",
+                    "objectId": "standard-b",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-f"
+                    },
+                    "policy": "tenant == \"tenant-b\""
+                }
+            }
+        },
+        {
+            "name": "assignUserAOwnerOfReportA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "report",
+                    "objectId": "report-a",
+                    "relation": "owner",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "tenant == \"tenant-a\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "report",
+                    "objectId": "report-a",
+                    "relation": "owner",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "tenant == \"tenant-a\""
+                }
+            }
+        },
+        {
+            "name": "assignUserBOwnerOfReportB",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "report",
+                    "objectId": "report-b",
+                    "relation": "owner",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-b"
+                    },
+                    "policy": "tenant == \"tenant-b\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "report",
+                    "objectId": "report-b",
+                    "relation": "owner",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-b"
+                    },
+                    "policy": "tenant == \"tenant-b\""
+                }
+            }
+        },
+        {
+            "name": "assignUserEManagerOfUserA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "user",
+                    "objectId": "user-a",
+                    "relation": "manager",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-e"
+                    },
+                    "policy": "tenant == \"tenant-a\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "user",
+                    "objectId": "user-a",
+                    "relation": "manager",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-e"
+                    },
+                    "policy": "tenant == \"tenant-a\""
+                }
+            }
+        },
+        {
+            "name": "assignUserFManagerOfUserB",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "user",
+                    "objectId": "user-b",
+                    "relation": "manager",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-f"
+                    },
+                    "policy": "tenant == \"tenant-b\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "user",
+                    "objectId": "user-b",
+                    "relation": "manager",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-f"
+                    },
+                    "policy": "tenant == \"tenant-b\""
+                }
+            }
+        },
+        {
+            "name": "assignMemberOfRoleAdminAOwnerOfAnyReport",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "report",
+                    "objectId": "*",
+                    "relation": "owner",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "admin-a",
+                        "relation": "member"
+                    },
+                    "policy": "tenant == \"tenant-a\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "report",
+                    "objectId": "*",
+                    "relation": "owner",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "admin-a",
+                        "relation": "member"
+                    },
+                    "policy": "tenant == \"tenant-a\""
+                }
+            }
+        },
+        {
+            "name": "assignMemberOfRoleAdminBOwnerOfAnyReport",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "report",
+                    "objectId": "*",
+                    "relation": "owner",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "admin-b",
+                        "relation": "member"
+                    },
+                    "policy": "tenant == \"tenant-b\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "report",
+                    "objectId": "*",
+                    "relation": "owner",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "admin-b",
+                        "relation": "member"
+                    },
+                    "policy": "tenant == \"tenant-b\""
+                }
+            }
+        },
+        {
+            "name": "checkUserAOwnerOfReportAInTenantA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            },
+                            "context": {
+                                "tenant": "tenant-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserANotOwnerOfReportAInTenantB",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            },
+                            "context": {
+                                "tenant": "tenant-b"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserANotOwnerOfReportBInTenantA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-b",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            },
+                            "context": {
+                                "tenant": "tenant-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserANotOwnerOfReportBInTenantB",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-b",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            },
+                            "context": {
+                                "tenant": "tenant-b"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserBOwnerOfReportBInTenantB",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-b",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-b"
+                            },
+                            "context": {
+                                "tenant": "tenant-b"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserBNotOwnerOfReportBInTenantA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-b",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-b"
+                            },
+                            "context": {
+                                "tenant": "tenant-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserBNotOwnerOfReportAInTenantA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-b"
+                            },
+                            "context": {
+                                "tenant": "tenant-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserBNotOwnerOfReportAInTenantB",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-b"
+                            },
+                            "context": {
+                                "tenant": "tenant-b"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserCOwnerOfReportAInTenantA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-c"
+                            },
+                            "context": {
+                                "tenant": "tenant-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized",
+                    "isImplicit": true
+                }
+            }
+        },
+        {
+            "name": "checkUserCNotOwnerOfReportAInTenantB",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-c"
+                            },
+                            "context": {
+                                "tenant": "tenant-b"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserCOwnerOfReportBInTenantA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-b",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-c"
+                            },
+                            "context": {
+                                "tenant": "tenant-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized",
+                    "isImplicit": true
+                }
+            }
+        },
+        {
+            "name": "checkUserCNotOwnerOfReportBInTenantB",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-b",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-c"
+                            },
+                            "context": {
+                                "tenant": "tenant-b"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserDNotOwnerOfReportAInTenantA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-d"
+                            },
+                            "context": {
+                                "tenant": "tenant-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserDOwnerOfReportAInTenantB",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-d"
+                            },
+                            "context": {
+                                "tenant": "tenant-b"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized",
+                    "isImplicit": true
+                }
+            }
+        },
+        {
+            "name": "checkUserDNotOwnerOfReportBInTenantA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-b",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-d"
+                            },
+                            "context": {
+                                "tenant": "tenant-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserDOwnerOfReportBInTenantB",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-b",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-d"
+                            },
+                            "context": {
+                                "tenant": "tenant-b"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized",
+                    "isImplicit": true
+                }
+            }
+        },
+        {
+            "name": "checkUserEOwnerOfReportAInTenantA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-e"
+                            },
+                            "context": {
+                                "tenant": "tenant-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized",
+                    "isImplicit": true
+                }
+            }
+        },
+        {
+            "name": "checkUserENotOwnerOfReportAInTenantB",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-e"
+                            },
+                            "context": {
+                                "tenant": "tenant-b"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserENotOwnerOfReportBInTenantA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-b",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-e"
+                            },
+                            "context": {
+                                "tenant": "tenant-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserENotOwnerOfReportBInTenantB",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-b",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-e"
+                            },
+                            "context": {
+                                "tenant": "tenant-b"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserFNotOwnerOfReportAInTenantA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-f"
+                            },
+                            "context": {
+                                "tenant": "tenant-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserFNotOwnerOfReportAInTenantB",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-a",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-f"
+                            },
+                            "context": {
+                                "tenant": "tenant-b"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserFNotOwnerOfReportBInTenantA",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-b",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-f"
+                            },
+                            "context": {
+                                "tenant": "tenant-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserFOwnerOfReportBInTenantB",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "report",
+                            "objectId": "report-b",
+                            "relation": "owner",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-f"
+                            },
+                            "context": {
+                                "tenant": "tenant-b"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized",
+                    "isImplicit": true
+                }
+            }
+        },
+        {
+            "name": "removeMemberOfRoleAdminBOwnerOfAnyReport",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "report",
+                    "objectId": "*",
+                    "relation": "owner",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "admin-b",
+                        "relation": "member"
+                    },
+                    "policy": "tenant == \"tenant-b\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeMemberOfRoleAdminAOwnerOfAnyReport",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "report",
+                    "objectId": "*",
+                    "relation": "owner",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "admin-a",
+                        "relation": "member"
+                    },
+                    "policy": "tenant == \"tenant-a\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeUserFManagerOfUserB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "user",
+                    "objectId": "user-b",
+                    "relation": "manager",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-f"
+                    },
+                    "policy": "tenant == \"tenant-b\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeUserEManagerOfUserA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "user",
+                    "objectId": "user-a",
+                    "relation": "manager",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-e"
+                    },
+                    "policy": "tenant == \"tenant-a\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeUserBOwnerOfReportB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "report",
+                    "objectId": "report-b",
+                    "relation": "owner",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-b"
+                    },
+                    "policy": "tenant == \"tenant-b\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeUserAOwnerOfReportA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "report",
+                    "objectId": "report-a",
+                    "relation": "owner",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "tenant == \"tenant-a\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeRoleStandardBFromUserF",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "standard-b",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-f"
+                    },
+                    "policy": "tenant == \"tenant-b\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeRoleStandardAFromUserE",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "standard-a",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-e"
+                    },
+                    "policy": "tenant == \"tenant-a\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeRoleAdminBFromUserD",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "admin-b",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-d"
+                    },
+                    "policy": "tenant == \"tenant-b\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeRoleAdminAFromUserC",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "admin-a",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-c"
+                    },
+                    "policy": "tenant == \"tenant-a\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeRoleStandardBFromUserB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "standard-b",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-b"
+                    },
+                    "policy": "tenant == \"tenant-b\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeRoleStandardAFromUserA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "standard-a",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "tenant == \"tenant-a\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "revertObjectTypeUser",
+            "request": {
+                "method": "PUT",
+                "url": "/v2/object-types/user",
+                "body": {
+                    "type": "user",
+                    "relations": {
+                        "parent": {
+                            "inheritIf": "parent",
+                            "ofType": "user",
+                            "withRelation": "parent"
+                        }
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "user",
+                    "relations": {
+                        "parent": {
+                            "inheritIf": "parent",
+                            "ofType": "user",
+                            "withRelation": "parent"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "deleteReportA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/report/report-a"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteRoleAdminA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/role/admin-a"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteRoleStandardA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/role/standard-a"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteReportB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/report/report-b"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteRoleAdminB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/role/admin-b"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteRoleStandardB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/role/standard-b"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/user-a"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserB",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/user-b"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserC",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/user-c"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserD",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/user-d"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserE",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/user-e"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserF",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/user-f"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectTypeReport",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/object-types/report"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}

@@ -75,6 +75,6 @@ func (objectType ObjectType) ToObjectTypeSpec() (*ObjectTypeSpec, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "error unmarshaling object type %s", objectType.TypeId)
 	}
-
+	objectTypeSpec.CreatedAt = objectType.CreatedAt
 	return &objectTypeSpec, nil
 }

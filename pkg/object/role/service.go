@@ -77,7 +77,7 @@ func (svc RoleService) GetByRoleId(ctx context.Context, roleId string) (*RoleSpe
 
 func (svc RoleService) List(ctx context.Context, listParams service.ListParams) ([]RoleSpec, error) {
 	roleSpecs := make([]RoleSpec, 0)
-	objectSpecs, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeRole}, listParams)
+	objectSpecs, _, _, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeRole}, listParams)
 	if err != nil {
 		return roleSpecs, err
 	}

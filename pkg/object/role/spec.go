@@ -19,7 +19,6 @@ import (
 	"time"
 
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	query "github.com/warrant-dev/warrant/pkg/authz/query"
 	object "github.com/warrant-dev/warrant/pkg/object"
 )
 
@@ -59,38 +58,6 @@ func NewRoleSpecFromObjectSpec(objectSpec *object.ObjectSpec) (*RoleSpec, error)
 		Name:        name,
 		Description: description,
 		CreatedAt:   objectSpec.CreatedAt,
-	}, nil
-}
-
-func NewRoleSpecFromQueryResult(queryResult *query.QueryResult) (*RoleSpec, error) {
-	var (
-		name        *string
-		description *string
-	)
-
-	if queryResult.Meta != nil {
-		if _, exists := queryResult.Meta["name"]; exists {
-			nameStr, ok := queryResult.Meta["name"].(string)
-			if !ok {
-				return nil, errors.New("role name has invalid type in result meta")
-			}
-			name = &nameStr
-		}
-
-		if _, exists := queryResult.Meta["description"]; exists {
-			descriptionStr, ok := queryResult.Meta["description"].(string)
-			if !ok {
-				return nil, errors.New("role description has invalid type in result meta")
-			}
-			description = &descriptionStr
-		}
-	}
-
-	return &RoleSpec{
-		RoleId:      queryResult.ObjectId,
-		Name:        name,
-		Description: description,
-		CreatedAt:   queryResult.Warrant.CreatedAt,
 	}, nil
 }
 

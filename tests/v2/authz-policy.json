@@ -1,0 +1,794 @@
+{
+    "ignoredFields": [
+        "createdAt",
+        "processingTime"
+    ],
+    "tests": [
+        {
+            "name": "createObjectTypeCluster",
+            "request": {
+                "method": "POST",
+                "url": "/v2/object-types",
+                "body": {
+                    "type": "cluster",
+                    "relations": {
+                        "editor": {},
+                        "viewer": {
+                            "inheritIf": "editor"
+                        }
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "cluster",
+                    "relations": {
+                        "editor": {},
+                        "viewer": {
+                            "inheritIf": "editor"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignWarrantWithContext",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "cluster",
+                    "objectId": "us-east-1",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "context": {
+                        "element": "115"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "cluster",
+                    "objectId": "us-east-1",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "element == \"115\""
+                }
+            }
+        },
+        {
+            "name": "failToCreateWarrantWithInvalidPolicy",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "cluster",
+                    "objectId": "us-east-1",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "element = \"115\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 400,
+                "body": {
+                    "code": "invalid_parameter",
+                    "message": "error validating policy 'element = \"115\"': unexpected token Operator(\"=\") (1:9)\n | element = \"115\"\n | ........^",
+                    "parameter": "policy"
+                }
+            }
+        },
+        {
+            "name": "failToCreateWarrantWithPolicyAndContext",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "cluster",
+                    "objectId": "us-east-1",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "element == \"115\"",
+                    "context": {
+                        "element": "115"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 400,
+                "body": {
+                    "code": "invalid_request",
+                    "message": "Invalid request body"
+                }
+            }
+        },
+        {
+            "name": "assignWarrantWithRegexPolicy",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "cluster",
+                    "objectId": "us-east-1",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "clientIp matches \"192\\\\.168\\\\..*\\\\..*\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "cluster",
+                    "objectId": "us-east-1",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "clientIp matches \"192\\\\.168\\\\..*\\\\..*\""
+                }
+            }
+        },
+        {
+            "name": "createDuplicateWarrantWithPolicy",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "cluster",
+                    "objectId": "us-east-1",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "clientIp matches \"192\\\\.168\\\\..*\\\\..*\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "cluster",
+                    "objectId": "us-east-1",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "clientIp matches \"192\\\\.168\\\\..*\\\\..*\""
+                }
+            }
+        },
+        {
+            "name": "checkUserIsEditorOfCluster",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "warrants": [
+                        {
+                            "objectType": "cluster",
+                            "objectId": "us-east-1",
+                            "relation": "editor",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            },
+                            "context": {
+                                "clientIp": "192.168.1.1"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserIsNotEditorOfCluster",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "warrants": [
+                        {
+                            "objectType": "cluster",
+                            "objectId": "us-east-1",
+                            "relation": "editor",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            },
+                            "context": {
+                                "clientIp": "255.255.255.255"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "removeWarrantWithRegexPolicy",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "cluster",
+                    "objectId": "us-east-1",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "clientIp matches \"192\\\\.168\\\\..*\\\\..*\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "removeWarrantWithContext",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "cluster",
+                    "objectId": "us-east-1",
+                    "relation": "editor",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "context": {
+                        "element": "115"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectTypeCluster",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/object-types/cluster"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "createObjectTypeBankAccount",
+            "request": {
+                "method": "POST",
+                "url": "/v2/object-types",
+                "body": {
+                    "type": "bank-account",
+                    "relations": {
+                        "withdraw": {}
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "bank-account",
+                    "relations": {
+                        "withdraw": {}
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignWarrantWithEndsWithPolicy",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "admin",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "email endsWith \"@warrant.dev\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "role",
+                    "objectId": "admin",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "email endsWith \"@warrant.dev\""
+                }
+            }
+        },
+        {
+            "name": "checkUserIsMemberOfRoleAdmin",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "warrants": [
+                        {
+                            "objectType": "role",
+                            "objectId": "admin",
+                            "relation": "member",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            },
+                            "context": {
+                                "email": "xyz@warrant.dev"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserIsNotMemberOfRoleAdmin",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "warrants": [
+                        {
+                            "objectType": "role",
+                            "objectId": "admin",
+                            "relation": "member",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            },
+                            "context": {
+                                "email": "abc@xyz.com"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "removeWarrantWithEndsWithPolicy",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "admin",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "email endsWith \"@warrant.dev\""
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "assignWarrantWithArithmeticAndLtPolicy",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "bank-account",
+                    "objectId": "personal-checking",
+                    "relation": "withdraw",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "transaction.amount < (0.2 * limit)"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "bank-account",
+                    "objectId": "personal-checking",
+                    "relation": "withdraw",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "transaction.amount < (0.2 * limit)"
+                }
+            }
+        },
+        {
+            "name": "checkUserCanWithdrawFromBankAccount",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "warrants": [
+                        {
+                            "objectType": "bank-account",
+                            "objectId": "personal-checking",
+                            "relation": "withdraw",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            },
+                            "context": {
+                                "transaction": {
+                                    "amount": 1000
+                                },
+                                "limit": 50000
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserCannotWithdrawFromBankAccount",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "warrants": [
+                        {
+                            "objectType": "bank-account",
+                            "objectId": "personal-checking",
+                            "relation": "withdraw",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            },
+                            "context": {
+                                "transaction": {
+                                    "amount": 10000
+                                },
+                                "limit": 50000
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "removeWarrantWithArithmeticAndLtPolicy",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "bank-account",
+                    "objectId": "personal-checking",
+                    "relation": "withdraw",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "transaction.amount < (0.2 * limit)"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectTypeBankAccount",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/object-types/bank-account"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "createObjectTypeApproval",
+            "request": {
+                "method": "POST",
+                "url": "/v2/object-types",
+                "body": {
+                    "type": "approval",
+                    "relations": {
+                        "approver": {}
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "approval",
+                    "relations": {
+                        "approver": {}
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignWarrantWithSetPolicy",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "approval",
+                    "objectId": "*",
+                    "relation": "approver",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "all(transactions, {.amount < 1000})"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "approval",
+                    "objectId": "*",
+                    "relation": "approver",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "all(transactions, {.amount < 1000})"
+                }
+            }
+        },
+        {
+            "name": "checkUserIsApproverOfApproval",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "warrants": [
+                        {
+                            "objectType": "approval",
+                            "objectId": "approval-1",
+                            "relation": "approver",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            },
+                            "context": {
+                                "transactions": [
+                                    {
+                                        "id": "txn-a",
+                                        "amount": 679.00
+                                    },
+                                    {
+                                        "id": "txn-b",
+                                        "amount": 24.02
+                                    },
+                                    {
+                                        "id": "txn-c",
+                                        "amount": 81.08
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkUserIsNotApproverOfApproval",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "warrants": [
+                        {
+                            "objectType": "approval",
+                            "objectId": "approval-1",
+                            "relation": "approver",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            },
+                            "context": {
+                                "transactions": [
+                                    {
+                                        "id": "txn-a",
+                                        "amount": 1679.00
+                                    },
+                                    {
+                                        "id": "txn-b",
+                                        "amount": 24.02
+                                    },
+                                    {
+                                        "id": "txn-c",
+                                        "amount": 81.08
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "checkPolicyNotMatchedWhenNoContextProvided",
+            "request": {
+                "method": "POST",
+                "url": "/v2/authorize",
+                "body": {
+                    "warrants": [
+                        {
+                            "objectType": "approval",
+                            "objectId": "approval-1",
+                            "relation": "approver",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "user-a"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 403,
+                    "result": "Not Authorized",
+                    "isImplicit": false
+                }
+            }
+        },
+        {
+            "name": "removeWarrantWithSetPolicy",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "approval",
+                    "objectId": "*",
+                    "relation": "approver",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "user-a"
+                    },
+                    "policy": "all(transactions, {.amount < 1000})"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteClusterUSEast1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/cluster/us-east-1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteRoleAdmin",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/role/admin"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteBankAccountPersonalChecking",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/bank-account/personal-checking"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserA",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/user-a"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectTypeApproval",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/object-types/approval"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}

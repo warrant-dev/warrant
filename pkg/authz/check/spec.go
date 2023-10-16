@@ -42,16 +42,6 @@ func (spec CheckWarrantSpec) String() string {
 	)
 }
 
-func (spec CheckWarrantSpec) ToMap() map[string]interface{} {
-	return map[string]interface{}{
-		"objectType": spec.ObjectType,
-		"objectId":   spec.ObjectId,
-		"relation":   spec.Relation,
-		"subject":    spec.Subject,
-		"context":    spec.Context,
-	}
-}
-
 type CheckSessionWarrantSpec struct {
 	ObjectType string                `json:"objectType" validate:"required,valid_object_type"`
 	ObjectId   string                `json:"objectId" validate:"required,valid_object_id"`
@@ -59,24 +49,9 @@ type CheckSessionWarrantSpec struct {
 	Context    warrant.PolicyContext `json:"context"`
 }
 
-func (spec CheckSessionWarrantSpec) ToMap() map[string]interface{} {
-	return map[string]interface{}{
-		"objectType": spec.ObjectType,
-		"objectId":   spec.ObjectId,
-		"relation":   spec.Relation,
-		"context":    spec.Context,
-	}
-}
-
 type CheckSpec struct {
 	CheckWarrantSpec
 	Debug bool `json:"debug" validate:"boolean"`
-}
-
-func (spec CheckSpec) ToMap() map[string]interface{} {
-	result := spec.CheckWarrantSpec.ToMap()
-	result["debug"] = spec.Debug
-	return result
 }
 
 type CheckManySpec struct {
@@ -86,43 +61,11 @@ type CheckManySpec struct {
 	Debug    bool                  `json:"debug"`
 }
 
-func (spec CheckManySpec) ToMap() map[string]interface{} {
-	result := map[string]interface{}{
-		"op":      spec.Op,
-		"context": spec.Context,
-		"debug":   spec.Debug,
-	}
-
-	warrantMaps := make([]map[string]interface{}, 0)
-	for _, warrantSpec := range spec.Warrants {
-		warrantMaps = append(warrantMaps, warrantSpec.ToMap())
-	}
-
-	result["warrants"] = warrantMaps
-	return result
-}
-
 type SessionCheckManySpec struct {
 	Op       string                    `json:"op"`
 	Warrants []CheckSessionWarrantSpec `json:"warrants" validate:"min=1,dive"`
 	Context  warrant.PolicyContext     `json:"context"`
 	Debug    bool                      `json:"debug"`
-}
-
-func (spec SessionCheckManySpec) ToMap() map[string]interface{} {
-	result := map[string]interface{}{
-		"op":      spec.Op,
-		"context": spec.Context,
-		"debug":   spec.Debug,
-	}
-
-	warrantMaps := make([]map[string]interface{}, 0)
-	for _, warrantSpec := range spec.Warrants {
-		warrantMaps = append(warrantMaps, warrantSpec.ToMap())
-	}
-
-	result["warrants"] = warrantMaps
-	return result
 }
 
 type CheckResultSpec struct {

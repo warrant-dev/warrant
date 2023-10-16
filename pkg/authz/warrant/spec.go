@@ -26,70 +26,13 @@ import (
 const Wildcard = "*"
 
 type WarrantSpec struct {
-	ObjectType string            `json:"objectType" validate:"required,valid_object_type"`
-	ObjectId   string            `json:"objectId" validate:"required,valid_object_id"`
-	Relation   string            `json:"relation" validate:"required,valid_relation"`
-	Subject    *SubjectSpec      `json:"subject" validate:"required"`
-	Context    map[string]string `json:"context,omitempty" validate:"excluded_with=Policy"`
-	Policy     Policy            `json:"policy,omitempty" validate:"excluded_with=Context"`
-	CreatedAt  time.Time         `json:"createdAt"`
-}
-
-func (spec *WarrantSpec) ToWarrant() (*Warrant, error) {
-	warrant := &Warrant{
-		ObjectType: spec.ObjectType,
-		ObjectId:   spec.ObjectId,
-		Relation:   spec.Relation,
-	}
-
-	if spec.Subject != nil {
-		warrant.SubjectType = spec.Subject.ObjectType
-		warrant.SubjectId = spec.Subject.ObjectId
-		warrant.SubjectRelation = spec.Subject.Relation
-	}
-
-	// NOTE: To preserve backwards compatibility of the create
-	// warrant API with the introduction of attaching policies
-	// to warrants, warrants can still be created with context,
-	// and the context will be converted into a policy.
-	if spec.Context != nil {
-		policyClauses := make([]string, 0)
-		for k, v := range spec.Context {
-			policyClauses = append(policyClauses, fmt.Sprintf(`%s == "%s"`, k, v))
-		}
-		spec.Policy = Policy(strings.Join(policyClauses, " && "))
-	}
-
-	if spec.Policy != "" {
-		err := spec.Policy.Validate()
-		if err != nil {
-			return nil, service.NewInvalidParameterError("policy", err.Error())
-		}
-
-		warrant.Policy = spec.Policy
-		warrant.PolicyHash = spec.Policy.Hash()
-	}
-
-	return warrant, nil
-}
-
-func (spec *WarrantSpec) ToMap() map[string]interface{} {
-	if spec.Policy != "" {
-		return map[string]interface{}{
-			"objectType": spec.ObjectType,
-			"objectId":   spec.ObjectId,
-			"relation":   spec.Relation,
-			"subject":    spec.Subject.ToMap(),
-			"policy":     spec.Policy,
-		}
-	}
-
-	return map[string]interface{}{
-		"objectType": spec.ObjectType,
-		"objectId":   spec.ObjectId,
-		"relation":   spec.Relation,
-		"subject":    spec.Subject.ToMap(),
-	}
+	ObjectType string            `json:"objectType"`
+	ObjectId   string            `json:"objectId"`
+	Relation   string            `json:"relation"`
+	Subject    *SubjectSpec      `json:"subject"`
+	Context    map[string]string `json:"context,omitempty"`
+	Policy     Policy            `json:"policy,omitempty"`
+	CreatedAt  time.Time         `json:"createdAt,omitempty"`
 }
 
 func (spec WarrantSpec) String() string {
@@ -145,4 +88,138 @@ func StringToWarrantSpec(str string) (*WarrantSpec, error) {
 
 	spec.Policy = Policy(strings.TrimSuffix(policy, "]"))
 	return &spec, nil
+}
+
+type CreateWarrantSpec struct {
+	ObjectType string            `json:"objectType"        validate:"required,valid_object_type"`
+	ObjectId   string            `json:"objectId"          validate:"required,valid_object_id"`
+	Relation   string            `json:"relation"          validate:"required,valid_relation"`
+	Subject    *SubjectSpec      `json:"subject"           validate:"required"`
+	Context    map[string]string `json:"context,omitempty" validate:"excluded_with=Policy"`
+	Policy     Policy            `json:"policy,omitempty"  validate:"excluded_with=Context"`
+}
+
+func (spec CreateWarrantSpec) ToWarrant() (*Warrant, error) {
+	warrant := &Warrant{
+		ObjectType: spec.ObjectType,
+		ObjectId:   spec.ObjectId,
+		Relation:   spec.Relation,
+	}
+
+	if spec.Subject != nil {
+		warrant.SubjectType = spec.Subject.ObjectType
+		warrant.SubjectId = spec.Subject.ObjectId
+		warrant.SubjectRelation = spec.Subject.Relation
+	}
+
+	// NOTE: To preserve backwards compatibility of the create
+	// warrant API with the introduction of attaching policies
+	// to warrants, warrants can still be created with context,
+	// and the context will be converted into a policy.
+	if spec.Context != nil {
+		policyClauses := make([]string, 0)
+		for k, v := range spec.Context {
+			policyClauses = append(policyClauses, fmt.Sprintf(`%s == "%s"`, k, v))
+		}
+		spec.Policy = Policy(strings.Join(policyClauses, " && "))
+	}
+
+	if spec.Policy != "" {
+		err := spec.Policy.Validate()
+		if err != nil {
+			return nil, service.NewInvalidParameterError("policy", err.Error())
+		}
+
+		warrant.Policy = spec.Policy
+		warrant.PolicyHash = spec.Policy.Hash()
+	}
+
+	return warrant, nil
+}
+
+func (spec CreateWarrantSpec) String() string {
+	str := fmt.Sprintf(
+		"%s:%s#%s@%s",
+		spec.ObjectType,
+		spec.ObjectId,
+		spec.Relation,
+		spec.Subject.String(),
+	)
+
+	if spec.Policy != "" {
+		str = fmt.Sprintf("%s[%s]", str, spec.Policy)
+	}
+
+	return str
+}
+
+type DeleteWarrantSpec struct {
+	ObjectType string            `json:"objectType"        validate:"required,valid_object_type"`
+	ObjectId   string            `json:"objectId"          validate:"required,valid_object_id"`
+	Relation   string            `json:"relation"          validate:"required,valid_relation"`
+	Subject    *SubjectSpec      `json:"subject"           validate:"required"`
+	Context    map[string]string `json:"context,omitempty" validate:"excluded_with=Policy"`
+	Policy     Policy            `json:"policy,omitempty"  validate:"excluded_with=Context"`
+}
+
+func (spec DeleteWarrantSpec) ToWarrant() (*Warrant, error) {
+	warrant := &Warrant{
+		ObjectType: spec.ObjectType,
+		ObjectId:   spec.ObjectId,
+		Relation:   spec.Relation,
+	}
+
+	if spec.Subject != nil {
+		warrant.SubjectType = spec.Subject.ObjectType
+		warrant.SubjectId = spec.Subject.ObjectId
+		warrant.SubjectRelation = spec.Subject.Relation
+	}
+
+	// NOTE: To preserve backwards compatibility of the create
+	// warrant API with the introduction of attaching policies
+	// to warrants, warrants can still be created with context,
+	// and the context will be converted into a policy.
+	if spec.Context != nil {
+		policyClauses := make([]string, 0)
+		for k, v := range spec.Context {
+			policyClauses = append(policyClauses, fmt.Sprintf(`%s == "%s"`, k, v))
+		}
+		spec.Policy = Policy(strings.Join(policyClauses, " && "))
+	}
+
+	if spec.Policy != "" {
+		err := spec.Policy.Validate()
+		if err != nil {
+			return nil, service.NewInvalidParameterError("policy", err.Error())
+		}
+
+		warrant.Policy = spec.Policy
+		warrant.PolicyHash = spec.Policy.Hash()
+	}
+
+	return warrant, nil
+}
+
+func (spec DeleteWarrantSpec) String() string {
+	str := fmt.Sprintf(
+		"%s:%s#%s@%s",
+		spec.ObjectType,
+		spec.ObjectId,
+		spec.Relation,
+		spec.Subject.String(),
+	)
+
+	if spec.Policy != "" {
+		str = fmt.Sprintf("%s[%s]", str, spec.Policy)
+	}
+
+	return str
+}
+
+type ListWarrantsSpecV1 []WarrantSpec
+
+type ListWarrantsSpecV2 struct {
+	Results    []WarrantSpec   `json:"results"`
+	NextCursor *service.Cursor `json:"nextCursor,omitempty"`
+	PrevCursor *service.Cursor `json:"prevCursor,omitempty"`
 }

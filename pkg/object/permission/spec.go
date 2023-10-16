@@ -19,7 +19,6 @@ import (
 	"time"
 
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	query "github.com/warrant-dev/warrant/pkg/authz/query"
 	object "github.com/warrant-dev/warrant/pkg/object"
 )
 
@@ -59,38 +58,6 @@ func NewPermissionSpecFromObjectSpec(objectSpec *object.ObjectSpec) (*Permission
 		Name:         name,
 		Description:  description,
 		CreatedAt:    objectSpec.CreatedAt,
-	}, nil
-}
-
-func NewPermissionSpecFromQueryResult(queryResult *query.QueryResult) (*PermissionSpec, error) {
-	var (
-		name        *string
-		description *string
-	)
-
-	if queryResult.Meta != nil {
-		if _, exists := queryResult.Meta["name"]; exists {
-			nameStr, ok := queryResult.Meta["name"].(string)
-			if !ok {
-				return nil, errors.New("permission name has invalid type in result meta")
-			}
-			name = &nameStr
-		}
-
-		if _, exists := queryResult.Meta["description"]; exists {
-			descriptionStr, ok := queryResult.Meta["description"].(string)
-			if !ok {
-				return nil, errors.New("permission description has invalid type in result meta")
-			}
-			description = &descriptionStr
-		}
-	}
-
-	return &PermissionSpec{
-		PermissionId: queryResult.ObjectId,
-		Name:         name,
-		Description:  description,
-		CreatedAt:    queryResult.Warrant.CreatedAt,
 	}, nil
 }
 

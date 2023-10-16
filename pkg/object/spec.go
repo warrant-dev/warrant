@@ -29,30 +29,10 @@ type ObjectSpec struct {
 	// NOTE: ID is required here for internal use.
 	// However, we don't return it to the client.
 	ID         int64                  `json:"-"`
-	ObjectType string                 `json:"objectType"     validate:"required,valid_object_type"`
-	ObjectId   string                 `json:"objectId"       validate:"required,valid_object_id"`
+	ObjectType string                 `json:"objectType"`
+	ObjectId   string                 `json:"objectId"`
 	Meta       map[string]interface{} `json:"meta,omitempty"`
 	CreatedAt  time.Time              `json:"createdAt"`
-}
-
-func (spec ObjectSpec) ToObject() (*Object, error) {
-	var meta *string
-	if spec.Meta != nil {
-		m, err := json.Marshal(spec.Meta)
-		if err != nil {
-			return nil, service.NewInvalidParameterError("meta", "invalid request body")
-		}
-
-		metaStr := string(m)
-		meta = &metaStr
-	}
-
-	return &Object{
-		ObjectType: spec.ObjectType,
-		ObjectId:   spec.ObjectId,
-		Meta:       meta,
-		CreatedAt:  spec.CreatedAt,
-	}, nil
 }
 
 type CreateObjectSpec struct {
@@ -82,4 +62,12 @@ func (spec CreateObjectSpec) ToObject() (*Object, error) {
 
 type UpdateObjectSpec struct {
 	Meta map[string]interface{} `json:"meta"`
+}
+
+type ListObjectSpecV1 []ObjectSpec
+
+type ListObjectsSpecV2 struct {
+	Results    []ObjectSpec    `json:"results"`
+	NextCursor *service.Cursor `json:"nextCursor,omitempty"`
+	PrevCursor *service.Cursor `json:"prevCursor,omitempty"`
 }

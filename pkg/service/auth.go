@@ -203,14 +203,18 @@ func PassthroughAuthMiddleware(cfg config.Config, next http.Handler) (http.Handl
 }
 
 // GetAuthInfoFromRequestContext returns the AuthInfo object from the given context
-func GetAuthInfoFromRequestContext(context context.Context) *AuthInfo {
-	contextVal := context.Value(authInfoKey)
-	if contextVal != nil {
-		authInfo := context.Value(authInfoKey).(AuthInfo)
-		return &authInfo
+func GetAuthInfoFromRequestContext(ctx context.Context) (*AuthInfo, error) {
+	ctxValue := ctx.Value(authInfoKey)
+	if ctxValue != nil {
+		authInfo, ok := ctxValue.(AuthInfo)
+		if !ok {
+			return nil, errors.New("auth: error casting context value to AuthInfo type")
+		}
+
+		return &authInfo, nil
 	}
 
-	return nil
+	return nil, errors.New("auth: AuthInfo not found in context")
 }
 
 func parseAuthTokenFromRequest(r *http.Request, validTokenTypes []string) (string, string, error) {

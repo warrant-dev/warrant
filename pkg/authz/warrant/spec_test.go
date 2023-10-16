@@ -22,8 +22,9 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestToWarrantDirectWarrantSpec(t *testing.T) {
-	spec := WarrantSpec{
+func TestCreateSpecToWarrantDirectWarrant(t *testing.T) {
+	t.Parallel()
+	spec := CreateWarrantSpec{
 		ObjectType: "permission",
 		ObjectId:   "test",
 		Relation:   "member",
@@ -49,9 +50,10 @@ func TestToWarrantDirectWarrantSpec(t *testing.T) {
 	}
 }
 
-func TestToWarrantDirectWarrantSpecWithPolicy(t *testing.T) {
+func TestCreateSpecToWarrantDirectWarrantWithPolicy(t *testing.T) {
+	t.Parallel()
 	policy := Policy("tenant == 101")
-	spec := WarrantSpec{
+	spec := CreateWarrantSpec{
 		ObjectType: "permission",
 		ObjectId:   "test",
 		Relation:   "member",
@@ -80,9 +82,10 @@ func TestToWarrantDirectWarrantSpecWithPolicy(t *testing.T) {
 	}
 }
 
-func TestToWarrantDirectWarrantSpecWithContext(t *testing.T) {
+func TestCreateSpecToWarrantDirectWarrantWithContext(t *testing.T) {
+	t.Parallel()
 	policy := Policy(`tenant == "101"`)
-	spec := WarrantSpec{
+	spec := CreateWarrantSpec{
 		ObjectType: "permission",
 		ObjectId:   "test",
 		Relation:   "member",
@@ -113,8 +116,9 @@ func TestToWarrantDirectWarrantSpecWithContext(t *testing.T) {
 	}
 }
 
-func TestToWarrantIndirectWarrantSpec(t *testing.T) {
-	spec := WarrantSpec{
+func TestCreateSpecToWarrantGroupWarrant(t *testing.T) {
+	t.Parallel()
+	spec := CreateWarrantSpec{
 		ObjectType: "permission",
 		ObjectId:   "test",
 		Relation:   "member",
@@ -142,9 +146,10 @@ func TestToWarrantIndirectWarrantSpec(t *testing.T) {
 	}
 }
 
-func TestToWarrantIndirectWarrantSpecWithPolicy(t *testing.T) {
+func TestCreateSpecToWarrantIndirectWarrantWithPolicy(t *testing.T) {
+	t.Parallel()
 	policy := Policy("tenant == 101")
-	spec := WarrantSpec{
+	spec := CreateWarrantSpec{
 		ObjectType: "permission",
 		ObjectId:   "test",
 		Relation:   "member",
@@ -175,9 +180,10 @@ func TestToWarrantIndirectWarrantSpecWithPolicy(t *testing.T) {
 	}
 }
 
-func TestToWarrantIndirectWarrantSpecWithContext(t *testing.T) {
+func TestCreateSpecToWarrantIndirectWarrantWithContext(t *testing.T) {
+	t.Parallel()
 	policy := Policy(`tenant == "101"`)
-	spec := WarrantSpec{
+	spec := CreateWarrantSpec{
 		ObjectType: "permission",
 		ObjectId:   "test",
 		Relation:   "member",
@@ -207,106 +213,11 @@ func TestToWarrantIndirectWarrantSpecWithContext(t *testing.T) {
 
 	if !cmp.Equal(actualWarrant, expectedWarrant) {
 		t.Fatalf("Expected warrant to be %v, but it was %v", expectedWarrant, actualWarrant)
-	}
-}
-
-func TestToMapDirectWarrantSpec(t *testing.T) {
-	spec := WarrantSpec{
-		ObjectType: "permission",
-		ObjectId:   "test",
-		Relation:   "member",
-		Subject: &SubjectSpec{
-			ObjectType: "user",
-			ObjectId:   "user-A",
-		},
-	}
-	expectedMap := map[string]interface{}{
-		"objectType": "permission",
-		"objectId":   "test",
-		"relation":   "member",
-		"subject":    spec.Subject.ToMap(),
-	}
-	actualMap := spec.ToMap()
-	if !cmp.Equal(actualMap, expectedMap) {
-		t.Fatalf("Expected map to be %v, but it was %v", expectedMap, actualMap)
-	}
-}
-
-func TestToMapDirectWarrantSpecWithPolicy(t *testing.T) {
-	policy := Policy("tenant == 101")
-	spec := WarrantSpec{
-		ObjectType: "permission",
-		ObjectId:   "test",
-		Relation:   "member",
-		Subject: &SubjectSpec{
-			ObjectType: "user",
-			ObjectId:   "user-A",
-		},
-		Policy: policy,
-	}
-	expectedMap := map[string]interface{}{
-		"objectType": "permission",
-		"objectId":   "test",
-		"relation":   "member",
-		"subject":    spec.Subject.ToMap(),
-		"policy":     policy,
-	}
-	actualMap := spec.ToMap()
-	if !cmp.Equal(actualMap, expectedMap) {
-		t.Fatalf("Expected map to be %v, but it was %v", expectedMap, actualMap)
-	}
-}
-
-func TestToMapIndirectWarrantSpec(t *testing.T) {
-	spec := WarrantSpec{
-		ObjectType: "permission",
-		ObjectId:   "test",
-		Relation:   "member",
-		Subject: &SubjectSpec{
-			ObjectType: "role",
-			ObjectId:   "admin",
-			Relation:   "member",
-		},
-	}
-	expectedMap := map[string]interface{}{
-		"objectType": "permission",
-		"objectId":   "test",
-		"relation":   "member",
-		"subject":    spec.Subject.ToMap(),
-	}
-	actualMap := spec.ToMap()
-	if !cmp.Equal(actualMap, expectedMap) {
-		t.Fatalf("Expected map to be %v, but it was %v", expectedMap, actualMap)
-	}
-}
-
-func TestToMapIndirectWarrantSpecWithPolicy(t *testing.T) {
-	policy := Policy("tenant == 101")
-	spec := WarrantSpec{
-		ObjectType: "permission",
-		ObjectId:   "test",
-		Relation:   "member",
-		Subject: &SubjectSpec{
-			ObjectType: "role",
-			ObjectId:   "admin",
-			Relation:   "member",
-		},
-		Policy: policy,
-	}
-	expectedMap := map[string]interface{}{
-		"objectType": "permission",
-		"objectId":   "test",
-		"relation":   "member",
-		"subject":    spec.Subject.ToMap(),
-		"policy":     policy,
-	}
-	actualMap := spec.ToMap()
-	if !cmp.Equal(actualMap, expectedMap) {
-		t.Fatalf("Expected map to be %v, but it was %v", expectedMap, actualMap)
 	}
 }
 
 func TestToStringDirectWarrantSpec(t *testing.T) {
+	t.Parallel()
 	spec := WarrantSpec{
 		ObjectType: "permission",
 		ObjectId:   "test",
@@ -324,6 +235,7 @@ func TestToStringDirectWarrantSpec(t *testing.T) {
 }
 
 func TestToStringDirectWarrantSpecWithPolicy(t *testing.T) {
+	t.Parallel()
 	spec := WarrantSpec{
 		ObjectType: "permission",
 		ObjectId:   "test",
@@ -342,6 +254,7 @@ func TestToStringDirectWarrantSpecWithPolicy(t *testing.T) {
 }
 
 func TestToStringIndirectWarrantSpec(t *testing.T) {
+	t.Parallel()
 	spec := WarrantSpec{
 		ObjectType: "permission",
 		ObjectId:   "test",
@@ -360,6 +273,7 @@ func TestToStringIndirectWarrantSpec(t *testing.T) {
 }
 
 func TestToStringIndirectWarrantSpecWithPolicy(t *testing.T) {
+	t.Parallel()
 	spec := WarrantSpec{
 		ObjectType: "permission",
 		ObjectId:   "test",
@@ -379,6 +293,7 @@ func TestToStringIndirectWarrantSpecWithPolicy(t *testing.T) {
 }
 
 func TestStringToWarrantSpecDirectWarrantSpec(t *testing.T) {
+	t.Parallel()
 	warrantStr := "permission:test#member@user:user-A"
 	expectedWarrantSpec := &WarrantSpec{
 		ObjectType: "permission",
@@ -400,6 +315,7 @@ func TestStringToWarrantSpecDirectWarrantSpec(t *testing.T) {
 }
 
 func TestStringToWarrantSpecDirectWarrantSpecWithPolicy(t *testing.T) {
+	t.Parallel()
 	warrantStr := "permission:test#member@user:user-A[tenant == 101]"
 	expectedWarrantSpec := &WarrantSpec{
 		ObjectType: "permission",
@@ -422,6 +338,7 @@ func TestStringToWarrantSpecDirectWarrantSpecWithPolicy(t *testing.T) {
 }
 
 func TestStringToWarrantSpecIndirectWarrantSpec(t *testing.T) {
+	t.Parallel()
 	warrantStr := "permission:test#member@role:admin#member"
 	expectedWarrantSpec := &WarrantSpec{
 		ObjectType: "permission",
@@ -444,6 +361,7 @@ func TestStringToWarrantSpecIndirectWarrantSpec(t *testing.T) {
 }
 
 func TestStringToWarrantSpecIndirectWarrantSpecWithPolicy(t *testing.T) {
+	t.Parallel()
 	warrantStr := "permission:test#member@role:admin#member[tenant == 101]"
 	expectedWarrantSpec := &WarrantSpec{
 		ObjectType: "permission",
@@ -467,6 +385,7 @@ func TestStringToWarrantSpecIndirectWarrantSpecWithPolicy(t *testing.T) {
 }
 
 func TestStringToWarrantSpecInvalidObject(t *testing.T) {
+	t.Parallel()
 	warrantStr := "permissiontest#member@user:user:-A"
 	expectedErrStr := fmt.Sprintf("invalid object in warrant string %s", warrantStr)
 	_, err := StringToWarrantSpec(warrantStr)
@@ -476,6 +395,7 @@ func TestStringToWarrantSpecInvalidObject(t *testing.T) {
 }
 
 func TestStringToWarrantSpecInvalidSubject(t *testing.T) {
+	t.Parallel()
 	warrantStr := "permission:test#member@user:user-A#member#"
 	expectedErrStr := fmt.Sprintf("invalid subject in warrant string %s", warrantStr)
 	_, err := StringToWarrantSpec(warrantStr)
@@ -485,6 +405,7 @@ func TestStringToWarrantSpecInvalidSubject(t *testing.T) {
 }
 
 func TestStringToWarrantSpecInvalidPolicy(t *testing.T) {
+	t.Parallel()
 	warrantStr := "permission:test#member@user:user-A#member[tenant == 101"
 	expectedErrStr := fmt.Sprintf("invalid policy in warrant string %s", warrantStr)
 	_, err := StringToWarrantSpec(warrantStr)

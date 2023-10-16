@@ -34,18 +34,18 @@ func (svc EventService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern: "/v1/resource-events",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, ListResourceEvents),
+			Handler: service.NewRouteHandler(svc, listResourceEvents),
 		},
 
 		service.WarrantRoute{
 			Pattern: "/v1/access-events",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, ListAccessEvents),
+			Handler: service.NewRouteHandler(svc, listAccessEvents),
 		},
 	}, nil
 }
 
-func ListResourceEvents(svc EventService, w http.ResponseWriter, r *http.Request) error {
+func listResourceEvents(svc EventService, w http.ResponseWriter, r *http.Request) error {
 	queryParams := r.URL.Query()
 	listParams := ListResourceEventParams{
 		Type:         queryParams.Get(QueryParamType),
@@ -107,7 +107,7 @@ func ListResourceEvents(svc EventService, w http.ResponseWriter, r *http.Request
 	return nil
 }
 
-func ListAccessEvents(svc EventService, w http.ResponseWriter, r *http.Request) error {
+func listAccessEvents(svc EventService, w http.ResponseWriter, r *http.Request) error {
 	queryParams := r.URL.Query()
 	listParams := ListAccessEventParams{
 		Type:            queryParams.Get(QueryParamType),

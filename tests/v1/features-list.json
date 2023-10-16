@@ -379,9 +379,9 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "featureId": "feature-6",
-                        "name": null,
-                        "description": null
+                        "featureId": "feature-2",
+                        "name": "",
+                        "description": "This is feature-2."
                     }
                 ]
             }
@@ -413,8 +413,8 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "featureId": "feature-1",
-                        "name": "Feature B",
+                        "featureId": "feature-4",
+                        "name": "Feature C",
                         "description": null
                     }
                 ]
@@ -594,14 +594,14 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "featureId": "feature-6",
+                        "featureId": "feature-3",
                         "name": null,
                         "description": null
                     },
                     {
-                        "featureId": "feature-2",
-                        "name": "",
-                        "description": "This is feature-2."
+                        "featureId": "feature-6",
+                        "name": null,
+                        "description": null
                     }
                 ]
             }
@@ -638,13 +638,13 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "featureId": "feature-5",
+                        "featureId": "feature-2",
                         "name": "",
-                        "description": null
+                        "description": "This is feature-2."
                     },
                     {
-                        "featureId": "feature-1",
-                        "name": "Feature B",
+                        "featureId": "feature-5",
+                        "name": "",
                         "description": null
                     }
                 ]

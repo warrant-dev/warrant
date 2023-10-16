@@ -21,53 +21,54 @@ import (
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-// GetRoutes registers all route handlers for this module
 func (svc FeatureService) Routes() ([]service.Route, error) {
 	return []service.Route{
 		// create
 		service.WarrantRoute{
 			Pattern: "/v1/features",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, CreateHandler),
+			Handler: service.NewRouteHandler(svc, createHandler),
 		},
 
-		// get
+		// list
 		service.WarrantRoute{
 			Pattern: "/v1/features",
 			Method:  "GET",
 			Handler: service.ChainMiddleware(
-				service.NewRouteHandler(svc, ListHandler),
+				service.NewRouteHandler(svc, listHandler),
 				service.ListMiddleware[FeatureListParamParser],
 			),
 		},
+
+		// get
 		service.WarrantRoute{
 			Pattern: "/v1/features/{featureId}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, GetHandler),
+			Handler: service.NewRouteHandler(svc, getHandler),
 		},
 
 		// update
 		service.WarrantRoute{
 			Pattern: "/v1/features/{featureId}",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, UpdateHandler),
+			Handler: service.NewRouteHandler(svc, updateHandler),
 		},
 		service.WarrantRoute{
 			Pattern: "/v1/features/{featureId}",
 			Method:  "PUT",
-			Handler: service.NewRouteHandler(svc, UpdateHandler),
+			Handler: service.NewRouteHandler(svc, updateHandler),
 		},
 
 		// delete
 		service.WarrantRoute{
 			Pattern: "/v1/features/{featureId}",
 			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc, DeleteHandler),
+			Handler: service.NewRouteHandler(svc, deleteHandler),
 		},
 	}, nil
 }
 
-func CreateHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
+func createHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
 	var newFeature FeatureSpec
 	err := service.ParseJSONBody(r.Body, &newFeature)
 	if err != nil {
@@ -83,7 +84,7 @@ func CreateHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) e
 	return nil
 }
 
-func GetHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
+func getHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
 	featureId := mux.Vars(r)["featureId"]
 	feature, err := svc.GetByFeatureId(r.Context(), featureId)
 	if err != nil {
@@ -94,7 +95,7 @@ func GetHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) erro
 	return nil
 }
 
-func ListHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
+func listHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
 	listParams := service.GetListParamsFromContext[FeatureListParamParser](r.Context())
 	features, err := svc.List(r.Context(), listParams)
 	if err != nil {
@@ -105,7 +106,7 @@ func ListHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) err
 	return nil
 }
 
-func UpdateHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
+func updateHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
 	var updateFeature UpdateFeatureSpec
 	err := service.ParseJSONBody(r.Body, &updateFeature)
 	if err != nil {
@@ -122,7 +123,7 @@ func UpdateHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) e
 	return nil
 }
 
-func DeleteHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
+func deleteHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
 	featureId := mux.Vars(r)["featureId"]
 	if featureId == "" {
 		return service.NewMissingRequiredParameterError("featureId")

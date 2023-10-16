@@ -29,7 +29,7 @@ type Service interface {
 	Create(ctx context.Context, objectSpec CreateObjectSpec) (*ObjectSpec, error)
 	GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (*ObjectSpec, error)
 	BatchGetByObjectTypeAndIds(ctx context.Context, objectType string, objectIds []string) ([]ObjectSpec, error)
-	List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]ObjectSpec, error)
+	List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]ObjectSpec, *service.Cursor, *service.Cursor, error)
 	UpdateByObjectTypeAndId(ctx context.Context, objectType string, objectId string, updateSpec UpdateObjectSpec) (*ObjectSpec, error)
 	DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (*wookie.Token, error)
 }
@@ -123,23 +123,23 @@ func (svc ObjectService) BatchGetByObjectTypeAndIds(ctx context.Context, objectT
 	return objectSpecs, nil
 }
 
-func (svc ObjectService) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]ObjectSpec, error) {
+func (svc ObjectService) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]ObjectSpec, *service.Cursor, *service.Cursor, error) {
 	objectSpecs := make([]ObjectSpec, 0)
-	objects, err := svc.Repository.List(ctx, filterOptions, listParams)
+	objects, prevCursor, nextCursor, err := svc.Repository.List(ctx, filterOptions, listParams)
 	if err != nil {
-		return objectSpecs, err
+		return objectSpecs, prevCursor, nextCursor, err
 	}
 
 	for _, object := range objects {
 		objectSpec, err := object.ToObjectSpec()
 		if err != nil {
-			return objectSpecs, err
+			return objectSpecs, prevCursor, nextCursor, err
 		}
 
 		objectSpecs = append(objectSpecs, *objectSpec)
 	}
 
-	return objectSpecs, nil
+	return objectSpecs, prevCursor, nextCursor, nil
 }
 
 func (svc ObjectService) UpdateByObjectTypeAndId(ctx context.Context, objectType string, objectId string, updateSpec UpdateObjectSpec) (*ObjectSpec, error) {

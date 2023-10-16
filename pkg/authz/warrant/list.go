@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 type FilterParams struct {
@@ -63,9 +65,12 @@ func (fp FilterParams) String() string {
 	return strings.TrimPrefix(s, "&")
 }
 
+const PrimarySortKey = "id"
+
 type WarrantListParamParser struct{}
 
 func (parser WarrantListParamParser) GetDefaultSortBy() string {
+	//nolint:goconst
 	return "createdAt"
 }
 
@@ -74,15 +79,16 @@ func (parser WarrantListParamParser) GetSupportedSortBys() []string {
 }
 
 func (parser WarrantListParamParser) ParseValue(val string, sortBy string) (interface{}, error) {
+	// TODO: add support for more sortBy columns
 	switch sortBy {
 	case "createdAt":
-		afterValue, err := time.Parse(time.RFC3339, val)
-		if err != nil || afterValue.Equal(time.Time{}) {
+		value, err := time.Parse(time.RFC3339, val)
+		if err != nil || value.Equal(time.Time{}) {
 			return nil, fmt.Errorf("must be a valid time in the format %s", time.RFC3339)
 		}
 
-		return &afterValue, nil
+		return &value, nil
 	default:
-		return nil, fmt.Errorf("must match type of selected sortBy attribute %s", sortBy)
+		return nil, errors.New(fmt.Sprintf("must match type of selected sortBy attribute %s", sortBy))
 	}
 }

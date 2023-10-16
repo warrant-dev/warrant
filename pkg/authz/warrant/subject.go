@@ -27,21 +27,6 @@ type SubjectSpec struct {
 	Relation   string `json:"relation,omitempty" validate:"omitempty,valid_relation"`
 }
 
-func (spec *SubjectSpec) ToMap() map[string]interface{} {
-	if spec.Relation != "" {
-		return map[string]interface{}{
-			"objectType": spec.ObjectType,
-			"objectId":   spec.ObjectId,
-			"relation":   spec.Relation,
-		}
-	}
-
-	return map[string]interface{}{
-		"objectType": spec.ObjectType,
-		"objectId":   spec.ObjectId,
-	}
-}
-
 func (spec *SubjectSpec) String() string {
 	if spec.Relation != "" {
 		return fmt.Sprintf("%s:%s#%s", spec.ObjectType, spec.ObjectId, spec.Relation)

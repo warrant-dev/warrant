@@ -15,11 +15,8 @@
 package authz
 
 import (
-	"encoding/base64"
-	"encoding/json"
-
-	"github.com/pkg/errors"
 	baseWarrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
+	"github.com/warrant-dev/warrant/pkg/service"
 )
 
 type Query struct {
@@ -67,70 +64,13 @@ type QueryResult struct {
 	Meta       map[string]interface{}  `json:"meta,omitempty"`
 }
 
-type Result struct {
+type QueryResponseV1 struct {
 	Results []QueryResult `json:"results"`
 	LastId  string        `json:"lastId,omitempty"`
 }
 
-type ByObjectTypeAsc []QueryResult
-
-func (res ByObjectTypeAsc) Len() int      { return len(res) }
-func (res ByObjectTypeAsc) Swap(i, j int) { res[i], res[j] = res[j], res[i] }
-func (res ByObjectTypeAsc) Less(i, j int) bool {
-	if res[i].ObjectType == res[j].ObjectType {
-		return res[i].ObjectId < res[j].ObjectId
-	}
-	return res[i].ObjectType < res[j].ObjectType
-}
-
-type ByObjectTypeDesc []QueryResult
-
-func (res ByObjectTypeDesc) Len() int      { return len(res) }
-func (res ByObjectTypeDesc) Swap(i, j int) { res[i], res[j] = res[j], res[i] }
-func (res ByObjectTypeDesc) Less(i, j int) bool {
-	if res[i].ObjectType == res[j].ObjectType {
-		return res[i].ObjectId > res[j].ObjectId
-	}
-	return res[i].ObjectType > res[j].ObjectType
-}
-
-type ByObjectIdAsc []QueryResult
-
-func (res ByObjectIdAsc) Len() int           { return len(res) }
-func (res ByObjectIdAsc) Swap(i, j int)      { res[i], res[j] = res[j], res[i] }
-func (res ByObjectIdAsc) Less(i, j int) bool { return res[i].ObjectId < res[j].ObjectId }
-
-type ByObjectIdDesc []QueryResult
-
-func (res ByObjectIdDesc) Len() int           { return len(res) }
-func (res ByObjectIdDesc) Swap(i, j int)      { res[i], res[j] = res[j], res[i] }
-func (res ByObjectIdDesc) Less(i, j int) bool { return res[i].ObjectId > res[j].ObjectId }
-
-type LastIdSpec struct {
-	ObjectType string `json:"objectType"`
-	ObjectId   string `json:"objectId"`
-}
-
-func LastIdSpecToString(lastIdSpec LastIdSpec) (string, error) {
-	jsonStr, err := json.Marshal(lastIdSpec)
-	if err != nil {
-		return "", errors.Wrapf(err, "error marshaling lastId %v", lastIdSpec)
-	}
-
-	return base64.StdEncoding.EncodeToString(jsonStr), nil
-}
-
-func StringToLastIdSpec(base64Str string) (*LastIdSpec, error) {
-	var lastIdSpec LastIdSpec
-	jsonStr, err := base64.StdEncoding.DecodeString(base64Str)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error base64 decoding lastId string %s", base64Str)
-	}
-
-	err = json.Unmarshal(jsonStr, &lastIdSpec)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error unmarshaling lastIdSpec %v", lastIdSpec)
-	}
-
-	return &lastIdSpec, nil
+type QueryResponseV2 struct {
+	Results    []QueryResult   `json:"results"`
+	PrevCursor *service.Cursor `json:"prevCursor,omitempty"`
+	NextCursor *service.Cursor `json:"nextCursor,omitempty"`
 }
