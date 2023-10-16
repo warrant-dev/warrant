@@ -26,7 +26,7 @@ func (svc QueryService) Routes() ([]service.Route, error) {
 			Pattern: "/v1/query",
 			Method:  "GET",
 			Handler: service.ChainMiddleware(
-				service.NewRouteHandler(svc, QueryHandlerV1),
+				service.NewRouteHandler(svc, queryV1),
 				service.ListMiddleware[QueryListParamParser],
 			),
 		},
@@ -34,14 +34,14 @@ func (svc QueryService) Routes() ([]service.Route, error) {
 			Pattern: "/v2/query",
 			Method:  "GET",
 			Handler: service.ChainMiddleware(
-				service.NewRouteHandler(svc, QueryHandlerV2),
+				service.NewRouteHandler(svc, queryV2),
 				service.ListMiddleware[QueryListParamParser],
 			),
 		},
 	}, nil
 }
 
-func QueryHandlerV1(svc QueryService, w http.ResponseWriter, r *http.Request) error {
+func queryV1(svc QueryService, w http.ResponseWriter, r *http.Request) error {
 	queryString := r.URL.Query().Get("q")
 	query, err := NewQueryFromString(queryString)
 	if err != nil {
@@ -87,7 +87,7 @@ func QueryHandlerV1(svc QueryService, w http.ResponseWriter, r *http.Request) er
 	return nil
 }
 
-func QueryHandlerV2(svc QueryService, w http.ResponseWriter, r *http.Request) error {
+func queryV2(svc QueryService, w http.ResponseWriter, r *http.Request) error {
 	queryString := r.URL.Query().Get("q")
 	query, err := NewQueryFromString(queryString)
 	if err != nil {

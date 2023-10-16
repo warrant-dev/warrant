@@ -27,7 +27,7 @@ func (svc PermissionService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern: "/v1/permissions",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, CreateHandler),
+			Handler: service.NewRouteHandler(svc, createHandler),
 		},
 
 		// list
@@ -35,7 +35,7 @@ func (svc PermissionService) Routes() ([]service.Route, error) {
 			Pattern: "/v1/permissions",
 			Method:  "GET",
 			Handler: service.ChainMiddleware(
-				service.NewRouteHandler(svc, ListHandler),
+				service.NewRouteHandler(svc, listHandler),
 				service.ListMiddleware[PermissionListParamParser],
 			),
 		},
@@ -44,31 +44,31 @@ func (svc PermissionService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern: "/v1/permissions/{permissionId}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, GetHandler),
+			Handler: service.NewRouteHandler(svc, getHandler),
 		},
 
 		// update
 		service.WarrantRoute{
 			Pattern: "/v1/permissions/{permissionId}",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, UpdateHandler),
+			Handler: service.NewRouteHandler(svc, updateHandler),
 		},
 		service.WarrantRoute{
 			Pattern: "/v1/permissions/{permissionId}",
 			Method:  "PUT",
-			Handler: service.NewRouteHandler(svc, UpdateHandler),
+			Handler: service.NewRouteHandler(svc, updateHandler),
 		},
 
 		// delete
 		service.WarrantRoute{
 			Pattern: "/v1/permissions/{permissionId}",
 			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc, DeleteHandler),
+			Handler: service.NewRouteHandler(svc, deleteHandler),
 		},
 	}, nil
 }
 
-func CreateHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
+func createHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	var newPermission PermissionSpec
 	err := service.ParseJSONBody(r.Body, &newPermission)
 	if err != nil {
@@ -84,7 +84,7 @@ func CreateHandler(svc PermissionService, w http.ResponseWriter, r *http.Request
 	return nil
 }
 
-func GetHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
+func getHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	permissionId := mux.Vars(r)["permissionId"]
 	permission, err := svc.GetByPermissionId(r.Context(), permissionId)
 	if err != nil {
@@ -95,7 +95,7 @@ func GetHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) e
 	return nil
 }
 
-func ListHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
+func listHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	listParams := service.GetListParamsFromContext[PermissionListParamParser](r.Context())
 	permissions, err := svc.List(r.Context(), listParams)
 	if err != nil {
@@ -106,7 +106,7 @@ func ListHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) 
 	return nil
 }
 
-func UpdateHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
+func updateHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	var updatePermission UpdatePermissionSpec
 	err := service.ParseJSONBody(r.Body, &updatePermission)
 	if err != nil {
@@ -123,7 +123,7 @@ func UpdateHandler(svc PermissionService, w http.ResponseWriter, r *http.Request
 	return nil
 }
 
-func DeleteHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
+func deleteHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	permissionId := mux.Vars(r)["permissionId"]
 	if permissionId == "" {
 		return service.NewMissingRequiredParameterError("permissionId")

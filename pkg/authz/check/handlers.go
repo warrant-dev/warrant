@@ -28,13 +28,13 @@ func (svc CheckService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern:                    "/v2/authorize",
 			Method:                     "POST",
-			Handler:                    service.NewRouteHandler(svc, AuthorizeHandler),
+			Handler:                    service.NewRouteHandler(svc, authorizeHandler),
 			OverrideAuthMiddlewareFunc: service.ApiKeyAndSessionAuthMiddleware,
 		},
 	}, nil
 }
 
-func AuthorizeHandler(svc CheckService, w http.ResponseWriter, r *http.Request) error {
+func authorizeHandler(svc CheckService, w http.ResponseWriter, r *http.Request) error {
 	authInfo, err := service.GetAuthInfoFromRequestContext(r.Context())
 	if err != nil {
 		return err

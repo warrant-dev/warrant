@@ -27,7 +27,7 @@ func (svc RoleService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern: "/v1/roles",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, CreateHandler),
+			Handler: service.NewRouteHandler(svc, createHandler),
 		},
 
 		// list
@@ -35,7 +35,7 @@ func (svc RoleService) Routes() ([]service.Route, error) {
 			Pattern: "/v1/roles",
 			Method:  "GET",
 			Handler: service.ChainMiddleware(
-				service.NewRouteHandler(svc, ListHandler),
+				service.NewRouteHandler(svc, listHandler),
 				service.ListMiddleware[RoleListParamParser],
 			),
 		},
@@ -44,31 +44,31 @@ func (svc RoleService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern: "/v1/roles/{roleId}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, GetHandler),
+			Handler: service.NewRouteHandler(svc, getHandler),
 		},
 
 		// update
 		service.WarrantRoute{
 			Pattern: "/v1/roles/{roleId}",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, UpdateHandler),
+			Handler: service.NewRouteHandler(svc, updateHandler),
 		},
 		service.WarrantRoute{
 			Pattern: "/v1/roles/{roleId}",
 			Method:  "PUT",
-			Handler: service.NewRouteHandler(svc, UpdateHandler),
+			Handler: service.NewRouteHandler(svc, updateHandler),
 		},
 
 		// delete
 		service.WarrantRoute{
 			Pattern: "/v1/roles/{roleId}",
 			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc, DeleteHandler),
+			Handler: service.NewRouteHandler(svc, deleteHandler),
 		},
 	}, nil
 }
 
-func CreateHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error {
+func createHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error {
 	var newRole RoleSpec
 	err := service.ParseJSONBody(r.Body, &newRole)
 	if err != nil {
@@ -84,7 +84,7 @@ func CreateHandler(svc RoleService, w http.ResponseWriter, r *http.Request) erro
 	return nil
 }
 
-func GetHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error {
+func getHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error {
 	roleId := mux.Vars(r)["roleId"]
 	role, err := svc.GetByRoleId(r.Context(), roleId)
 	if err != nil {
@@ -95,7 +95,7 @@ func GetHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func ListHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error {
+func listHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error {
 	listParams := service.GetListParamsFromContext[RoleListParamParser](r.Context())
 	roles, err := svc.List(r.Context(), listParams)
 	if err != nil {
@@ -106,7 +106,7 @@ func ListHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error 
 	return nil
 }
 
-func UpdateHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error {
+func updateHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error {
 	var updateRole UpdateRoleSpec
 	err := service.ParseJSONBody(r.Body, &updateRole)
 	if err != nil {
@@ -123,7 +123,7 @@ func UpdateHandler(svc RoleService, w http.ResponseWriter, r *http.Request) erro
 	return nil
 }
 
-func DeleteHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error {
+func deleteHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error {
 	roleId := mux.Vars(r)["roleId"]
 	if roleId == "" {
 		return service.NewMissingRequiredParameterError("roleId")

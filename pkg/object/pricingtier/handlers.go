@@ -27,7 +27,7 @@ func (svc PricingTierService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern: "/v1/pricing-tiers",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, CreateHandler),
+			Handler: service.NewRouteHandler(svc, createHandler),
 		},
 
 		// list
@@ -35,7 +35,7 @@ func (svc PricingTierService) Routes() ([]service.Route, error) {
 			Pattern: "/v1/pricing-tiers",
 			Method:  "GET",
 			Handler: service.ChainMiddleware(
-				service.NewRouteHandler(svc, ListHandler),
+				service.NewRouteHandler(svc, listHandler),
 				service.ListMiddleware[PricingTierListParamParser],
 			),
 		},
@@ -44,31 +44,31 @@ func (svc PricingTierService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern: "/v1/pricing-tiers/{pricingTierId}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, GetHandler),
+			Handler: service.NewRouteHandler(svc, getHandler),
 		},
 
 		// update
 		service.WarrantRoute{
 			Pattern: "/v1/pricing-tiers/{pricingTierId}",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, UpdateHandler),
+			Handler: service.NewRouteHandler(svc, updateHandler),
 		},
 		service.WarrantRoute{
 			Pattern: "/v1/pricing-tiers/{pricingTierId}",
 			Method:  "PUT",
-			Handler: service.NewRouteHandler(svc, UpdateHandler),
+			Handler: service.NewRouteHandler(svc, updateHandler),
 		},
 
 		// delete
 		service.WarrantRoute{
 			Pattern: "/v1/pricing-tiers/{pricingTierId}",
 			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc, DeleteHandler),
+			Handler: service.NewRouteHandler(svc, deleteHandler),
 		},
 	}, nil
 }
 
-func CreateHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
+func createHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
 	var newPricingTier PricingTierSpec
 	err := service.ParseJSONBody(r.Body, &newPricingTier)
 	if err != nil {
@@ -84,7 +84,7 @@ func CreateHandler(svc PricingTierService, w http.ResponseWriter, r *http.Reques
 	return nil
 }
 
-func GetHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
+func getHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
 	pricingTierId := mux.Vars(r)["pricingTierId"]
 	pricingTier, err := svc.GetByPricingTierId(r.Context(), pricingTierId)
 	if err != nil {
@@ -95,7 +95,7 @@ func GetHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request) 
 	return nil
 }
 
-func ListHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
+func listHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
 	listParams := service.GetListParamsFromContext[PricingTierListParamParser](r.Context())
 	pricingTiers, err := svc.List(r.Context(), listParams)
 	if err != nil {
@@ -106,7 +106,7 @@ func ListHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request)
 	return nil
 }
 
-func UpdateHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
+func updateHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
 	var updatePricingTier UpdatePricingTierSpec
 	err := service.ParseJSONBody(r.Body, &updatePricingTier)
 	if err != nil {
@@ -123,7 +123,7 @@ func UpdateHandler(svc PricingTierService, w http.ResponseWriter, r *http.Reques
 	return nil
 }
 
-func DeleteHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
+func deleteHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
 	pricingTierId := mux.Vars(r)["pricingTierId"]
 	if pricingTierId == "" {
 		return service.NewMissingRequiredParameterError("pricingTierId")

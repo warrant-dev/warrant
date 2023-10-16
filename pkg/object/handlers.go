@@ -28,12 +28,12 @@ func (svc ObjectService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern: "/v1/objects",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, CreateHandler),
+			Handler: service.NewRouteHandler(svc, createHandler),
 		},
 		service.WarrantRoute{
 			Pattern: "/v2/objects",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, CreateHandler),
+			Handler: service.NewRouteHandler(svc, createHandler),
 		},
 
 		// list
@@ -41,7 +41,7 @@ func (svc ObjectService) Routes() ([]service.Route, error) {
 			Pattern: "/v1/objects",
 			Method:  "GET",
 			Handler: service.ChainMiddleware(
-				service.NewRouteHandler(svc, ListHandlerV1),
+				service.NewRouteHandler(svc, listHandlerV1),
 				service.ListMiddleware[ObjectListParamParser],
 			),
 		},
@@ -49,7 +49,7 @@ func (svc ObjectService) Routes() ([]service.Route, error) {
 			Pattern: "/v2/objects",
 			Method:  "GET",
 			Handler: service.ChainMiddleware(
-				service.NewRouteHandler(svc, ListHandlerV2),
+				service.NewRouteHandler(svc, listHandlerV2),
 				service.ListMiddleware[ObjectListParamParser],
 			),
 		},
@@ -58,51 +58,51 @@ func (svc ObjectService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern: "/v1/objects/{objectType}/{objectId}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, GetHandler),
+			Handler: service.NewRouteHandler(svc, getHandler),
 		},
 		service.WarrantRoute{
 			Pattern: "/v2/objects/{objectType}/{objectId}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, GetHandler),
+			Handler: service.NewRouteHandler(svc, getHandler),
 		},
 
 		// update
 		service.WarrantRoute{
 			Pattern: "/v1/objects/{objectType}/{objectId}",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, UpdateHandler),
+			Handler: service.NewRouteHandler(svc, updateHandler),
 		},
 		service.WarrantRoute{
 			Pattern: "/v1/objects/{objectType}/{objectId}",
 			Method:  "PUT",
-			Handler: service.NewRouteHandler(svc, UpdateHandler),
+			Handler: service.NewRouteHandler(svc, updateHandler),
 		},
 		service.WarrantRoute{
 			Pattern: "/v2/objects/{objectType}/{objectId}",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, UpdateHandler),
+			Handler: service.NewRouteHandler(svc, updateHandler),
 		},
 		service.WarrantRoute{
 			Pattern: "/v2/objects/{objectType}/{objectId}",
 			Method:  "PUT",
-			Handler: service.NewRouteHandler(svc, UpdateHandler),
+			Handler: service.NewRouteHandler(svc, updateHandler),
 		},
 
 		// delete
 		service.WarrantRoute{
 			Pattern: "/v1/objects/{objectType}/{objectId}",
 			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc, DeleteHandler),
+			Handler: service.NewRouteHandler(svc, deleteHandler),
 		},
 		service.WarrantRoute{
 			Pattern: "/v2/objects/{objectType}/{objectId}",
 			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc, DeleteHandler),
+			Handler: service.NewRouteHandler(svc, deleteHandler),
 		},
 	}, nil
 }
 
-func CreateHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
+func createHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
 	var objectSpec CreateObjectSpec
 	err := service.ParseJSONBody(r.Body, &objectSpec)
 	if err != nil {
@@ -118,7 +118,7 @@ func CreateHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) er
 	return nil
 }
 
-func ListHandlerV1(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
+func listHandlerV1(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
 	listParams := service.GetListParamsFromContext[ObjectListParamParser](r.Context())
 	queryParams := r.URL.Query()
 	objectType, err := url.QueryUnescape(queryParams.Get("objectType"))
@@ -136,7 +136,7 @@ func ListHandlerV1(svc ObjectService, w http.ResponseWriter, r *http.Request) er
 	return nil
 }
 
-func ListHandlerV2(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
+func listHandlerV2(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
 	listParams := service.GetListParamsFromContext[ObjectListParamParser](r.Context())
 	queryParams := r.URL.Query()
 	objectType, err := url.QueryUnescape(queryParams.Get("objectType"))
@@ -150,7 +150,7 @@ func ListHandlerV2(svc ObjectService, w http.ResponseWriter, r *http.Request) er
 		return err
 	}
 
-	service.SendJSONResponse(w, ListObjectssSpecV2{
+	service.SendJSONResponse(w, ListObjectsSpecV2{
 		Results:    objects,
 		PrevCursor: prevCursor,
 		NextCursor: nextCursor,
@@ -158,7 +158,7 @@ func ListHandlerV2(svc ObjectService, w http.ResponseWriter, r *http.Request) er
 	return nil
 }
 
-func GetHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
+func getHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
 	objectType := mux.Vars(r)["objectType"]
 	objectId := mux.Vars(r)["objectId"]
 	object, err := svc.GetByObjectTypeAndId(r.Context(), objectType, objectId)
@@ -170,7 +170,7 @@ func GetHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) error
 	return nil
 }
 
-func UpdateHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
+func updateHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
 	var updateObject UpdateObjectSpec
 	err := service.ParseJSONBody(r.Body, &updateObject)
 	if err != nil {
@@ -188,7 +188,7 @@ func UpdateHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) er
 	return nil
 }
 
-func DeleteHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
+func deleteHandler(svc ObjectService, w http.ResponseWriter, r *http.Request) error {
 	objectType := mux.Vars(r)["objectType"]
 	objectId := mux.Vars(r)["objectId"]
 	_, err := svc.DeleteByObjectTypeAndId(r.Context(), objectType, objectId)

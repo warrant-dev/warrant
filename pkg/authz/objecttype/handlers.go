@@ -27,12 +27,12 @@ func (svc ObjectTypeService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern: "/v1/object-types",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, CreateHandler),
+			Handler: service.NewRouteHandler(svc, createHandler),
 		},
 		service.WarrantRoute{
 			Pattern: "/v2/object-types",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, CreateHandler),
+			Handler: service.NewRouteHandler(svc, createHandler),
 		},
 
 		// list
@@ -40,7 +40,7 @@ func (svc ObjectTypeService) Routes() ([]service.Route, error) {
 			Pattern: "/v1/object-types",
 			Method:  "GET",
 			Handler: service.ChainMiddleware(
-				service.NewRouteHandler(svc, ListHandlerV1),
+				service.NewRouteHandler(svc, listHandlerV1),
 				service.ListMiddleware[ObjectTypeListParamParser],
 			),
 		},
@@ -48,7 +48,7 @@ func (svc ObjectTypeService) Routes() ([]service.Route, error) {
 			Pattern: "/v2/object-types",
 			Method:  "GET",
 			Handler: service.ChainMiddleware(
-				service.NewRouteHandler(svc, ListHandlerV2),
+				service.NewRouteHandler(svc, listHandlerV2),
 				service.ListMiddleware[ObjectTypeListParamParser],
 			),
 		},
@@ -57,51 +57,51 @@ func (svc ObjectTypeService) Routes() ([]service.Route, error) {
 		service.WarrantRoute{
 			Pattern: "/v1/object-types/{type}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, GetHandler),
+			Handler: service.NewRouteHandler(svc, getHandler),
 		},
 		service.WarrantRoute{
 			Pattern: "/v2/object-types/{type}",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, GetHandler),
+			Handler: service.NewRouteHandler(svc, getHandler),
 		},
 
 		// update
 		service.WarrantRoute{
 			Pattern: "/v1/object-types/{type}",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, UpdateHandler),
+			Handler: service.NewRouteHandler(svc, updateHandler),
 		},
 		service.WarrantRoute{
 			Pattern: "/v1/object-types/{type}",
 			Method:  "PUT",
-			Handler: service.NewRouteHandler(svc, UpdateHandler),
+			Handler: service.NewRouteHandler(svc, updateHandler),
 		},
 		service.WarrantRoute{
 			Pattern: "/v2/object-types/{type}",
 			Method:  "POST",
-			Handler: service.NewRouteHandler(svc, UpdateHandler),
+			Handler: service.NewRouteHandler(svc, updateHandler),
 		},
 		service.WarrantRoute{
 			Pattern: "/v2/object-types/{type}",
 			Method:  "PUT",
-			Handler: service.NewRouteHandler(svc, UpdateHandler),
+			Handler: service.NewRouteHandler(svc, updateHandler),
 		},
 
 		// delete
 		service.WarrantRoute{
 			Pattern: "/v1/object-types/{type}",
 			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc, DeleteHandler),
+			Handler: service.NewRouteHandler(svc, deleteHandler),
 		},
 		service.WarrantRoute{
 			Pattern: "/v2/object-types/{type}",
 			Method:  "DELETE",
-			Handler: service.NewRouteHandler(svc, DeleteHandler),
+			Handler: service.NewRouteHandler(svc, deleteHandler),
 		},
 	}, nil
 }
 
-func CreateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
+func createHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	var spec CreateObjectTypeSpec
 	err := service.ParseJSONBody(r.Body, &spec)
 	if err != nil {
@@ -117,7 +117,7 @@ func CreateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 	return nil
 }
 
-func ListHandlerV1(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
+func listHandlerV1(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	listParams := service.GetListParamsFromContext[ObjectTypeListParamParser](r.Context())
 	objectTypeSpecs, _, _, err := svc.List(r.Context(), listParams)
 	if err != nil {
@@ -128,7 +128,7 @@ func ListHandlerV1(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 	return nil
 }
 
-func ListHandlerV2(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
+func listHandlerV2(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	listParams := service.GetListParamsFromContext[ObjectTypeListParamParser](r.Context())
 	objectTypeSpecs, prevCursor, nextCursor, err := svc.List(r.Context(), listParams)
 	if err != nil {
@@ -143,7 +143,7 @@ func ListHandlerV2(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 	return nil
 }
 
-func GetHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
+func getHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	typeId := mux.Vars(r)["type"]
 	objectTypeSpec, err := svc.GetByTypeId(r.Context(), typeId)
 	if err != nil {
@@ -154,7 +154,7 @@ func GetHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) e
 	return nil
 }
 
-func UpdateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
+func updateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	var spec UpdateObjectTypeSpec
 	err := service.ParseJSONBody(r.Body, &spec)
 	if err != nil {
@@ -171,7 +171,7 @@ func UpdateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request
 	return nil
 }
 
-func DeleteHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
+func deleteHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	typeId := mux.Vars(r)["type"]
 	_, err := svc.DeleteByTypeId(r.Context(), typeId)
 	if err != nil {

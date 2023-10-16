@@ -66,7 +66,7 @@ type UpdateObjectSpec struct {
 
 type ListObjectSpecV1 []ObjectSpec
 
-type ListObjectssSpecV2 struct {
+type ListObjectsSpecV2 struct {
 	Results    []ObjectSpec    `json:"results"`
 	NextCursor *service.Cursor `json:"nextCursor,omitempty"`
 	PrevCursor *service.Cursor `json:"prevCursor,omitempty"`
