@@ -1495,29 +1495,15 @@
             }
         },
         {
-            "name": "selectMembersOrViewersOfTypeUserLimit3SortOrderDescPrevCursor1",
+            "name": "selectMembersOrViewersOfTypeUserLimit2SortOrderDescPrevCursor1",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20member%2Cviewer%20of%20type%20user&limit=3&sortOrder=DESC&prevCursor={{ selectMembersOrViewersOfTypeUserLimit3SortOrderDescNextCursor1.prevCursor }}"
+                "url": "/v2/query?q=select%20member%2Cviewer%20of%20type%20user&limit=2&sortOrder=DESC&prevCursor={{ selectMembersOrViewersOfTypeUserLimit3SortOrderDescNextCursor1.prevCursor }}"
             },
             "expectedResponse": {
                 "statusCode": 200,
                 "body": {
                     "results": [
-                        {
-                            "objectType": "user",
-                            "objectId": "U4",
-                            "warrant": {
-                                "objectType": "role",
-                                "objectId": "admin",
-                                "relation": "member",
-                                "subject": {
-                                    "objectType": "user",
-                                    "objectId": "U4"
-                                }
-                            },
-                            "isImplicit": false
-                        },
                         {
                             "objectType": "user",
                             "objectId": "U3",
@@ -1547,6 +1533,7 @@
                             "isImplicit": true
                         }
                     ],
+                    "prevCursor": "{{ selectMembersOrViewersOfTypeUserLimit2SortOrderDescPrevCursor1.prevCursor }}",
                     "nextCursor": "{{ selectMembersOrViewersOfTypeUserLimit3SortOrderDesc.nextCursor }}"
                 }
             }

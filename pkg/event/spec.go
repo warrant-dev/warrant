@@ -15,13 +15,13 @@
 package event
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"reflect"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/warrant-dev/warrant/pkg/service"
 )
 
 type CreateResourceEventSpec struct {
@@ -116,36 +116,13 @@ type AccessEventSpec struct {
 	CreatedAt       time.Time   `json:"createdAt"`
 }
 
-type ListEventsSpec[T ResourceEventSpec | AccessEventSpec] struct {
+type ListEventsSpecV1[T ResourceEventSpec | AccessEventSpec] struct {
 	Events []T    `json:"events"`
 	LastId string `json:"lastId,omitempty"`
 }
 
-type LastIdSpec struct {
-	ID        string    `json:"id"`
-	CreatedAt time.Time `json:"createdAt"`
-}
-
-func LastIdSpecToString(lastIdSpec LastIdSpec) (string, error) {
-	jsonStr, err := json.Marshal(lastIdSpec)
-	if err != nil {
-		return "", errors.Wrapf(err, "error marshaling lastId %v", lastIdSpec)
-	}
-
-	return base64.StdEncoding.EncodeToString(jsonStr), nil
-}
-
-func StringToLastIdSpec(base64Str string) (*LastIdSpec, error) {
-	var lastIdSpec LastIdSpec
-	jsonStr, err := base64.StdEncoding.DecodeString(base64Str)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error base64 decoding lastId string %s", base64Str)
-	}
-
-	err = json.Unmarshal(jsonStr, &lastIdSpec)
-	if err != nil {
-		return nil, errors.Wrapf(err, "error unmarshaling lastIdSpec %v", lastIdSpec)
-	}
-
-	return &lastIdSpec, nil
+type ListEventsSpecV2[T ResourceEventSpec | AccessEventSpec] struct {
+	Results    []T             `json:"results"`
+	PrevCursor *service.Cursor `json:"prevCursor,omitempty"`
+	NextCursor *service.Cursor `json:"nextCursor,omitempty"`
 }

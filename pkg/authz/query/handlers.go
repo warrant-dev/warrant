@@ -51,14 +51,14 @@ func queryV1(svc QueryService, w http.ResponseWriter, r *http.Request) error {
 	listParams := service.GetListParamsFromContext[QueryListParamParser](r.Context())
 	// create next cursor from lastId or afterId param
 	if r.URL.Query().Has("lastId") {
-		lastIdCursor, err := service.NewCursorFromBase64String(r.URL.Query().Get("lastId"))
+		lastIdCursor, err := service.NewCursorFromBase64String(r.URL.Query().Get("lastId"), QueryListParamParser{}, listParams.SortBy)
 		if err != nil {
 			return service.NewInvalidParameterError("lastId", "invalid lastId")
 		}
 
 		listParams.NextCursor = lastIdCursor
 	} else if r.URL.Query().Has("afterId") {
-		afterIdCursor, err := service.NewCursorFromBase64String(r.URL.Query().Get("afterId"))
+		afterIdCursor, err := service.NewCursorFromBase64String(r.URL.Query().Get("afterId"), QueryListParamParser{}, listParams.SortBy)
 		if err != nil {
 			return service.NewInvalidParameterError("afterId", "invalid afterId")
 		}

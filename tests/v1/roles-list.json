@@ -379,9 +379,9 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "roleId": "role-2",
-                        "name": "",
-                        "description": "This is role-2."
+                        "roleId": "role-6",
+                        "name": null,
+                        "description": null
                     }
                 ]
             }
@@ -413,8 +413,8 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "roleId": "role-4",
-                        "name": "Role C",
+                        "roleId": "role-1",
+                        "name": "Role B",
                         "description": null
                     }
                 ]
@@ -594,14 +594,14 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "roleId": "role-3",
+                        "roleId": "role-6",
                         "name": null,
                         "description": null
                     },
                     {
-                        "roleId": "role-6",
-                        "name": null,
-                        "description": null
+                        "roleId": "role-2",
+                        "name": "",
+                        "description": "This is role-2."
                     }
                 ]
             }
@@ -638,13 +638,13 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "roleId": "role-2",
-                        "name": "",
-                        "description": "This is role-2."
-                    },
-                    {
                         "roleId": "role-5",
                         "name": "",
+                        "description": null
+                    },
+                    {
+                        "roleId": "role-1",
+                        "name": "Role B",
                         "description": null
                     }
                 ]

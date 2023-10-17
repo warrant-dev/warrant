@@ -395,8 +395,13 @@ func (repo PostgresRepository) List(ctx context.Context, filterParams FilterPara
 		return models, nil, nil, nil
 	}
 
-	for i := 0; i < len(warrants) && i < listParams.Limit; i++ {
+	i := 0
+	if listParams.PrevCursor != nil && len(warrants) > listParams.Limit {
+		i = 1
+	}
+	for i < len(warrants) && len(models) < listParams.Limit {
 		models = append(models, &warrants[i])
+		i++
 	}
 
 	//nolint:gosec

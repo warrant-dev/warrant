@@ -14,11 +14,15 @@
 
 package event
 
-import "time"
+import (
+	"fmt"
+	"time"
+
+	"github.com/pkg/errors"
+)
 
 const (
 	DefaultEpochMicroseconds  = 1136160000000
-	DefaultLimit              = 100
 	QueryParamType            = "type"
 	QueryParamSource          = "source"
 	QueryParamResourceType    = "resourceType"
@@ -26,7 +30,6 @@ const (
 	QueryParamLastId          = "lastId"
 	QueryParamSince           = "since"
 	QueryParamUntil           = "until"
-	QueryParamLimit           = "limit"
 	QueryParamObjectType      = "objectType"
 	QueryParamObjectId        = "objectId"
 	QueryParamRelation        = "relation"
@@ -35,18 +38,41 @@ const (
 	QueryParamSubjectRelation = "subjectRelation"
 )
 
-type ListResourceEventParams struct {
+type ResourceEventFilterParams struct {
 	Type         string
 	Source       string
 	ResourceType string
 	ResourceId   string
-	LastId       string
 	Since        time.Time
 	Until        time.Time
-	Limit        int64
 }
 
-type ListAccessEventParams struct {
+type ResourceEventListParamParser struct{}
+
+func (parser ResourceEventListParamParser) GetDefaultSortBy() string {
+	//nolint:goconst
+	return "createdAt"
+}
+
+func (parser ResourceEventListParamParser) GetSupportedSortBys() []string {
+	return []string{"createdAt"}
+}
+
+func (parser ResourceEventListParamParser) ParseValue(val string, sortBy string) (interface{}, error) {
+	switch sortBy {
+	case "createdAt":
+		value, err := time.Parse(time.RFC3339, val)
+		if err != nil || value.Equal(time.Time{}) {
+			return nil, errors.New(fmt.Sprintf("must be a valid time in the format %s", time.RFC3339))
+		}
+
+		return value, nil
+	default:
+		return nil, errors.New(fmt.Sprintf("must match type of selected sortBy attribute %s", sortBy))
+	}
+}
+
+type AccessEventFilterParams struct {
 	Type            string
 	Source          string
 	ObjectType      string
@@ -55,8 +81,30 @@ type ListAccessEventParams struct {
 	SubjectType     string
 	SubjectId       string
 	SubjectRelation string
-	LastId          string
 	Since           time.Time
 	Until           time.Time
-	Limit           int64
+}
+
+type AccessEventListParamParser struct{}
+
+func (parser AccessEventListParamParser) GetDefaultSortBy() string {
+	return "createdAt"
+}
+
+func (parser AccessEventListParamParser) GetSupportedSortBys() []string {
+	return []string{"createdAt"}
+}
+
+func (parser AccessEventListParamParser) ParseValue(val string, sortBy string) (interface{}, error) {
+	switch sortBy {
+	case "createdAt":
+		value, err := time.Parse(time.RFC3339, val)
+		if err != nil || value.Equal(time.Time{}) {
+			return nil, errors.New(fmt.Sprintf("must be a valid time in the format %s", time.RFC3339))
+		}
+
+		return &value, nil
+	default:
+		return nil, errors.New(fmt.Sprintf("must match type of selected sortBy attribute %s", sortBy))
+	}
 }

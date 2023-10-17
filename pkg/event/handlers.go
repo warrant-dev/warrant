@@ -25,95 +25,176 @@ import (
 const (
 	DateFormatMessage = "Must be an integer specifying a unix timestamp in microseconds"
 	SinceErrorMessage = "Must be a date occurring before the until date"
-	LimitErrorMessage = "Must be an integer between 1 and 1000"
 )
 
 func (svc EventService) Routes() ([]service.Route, error) {
 	return []service.Route{
-		// get
+		// list resource events
 		service.WarrantRoute{
 			Pattern: "/v1/resource-events",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, listResourceEvents),
+			Handler: service.ChainMiddleware(
+				service.NewRouteHandler(svc, listResourceEventsV1),
+				service.ListMiddleware[ResourceEventListParamParser],
+			),
+		},
+		service.WarrantRoute{
+			Pattern: "/v2/resource-events",
+			Method:  "GET",
+			Handler: service.ChainMiddleware(
+				service.NewRouteHandler(svc, listResourceEventsV2),
+				service.ListMiddleware[ResourceEventListParamParser],
+			),
 		},
 
+		// list access events
 		service.WarrantRoute{
 			Pattern: "/v1/access-events",
 			Method:  "GET",
-			Handler: service.NewRouteHandler(svc, listAccessEvents),
+			Handler: service.ChainMiddleware(
+				service.NewRouteHandler(svc, listAccessEventsV1),
+				service.ListMiddleware[AccessEventListParamParser],
+			),
+		},
+		service.WarrantRoute{
+			Pattern: "/v2/access-events",
+			Method:  "GET",
+			Handler: service.ChainMiddleware(
+				service.NewRouteHandler(svc, listAccessEventsV2),
+				service.ListMiddleware[AccessEventListParamParser],
+			),
 		},
 	}, nil
 }
 
-func listResourceEvents(svc EventService, w http.ResponseWriter, r *http.Request) error {
+func listResourceEventsV1(svc EventService, w http.ResponseWriter, r *http.Request) error {
 	queryParams := r.URL.Query()
-	listParams := ListResourceEventParams{
+	listParams := service.GetListParamsFromContext[ResourceEventListParamParser](r.Context())
+	filterParams := ResourceEventFilterParams{
 		Type:         queryParams.Get(QueryParamType),
 		Source:       queryParams.Get(QueryParamSource),
 		ResourceType: queryParams.Get(QueryParamResourceType),
 		ResourceId:   queryParams.Get(QueryParamResourceId),
-		LastId:       queryParams.Get(QueryParamLastId),
-		Limit:        DefaultLimit,
 	}
 
 	var err error
 	sinceString := queryParams.Get(QueryParamSince)
 	if sinceString == "" {
-		listParams.Since = time.UnixMicro(DefaultEpochMicroseconds).UTC()
+		filterParams.Since = time.UnixMicro(DefaultEpochMicroseconds).UTC()
 	} else {
 		sinceMicroseconds, err := strconv.ParseInt(sinceString, 10, 64)
 		if err != nil {
 			return service.NewInvalidParameterError(QueryParamSince, DateFormatMessage)
 		}
 
-		listParams.Since = time.UnixMicro(sinceMicroseconds).UTC()
+		filterParams.Since = time.UnixMicro(sinceMicroseconds).UTC()
 	}
 
 	untilString := queryParams.Get(QueryParamUntil)
 	if untilString == "" {
-		listParams.Until = time.Now().UTC()
+		filterParams.Until = time.Now().UTC()
 	} else {
 		untilMicroseconds, err := strconv.ParseInt(untilString, 10, 64)
 		if err != nil {
 			return service.NewInvalidParameterError(QueryParamUntil, DateFormatMessage)
 		}
 
-		listParams.Until = time.UnixMicro(untilMicroseconds).UTC()
+		filterParams.Until = time.UnixMicro(untilMicroseconds).UTC()
 	}
 
-	if listParams.Since.After(listParams.Until) {
+	if filterParams.Since.After(filterParams.Until) {
 		return service.NewInvalidParameterError(QueryParamSince, SinceErrorMessage)
 	}
 
-	limitString := queryParams.Get(QueryParamLimit)
-	if limitString == "" {
-		listParams.Limit = DefaultLimit
-	} else {
-		listParams.Limit, err = strconv.ParseInt(limitString, 10, 64)
-		if err != nil || listParams.Limit <= 0 || listParams.Limit > 1000 {
-			return service.NewInvalidParameterError(QueryParamLimit, LimitErrorMessage)
+	// create next cursor from lastId param
+	if r.URL.Query().Has(QueryParamLastId) {
+		lastIdCursor, err := service.NewCursorFromBase64String(r.URL.Query().Get(QueryParamLastId), ResourceEventListParamParser{}, listParams.SortBy)
+		if err != nil {
+			return service.NewInvalidParameterError(QueryParamLastId, "invalid lastId")
 		}
+
+		listParams.NextCursor = lastIdCursor
 	}
 
-	resourceEventSpecs, lastId, err := svc.ListResourceEvents(r.Context(), listParams)
+	resourceEventSpecs, _, nextCursor, err := svc.ListResourceEvents(r.Context(), filterParams, listParams)
 	if err != nil {
 		return err
 	}
 
-	service.SendJSONResponse(w, ListEventsSpec[ResourceEventSpec]{
+	var newLastId string
+	if nextCursor != nil {
+		base64EncodedNextCursor, err := nextCursor.ToBase64String()
+		if err != nil {
+			return err
+		}
+		newLastId = base64EncodedNextCursor
+	}
+
+	service.SendJSONResponse(w, ListEventsSpecV1[ResourceEventSpec]{
 		Events: resourceEventSpecs,
-		LastId: lastId,
+		LastId: newLastId,
 	})
 	return nil
 }
 
-func listAccessEvents(svc EventService, w http.ResponseWriter, r *http.Request) error {
+func listResourceEventsV2(svc EventService, w http.ResponseWriter, r *http.Request) error {
 	queryParams := r.URL.Query()
-	listParams := ListAccessEventParams{
+	listParams := service.GetListParamsFromContext[ResourceEventListParamParser](r.Context())
+	filterParams := ResourceEventFilterParams{
+		Type:         queryParams.Get(QueryParamType),
+		Source:       queryParams.Get(QueryParamSource),
+		ResourceType: queryParams.Get(QueryParamResourceType),
+		ResourceId:   queryParams.Get(QueryParamResourceId),
+	}
+
+	var err error
+	sinceString := queryParams.Get(QueryParamSince)
+	if sinceString == "" {
+		filterParams.Since = time.UnixMicro(DefaultEpochMicroseconds).UTC()
+	} else {
+		sinceMicroseconds, err := strconv.ParseInt(sinceString, 10, 64)
+		if err != nil {
+			return service.NewInvalidParameterError(QueryParamSince, DateFormatMessage)
+		}
+
+		filterParams.Since = time.UnixMicro(sinceMicroseconds).UTC()
+	}
+
+	untilString := queryParams.Get(QueryParamUntil)
+	if untilString == "" {
+		filterParams.Until = time.Now().UTC()
+	} else {
+		untilMicroseconds, err := strconv.ParseInt(untilString, 10, 64)
+		if err != nil {
+			return service.NewInvalidParameterError(QueryParamUntil, DateFormatMessage)
+		}
+
+		filterParams.Until = time.UnixMicro(untilMicroseconds).UTC()
+	}
+
+	if filterParams.Since.After(filterParams.Until) {
+		return service.NewInvalidParameterError(QueryParamSince, SinceErrorMessage)
+	}
+
+	resourceEventSpecs, prevCursor, nextCursor, err := svc.ListResourceEvents(r.Context(), filterParams, listParams)
+	if err != nil {
+		return err
+	}
+
+	service.SendJSONResponse(w, ListEventsSpecV2[ResourceEventSpec]{
+		Results:    resourceEventSpecs,
+		PrevCursor: prevCursor,
+		NextCursor: nextCursor,
+	})
+	return nil
+}
+
+func listAccessEventsV1(svc EventService, w http.ResponseWriter, r *http.Request) error {
+	queryParams := r.URL.Query()
+	listParams := service.GetListParamsFromContext[AccessEventListParamParser](r.Context())
+	filterParams := AccessEventFilterParams{
 		Type:            queryParams.Get(QueryParamType),
 		Source:          queryParams.Get(QueryParamSource),
-		LastId:          queryParams.Get(QueryParamLastId),
-		Limit:           DefaultLimit,
 		ObjectType:      queryParams.Get(QueryParamObjectType),
 		ObjectId:        queryParams.Get(QueryParamObjectId),
 		Relation:        queryParams.Get(QueryParamRelation),
@@ -125,50 +206,115 @@ func listAccessEvents(svc EventService, w http.ResponseWriter, r *http.Request) 
 	var err error
 	sinceString := queryParams.Get(QueryParamSince)
 	if sinceString == "" {
-		listParams.Since = time.UnixMicro(DefaultEpochMicroseconds).UTC()
+		filterParams.Since = time.UnixMicro(DefaultEpochMicroseconds).UTC()
 	} else {
 		sinceMicroseconds, err := strconv.ParseInt(sinceString, 10, 64)
 		if err != nil {
 			return service.NewInvalidParameterError(QueryParamSince, DateFormatMessage)
 		}
 
-		listParams.Since = time.UnixMicro(sinceMicroseconds).UTC()
+		filterParams.Since = time.UnixMicro(sinceMicroseconds).UTC()
 	}
 
 	untilString := queryParams.Get(QueryParamUntil)
 	if untilString == "" {
-		listParams.Until = time.Now().UTC()
+		filterParams.Until = time.Now().UTC()
 	} else {
 		untilMicroseconds, err := strconv.ParseInt(untilString, 10, 64)
 		if err != nil {
 			return service.NewInvalidParameterError(QueryParamUntil, DateFormatMessage)
 		}
 
-		listParams.Until = time.UnixMicro(untilMicroseconds).UTC()
+		filterParams.Until = time.UnixMicro(untilMicroseconds).UTC()
 	}
 
-	if listParams.Since.After(listParams.Until) {
+	if filterParams.Since.After(filterParams.Until) {
 		return service.NewInvalidParameterError(QueryParamSince, SinceErrorMessage)
 	}
 
-	limitString := queryParams.Get(QueryParamLimit)
-	if limitString == "" {
-		listParams.Limit = DefaultLimit
-	} else {
-		listParams.Limit, err = strconv.ParseInt(limitString, 10, 64)
-		if err != nil || listParams.Limit <= 0 || listParams.Limit > 1000 {
-			return service.NewInvalidParameterError(QueryParamLimit, LimitErrorMessage)
+	// create next cursor from lastId param
+	if r.URL.Query().Has(QueryParamLastId) {
+		lastIdCursor, err := service.NewCursorFromBase64String(r.URL.Query().Get(QueryParamLastId), AccessEventListParamParser{}, listParams.SortBy)
+		if err != nil {
+			return service.NewInvalidParameterError(QueryParamLastId, "invalid lastId")
 		}
+
+		listParams.NextCursor = lastIdCursor
 	}
 
-	accessEventSpecs, lastId, err := svc.ListAccessEvents(r.Context(), listParams)
+	accessEventSpecs, _, nextCursor, err := svc.ListAccessEvents(r.Context(), filterParams, listParams)
 	if err != nil {
 		return err
 	}
 
-	service.SendJSONResponse(w, ListEventsSpec[AccessEventSpec]{
+	var newLastId string
+	if nextCursor != nil {
+		base64EncodedNextCursor, err := nextCursor.ToBase64String()
+		if err != nil {
+			return err
+		}
+		newLastId = base64EncodedNextCursor
+	}
+
+	service.SendJSONResponse(w, ListEventsSpecV1[AccessEventSpec]{
 		Events: accessEventSpecs,
-		LastId: lastId,
+		LastId: newLastId,
+	})
+	return nil
+}
+
+func listAccessEventsV2(svc EventService, w http.ResponseWriter, r *http.Request) error {
+	queryParams := r.URL.Query()
+	listParams := service.GetListParamsFromContext[AccessEventListParamParser](r.Context())
+	filterParams := AccessEventFilterParams{
+		Type:            queryParams.Get(QueryParamType),
+		Source:          queryParams.Get(QueryParamSource),
+		ObjectType:      queryParams.Get(QueryParamObjectType),
+		ObjectId:        queryParams.Get(QueryParamObjectId),
+		Relation:        queryParams.Get(QueryParamRelation),
+		SubjectType:     queryParams.Get(QueryParamSubjectType),
+		SubjectId:       queryParams.Get(QueryParamSubjectId),
+		SubjectRelation: queryParams.Get(QueryParamSubjectRelation),
+	}
+
+	var err error
+	sinceString := queryParams.Get(QueryParamSince)
+	if sinceString == "" {
+		filterParams.Since = time.UnixMicro(DefaultEpochMicroseconds).UTC()
+	} else {
+		sinceMicroseconds, err := strconv.ParseInt(sinceString, 10, 64)
+		if err != nil {
+			return service.NewInvalidParameterError(QueryParamSince, DateFormatMessage)
+		}
+
+		filterParams.Since = time.UnixMicro(sinceMicroseconds).UTC()
+	}
+
+	untilString := queryParams.Get(QueryParamUntil)
+	if untilString == "" {
+		filterParams.Until = time.Now().UTC()
+	} else {
+		untilMicroseconds, err := strconv.ParseInt(untilString, 10, 64)
+		if err != nil {
+			return service.NewInvalidParameterError(QueryParamUntil, DateFormatMessage)
+		}
+
+		filterParams.Until = time.UnixMicro(untilMicroseconds).UTC()
+	}
+
+	if filterParams.Since.After(filterParams.Until) {
+		return service.NewInvalidParameterError(QueryParamSince, SinceErrorMessage)
+	}
+
+	accessEventSpecs, prevCursor, nextCursor, err := svc.ListAccessEvents(r.Context(), filterParams, listParams)
+	if err != nil {
+		return err
+	}
+
+	service.SendJSONResponse(w, ListEventsSpecV2[AccessEventSpec]{
+		Results:    accessEventSpecs,
+		PrevCursor: prevCursor,
+		NextCursor: nextCursor,
 	})
 	return nil
 }

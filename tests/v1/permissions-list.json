@@ -379,9 +379,9 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-2",
-                        "name": "",
-                        "description": "This is permission-2."
+                        "permissionId": "permission-6",
+                        "name": null,
+                        "description": null
                     }
                 ]
             }
@@ -413,8 +413,8 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-4",
-                        "name": "Permission C",
+                        "permissionId": "permission-1",
+                        "name": "Permission B",
                         "description": null
                     }
                 ]
@@ -594,14 +594,14 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-3",
+                        "permissionId": "permission-6",
                         "name": null,
                         "description": null
                     },
                     {
-                        "permissionId": "permission-6",
-                        "name": null,
-                        "description": null
+                        "permissionId": "permission-2",
+                        "name": "",
+                        "description": "This is permission-2."
                     }
                 ]
             }
@@ -638,16 +638,14 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "permissionId": "permission-2",
-                        "name": "",
-                        "description": "This is permission-2.",
-                        "createdAt": "2023-10-12T19:07:00.172894Z"
-                    },
-                    {
                         "permissionId": "permission-5",
                         "name": "",
-                        "description": null,
-                        "createdAt": "2023-10-12T19:07:00.175419Z"
+                        "description": null
+                    },
+                    {
+                        "permissionId": "permission-1",
+                        "name": "Permission B",
+                        "description": null
                     }
                 ]
             }
