@@ -17,6 +17,7 @@ package event
 import (
 	"encoding/base64"
 	"encoding/json"
+	"github.com/warrant-dev/warrant/pkg/service"
 	"reflect"
 	"time"
 
@@ -116,9 +117,15 @@ type AccessEventSpec struct {
 	CreatedAt       time.Time   `json:"createdAt"`
 }
 
-type ListEventsSpec[T ResourceEventSpec | AccessEventSpec] struct {
+type ListEventsSpecV1[T ResourceEventSpec | AccessEventSpec] struct {
 	Events []T    `json:"events"`
 	LastId string `json:"lastId,omitempty"`
+}
+
+type ListEventsSpecV2[T ResourceEventSpec | AccessEventSpec] struct {
+	Results    []T             `json:"results"`
+	PrevCursor *service.Cursor `json:"prevCursor,omitempty"`
+	NextCursor *service.Cursor `json:"nextCursor,omitempty"`
 }
 
 type LastIdSpec struct {

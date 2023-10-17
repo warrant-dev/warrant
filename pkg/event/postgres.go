@@ -80,7 +80,7 @@ func (repo PostgresRepository) TrackResourceEvents(ctx context.Context, models [
 	return nil
 }
 
-func (repo PostgresRepository) ListResourceEvents(ctx context.Context, listParams ListResourceEventParams) ([]ResourceEventModel, string, error) {
+func (repo PostgresRepository) ListResourceEvents(ctx context.Context, filterParams ResourceEventFilterParams, listParams service.ListParams) ([]ResourceEventModel, *service.Cursor, *service.Cursor, error) {
 	models := make([]ResourceEventModel, 0)
 	resourceEvents := make([]ResourceEvent, 0)
 	query := `
@@ -91,43 +91,47 @@ func (repo PostgresRepository) ListResourceEvents(ctx context.Context, listParam
 	conditions := []string{}
 	replacements := []interface{}{}
 
-	if listParams.Type != "" {
+	if filterParams.Type != "" {
 		conditions = append(conditions, "type = ?")
-		replacements = append(replacements, listParams.Type)
+		replacements = append(replacements, filterParams.Type)
 	}
 
-	if listParams.Source != "" {
+	if filterParams.Source != "" {
 		conditions = append(conditions, "source = ?")
-		replacements = append(replacements, listParams.Source)
+		replacements = append(replacements, filterParams.Source)
 	}
 
-	if listParams.ResourceType != "" {
+	if filterParams.ResourceType != "" {
 		conditions = append(conditions, "resource_type = ?")
-		replacements = append(replacements, listParams.ResourceType)
+		replacements = append(replacements, filterParams.ResourceType)
 	}
 
-	if listParams.ResourceId != "" {
+	if filterParams.ResourceId != "" {
 		conditions = append(conditions, "resource_id = ?")
-		replacements = append(replacements, listParams.ResourceId)
+		replacements = append(replacements, filterParams.ResourceId)
 	}
 
-	if listParams.LastId != "" {
-		lastIdSpec, err := StringToLastIdSpec(listParams.LastId)
-		if err != nil {
-			return models, "", service.NewInvalidParameterError("lastId", "")
-		}
-
+	if listParams.NextCursor != nil {
 		conditions = append(conditions, "(created_at, id) < (?, ?)")
-		replacements = append(replacements, lastIdSpec.CreatedAt)
-		replacements = append(replacements, lastIdSpec.ID)
+		replacements = append(replacements, listParams.NextCursor.Value())
+		replacements = append(replacements, listParams.NextCursor.ID())
 	}
 
 	conditions = append(conditions, "created_at BETWEEN ? AND ?")
-	replacements = append(replacements, listParams.Since.Format(DateFormatRFC3339Micro))
-	replacements = append(replacements, listParams.Until.Format(DateFormatRFC3339Micro))
+	replacements = append(replacements, filterParams.Since.Format(DateFormatRFC3339Micro))
+	replacements = append(replacements, filterParams.Until.Format(DateFormatRFC3339Micro))
 
-	query = fmt.Sprintf("%s %s ORDER BY created_at DESC, id DESC LIMIT ?", query, strings.Join(conditions, " AND "))
-	replacements = append(replacements, listParams.Limit)
+	if listParams.PrevCursor != nil {
+		conditions = append(conditions, "(created_at, id) > (?, ?)")
+		replacements = append(replacements, listParams.PrevCursor.Value())
+		replacements = append(replacements, listParams.PrevCursor.ID())
+		query = fmt.Sprintf("With result_set AS (%s %s ORDER BY created_at ASC, id ASC LIMIT ?) SELECT * FROM result_set ORDER BY created_at DESC, id DESC", query, strings.Join(conditions, " AND "))
+		replacements = append(replacements, listParams.Limit+1)
+	} else {
+		query = fmt.Sprintf("%s %s ORDER BY created_at DESC, id DESC LIMIT ?", query, strings.Join(conditions, " AND "))
+		replacements = append(replacements, listParams.Limit+1)
+	}
+
 	err := repo.DB.SelectContext(
 		ctx,
 		&resourceEvents,
@@ -135,32 +139,55 @@ func (repo PostgresRepository) ListResourceEvents(ctx context.Context, listParam
 		replacements...,
 	)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return models, "", nil
-		default:
-			return models, "", errors.Wrap(err, "error listing resource events")
+		if errors.Is(err, sql.ErrNoRows) {
+			return models, nil, nil, nil
 		}
+		return models, nil, nil, errors.Wrap(err, "error listing resource events")
 	}
 
-	for i := range resourceEvents {
-		models = append(models, &resourceEvents[i])
+	if len(resourceEvents) == 0 {
+		return models, nil, nil, nil
 	}
 
-	if len(resourceEvents) == 0 || len(resourceEvents) < int(listParams.Limit) {
-		return models, "", nil
+	i := 0
+	if listParams.PrevCursor != nil && len(resourceEvents) > listParams.Limit {
+		i = 1
+	}
+	for i < len(resourceEvents) && len(models) < listParams.Limit {
+		models = append(models, resourceEvents[i])
+		i++
 	}
 
-	lastResourceEvent := resourceEvents[len(resourceEvents)-1]
-	lastIdStr, err := LastIdSpecToString(LastIdSpec{
-		ID:        lastResourceEvent.GetID(),
-		CreatedAt: lastResourceEvent.GetCreatedAt(),
-	})
-	if err != nil {
-		return models, "", errors.Wrap(err, "error listing resource events")
+	//nolint:gosec
+	firstElem := models[0]
+	lastElem := models[len(models)-1]
+	var firstValue interface{} = nil
+	var lastValue interface{} = nil
+	switch listParams.SortBy {
+	case "id":
+		// do nothing
+	case "createdAt":
+		firstValue = firstElem.GetCreatedAt()
+		lastValue = lastElem.GetCreatedAt()
 	}
 
-	return models, lastIdStr, nil
+	prevCursor := service.NewCursor(firstElem.GetID(), firstValue)
+	nextCursor := service.NewCursor(lastElem.GetID(), lastValue)
+	if len(resourceEvents) <= listParams.Limit {
+		if listParams.PrevCursor != nil {
+			return models, nil, nextCursor, nil
+		}
+
+		if listParams.NextCursor != nil {
+			return models, prevCursor, nil, nil
+		}
+
+		return models, nil, nil, nil
+	} else if listParams.PrevCursor == nil && listParams.NextCursor == nil {
+		return models, nil, nextCursor, nil
+	}
+
+	return models, prevCursor, nextCursor, nil
 }
 
 func (repo PostgresRepository) TrackAccessEvent(ctx context.Context, accessEvent AccessEventModel) error {
@@ -214,7 +241,7 @@ func (repo PostgresRepository) TrackAccessEvents(ctx context.Context, models []A
 	return nil
 }
 
-func (repo PostgresRepository) ListAccessEvents(ctx context.Context, listParams ListAccessEventParams) ([]AccessEventModel, string, error) {
+func (repo PostgresRepository) ListAccessEvents(ctx context.Context, filterParams AccessEventFilterParams, listParams service.ListParams) ([]AccessEventModel, *service.Cursor, *service.Cursor, error) {
 	models := make([]AccessEventModel, 0)
 	accessEvents := make([]AccessEvent, 0)
 	query := `
@@ -225,63 +252,67 @@ func (repo PostgresRepository) ListAccessEvents(ctx context.Context, listParams 
 	conditions := []string{}
 	replacements := []interface{}{}
 
-	if listParams.Type != "" {
+	if filterParams.Type != "" {
 		conditions = append(conditions, "type = ?")
-		replacements = append(replacements, listParams.Type)
+		replacements = append(replacements, filterParams.Type)
 	}
 
-	if listParams.Source != "" {
+	if filterParams.Source != "" {
 		conditions = append(conditions, "source = ?")
-		replacements = append(replacements, listParams.Source)
+		replacements = append(replacements, filterParams.Source)
 	}
 
-	if listParams.ObjectType != "" {
+	if filterParams.ObjectType != "" {
 		conditions = append(conditions, "object_type = ?")
-		replacements = append(replacements, listParams.ObjectType)
+		replacements = append(replacements, filterParams.ObjectType)
 	}
 
-	if listParams.ObjectId != "" {
+	if filterParams.ObjectId != "" {
 		conditions = append(conditions, "object_id = ?")
-		replacements = append(replacements, listParams.ObjectId)
+		replacements = append(replacements, filterParams.ObjectId)
 	}
 
-	if listParams.Relation != "" {
+	if filterParams.Relation != "" {
 		conditions = append(conditions, "relation = ?")
-		replacements = append(replacements, listParams.Relation)
+		replacements = append(replacements, filterParams.Relation)
 	}
 
-	if listParams.SubjectType != "" {
+	if filterParams.SubjectType != "" {
 		conditions = append(conditions, "subject_type = ?")
-		replacements = append(replacements, listParams.SubjectType)
+		replacements = append(replacements, filterParams.SubjectType)
 	}
 
-	if listParams.SubjectId != "" {
+	if filterParams.SubjectId != "" {
 		conditions = append(conditions, "subject_id = ?")
-		replacements = append(replacements, listParams.SubjectId)
+		replacements = append(replacements, filterParams.SubjectId)
 	}
 
-	if listParams.SubjectRelation != "" {
+	if filterParams.SubjectRelation != "" {
 		conditions = append(conditions, "subject_relation = ?")
-		replacements = append(replacements, listParams.SubjectRelation)
-	}
-
-	if listParams.LastId != "" {
-		lastIdSpec, err := StringToLastIdSpec(listParams.LastId)
-		if err != nil {
-			return models, "", service.NewInvalidParameterError("lastId", "")
-		}
-
-		conditions = append(conditions, "(created_at, id) < (?, ?)")
-		replacements = append(replacements, lastIdSpec.CreatedAt)
-		replacements = append(replacements, lastIdSpec.ID)
+		replacements = append(replacements, filterParams.SubjectRelation)
 	}
 
 	conditions = append(conditions, "created_at BETWEEN ? AND ?")
-	replacements = append(replacements, listParams.Since.Format(DateFormatRFC3339Micro))
-	replacements = append(replacements, listParams.Until.Format(DateFormatRFC3339Micro))
+	replacements = append(replacements, filterParams.Since.Format(DateFormatRFC3339Micro))
+	replacements = append(replacements, filterParams.Until.Format(DateFormatRFC3339Micro))
 
-	query = fmt.Sprintf("%s %s ORDER BY created_at DESC, id DESC LIMIT ?", query, strings.Join(conditions, " AND "))
-	replacements = append(replacements, listParams.Limit)
+	if listParams.NextCursor != nil {
+		conditions = append(conditions, "(created_at, id) < (?, ?)")
+		replacements = append(replacements, listParams.NextCursor.Value())
+		replacements = append(replacements, listParams.NextCursor.ID())
+	}
+
+	if listParams.PrevCursor != nil {
+		conditions = append(conditions, "(created_at, id) > (?, ?)")
+		replacements = append(replacements, listParams.PrevCursor.Value())
+		replacements = append(replacements, listParams.PrevCursor.ID())
+		query = fmt.Sprintf("With result_set AS (%s %s ORDER BY created_at ASC, id ASC LIMIT ?) SELECT * FROM result_set ORDER BY created_at DESC, id DESC", query, strings.Join(conditions, " AND "))
+		replacements = append(replacements, listParams.Limit+1)
+	} else {
+		query = fmt.Sprintf("%s %s ORDER BY created_at DESC, id DESC LIMIT ?", query, strings.Join(conditions, " AND "))
+		replacements = append(replacements, listParams.Limit+1)
+	}
+
 	err := repo.DB.SelectContext(
 		ctx,
 		&accessEvents,
@@ -289,30 +320,53 @@ func (repo PostgresRepository) ListAccessEvents(ctx context.Context, listParams 
 		replacements...,
 	)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			return models, "", nil
-		default:
-			return models, "", errors.Wrap(err, "error listing access events")
+		if errors.Is(err, sql.ErrNoRows) {
+			return models, nil, nil, nil
 		}
+		return models, nil, nil, errors.Wrap(err, "error listing access events")
 	}
 
-	for i := range accessEvents {
-		models = append(models, &accessEvents[i])
+	if len(accessEvents) == 0 {
+		return models, nil, nil, nil
 	}
 
-	if len(accessEvents) == 0 || len(accessEvents) < int(listParams.Limit) {
-		return models, "", nil
+	i := 0
+	if listParams.PrevCursor != nil && len(accessEvents) > listParams.Limit {
+		i = 1
+	}
+	for i < len(accessEvents) && len(models) < listParams.Limit {
+		models = append(models, accessEvents[i])
+		i++
 	}
 
-	lastAccessEvent := accessEvents[len(accessEvents)-1]
-	lastIdStr, err := LastIdSpecToString(LastIdSpec{
-		ID:        lastAccessEvent.GetID(),
-		CreatedAt: lastAccessEvent.GetCreatedAt(),
-	})
-	if err != nil {
-		return models, "", errors.Wrap(err, "error listing access events")
+	//nolint:gosec
+	firstElem := models[0]
+	lastElem := models[len(models)-1]
+	var firstValue interface{} = nil
+	var lastValue interface{} = nil
+	switch listParams.SortBy {
+	case "id":
+		// do nothing
+	case "createdAt":
+		firstValue = firstElem.GetCreatedAt()
+		lastValue = lastElem.GetCreatedAt()
 	}
 
-	return models, lastIdStr, nil
+	prevCursor := service.NewCursor(firstElem.GetID(), firstValue)
+	nextCursor := service.NewCursor(lastElem.GetID(), lastValue)
+	if len(accessEvents) <= listParams.Limit {
+		if listParams.PrevCursor != nil {
+			return models, nil, nextCursor, nil
+		}
+
+		if listParams.NextCursor != nil {
+			return models, prevCursor, nil, nil
+		}
+
+		return models, nil, nil, nil
+	} else if listParams.PrevCursor == nil && listParams.NextCursor == nil {
+		return models, nil, nextCursor, nil
+	}
+
+	return models, prevCursor, nextCursor, nil
 }

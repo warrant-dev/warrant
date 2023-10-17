@@ -39,14 +39,14 @@ type Service interface {
 	TrackResourceDeleted(ctx context.Context, resourceType string, resourceId string, meta interface{}) error
 	TrackResourceEvent(ctx context.Context, resourceEventSpec CreateResourceEventSpec) error
 	TrackResourceEvents(ctx context.Context, resourceEventSpecs []CreateResourceEventSpec) error
-	ListResourceEvents(ctx context.Context, listParams ListResourceEventParams) ([]ResourceEventSpec, string, error)
+	ListResourceEvents(ctx context.Context, filterParams ResourceEventFilterParams, listParams service.ListParams) ([]ResourceEventSpec, *service.Cursor, *service.Cursor, error)
 	TrackAccessGrantedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, meta interface{}) error
 	TrackAccessRevokedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, meta interface{}) error
 	TrackAccessAllowedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, meta interface{}) error
 	TrackAccessDeniedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, meta interface{}) error
 	TrackAccessEvent(ctx context.Context, accessEventSpec CreateAccessEventSpec) error
 	TrackAccessEvents(ctx context.Context, accessEventSpecs []CreateAccessEventSpec) error
-	ListAccessEvents(ctx context.Context, listParams ListAccessEventParams) ([]AccessEventSpec, string, error)
+	ListAccessEvents(ctx context.Context, filterParams AccessEventFilterParams, listParams service.ListParams) ([]AccessEventSpec, *service.Cursor, *service.Cursor, error)
 }
 
 type EventContextFunc func(ctx context.Context, synchronizeEvents bool) (context.Context, error)
@@ -200,23 +200,23 @@ func (svc EventService) TrackResourceEvents(ctx context.Context, resourceEventSp
 	return svc.Repository.TrackResourceEvents(eventCtx, resourceEvents)
 }
 
-func (svc EventService) ListResourceEvents(ctx context.Context, listParams ListResourceEventParams) ([]ResourceEventSpec, string, error) {
+func (svc EventService) ListResourceEvents(ctx context.Context, filterParams ResourceEventFilterParams, listParams service.ListParams) ([]ResourceEventSpec, *service.Cursor, *service.Cursor, error) {
 	resourceEventSpecs := make([]ResourceEventSpec, 0)
-	resourceEvents, lastId, err := svc.Repository.ListResourceEvents(ctx, listParams)
+	resourceEvents, prevCursor, nextCursor, err := svc.Repository.ListResourceEvents(ctx, filterParams, listParams)
 	if err != nil {
-		return resourceEventSpecs, "", err
+		return resourceEventSpecs, prevCursor, nextCursor, err
 	}
 
 	for _, resourceEvent := range resourceEvents {
 		resourceEventSpec, err := resourceEvent.ToResourceEventSpec()
 		if err != nil {
-			return resourceEventSpecs, "", err
+			return resourceEventSpecs, prevCursor, nextCursor, err
 		}
 
 		resourceEventSpecs = append(resourceEventSpecs, *resourceEventSpec)
 	}
 
-	return resourceEventSpecs, lastId, nil
+	return resourceEventSpecs, prevCursor, nextCursor, nil
 }
 
 func (svc EventService) TrackAccessGrantedEvent(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, meta interface{}) error {
@@ -361,21 +361,21 @@ func (svc EventService) TrackAccessEvents(ctx context.Context, accessEventSpecs 
 	return svc.Repository.TrackAccessEvents(eventCtx, accessEvents)
 }
 
-func (svc EventService) ListAccessEvents(ctx context.Context, listParams ListAccessEventParams) ([]AccessEventSpec, string, error) {
+func (svc EventService) ListAccessEvents(ctx context.Context, filterParams AccessEventFilterParams, listParams service.ListParams) ([]AccessEventSpec, *service.Cursor, *service.Cursor, error) {
 	accessEventSpecs := make([]AccessEventSpec, 0)
-	accessEvents, lastId, err := svc.Repository.ListAccessEvents(ctx, listParams)
+	accessEvents, prevCursor, nextCursor, err := svc.Repository.ListAccessEvents(ctx, filterParams, listParams)
 	if err != nil {
-		return accessEventSpecs, "", err
+		return accessEventSpecs, prevCursor, nextCursor, err
 	}
 
 	for _, accessEvent := range accessEvents {
 		accessEventSpec, err := accessEvent.ToAccessEventSpec()
 		if err != nil {
-			return accessEventSpecs, "", err
+			return accessEventSpecs, prevCursor, nextCursor, err
 		}
 
 		accessEventSpecs = append(accessEventSpecs, *accessEventSpec)
 	}
 
-	return accessEventSpecs, lastId, nil
+	return accessEventSpecs, prevCursor, nextCursor, nil
 }
