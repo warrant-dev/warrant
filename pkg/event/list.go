@@ -50,6 +50,7 @@ type ResourceEventFilterParams struct {
 type ResourceEventListParamParser struct{}
 
 func (parser ResourceEventListParamParser) GetDefaultSortBy() string {
+	//nolint:goconst
 	return "createdAt"
 }
 
@@ -59,7 +60,6 @@ func (parser ResourceEventListParamParser) GetSupportedSortBys() []string {
 
 func (parser ResourceEventListParamParser) ParseValue(val string, sortBy string) (interface{}, error) {
 	switch sortBy {
-	//nolint:goconst
 	case "createdAt":
 		value, err := time.Parse(time.RFC3339, val)
 		if err != nil || value.Equal(time.Time{}) {
@@ -97,7 +97,6 @@ func (parser AccessEventListParamParser) GetSupportedSortBys() []string {
 
 func (parser AccessEventListParamParser) ParseValue(val string, sortBy string) (interface{}, error) {
 	switch sortBy {
-	//nolint:goconst
 	case "createdAt":
 		value, err := time.Parse(time.RFC3339, val)
 		if err != nil || value.Equal(time.Time{}) {

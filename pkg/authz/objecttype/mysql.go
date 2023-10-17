@@ -288,8 +288,13 @@ func (repo MySQLRepository) List(ctx context.Context, listParams service.ListPar
 		return models, nil, nil, nil
 	}
 
-	for i := 0; i < len(objectTypes) && i < listParams.Limit; i++ {
+	i := 0
+	if listParams.PrevCursor != nil && len(objectTypes) > listParams.Limit {
+		i = 1
+	}
+	for i < len(objectTypes) && len(models) < listParams.Limit {
 		models = append(models, &objectTypes[i])
+		i++
 	}
 
 	//nolint:gosec

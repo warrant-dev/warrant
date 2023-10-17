@@ -331,8 +331,13 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 		return models, nil, nil, nil
 	}
 
-	for i := 0; i < len(objects) && i < listParams.Limit; i++ {
+	i := 0
+	if listParams.PrevCursor != nil && len(objects) > listParams.Limit {
+		i = 1
+	}
+	for i < len(objects) && len(models) < listParams.Limit {
 		models = append(models, &objects[i])
+		i++
 	}
 
 	//nolint:gosec

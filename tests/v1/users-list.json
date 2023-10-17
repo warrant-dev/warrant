@@ -327,8 +327,8 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-2",
-                        "email": ""
+                        "userId": "user-6",
+                        "email": null
                     }
                 ]
             }
@@ -359,8 +359,8 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-4",
-                        "email": "user-c@warrant.dev"
+                        "userId": "user-1",
+                        "email": "user-b@warrant.dev"
                     }
                 ]
             }
@@ -523,12 +523,12 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-3",
+                        "userId": "user-6",
                         "email": null
                     },
                     {
-                        "userId": "user-6",
-                        "email": null
+                        "userId": "user-2",
+                        "email": ""
                     }
                 ]
             }
@@ -563,12 +563,12 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "userId": "user-2",
+                        "userId": "user-5",
                         "email": ""
                     },
                     {
-                        "userId": "user-5",
-                        "email": ""
+                        "userId": "user-1",
+                        "email": "user-b@warrant.dev"
                     }
                 ]
             }

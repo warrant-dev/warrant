@@ -379,9 +379,9 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "pricingTierId": "pricing-tier-2",
-                        "name": "",
-                        "description": "This is pricing-tier-2."
+                        "pricingTierId": "pricing-tier-6",
+                        "name": null,
+                        "description": null
                     }
                 ]
             }
@@ -413,8 +413,8 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "pricingTierId": "pricing-tier-4",
-                        "name": "Pricing Tier C",
+                        "pricingTierId": "pricing-tier-1",
+                        "name": "Pricing Tier B",
                         "description": null
                     }
                 ]
@@ -594,14 +594,14 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "pricingTierId": "pricing-tier-3",
+                        "pricingTierId": "pricing-tier-6",
                         "name": null,
                         "description": null
                     },
                     {
-                        "pricingTierId": "pricing-tier-6",
-                        "name": null,
-                        "description": null
+                        "pricingTierId": "pricing-tier-2",
+                        "name": "",
+                        "description": "This is pricing-tier-2."
                     }
                 ]
             }
@@ -638,13 +638,13 @@
                 "statusCode": 200,
                 "body": [
                     {
-                        "pricingTierId": "pricing-tier-2",
-                        "name": "",
-                        "description": "This is pricing-tier-2."
-                    },
-                    {
                         "pricingTierId": "pricing-tier-5",
                         "name": "",
+                        "description": null
+                    },
+                    {
+                        "pricingTierId": "pricing-tier-1",
+                        "name": "Pricing Tier B",
                         "description": null
                     }
                 ]
