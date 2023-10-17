@@ -66,7 +66,7 @@ func (parser ResourceEventListParamParser) ParseValue(val string, sortBy string)
 			return nil, errors.New(fmt.Sprintf("must be a valid time in the format %s", time.RFC3339))
 		}
 
-		return &value, nil
+		return value, nil
 	default:
 		return nil, errors.New(fmt.Sprintf("must match type of selected sortBy attribute %s", sortBy))
 	}

@@ -107,10 +107,10 @@ func listResourceEventsV1(svc EventService, w http.ResponseWriter, r *http.Reque
 	}
 
 	// create next cursor from lastId param
-	if r.URL.Query().Has("lastId") {
-		lastIdCursor, err := service.NewCursorFromBase64String(r.URL.Query().Get("lastId"))
+	if r.URL.Query().Has(QueryParamLastId) {
+		lastIdCursor, err := service.NewCursorFromBase64String(r.URL.Query().Get(QueryParamLastId), ResourceEventListParamParser{}, listParams.SortBy)
 		if err != nil {
-			return service.NewInvalidParameterError("lastId", "invalid lastId")
+			return service.NewInvalidParameterError(QueryParamLastId, "invalid lastId")
 		}
 
 		listParams.NextCursor = lastIdCursor
@@ -176,16 +176,6 @@ func listResourceEventsV2(svc EventService, w http.ResponseWriter, r *http.Reque
 		return service.NewInvalidParameterError(QueryParamSince, SinceErrorMessage)
 	}
 
-	// create next cursor from lastId param
-	if r.URL.Query().Has("lastId") {
-		lastIdCursor, err := service.NewCursorFromBase64String(r.URL.Query().Get("lastId"))
-		if err != nil {
-			return service.NewInvalidParameterError("lastId", "invalid lastId")
-		}
-
-		listParams.NextCursor = lastIdCursor
-	}
-
 	resourceEventSpecs, prevCursor, nextCursor, err := svc.ListResourceEvents(r.Context(), filterParams, listParams)
 	if err != nil {
 		return err
@@ -243,10 +233,10 @@ func listAccessEventsV1(svc EventService, w http.ResponseWriter, r *http.Request
 	}
 
 	// create next cursor from lastId param
-	if r.URL.Query().Has("lastId") {
-		lastIdCursor, err := service.NewCursorFromBase64String(r.URL.Query().Get("lastId"))
+	if r.URL.Query().Has(QueryParamLastId) {
+		lastIdCursor, err := service.NewCursorFromBase64String(r.URL.Query().Get(QueryParamLastId), AccessEventListParamParser{}, listParams.SortBy)
 		if err != nil {
-			return service.NewInvalidParameterError("lastId", "invalid lastId")
+			return service.NewInvalidParameterError(QueryParamLastId, "invalid lastId")
 		}
 
 		listParams.NextCursor = lastIdCursor
@@ -314,16 +304,6 @@ func listAccessEventsV2(svc EventService, w http.ResponseWriter, r *http.Request
 
 	if filterParams.Since.After(filterParams.Until) {
 		return service.NewInvalidParameterError(QueryParamSince, SinceErrorMessage)
-	}
-
-	// create next cursor from lastId param
-	if r.URL.Query().Has("lastId") {
-		lastIdCursor, err := service.NewCursorFromBase64String(r.URL.Query().Get("lastId"))
-		if err != nil {
-			return service.NewInvalidParameterError("lastId", "invalid lastId")
-		}
-
-		listParams.NextCursor = lastIdCursor
 	}
 
 	accessEventSpecs, prevCursor, nextCursor, err := svc.ListAccessEvents(r.Context(), filterParams, listParams)
