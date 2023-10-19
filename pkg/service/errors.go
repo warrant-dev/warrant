@@ -33,7 +33,7 @@ const (
 	ErrorUnknownOrigin            = "unknown_origin"
 )
 
-type genericError struct {
+type GenericError struct {
 	Tag     string `json:"-"`
 	Code    string `json:"code"`
 	Status  int    `json:"-"`
@@ -45,20 +45,20 @@ type Error interface {
 	GetStatus() int
 }
 
-func (err *genericError) GetTag() string {
+func (err *GenericError) GetTag() string {
 	return err.Tag
 }
 
-func (err *genericError) GetStatus() int {
+func (err *GenericError) GetStatus() int {
 	return err.Status
 }
 
-func (err *genericError) Error() string {
+func (err *GenericError) Error() string {
 	return fmt.Sprintf("%s: %s", err.GetTag(), err.Message)
 }
 
-func NewGenericError(tag string, code string, status int, msg string) *genericError {
-	return &genericError{
+func NewGenericError(tag string, code string, status int, msg string) *GenericError {
+	return &GenericError{
 		Tag:     tag,
 		Code:    code,
 		Status:  status,
@@ -68,12 +68,12 @@ func NewGenericError(tag string, code string, status int, msg string) *genericEr
 
 // InternalError type
 type InternalError struct {
-	*genericError
+	*GenericError
 }
 
 func NewInternalError(msg string) *InternalError {
 	return &InternalError{
-		genericError: NewGenericError(
+		GenericError: NewGenericError(
 			"InternalError",
 			ErrorInternalError,
 			http.StatusInternalServerError,
@@ -84,12 +84,12 @@ func NewInternalError(msg string) *InternalError {
 
 // InvalidRequestError type
 type InvalidRequestError struct {
-	*genericError
+	*GenericError
 }
 
 func NewInvalidRequestError(msg string) *InvalidRequestError {
 	return &InvalidRequestError{
-		genericError: NewGenericError(
+		GenericError: NewGenericError(
 			"InvalidRequestError",
 			ErrorInvalidRequest,
 			http.StatusBadRequest,
@@ -100,13 +100,13 @@ func NewInvalidRequestError(msg string) *InvalidRequestError {
 
 // InvalidParameterError type
 type InvalidParameterError struct {
-	*genericError
+	*GenericError
 	Parameter string `json:"parameter"`
 }
 
 func NewInvalidParameterError(paramName string, msg string) *InvalidParameterError {
 	return &InvalidParameterError{
-		genericError: NewGenericError(
+		GenericError: NewGenericError(
 			"InvalidParameterError",
 			ErrorInvalidParameter,
 			http.StatusBadRequest,
@@ -122,13 +122,13 @@ func (err *InvalidParameterError) Error() string {
 
 // MissingRequiredParameterError type
 type MissingRequiredParameterError struct {
-	*genericError
+	*GenericError
 	Parameter string `json:"parameter"`
 }
 
 func NewMissingRequiredParameterError(parameterName string) *MissingRequiredParameterError {
 	return &MissingRequiredParameterError{
-		genericError: NewGenericError(
+		GenericError: NewGenericError(
 			"MissingRequiredParameterError",
 			ErrorMissingRequiredParameter,
 			http.StatusBadRequest,
@@ -140,14 +140,14 @@ func NewMissingRequiredParameterError(parameterName string) *MissingRequiredPara
 
 // RecordNotFoundError type
 type RecordNotFoundError struct {
-	*genericError
+	*GenericError
 	Type string      `json:"type"`
 	Key  interface{} `json:"key"`
 }
 
 func NewRecordNotFoundError(recordType string, recordKey interface{}) *RecordNotFoundError {
 	return &RecordNotFoundError{
-		genericError: NewGenericError(
+		GenericError: NewGenericError(
 			"RecordNotFoundError",
 			ErrorNotFound,
 			http.StatusNotFound,
@@ -160,7 +160,7 @@ func NewRecordNotFoundError(recordType string, recordKey interface{}) *RecordNot
 
 // DuplicateRecordError type
 type DuplicateRecordError struct {
-	*genericError
+	*GenericError
 	Type string      `json:"type"`
 	Key  interface{} `json:"key"`
 }
@@ -172,7 +172,7 @@ func NewDuplicateRecordError(recordType string, recordKey interface{}, reason st
 	}
 
 	return &DuplicateRecordError{
-		genericError: NewGenericError(
+		GenericError: NewGenericError(
 			"DuplicateRecordError",
 			ErrorDuplicateRecord,
 			http.StatusBadRequest,
@@ -185,7 +185,7 @@ func NewDuplicateRecordError(recordType string, recordKey interface{}, reason st
 
 // TokenExpiredError type
 type TokenExpiredError struct {
-	*genericError
+	*GenericError
 }
 
 func NewTokenExpiredError() *TokenExpiredError {
@@ -201,7 +201,7 @@ func NewTokenExpiredError() *TokenExpiredError {
 
 // TooManyRequestsError type
 type TooManyRequestsError struct {
-	*genericError
+	*GenericError
 }
 
 func NewTooManyRequestsError() *TooManyRequestsError {
@@ -217,7 +217,7 @@ func NewTooManyRequestsError() *TooManyRequestsError {
 
 // UnauthorizedError type
 type UnauthorizedError struct {
-	*genericError
+	*GenericError
 }
 
 func NewUnauthorizedError(msg string) *UnauthorizedError {
@@ -233,7 +233,7 @@ func NewUnauthorizedError(msg string) *UnauthorizedError {
 
 // UnknownOriginError type
 type UnknownOriginError struct {
-	*genericError
+	*GenericError
 }
 
 func NewUnknownOriginError(origin string) *UnknownOriginError {
@@ -252,7 +252,7 @@ func NewUnknownOriginError(origin string) *UnknownOriginError {
 
 // ForbiddenError type
 type ForbiddenError struct {
-	*genericError
+	*GenericError
 }
 
 func NewForbiddenError(msg string) *ForbiddenError {
