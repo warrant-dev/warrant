@@ -76,7 +76,7 @@ func BlankContextWithRequestStats(parent context.Context) context.Context {
 }
 
 // Append a new Stat to the RequestStats obj in provided context, if present.
-func RecordStat(ctx context.Context, store string, tag string, duration time.Duration) {
+func RecordStat(ctx context.Context, store string, tag string, start time.Time) {
 	if reqStats, ok := ctx.Value(requestStatsKey{}).(*RequestStats); ok {
 		if tagPrefix, ctxHasTag := ctx.Value(statTagKey{}).(string); ctxHasTag {
 			tag = tagPrefix + "." + tag
@@ -84,7 +84,7 @@ func RecordStat(ctx context.Context, store string, tag string, duration time.Dur
 		reqStats.Stats = append(reqStats.Stats, Stat{
 			Store:    store,
 			Tag:      tag,
-			Duration: duration,
+			Duration: time.Since(start),
 		})
 	}
 }

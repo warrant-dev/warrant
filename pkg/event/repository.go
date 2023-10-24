@@ -25,12 +25,12 @@ import (
 )
 
 type EventRepository interface {
-	TrackResourceEvent(context.Context, ResourceEventModel) error
-	TrackResourceEvents(context.Context, []ResourceEventModel) error
-	ListResourceEvents(context.Context, ResourceEventFilterParams, service.ListParams) ([]ResourceEventModel, *service.Cursor, *service.Cursor, error)
-	TrackAccessEvent(context.Context, AccessEventModel) error
-	TrackAccessEvents(context.Context, []AccessEventModel) error
-	ListAccessEvents(context.Context, AccessEventFilterParams, service.ListParams) ([]AccessEventModel, *service.Cursor, *service.Cursor, error)
+	TrackResourceEvent(ctx context.Context, resourceEvent ResourceEventModel) error
+	TrackResourceEvents(ctx context.Context, resourceEvents []ResourceEventModel) error
+	ListResourceEvents(ctx context.Context, filterParams ResourceEventFilterParams, listParams service.ListParams) ([]ResourceEventModel, *service.Cursor, *service.Cursor, error)
+	TrackAccessEvent(ctx context.Context, accessEvent AccessEventModel) error
+	TrackAccessEvents(ctx context.Context, accessEvents []AccessEventModel) error
+	ListAccessEvents(ctx context.Context, filterParams AccessEventFilterParams, listParams service.ListParams) ([]AccessEventModel, *service.Cursor, *service.Cursor, error)
 }
 
 func NewRepository(db database.Database) (EventRepository, error) {

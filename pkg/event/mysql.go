@@ -156,7 +156,6 @@ func (repo MySQLRepository) ListResourceEvents(ctx context.Context, filterParams
 		i++
 	}
 
-	//nolint:gosec
 	firstElem := models[0]
 	lastElem := models[len(models)-1]
 	var firstValue interface{} = nil
@@ -337,7 +336,6 @@ func (repo MySQLRepository) ListAccessEvents(ctx context.Context, filterParams A
 		i++
 	}
 
-	//nolint:gosec
 	firstElem := models[0]
 	lastElem := models[len(models)-1]
 	var firstValue interface{} = nil

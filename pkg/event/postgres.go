@@ -158,7 +158,6 @@ func (repo PostgresRepository) ListResourceEvents(ctx context.Context, filterPar
 		i++
 	}
 
-	//nolint:gosec
 	firstElem := models[0]
 	lastElem := models[len(models)-1]
 	var firstValue interface{} = nil
@@ -339,7 +338,6 @@ func (repo PostgresRepository) ListAccessEvents(ctx context.Context, filterParam
 		i++
 	}
 
-	//nolint:gosec
 	firstElem := models[0]
 	lastElem := models[len(models)-1]
 	var firstValue interface{} = nil

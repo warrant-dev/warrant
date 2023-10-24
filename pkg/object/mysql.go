@@ -321,7 +321,6 @@ func (repo MySQLRepository) List(ctx context.Context, filterOptions *FilterOptio
 		i++
 	}
 
-	//nolint:gosec
 	firstElem := models[0]
 	lastElem := models[len(models)-1]
 	var firstValue interface{} = nil

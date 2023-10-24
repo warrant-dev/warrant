@@ -313,7 +313,6 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 		i++
 	}
 
-	//nolint:gosec
 	firstElem := models[0]
 	lastElem := models[len(models)-1]
 	var firstValue interface{} = nil
