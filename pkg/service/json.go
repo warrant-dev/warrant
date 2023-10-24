@@ -24,6 +24,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/pkg/errors"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/rs/zerolog/log"
 )
@@ -125,12 +127,11 @@ func IsArray(data []byte) bool {
 func ParseJSONBytes(body []byte, obj interface{}) error {
 	err := json.Unmarshal(body, &obj)
 	if err != nil {
-		switch err := err.(type) {
-		case *json.UnmarshalTypeError:
-			return NewInvalidParameterError(err.Field, fmt.Sprintf("must be %s", primitiveTypeToDisplayName(err.Type)))
-		default:
-			return NewInvalidRequestError("Invalid request body")
+		var unmarshalTypeErr *json.UnmarshalTypeError
+		if errors.As(err, &unmarshalTypeErr) {
+			return NewInvalidParameterError(unmarshalTypeErr.Field, fmt.Sprintf("must be %s", primitiveTypeToDisplayName(unmarshalTypeErr.Type)))
 		}
+		return NewInvalidRequestError("Invalid request body")
 	}
 	return nil
 }
@@ -144,13 +145,12 @@ func ParseJSONBody(body io.Reader, obj interface{}) error {
 
 	err := json.NewDecoder(body).Decode(&obj)
 	if err != nil {
-		switch err := err.(type) {
-		case *json.UnmarshalTypeError:
-			return NewInvalidParameterError(err.Field, fmt.Sprintf("must be %s", primitiveTypeToDisplayName(err.Type)))
-		default:
-			if err != io.EOF {
-				return NewInvalidRequestError("Invalid request body")
-			}
+		var unmarshalTypeErr *json.UnmarshalTypeError
+		if errors.As(err, &unmarshalTypeErr) {
+			return NewInvalidParameterError(unmarshalTypeErr.Field, fmt.Sprintf("must be %s", primitiveTypeToDisplayName(unmarshalTypeErr.Type)))
+		}
+		if err != io.EOF {
+			return NewInvalidRequestError("Invalid request body")
 		}
 	}
 
@@ -160,11 +160,14 @@ func ParseJSONBody(body io.Reader, obj interface{}) error {
 func ValidateStruct(obj interface{}) error {
 	err := validate.Struct(obj)
 	if err != nil {
-		switch err := err.(type) {
-		case *validator.InvalidValidationError:
+		var invalidValidationErr *validator.InvalidValidationError
+		if errors.As(err, &invalidValidationErr) {
 			return NewInvalidRequestError("Invalid request body")
-		case validator.ValidationErrors:
-			for _, err := range err {
+		}
+
+		var validationErrs validator.ValidationErrors
+		if errors.As(err, &validationErrs) {
+			for _, err := range validationErrs {
 				objType := reflect.Indirect(reflect.ValueOf(obj)).Type()
 				invalidField, fieldFound := getFieldFromType(err.Field(), objType)
 				if !fieldFound {
