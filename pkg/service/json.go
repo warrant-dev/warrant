@@ -131,6 +131,8 @@ func ParseJSONBytes(body []byte, obj interface{}) error {
 		if errors.As(err, &unmarshalTypeErr) {
 			return NewInvalidParameterError(unmarshalTypeErr.Field, fmt.Sprintf("must be %s", primitiveTypeToDisplayName(unmarshalTypeErr.Type)))
 		}
+
+		log.Error().Err(err).Msgf("service: invalid request body: ParseJSONBytes")
 		return NewInvalidRequestError("Invalid request body")
 	}
 	return nil
@@ -150,6 +152,7 @@ func ParseJSONBody(body io.Reader, obj interface{}) error {
 			return NewInvalidParameterError(unmarshalTypeErr.Field, fmt.Sprintf("must be %s", primitiveTypeToDisplayName(unmarshalTypeErr.Type)))
 		}
 		if !errors.Is(err, io.EOF) {
+			log.Error().Err(err).Msgf("service: invalid request body: ParseJSONBody")
 			return NewInvalidRequestError("Invalid request body")
 		}
 	}
@@ -162,6 +165,7 @@ func ValidateStruct(obj interface{}) error {
 	if err != nil {
 		var invalidValidationErr *validator.InvalidValidationError
 		if errors.As(err, &invalidValidationErr) {
+			log.Error().Err(err).Msgf("service: invalid request body: ValidateStruct")
 			return NewInvalidRequestError("Invalid request body")
 		}
 
@@ -213,6 +217,7 @@ func ValidateStruct(obj interface{}) error {
 				case "valid_inheritif":
 					return NewInvalidParameterError(fieldName, "can only be 'anyOf', 'allOf', 'noneOf', or a valid relation name")
 				default:
+					log.Error().Err(err).Msgf("service: invalid request body: ValidateStruct")
 					return NewInvalidRequestError("Invalid request body")
 				}
 			}
