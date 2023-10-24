@@ -149,7 +149,7 @@ func ParseJSONBody(body io.Reader, obj interface{}) error {
 		if errors.As(err, &unmarshalTypeErr) {
 			return NewInvalidParameterError(unmarshalTypeErr.Field, fmt.Sprintf("must be %s", primitiveTypeToDisplayName(unmarshalTypeErr.Type)))
 		}
-		if err != io.EOF {
+		if !errors.Is(err, io.EOF) {
 			return NewInvalidRequestError("Invalid request body")
 		}
 	}
@@ -217,6 +217,8 @@ func ValidateStruct(obj interface{}) error {
 				}
 			}
 		}
+
+		return errors.Wrap(err, "service: error validating struct")
 	}
 
 	return nil

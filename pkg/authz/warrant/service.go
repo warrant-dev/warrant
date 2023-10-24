@@ -26,9 +26,9 @@ import (
 )
 
 type Service interface {
-	Create(context.Context, CreateWarrantSpec) (*WarrantSpec, *wookie.Token, error)
-	List(context.Context, FilterParams, service.ListParams) ([]WarrantSpec, *service.Cursor, *service.Cursor, error)
-	Delete(context.Context, DeleteWarrantSpec) (*wookie.Token, error)
+	Create(ctx context.Context, spec CreateWarrantSpec) (*WarrantSpec, *wookie.Token, error)
+	List(ctx context.Context, filterParams FilterParams, listParams service.ListParams) ([]WarrantSpec, *service.Cursor, *service.Cursor, error)
+	Delete(ctx context.Context, spec DeleteWarrantSpec) (*wookie.Token, error)
 }
 
 type WarrantService struct {

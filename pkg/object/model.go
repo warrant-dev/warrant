@@ -27,7 +27,7 @@ type Model interface {
 	GetObjectType() string
 	GetObjectId() string
 	GetMeta() *string
-	SetMeta(map[string]interface{}) error
+	SetMeta(meta map[string]interface{}) error
 	GetCreatedAt() time.Time
 	GetUpdatedAt() time.Time
 	GetDeletedAt() *time.Time

@@ -158,7 +158,6 @@ func (repo SQLiteRepository) ListResourceEvents(ctx context.Context, filterParam
 		i++
 	}
 
-	//nolint:gosec
 	firstElem := models[0]
 	lastElem := models[len(models)-1]
 	var firstValue interface{} = nil
@@ -341,7 +340,6 @@ func (repo SQLiteRepository) ListAccessEvents(ctx context.Context, filterParams 
 		i++
 	}
 
-	//nolint:gosec
 	firstElem := models[0]
 	lastElem := models[len(models)-1]
 	var firstValue interface{} = nil
