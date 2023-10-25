@@ -311,6 +311,11 @@ func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, 
 		// match any encountered group warrants
 		//nolint:gocritic
 		if matchedWarrant.Subject.Relation != "" {
+			// only expand group warrants if requested
+			if !expand {
+				continue
+			}
+
 			res, err := svc.matchRelation(ctx, selectSubjects, matchedWarrant.Subject.ObjectType, matchedWarrant.Subject.Relation, warrant.FilterParams{
 				ObjectId:    []string{matchedWarrant.Subject.ObjectId},
 				SubjectType: matchFilters.SubjectType,
