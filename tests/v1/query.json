@@ -841,7 +841,7 @@
                                     "objectId": "U3"
                                 }
                             },
-                            "isImplicit": false
+                            "isImplicit": true
                         },
                         {
                             "objectType": "user",
@@ -1274,7 +1274,7 @@
                                     "objectId": "U4"
                                 }
                             },
-                            "isImplicit": false
+                            "isImplicit": true
                         },
                         {
                             "objectType": "user",

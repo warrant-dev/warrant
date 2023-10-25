@@ -66,21 +66,11 @@ func (svc QueryService) Query(ctx context.Context, query *Query, listParams serv
 	}
 
 	for res := resultSet.List(); res != nil; res = res.Next() {
-		var isImplicit bool
-		//nolint:gocritic
-		if query.SelectObjects != nil {
-			isImplicit = !matches(query.SelectObjects.ObjectTypes, res.Warrant.ObjectType) || !matches(query.SelectObjects.Relations, res.Warrant.Relation)
-		} else if query.SelectSubjects != nil {
-			isImplicit = !matches(query.SelectSubjects.SubjectTypes, res.Warrant.Subject.ObjectType) || !matches(query.SelectSubjects.Relations, res.Warrant.Relation)
-		} else {
-			return nil, nil, nil, ErrInvalidQuery
-		}
-
 		queryResults = append(queryResults, QueryResult{
 			ObjectType: res.ObjectType,
 			ObjectId:   res.ObjectId,
 			Warrant:    res.Warrant,
-			IsImplicit: isImplicit,
+			IsImplicit: res.IsImplicit,
 		})
 	}
 
@@ -274,7 +264,7 @@ func (svc QueryService) query(ctx context.Context, query *Query) (*ResultSet, er
 				}
 			}
 
-			res, err := svc.matchRelation(ctx, selectSubjects, objectType, relation, matchFilters, query.Expand)
+			res, err := svc.matchRelation(ctx, selectSubjects, objectType, relation, matchFilters, query.Expand, 0)
 			if err != nil {
 				return nil, err
 			}
@@ -286,7 +276,7 @@ func (svc QueryService) query(ctx context.Context, query *Query) (*ResultSet, er
 	return resultSet, nil
 }
 
-func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, objectType string, relation string, matchFilters warrant.FilterParams, expand bool) (*ResultSet, error) {
+func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, objectType string, relation string, matchFilters warrant.FilterParams, expand bool, level int) (*ResultSet, error) {
 	objectTypeDef, err := svc.objectTypeSvc.GetByTypeId(ctx, objectType)
 	if err != nil {
 		return nil, err
@@ -320,7 +310,7 @@ func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, 
 				ObjectId:    []string{matchedWarrant.Subject.ObjectId},
 				SubjectType: matchFilters.SubjectType,
 				SubjectId:   matchFilters.SubjectId,
-			}, expand)
+			}, expand, level+1)
 			if err != nil {
 				return nil, err
 			}
@@ -330,15 +320,15 @@ func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, 
 			} else if res.Len() > 0 {
 				//nolint:gocritic
 				if matchedWarrant.ObjectId != warrant.Wildcard {
-					resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant)
+					resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant, level > 0)
 				} else if len(matchFilters.ObjectId) > 0 {
-					resultSet.Add(matchedWarrant.ObjectType, matchFilters.ObjectId[0], matchedWarrant)
+					resultSet.Add(matchedWarrant.ObjectType, matchFilters.ObjectId[0], matchedWarrant, level > 0)
 				} else {
 					//nolint:gocritic
 					if matchedWarrant.ObjectId != warrant.Wildcard {
-						resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant)
+						resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant, level > 0)
 					} else if len(matchFilters.ObjectId) > 0 {
-						resultSet.Add(matchedWarrant.ObjectType, matchFilters.ObjectId[0], matchedWarrant)
+						resultSet.Add(matchedWarrant.ObjectType, matchFilters.ObjectId[0], matchedWarrant, level > 0)
 					} else {
 						wcWarrantMatches, _, _, err := svc.matchWarrants(ctx, warrant.FilterParams{
 							ObjectType: []string{matchedWarrant.ObjectType},
@@ -349,23 +339,23 @@ func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, 
 
 						for _, wcWarrantMatch := range wcWarrantMatches {
 							if wcWarrantMatch.ObjectId != warrant.Wildcard {
-								resultSet.Add(wcWarrantMatch.ObjectType, wcWarrantMatch.ObjectId, matchedWarrant)
+								resultSet.Add(wcWarrantMatch.ObjectType, wcWarrantMatch.ObjectId, matchedWarrant, level > 0)
 							}
 						}
 					}
 				}
 			}
 		} else if selectSubjects {
-			resultSet.Add(matchedWarrant.Subject.ObjectType, matchedWarrant.Subject.ObjectId, matchedWarrant)
+			resultSet.Add(matchedWarrant.Subject.ObjectType, matchedWarrant.Subject.ObjectId, matchedWarrant, level > 0)
 		} else if matches(matchFilters.SubjectType, matchedWarrant.Subject.ObjectType) && matches(matchFilters.SubjectId, matchedWarrant.Subject.ObjectId) {
-			resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant)
+			resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant, level > 0)
 		}
 	}
 
 	// explore following levels if requested
 	if expand {
 		rule := objectTypeDef.Relations[relation]
-		res, err := svc.matchRule(ctx, selectSubjects, objectType, relation, &rule, matchFilters, expand)
+		res, err := svc.matchRule(ctx, selectSubjects, objectType, relation, &rule, matchFilters, expand, level+1)
 		if err != nil {
 			return nil, err
 		}
@@ -375,18 +365,18 @@ func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, 
 	return resultSet, nil
 }
 
-func (svc QueryService) matchRule(ctx context.Context, selectSubjects bool, objectType string, relation string, rule *objecttype.RelationRule, matchFilters warrant.FilterParams, expand bool) (*ResultSet, error) {
+func (svc QueryService) matchRule(ctx context.Context, selectSubjects bool, objectType string, relation string, rule *objecttype.RelationRule, matchFilters warrant.FilterParams, expand bool, level int) (*ResultSet, error) {
 	switch rule.InheritIf {
 	case "":
 		// Do nothing, explicit matches already explored in matchRelation
 		return NewResultSet(), nil
 	case objecttype.InheritIfAllOf, objecttype.InheritIfAnyOf, objecttype.InheritIfNoneOf:
-		return svc.matchSetRule(ctx, selectSubjects, objectType, relation, rule.InheritIf, rule.Rules, matchFilters, expand)
+		return svc.matchSetRule(ctx, selectSubjects, objectType, relation, rule.InheritIf, rule.Rules, matchFilters, expand, level)
 	default:
 		// inherit relation if subject has:
 		// (1) InheritIf on this object
 		if rule.OfType == "" && rule.WithRelation == "" {
-			return svc.matchRelation(ctx, selectSubjects, objectType, rule.InheritIf, matchFilters, expand)
+			return svc.matchRelation(ctx, selectSubjects, objectType, rule.InheritIf, matchFilters, expand, level+1)
 		}
 
 		// inherit relation if subject has:
@@ -409,7 +399,7 @@ func (svc QueryService) matchRule(ctx context.Context, selectSubjects bool, obje
 				ObjectId:    []string{matchedWarrant.Subject.ObjectId},
 				SubjectType: matchFilters.SubjectType,
 				SubjectId:   matchFilters.SubjectId,
-			}, expand)
+			}, expand, level+1)
 			if err != nil {
 				return nil, err
 			}
@@ -419,9 +409,9 @@ func (svc QueryService) matchRule(ctx context.Context, selectSubjects bool, obje
 			} else if res.Len() > 0 {
 				//nolint:gocritic
 				if matchedWarrant.ObjectId != warrant.Wildcard {
-					resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant)
+					resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant, level > 0)
 				} else if len(matchFilters.ObjectId) > 0 {
-					resultSet.Add(matchedWarrant.ObjectType, matchFilters.ObjectId[0], matchedWarrant)
+					resultSet.Add(matchedWarrant.ObjectType, matchFilters.ObjectId[0], matchedWarrant, level > 0)
 				} else {
 					wcWarrantMatches, _, _, err := svc.matchWarrants(ctx, warrant.FilterParams{
 						ObjectType: []string{matchedWarrant.ObjectType},
@@ -432,7 +422,7 @@ func (svc QueryService) matchRule(ctx context.Context, selectSubjects bool, obje
 
 					for _, wcWarrantMatch := range wcWarrantMatches {
 						if wcWarrantMatch.ObjectId != warrant.Wildcard {
-							resultSet.Add(wcWarrantMatch.ObjectType, wcWarrantMatch.ObjectId, matchedWarrant)
+							resultSet.Add(wcWarrantMatch.ObjectType, wcWarrantMatch.ObjectId, matchedWarrant, level > 0)
 						}
 					}
 				}
@@ -452,12 +442,13 @@ func (svc QueryService) matchSetRule(
 	rules []objecttype.RelationRule,
 	matchFilters warrant.FilterParams,
 	expand bool,
+	level int,
 ) (*ResultSet, error) {
 	switch setRuleType {
 	case objecttype.InheritIfAllOf:
 		var resultSet *ResultSet
 		for i := range rules {
-			res, err := svc.matchRule(ctx, selectSubjects, objectType, relation, &rules[i], matchFilters, expand)
+			res, err := svc.matchRule(ctx, selectSubjects, objectType, relation, &rules[i], matchFilters, expand, level)
 			if err != nil {
 				return nil, err
 			}
@@ -478,7 +469,7 @@ func (svc QueryService) matchSetRule(
 	case objecttype.InheritIfAnyOf:
 		resultSet := NewResultSet()
 		for i := range rules {
-			res, err := svc.matchRule(ctx, selectSubjects, objectType, relation, &rules[i], matchFilters, expand)
+			res, err := svc.matchRule(ctx, selectSubjects, objectType, relation, &rules[i], matchFilters, expand, level)
 			if err != nil {
 				return nil, err
 			}
