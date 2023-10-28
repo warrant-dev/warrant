@@ -70,7 +70,7 @@ func (svc PricingTierService) Routes() ([]service.Route, error) {
 
 func createHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
 	var newPricingTier PricingTierSpec
-	err := service.ParseJSONBody(r.Body, &newPricingTier)
+	err := service.ParseJSONBody(r.Context(), r.Body, &newPricingTier)
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func listHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request)
 
 func updateHandler(svc PricingTierService, w http.ResponseWriter, r *http.Request) error {
 	var updatePricingTier UpdatePricingTierSpec
-	err := service.ParseJSONBody(r.Body, &updatePricingTier)
+	err := service.ParseJSONBody(r.Context(), r.Body, &updatePricingTier)
 	if err != nil {
 		return err
 	}

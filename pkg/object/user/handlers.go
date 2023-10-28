@@ -70,7 +70,7 @@ func (svc UserService) Routes() ([]service.Route, error) {
 
 func createHandler(svc UserService, w http.ResponseWriter, r *http.Request) error {
 	var userSpec UserSpec
-	err := service.ParseJSONBody(r.Body, &userSpec)
+	err := service.ParseJSONBody(r.Context(), r.Body, &userSpec)
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func listHandler(svc UserService, w http.ResponseWriter, r *http.Request) error 
 
 func updateHandler(svc UserService, w http.ResponseWriter, r *http.Request) error {
 	var updateUser UpdateUserSpec
-	err := service.ParseJSONBody(r.Body, &updateUser)
+	err := service.ParseJSONBody(r.Context(), r.Body, &updateUser)
 	if err != nil {
 		return err
 	}

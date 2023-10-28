@@ -70,7 +70,7 @@ func (svc TenantService) Routes() ([]service.Route, error) {
 
 func createHandler(svc TenantService, w http.ResponseWriter, r *http.Request) error {
 	var newTenant TenantSpec
-	err := service.ParseJSONBody(r.Body, &newTenant)
+	err := service.ParseJSONBody(r.Context(), r.Body, &newTenant)
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func listHandler(svc TenantService, w http.ResponseWriter, r *http.Request) erro
 
 func updateHandler(svc TenantService, w http.ResponseWriter, r *http.Request) error {
 	var updateTenant UpdateTenantSpec
-	err := service.ParseJSONBody(r.Body, &updateTenant)
+	err := service.ParseJSONBody(r.Context(), r.Body, &updateTenant)
 	if err != nil {
 		return err
 	}

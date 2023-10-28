@@ -77,7 +77,7 @@ func (svc WarrantService) Routes() ([]service.Route, error) {
 
 func createHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
 	var spec CreateWarrantSpec
-	err := service.ParseJSONBody(r.Body, &spec)
+	err := service.ParseJSONBody(r.Context(), r.Body, &spec)
 	if err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func listV2Handler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 
 func deleteHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
 	var spec DeleteWarrantSpec
-	err := service.ParseJSONBody(r.Body, &spec)
+	err := service.ParseJSONBody(r.Context(), r.Body, &spec)
 	if err != nil {
 		return err
 	}

@@ -70,7 +70,7 @@ func (svc FeatureService) Routes() ([]service.Route, error) {
 
 func createHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
 	var newFeature FeatureSpec
-	err := service.ParseJSONBody(r.Body, &newFeature)
+	err := service.ParseJSONBody(r.Context(), r.Body, &newFeature)
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func listHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) err
 
 func updateHandler(svc FeatureService, w http.ResponseWriter, r *http.Request) error {
 	var updateFeature UpdateFeatureSpec
-	err := service.ParseJSONBody(r.Body, &updateFeature)
+	err := service.ParseJSONBody(r.Context(), r.Body, &updateFeature)
 	if err != nil {
 		return err
 	}
