@@ -16,6 +16,7 @@ package service
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -124,7 +125,7 @@ func IsArray(data []byte) bool {
 	return len(x) > 0 && x[0] == '['
 }
 
-func ParseJSONBytes(body []byte, obj interface{}) error {
+func ParseJSONBytes(ctx context.Context, body []byte, obj interface{}) error {
 	err := json.Unmarshal(body, &obj)
 	if err != nil {
 		var unmarshalTypeErr *json.UnmarshalTypeError
@@ -132,16 +133,16 @@ func ParseJSONBytes(body []byte, obj interface{}) error {
 			return NewInvalidParameterError(unmarshalTypeErr.Field, fmt.Sprintf("must be %s", primitiveTypeToDisplayName(unmarshalTypeErr.Type)))
 		}
 
-		log.Error().Err(err).Msgf("service: invalid request body: ParseJSONBytes")
+		log.Ctx(ctx).Error().Err(err).Msgf("service: invalid request body: ParseJSONBytes")
 		return NewInvalidRequestError("Invalid request body")
 	}
 	return nil
 }
 
-func ParseJSONBody(body io.Reader, obj interface{}) error {
+func ParseJSONBody(ctx context.Context, body io.Reader, obj interface{}) error {
 	reflectVal := reflect.ValueOf(obj)
 	if reflectVal.Kind() != reflect.Pointer {
-		log.Error().Msg("service: second argument to ParseJSONBody must be a reference")
+		log.Ctx(ctx).Error().Msg("service: second argument to ParseJSONBody must be a reference")
 		return NewInternalError("Internal server error")
 	}
 
@@ -152,20 +153,20 @@ func ParseJSONBody(body io.Reader, obj interface{}) error {
 			return NewInvalidParameterError(unmarshalTypeErr.Field, fmt.Sprintf("must be %s", primitiveTypeToDisplayName(unmarshalTypeErr.Type)))
 		}
 		if !errors.Is(err, io.EOF) {
-			log.Error().Err(err).Msgf("service: invalid request body: ParseJSONBody")
+			log.Ctx(ctx).Error().Err(err).Msgf("service: invalid request body: ParseJSONBody")
 			return NewInvalidRequestError("Invalid request body")
 		}
 	}
 
-	return ValidateStruct(obj)
+	return ValidateStruct(ctx, obj)
 }
 
-func ValidateStruct(obj interface{}) error {
+func ValidateStruct(ctx context.Context, obj interface{}) error {
 	err := validate.Struct(obj)
 	if err != nil {
 		var invalidValidationErr *validator.InvalidValidationError
 		if errors.As(err, &invalidValidationErr) {
-			log.Error().Err(err).Msgf("service: invalid request body: ValidateStruct")
+			log.Ctx(ctx).Error().Err(err).Msgf("service: invalid request body: ValidateStruct")
 			return NewInvalidRequestError("Invalid request body")
 		}
 
@@ -175,7 +176,7 @@ func ValidateStruct(obj interface{}) error {
 				objType := reflect.Indirect(reflect.ValueOf(obj)).Type()
 				invalidField, fieldFound := getFieldFromType(err.Field(), objType)
 				if !fieldFound {
-					log.Debug().Msgf("service: field %s not found on %v", err.Field(), objType)
+					log.Ctx(ctx).Debug().Msgf("service: field %s not found on %v", err.Field(), objType)
 					return NewInvalidRequestError("Invalid request body")
 				}
 
@@ -217,7 +218,7 @@ func ValidateStruct(obj interface{}) error {
 				case "valid_inheritif":
 					return NewInvalidParameterError(fieldName, "can only be 'anyOf', 'allOf', 'noneOf', or a valid relation name")
 				default:
-					log.Error().Err(err).Msgf("service: invalid request body: ValidateStruct")
+					log.Ctx(ctx).Error().Err(err).Msgf("service: invalid request body: ValidateStruct")
 					return NewInvalidRequestError("Invalid request body")
 				}
 			}

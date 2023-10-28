@@ -70,7 +70,7 @@ func (svc RoleService) Routes() ([]service.Route, error) {
 
 func createHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error {
 	var newRole RoleSpec
-	err := service.ParseJSONBody(r.Body, &newRole)
+	err := service.ParseJSONBody(r.Context(), r.Body, &newRole)
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func listHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error 
 
 func updateHandler(svc RoleService, w http.ResponseWriter, r *http.Request) error {
 	var updateRole UpdateRoleSpec
-	err := service.ParseJSONBody(r.Body, &updateRole)
+	err := service.ParseJSONBody(r.Context(), r.Body, &updateRole)
 	if err != nil {
 		return err
 	}

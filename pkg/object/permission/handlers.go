@@ -70,7 +70,7 @@ func (svc PermissionService) Routes() ([]service.Route, error) {
 
 func createHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	var newPermission PermissionSpec
-	err := service.ParseJSONBody(r.Body, &newPermission)
+	err := service.ParseJSONBody(r.Context(), r.Body, &newPermission)
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func listHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) 
 
 func updateHandler(svc PermissionService, w http.ResponseWriter, r *http.Request) error {
 	var updatePermission UpdatePermissionSpec
-	err := service.ParseJSONBody(r.Body, &updatePermission)
+	err := service.ParseJSONBody(r.Context(), r.Body, &updatePermission)
 	if err != nil {
 		return err
 	}

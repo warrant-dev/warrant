@@ -42,7 +42,7 @@ func authorizeHandler(svc CheckService, w http.ResponseWriter, r *http.Request) 
 
 	if authInfo != nil && authInfo.UserId != "" {
 		var sessionCheckManySpec SessionCheckManySpec
-		err := service.ParseJSONBody(r.Body, &sessionCheckManySpec)
+		err := service.ParseJSONBody(r.Context(), r.Body, &sessionCheckManySpec)
 		if err != nil {
 			return err
 		}
@@ -77,7 +77,7 @@ func authorizeHandler(svc CheckService, w http.ResponseWriter, r *http.Request) 
 	}
 
 	var checkManySpec CheckManySpec
-	err = service.ParseJSONBody(r.Body, &checkManySpec)
+	err = service.ParseJSONBody(r.Context(), r.Body, &checkManySpec)
 	if err != nil {
 		return err
 	}

@@ -103,7 +103,7 @@ func (svc ObjectTypeService) Routes() ([]service.Route, error) {
 
 func createHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	var spec CreateObjectTypeSpec
-	err := service.ParseJSONBody(r.Body, &spec)
+	err := service.ParseJSONBody(r.Context(), r.Body, &spec)
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func getHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) e
 
 func updateHandler(svc ObjectTypeService, w http.ResponseWriter, r *http.Request) error {
 	var spec UpdateObjectTypeSpec
-	err := service.ParseJSONBody(r.Body, &spec)
+	err := service.ParseJSONBody(r.Context(), r.Body, &spec)
 	if err != nil {
 		return err
 	}
