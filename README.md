@@ -59,9 +59,9 @@ Warrant Cloud is compatible with the same APIs as this open source version and p
 
 Once you've created an account, refer to our [docs](https://docs.warrant.dev/) to get started.
 
-### Self-hosting
+### Local Development &amp; Self-Hosting
 
-To self-host or run Warrant locally, check out our [local development guide](/development.md).
+Check out the [development guide](/development.md) to learn how to run Warrant and refer to the [deployment examples](/deployment.md) for examples of self-hosting Warrant using Docker or Kubernetes.
 
 ## SDKs
 
