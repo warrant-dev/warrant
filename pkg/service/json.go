@@ -120,7 +120,7 @@ func validInheritIf(fl validator.FieldLevel) bool {
 	}
 }
 
-func IsArray(data []byte) bool {
+func IsJSONArray(data []byte) bool {
 	x := bytes.TrimLeft(data, "\t\r\n ")
 	return len(x) > 0 && x[0] == '['
 }
@@ -142,20 +142,33 @@ func ParseJSONBytes(ctx context.Context, body []byte, obj interface{}) error {
 func ParseJSONBody(ctx context.Context, body io.Reader, obj interface{}) error {
 	reflectVal := reflect.ValueOf(obj)
 	if reflectVal.Kind() != reflect.Pointer {
-		log.Ctx(ctx).Error().Msg("service: second argument to ParseJSONBody must be a reference")
+		log.Ctx(ctx).Error().Msg("service: obj argument to ParseJSONBody must be a reference")
 		return NewInternalError("Internal server error")
 	}
 
-	err := json.NewDecoder(body).Decode(&obj)
+	jsonDecoder := json.NewDecoder(body)
+	err := jsonDecoder.Decode(&obj)
 	if err != nil {
-		var unmarshalTypeErr *json.UnmarshalTypeError
-		if errors.As(err, &unmarshalTypeErr) {
-			return NewInvalidParameterError(unmarshalTypeErr.Field, fmt.Sprintf("must be %s", primitiveTypeToDisplayName(unmarshalTypeErr.Type)))
+		var syntaxError *json.SyntaxError
+		var unmarshalTypeError *json.UnmarshalTypeError
+		switch {
+		case errors.As(err, &syntaxError):
+			return NewInvalidRequestError(fmt.Sprintf("Request contains malformed JSON (at position %d)", syntaxError.Offset))
+		case errors.Is(err, io.ErrUnexpectedEOF):
+			return NewInvalidRequestError("Request contains malformed JSON")
+		case errors.As(err, &unmarshalTypeError):
+			return NewInvalidParameterError(unmarshalTypeError.Field, fmt.Sprintf("must be %s", primitiveTypeToDisplayName(unmarshalTypeError.Type)))
+		case errors.Is(err, io.EOF):
+			return NewInvalidRequestError("Request body must not be empty")
+		default:
+			return errors.Wrap(err, "service: error decoding json in ParseJSONBody")
 		}
-		if !errors.Is(err, io.EOF) {
-			log.Ctx(ctx).Error().Err(err).Msgf("service: invalid request body: ParseJSONBody")
-			return NewInvalidRequestError("Invalid request body")
-		}
+	}
+
+	// attempt to read more of the JSON body (error if there is more content)
+	err = jsonDecoder.Decode(&struct{}{})
+	if !errors.Is(err, io.EOF) {
+		return NewInvalidRequestError("Request must only contain one JSON object")
 	}
 
 	return ValidateStruct(ctx, obj)
