@@ -196,10 +196,10 @@
                 }
             },
             "expectedResponse": {
-                "statusCode": 200,
+                "statusCode": 400,
                 "body": {
-                    "userId": "{{ createUserWithGeneratedIdNoEmail.userId }}",
-                    "email": "updated@gmail.com"
+                    "code": "invalid_request",
+                    "message": "Request contains unknown field \"userId\""
                 }
             }
         },

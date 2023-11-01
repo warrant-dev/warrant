@@ -188,11 +188,10 @@
                 }
             },
             "expectedResponse": {
-                "statusCode": 200,
+                "statusCode": 400,
                 "body": {
-                    "tenantId": "{{ createTenantWithGeneratedIdNoName.tenantId }}",
-                    "name": "updated-name",
-                    "createdAt": "2022-09-30T17:04:20Z"
+                    "code": "invalid_request",
+                    "message": "Request contains unknown field \"tenantId\""
                 }
             }
         },
