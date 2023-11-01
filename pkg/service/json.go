@@ -147,7 +147,6 @@ func ParseJSONBody(ctx context.Context, body io.Reader, obj interface{}) error {
 	}
 
 	jsonDecoder := json.NewDecoder(body)
-	jsonDecoder.DisallowUnknownFields()
 	err := jsonDecoder.Decode(&obj)
 	if err != nil {
 		var syntaxError *json.SyntaxError
@@ -159,9 +158,6 @@ func ParseJSONBody(ctx context.Context, body io.Reader, obj interface{}) error {
 			return NewInvalidRequestError("Request contains malformed JSON")
 		case errors.As(err, &unmarshalTypeError):
 			return NewInvalidParameterError(unmarshalTypeError.Field, fmt.Sprintf("must be %s", primitiveTypeToDisplayName(unmarshalTypeError.Type)))
-		case strings.HasPrefix(err.Error(), "json: unknown field "):
-			field := strings.TrimPrefix(err.Error(), "json: unknown field ")
-			return NewInvalidRequestError(fmt.Sprintf("Request contains unknown field %s", field))
 		case errors.Is(err, io.EOF):
 			return NewInvalidRequestError("Request body must not be empty")
 		default:
