@@ -17,6 +17,7 @@ package stats
 import (
 	"context"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -33,14 +34,30 @@ func (s Stat) MarshalZerologObject(e *zerolog.Event) {
 }
 
 type RequestStats struct {
-	Stats []Stat
+	mutex sync.Mutex
+	stats []Stat
+}
+
+func (s *RequestStats) RecordStat(stat Stat) {
+	s.mutex.Lock()
+	s.stats = append(s.stats, stat)
+	s.mutex.Unlock()
+}
+
+func (s *RequestStats) NumStats() int {
+	s.mutex.Lock()
+	numStats := len(s.stats)
+	s.mutex.Unlock()
+	return numStats
 }
 
 func (s *RequestStats) MarshalZerologObject(e *zerolog.Event) {
 	arr := zerolog.Arr()
-	for _, stat := range s.Stats {
+	s.mutex.Lock()
+	for _, stat := range s.stats {
 		arr.Object(stat)
 	}
+	s.mutex.Unlock()
 	e.Array("stats", arr)
 }
 
@@ -51,7 +68,7 @@ type statTagKey struct{}
 func RequestStatsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		reqStats := RequestStats{
-			Stats: make([]Stat, 0),
+			stats: make([]Stat, 0),
 		}
 		ctxWithReqStats := context.WithValue(r.Context(), requestStatsKey{}, &reqStats)
 		next.ServeHTTP(w, r.WithContext(ctxWithReqStats))
@@ -81,7 +98,7 @@ func RecordStat(ctx context.Context, store string, tag string, start time.Time) 
 		if tagPrefix, ctxHasTag := ctx.Value(statTagKey{}).(string); ctxHasTag {
 			tag = tagPrefix + "." + tag
 		}
-		reqStats.Stats = append(reqStats.Stats, Stat{
+		reqStats.RecordStat(Stat{
 			Store:    store,
 			Tag:      tag,
 			Duration: time.Since(start),
