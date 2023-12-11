@@ -3,7 +3,7 @@ module github.com/warrant-dev/warrant
 go 1.21
 
 require (
-	github.com/alecthomas/participle/v2 v2.1.0
+	github.com/alecthomas/participle/v2 v2.1.1
 	github.com/antonmedv/expr v1.15.5
 	github.com/go-playground/validator/v10 v10.16.0
 	github.com/golang-jwt/jwt/v5 v5.1.0
