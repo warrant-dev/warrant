@@ -247,8 +247,10 @@ func ValidateStruct(ctx context.Context, obj interface{}) error {
 func SendJSONResponse(res http.ResponseWriter, body interface{}) {
 	res.Header().Set("Content-type", "application/json")
 	res.WriteHeader(http.StatusOK)
-	//nolint:errcheck,errchkjson
-	json.NewEncoder(res).Encode(body)
+	err := json.NewEncoder(res).Encode(body)
+	if err != nil {
+		log.Error().Err(err).Msgf("service: error writing json response to client")
+	}
 }
 
 // SendErrorResponse sends a JSON error response with the given error
@@ -263,8 +265,10 @@ func SendErrorResponse(res http.ResponseWriter, err error) {
 
 	res.Header().Set("Content-type", "application/json")
 	res.WriteHeader(status)
-	//nolint:errcheck,errchkjson
-	json.NewEncoder(res).Encode(apiError)
+	e := json.NewEncoder(res).Encode(apiError)
+	if e != nil {
+		log.Error().Err(e).Msgf("service: error writing json error response to client")
+	}
 }
 
 func primitiveTypeToDisplayName(primitiveType reflect.Type) string {
