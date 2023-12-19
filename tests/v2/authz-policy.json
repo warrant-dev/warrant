@@ -181,6 +181,9 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
                 "body": {
                     "warrants": [
                         {
@@ -212,6 +215,9 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
                 "body": {
                     "warrants": [
                         {
@@ -347,6 +353,9 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
                 "body": {
                     "warrants": [
                         {
@@ -378,6 +387,9 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
                 "body": {
                     "warrants": [
                         {
@@ -459,6 +471,9 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
                 "body": {
                     "warrants": [
                         {
@@ -493,6 +508,9 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
                 "body": {
                     "warrants": [
                         {
@@ -609,6 +627,9 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
                 "body": {
                     "warrants": [
                         {
@@ -653,6 +674,9 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
                 "body": {
                     "warrants": [
                         {
@@ -697,6 +721,9 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
                 "body": {
                     "warrants": [
                         {
