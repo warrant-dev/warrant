@@ -371,6 +371,9 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -401,6 +404,9 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -458,6 +464,9 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -515,6 +524,9 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -571,6 +583,9 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -604,6 +619,9 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -647,6 +665,9 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -690,6 +711,9 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
                 "body": {
                     "op": "anyOf",
                     "warrants": [
@@ -733,6 +757,9 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/authorize",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
                 "body": {
                     "op": "anyOf",
                     "warrants": [
