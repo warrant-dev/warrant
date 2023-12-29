@@ -18,22 +18,19 @@ import (
 	"context"
 
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	"github.com/warrant-dev/warrant/pkg/event"
 	object "github.com/warrant-dev/warrant/pkg/object"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
 type FeatureService struct {
 	service.BaseService
-	EventSvc  event.Service
-	ObjectSvc object.Service
+	objectSvc object.Service
 }
 
-func NewService(env service.Env, eventSvc event.Service, objectSvc object.Service) *FeatureService {
+func NewService(env service.Env, objectSvc object.Service) *FeatureService {
 	return &FeatureService{
 		BaseService: service.NewBaseService(env),
-		EventSvc:    eventSvc,
-		ObjectSvc:   objectSvc,
+		objectSvc:   objectSvc,
 	}
 }
 
@@ -45,7 +42,7 @@ func (svc FeatureService) Create(ctx context.Context, featureSpec FeatureSpec) (
 			return err
 		}
 
-		createdObjectSpec, err := svc.ObjectSvc.Create(txCtx, *objectSpec)
+		createdObjectSpec, err := svc.objectSvc.Create(txCtx, *objectSpec)
 		if err != nil {
 			return err
 		}
@@ -65,7 +62,7 @@ func (svc FeatureService) Create(ctx context.Context, featureSpec FeatureSpec) (
 }
 
 func (svc FeatureService) GetByFeatureId(ctx context.Context, featureId string) (*FeatureSpec, error) {
-	objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(ctx, objecttype.ObjectTypeFeature, featureId)
+	objectSpec, err := svc.objectSvc.GetByObjectTypeAndId(ctx, objecttype.ObjectTypeFeature, featureId)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +72,7 @@ func (svc FeatureService) GetByFeatureId(ctx context.Context, featureId string) 
 
 func (svc FeatureService) List(ctx context.Context, listParams service.ListParams) ([]FeatureSpec, error) {
 	featureSpecs := make([]FeatureSpec, 0)
-	objectSpecs, _, _, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeFeature}, listParams)
+	objectSpecs, _, _, err := svc.objectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeFeature}, listParams)
 	if err != nil {
 		return featureSpecs, err
 	}
@@ -95,7 +92,7 @@ func (svc FeatureService) List(ctx context.Context, listParams service.ListParam
 func (svc FeatureService) UpdateByFeatureId(ctx context.Context, featureId string, featureSpec UpdateFeatureSpec) (*FeatureSpec, error) {
 	var updatedFeatureSpec *FeatureSpec
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		updatedObjectSpec, err := svc.ObjectSvc.UpdateByObjectTypeAndId(txCtx, objecttype.ObjectTypeFeature, featureId, *featureSpec.ToUpdateObjectSpec())
+		updatedObjectSpec, err := svc.objectSvc.UpdateByObjectTypeAndId(txCtx, objecttype.ObjectTypeFeature, featureId, *featureSpec.ToUpdateObjectSpec())
 		if err != nil {
 			return err
 		}
@@ -115,7 +112,7 @@ func (svc FeatureService) UpdateByFeatureId(ctx context.Context, featureId strin
 }
 
 func (svc FeatureService) DeleteByFeatureId(ctx context.Context, featureId string) error {
-	_, err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypeFeature, featureId)
+	_, err := svc.objectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypeFeature, featureId)
 	if err != nil {
 		return err
 	}

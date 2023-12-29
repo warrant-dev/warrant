@@ -25,7 +25,6 @@ import (
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	"github.com/warrant-dev/warrant/pkg/config"
-	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 	"github.com/warrant-dev/warrant/pkg/stats"
 	"github.com/warrant-dev/warrant/pkg/wookie"
@@ -40,10 +39,9 @@ type CheckContextFunc func(ctx context.Context) (context.Context, error)
 type CheckService struct {
 	service.BaseService
 	warrantSvc         warrant.Service
-	EventSvc           event.Service
-	ObjectTypeSvc      objecttype.Service
-	CheckConfig        *config.CheckConfig
-	CreateCheckContext CheckContextFunc
+	objectTypeSvc      objecttype.Service
+	checkConfig        *config.CheckConfig
+	createCheckContext CheckContextFunc
 }
 
 func defaultCreateCheckContext(ctx context.Context) (context.Context, error) {
@@ -54,18 +52,17 @@ func defaultCreateCheckContext(ctx context.Context) (context.Context, error) {
 	return checkCtx, nil
 }
 
-func NewService(env service.Env, warrantSvc warrant.Service, eventSvc event.Service, objectTypeSvc objecttype.Service, checkConfig *config.CheckConfig, checkContext CheckContextFunc) *CheckService {
+func NewService(env service.Env, warrantSvc warrant.Service, objectTypeSvc objecttype.Service, checkConfig *config.CheckConfig, checkContext CheckContextFunc) *CheckService {
 	svc := &CheckService{
 		BaseService:        service.NewBaseService(env),
 		warrantSvc:         warrantSvc,
-		EventSvc:           eventSvc,
-		ObjectTypeSvc:      objectTypeSvc,
-		CheckConfig:        checkConfig,
-		CreateCheckContext: checkContext,
+		objectTypeSvc:      objectTypeSvc,
+		checkConfig:        checkConfig,
+		createCheckContext: checkContext,
 	}
 
 	if checkContext == nil {
-		svc.CreateCheckContext = defaultCreateCheckContext
+		svc.createCheckContext = defaultCreateCheckContext
 	}
 
 	return svc
@@ -116,7 +113,7 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, checkPipeline *
 	defer checkPipeline.ReleaseServiceLock()
 
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
-	objectTypeSpec, err := svc.ObjectTypeSvc.GetByTypeId(ctx, objectType)
+	objectTypeSpec, err := svc.objectTypeSvc.GetByTypeId(ctx, objectType)
 	if err != nil {
 		return warrantSpecs, err
 	}
@@ -160,7 +157,7 @@ func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, ch
 	defer checkPipeline.ReleaseServiceLock()
 
 	warrantSpecs := make([]warrant.WarrantSpec, 0)
-	objectTypeSpec, err := svc.ObjectTypeSvc.GetByTypeId(ctx, objectType)
+	objectTypeSpec, err := svc.objectTypeSvc.GetByTypeId(ctx, objectType)
 	if err != nil {
 		return warrantSpecs, err
 	}
@@ -228,27 +225,11 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 				}
 			}
 
-			var eventMeta map[string]interface{}
-			if warrantSpec.Context != nil {
-				eventMeta = make(map[string]interface{})
-				eventMeta["context"] = warrantSpec.Context
-			}
-
 			if !match {
-				err = svc.EventSvc.TrackAccessDeniedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
-				if err != nil {
-					return nil, err
-				}
-
 				checkResult.Code = http.StatusForbidden
 				checkResult.Result = NotAuthorized
 				checkResult.IsImplicit = false
 				return &checkResult, nil
-			}
-
-			err = svc.EventSvc.TrackAccessAllowedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
-			if err != nil {
-				return nil, err
 			}
 		}
 
@@ -276,29 +257,11 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 				}
 			}
 
-			var eventMeta map[string]interface{}
-			if warrantSpec.Context != nil {
-				eventMeta = make(map[string]interface{})
-				eventMeta["context"] = warrantSpec.Context
-			}
-
 			if match {
-				err = svc.EventSvc.TrackAccessAllowedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
-				if err != nil {
-					return nil, err
-				}
-
 				checkResult.Code = http.StatusOK
 				checkResult.Result = Authorized
 				checkResult.IsImplicit = isImplicit
 				return &checkResult, nil
-			}
-
-			if !match {
-				err := svc.EventSvc.TrackAccessDeniedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
-				if err != nil {
-					return nil, err
-				}
 			}
 		}
 
@@ -328,27 +291,11 @@ func (svc CheckService) CheckMany(ctx context.Context, authInfo *service.AuthInf
 		}
 	}
 
-	var eventMeta map[string]interface{}
-	if warrantSpec.Context != nil {
-		eventMeta = make(map[string]interface{})
-		eventMeta["context"] = warrantSpec.Context
-	}
-
 	if match {
-		err = svc.EventSvc.TrackAccessAllowedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
-		if err != nil {
-			return nil, err
-		}
-
 		checkResult.Code = http.StatusOK
 		checkResult.Result = Authorized
 		checkResult.IsImplicit = isImplicit
 		return &checkResult, nil
-	}
-
-	err = svc.EventSvc.TrackAccessDeniedEvent(ctx, warrantSpec.ObjectType, warrantSpec.ObjectId, warrantSpec.Relation, warrantSpec.Subject.ObjectType, warrantSpec.Subject.ObjectId, warrantSpec.Subject.Relation, eventMeta)
-	if err != nil {
-		return nil, err
 	}
 
 	checkResult.Code = http.StatusForbidden
@@ -371,13 +318,13 @@ func (svc CheckService) Check(ctx context.Context, authInfo *service.AuthInfo, w
 	}
 
 	resultsC := make(chan result, 1)
-	pipeline := NewPipeline(svc.CheckConfig.Concurrency, svc.CheckConfig.MaxConcurrency)
+	pipeline := NewPipeline(svc.checkConfig.Concurrency, svc.checkConfig.MaxConcurrency)
 
-	checkCtx, err := svc.CreateCheckContext(ctx)
+	checkCtx, err := svc.createCheckContext(ctx)
 	if err != nil {
 		return false, nil, false, err
 	}
-	childCtx, cancelFunc := context.WithTimeout(checkCtx, svc.CheckConfig.Timeout)
+	childCtx, cancelFunc := context.WithTimeout(checkCtx, svc.checkConfig.Timeout)
 	defer cancelFunc()
 
 	go func() {
@@ -450,7 +397,7 @@ func (svc CheckService) check(level int, checkPipeline *pipeline, ctx context.Co
 		})
 
 		// 3. And/or defined rules for target relation
-		objectTypeSpec, err := svc.ObjectTypeSvc.GetByTypeId(ctx, checkSpec.ObjectType)
+		objectTypeSpec, err := svc.objectTypeSvc.GetByTypeId(ctx, checkSpec.ObjectType)
 		if err != nil {
 			resultC <- result{
 				Matched:      false,

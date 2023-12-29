@@ -28,15 +28,12 @@ import (
 )
 
 const (
-	DefaultMySQLDatastoreMigrationSource     = "github://warrant-dev/warrant/migrations/datastore/mysql"
-	DefaultMySQLEventstoreMigrationSource    = "github://warrant-dev/warrant/migrations/eventstore/mysql"
-	DefaultPostgresDatastoreMigrationSource  = "github://warrant-dev/warrant/migrations/datastore/postgres"
-	DefaultPostgresEventstoreMigrationSource = "github://warrant-dev/warrant/migrations/eventstore/postgres"
-	DefaultSQLiteDatastoreMigrationSource    = "github://warrant-dev/warrant/migrations/datastore/sqlite"
-	DefaultSQLiteEventstoreMigrationSource   = "github://warrant-dev/warrant/migrations/eventstore/sqlite"
-	DefaultAuthenticationUserIdClaim         = "sub"
-	PrefixWarrant                            = "warrant"
-	ConfigFileName                           = "warrant.yaml"
+	DefaultMySQLDatastoreMigrationSource    = "github://warrant-dev/warrant/migrations/datastore/mysql"
+	DefaultPostgresDatastoreMigrationSource = "github://warrant-dev/warrant/migrations/datastore/postgres"
+	DefaultSQLiteDatastoreMigrationSource   = "github://warrant-dev/warrant/migrations/datastore/sqlite"
+	DefaultAuthenticationUserIdClaim        = "sub"
+	PrefixWarrant                           = "warrant"
+	ConfigFileName                          = "warrant.yaml"
 )
 
 type Config interface {
@@ -45,18 +42,16 @@ type Config interface {
 	GetEnableAccessLog() bool
 	GetAutoMigrate() bool
 	GetDatastore() *DatastoreConfig
-	GetEventstore() *EventstoreConfig
 }
 
 type WarrantConfig struct {
-	Port            int               `mapstructure:"port"`
-	LogLevel        int8              `mapstructure:"logLevel"`
-	EnableAccessLog bool              `mapstructure:"enableAccessLog"`
-	AutoMigrate     bool              `mapstructure:"autoMigrate"`
-	Datastore       *DatastoreConfig  `mapstructure:"datastore"`
-	Eventstore      *EventstoreConfig `mapstructure:"eventstore"`
-	Authentication  *AuthConfig       `mapstructure:"authentication"`
-	Check           *CheckConfig      `mapstructure:"check"`
+	Port            int              `mapstructure:"port"`
+	LogLevel        int8             `mapstructure:"logLevel"`
+	EnableAccessLog bool             `mapstructure:"enableAccessLog"`
+	AutoMigrate     bool             `mapstructure:"autoMigrate"`
+	Datastore       *DatastoreConfig `mapstructure:"datastore"`
+	Authentication  *AuthConfig      `mapstructure:"authentication"`
+	Check           *CheckConfig     `mapstructure:"check"`
 }
 
 func (warrantConfig WarrantConfig) GetPort() int {
@@ -77,10 +72,6 @@ func (warrantConfig WarrantConfig) GetAutoMigrate() bool {
 
 func (warrantConfig WarrantConfig) GetDatastore() *DatastoreConfig {
 	return warrantConfig.Datastore
-}
-
-func (warrantConfig WarrantConfig) GetEventstore() *EventstoreConfig {
-	return warrantConfig.Eventstore
 }
 
 func (warrantConfig WarrantConfig) GetAuthentication() *AuthConfig {
@@ -140,13 +131,6 @@ type SQLiteConfig struct {
 	ConnMaxLifetime    time.Duration `mapstructure:"connMaxLifetime"`
 }
 
-type EventstoreConfig struct {
-	MySQL             *MySQLConfig    `mapstructure:"mysql"`
-	Postgres          *PostgresConfig `mapstructure:"postgres"`
-	SQLite            *SQLiteConfig   `mapstructure:"sqlite"`
-	SynchronizeEvents bool            `mapstructure:"synchronizeEvents"`
-}
-
 type AuthConfig struct {
 	ApiKey   string              `mapstructure:"apiKey"`
 	Provider *AuthProviderConfig `mapstructure:"providers"`
@@ -180,16 +164,6 @@ func NewConfig() WarrantConfig {
 	viper.SetDefault("datastore.sqlite.connMaxIdleTime", 4*time.Hour)
 	viper.SetDefault("datastore.sqlite.connMaxLifetime", 6*time.Hour)
 	viper.SetDefault("datastore.sqlite.migrationSource", DefaultSQLiteDatastoreMigrationSource)
-	viper.SetDefault("eventstore.mysql.connMaxIdleTime", 4*time.Hour)
-	viper.SetDefault("eventstore.mysql.connMaxLifetime", 6*time.Hour)
-	viper.SetDefault("eventstore.mysql.migrationSource", DefaultMySQLEventstoreMigrationSource)
-	viper.SetDefault("eventstore.postgres.connMaxIdleTime", 4*time.Hour)
-	viper.SetDefault("eventstore.postgres.connMaxLifetime", 6*time.Hour)
-	viper.SetDefault("eventstore.postgres.migrationSource", DefaultPostgresEventstoreMigrationSource)
-	viper.SetDefault("eventstore.sqlite.connMaxIdleTime", 4*time.Hour)
-	viper.SetDefault("eventstore.sqlite.connMaxLifetime", 6*time.Hour)
-	viper.SetDefault("eventstore.sqlite.migrationSource", DefaultSQLiteEventstoreMigrationSource)
-	viper.SetDefault("eventstore.synchronizeEvents", false)
 	viper.SetDefault("authentication.providers.userIdClaim", DefaultAuthenticationUserIdClaim)
 	viper.SetDefault("check.concurrency", 4)
 	viper.SetDefault("check.maxConcurrency", 1000)

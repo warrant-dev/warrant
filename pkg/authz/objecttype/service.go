@@ -17,12 +17,9 @@ package authz
 import (
 	"context"
 
-	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 	"github.com/warrant-dev/warrant/pkg/wookie"
 )
-
-const ResourceTypeObjectType = "object-type"
 
 type Service interface {
 	Create(ctx context.Context, spec CreateObjectTypeSpec) (*ObjectTypeSpec, *wookie.Token, error)
@@ -34,15 +31,13 @@ type Service interface {
 
 type ObjectTypeService struct {
 	service.BaseService
-	Repository ObjectTypeRepository
-	EventSvc   event.Service
+	repository ObjectTypeRepository
 }
 
-func NewService(env service.Env, repository ObjectTypeRepository, eventSvc event.Service) *ObjectTypeService {
+func NewService(env service.Env, repository ObjectTypeRepository) *ObjectTypeService {
 	return &ObjectTypeService{
 		BaseService: service.NewBaseService(env),
-		Repository:  repository,
-		EventSvc:    eventSvc,
+		repository:  repository,
 	}
 }
 
@@ -54,22 +49,17 @@ func (svc ObjectTypeService) Create(ctx context.Context, spec CreateObjectTypeSp
 			return err
 		}
 
-		newObjectTypeId, err := svc.Repository.Create(txCtx, objectType)
+		newObjectTypeId, err := svc.repository.Create(txCtx, objectType)
 		if err != nil {
 			return err
 		}
 
-		newObjectType, err := svc.Repository.GetById(txCtx, newObjectTypeId)
+		newObjectType, err := svc.repository.GetById(txCtx, newObjectTypeId)
 		if err != nil {
 			return err
 		}
 
 		newObjectTypeSpec, err = newObjectType.ToObjectTypeSpec()
-		if err != nil {
-			return err
-		}
-
-		err = svc.EventSvc.TrackResourceCreated(txCtx, ResourceTypeObjectType, newObjectType.GetTypeId(), newObjectTypeSpec)
 		if err != nil {
 			return err
 		}
@@ -83,7 +73,7 @@ func (svc ObjectTypeService) Create(ctx context.Context, spec CreateObjectTypeSp
 }
 
 func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*ObjectTypeSpec, error) {
-	objectType, err := svc.Repository.GetByTypeId(ctx, typeId)
+	objectType, err := svc.repository.GetByTypeId(ctx, typeId)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +88,7 @@ func (svc ObjectTypeService) GetByTypeId(ctx context.Context, typeId string) (*O
 
 func (svc ObjectTypeService) List(ctx context.Context, listParams service.ListParams) ([]ObjectTypeSpec, *service.Cursor, *service.Cursor, error) {
 	objectTypeSpecs := make([]ObjectTypeSpec, 0)
-	objectTypes, prevCursor, nextCursor, err := svc.Repository.List(ctx, listParams)
+	objectTypes, prevCursor, nextCursor, err := svc.repository.List(ctx, listParams)
 	if err != nil {
 		return objectTypeSpecs, prevCursor, nextCursor, err
 	}
@@ -118,7 +108,7 @@ func (svc ObjectTypeService) List(ctx context.Context, listParams service.ListPa
 func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, spec UpdateObjectTypeSpec) (*ObjectTypeSpec, *wookie.Token, error) {
 	var updatedObjectTypeSpec *ObjectTypeSpec
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		currentObjectType, err := svc.Repository.GetByTypeId(txCtx, typeId)
+		currentObjectType, err := svc.repository.GetByTypeId(txCtx, typeId)
 		if err != nil {
 			return err
 		}
@@ -129,17 +119,12 @@ func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, 
 		}
 		currentObjectType.SetDefinition(updateTo.Definition)
 
-		err = svc.Repository.UpdateByTypeId(txCtx, typeId, currentObjectType)
+		err = svc.repository.UpdateByTypeId(txCtx, typeId, currentObjectType)
 		if err != nil {
 			return err
 		}
 
 		updatedObjectTypeSpec, err = svc.GetByTypeId(txCtx, typeId)
-		if err != nil {
-			return err
-		}
-
-		err = svc.EventSvc.TrackResourceUpdated(txCtx, ResourceTypeObjectType, typeId, updatedObjectTypeSpec)
 		if err != nil {
 			return err
 		}
@@ -154,12 +139,7 @@ func (svc ObjectTypeService) UpdateByTypeId(ctx context.Context, typeId string, 
 
 func (svc ObjectTypeService) DeleteByTypeId(ctx context.Context, typeId string) (*wookie.Token, error) {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		err := svc.Repository.DeleteByTypeId(txCtx, typeId)
-		if err != nil {
-			return err
-		}
-
-		err = svc.EventSvc.TrackResourceDeleted(txCtx, ResourceTypeObjectType, typeId, nil)
+		err := svc.repository.DeleteByTypeId(txCtx, typeId)
 		if err != nil {
 			return err
 		}

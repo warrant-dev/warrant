@@ -18,24 +18,19 @@ import (
 	"context"
 
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	"github.com/warrant-dev/warrant/pkg/event"
 	object "github.com/warrant-dev/warrant/pkg/object"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-const ResourceTypePricingTier = "pricing-tier"
-
 type PricingTierService struct {
 	service.BaseService
-	EventSvc  event.Service
-	ObjectSvc object.Service
+	objectSvc object.Service
 }
 
-func NewService(env service.Env, eventSvc event.Service, objectSvc object.Service) *PricingTierService {
+func NewService(env service.Env, objectSvc object.Service) *PricingTierService {
 	return &PricingTierService{
 		BaseService: service.NewBaseService(env),
-		EventSvc:    eventSvc,
-		ObjectSvc:   objectSvc,
+		objectSvc:   objectSvc,
 	}
 }
 
@@ -47,7 +42,7 @@ func (svc PricingTierService) Create(ctx context.Context, pricingTierSpec Pricin
 			return err
 		}
 
-		createdObjectSpec, err := svc.ObjectSvc.Create(txCtx, *objectSpec)
+		createdObjectSpec, err := svc.objectSvc.Create(txCtx, *objectSpec)
 		if err != nil {
 			return err
 		}
@@ -67,7 +62,7 @@ func (svc PricingTierService) Create(ctx context.Context, pricingTierSpec Pricin
 }
 
 func (svc PricingTierService) GetByPricingTierId(ctx context.Context, pricingTierId string) (*PricingTierSpec, error) {
-	objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(ctx, objecttype.ObjectTypePricingTier, pricingTierId)
+	objectSpec, err := svc.objectSvc.GetByObjectTypeAndId(ctx, objecttype.ObjectTypePricingTier, pricingTierId)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +72,7 @@ func (svc PricingTierService) GetByPricingTierId(ctx context.Context, pricingTie
 
 func (svc PricingTierService) List(ctx context.Context, listParams service.ListParams) ([]PricingTierSpec, error) {
 	pricingTierSpecs := make([]PricingTierSpec, 0)
-	objectSpecs, _, _, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypePricingTier}, listParams)
+	objectSpecs, _, _, err := svc.objectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypePricingTier}, listParams)
 	if err != nil {
 		return pricingTierSpecs, err
 	}
@@ -97,7 +92,7 @@ func (svc PricingTierService) List(ctx context.Context, listParams service.ListP
 func (svc PricingTierService) UpdateByPricingTierId(ctx context.Context, pricingTierId string, pricingTierSpec UpdatePricingTierSpec) (*PricingTierSpec, error) {
 	var updatedPricingTierSpec *PricingTierSpec
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		updatedObjectSpec, err := svc.ObjectSvc.UpdateByObjectTypeAndId(txCtx, objecttype.ObjectTypePricingTier, pricingTierId, *pricingTierSpec.ToUpdateObjectSpec())
+		updatedObjectSpec, err := svc.objectSvc.UpdateByObjectTypeAndId(txCtx, objecttype.ObjectTypePricingTier, pricingTierId, *pricingTierSpec.ToUpdateObjectSpec())
 		if err != nil {
 			return err
 		}
@@ -117,7 +112,7 @@ func (svc PricingTierService) UpdateByPricingTierId(ctx context.Context, pricing
 }
 
 func (svc PricingTierService) DeleteByPricingTierId(ctx context.Context, pricingTierId string) error {
-	_, err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypePricingTier, pricingTierId)
+	_, err := svc.objectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypePricingTier, pricingTierId)
 	if err != nil {
 		return err
 	}

@@ -18,24 +18,19 @@ import (
 	"context"
 
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	"github.com/warrant-dev/warrant/pkg/event"
 	object "github.com/warrant-dev/warrant/pkg/object"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-const ResourceTypeTenant = "tenant"
-
 type TenantService struct {
 	service.BaseService
-	EventSvc  event.Service
-	ObjectSvc object.Service
+	objectSvc object.Service
 }
 
-func NewService(env service.Env, eventSvc event.Service, objectSvc object.Service) *TenantService {
+func NewService(env service.Env, objectSvc object.Service) *TenantService {
 	return &TenantService{
 		BaseService: service.NewBaseService(env),
-		EventSvc:    eventSvc,
-		ObjectSvc:   objectSvc,
+		objectSvc:   objectSvc,
 	}
 }
 
@@ -47,7 +42,7 @@ func (svc TenantService) Create(ctx context.Context, tenantSpec TenantSpec) (*Te
 			return err
 		}
 
-		createdObjectSpec, err := svc.ObjectSvc.Create(txCtx, *objectSpec)
+		createdObjectSpec, err := svc.objectSvc.Create(txCtx, *objectSpec)
 		if err != nil {
 			return err
 		}
@@ -67,7 +62,7 @@ func (svc TenantService) Create(ctx context.Context, tenantSpec TenantSpec) (*Te
 }
 
 func (svc TenantService) GetByTenantId(ctx context.Context, tenantId string) (*TenantSpec, error) {
-	objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(ctx, objecttype.ObjectTypeTenant, tenantId)
+	objectSpec, err := svc.objectSvc.GetByObjectTypeAndId(ctx, objecttype.ObjectTypeTenant, tenantId)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +72,7 @@ func (svc TenantService) GetByTenantId(ctx context.Context, tenantId string) (*T
 
 func (svc TenantService) List(ctx context.Context, listParams service.ListParams) ([]TenantSpec, error) {
 	tenantSpecs := make([]TenantSpec, 0)
-	objectSpecs, _, _, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeTenant}, listParams)
+	objectSpecs, _, _, err := svc.objectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeTenant}, listParams)
 	if err != nil {
 		return tenantSpecs, err
 	}
@@ -97,7 +92,7 @@ func (svc TenantService) List(ctx context.Context, listParams service.ListParams
 func (svc TenantService) UpdateByTenantId(ctx context.Context, tenantId string, tenantSpec UpdateTenantSpec) (*TenantSpec, error) {
 	var updatedTenantSpec *TenantSpec
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		updatedObjectSpec, err := svc.ObjectSvc.UpdateByObjectTypeAndId(txCtx, objecttype.ObjectTypeTenant, tenantId, *tenantSpec.ToUpdateObjectSpec())
+		updatedObjectSpec, err := svc.objectSvc.UpdateByObjectTypeAndId(txCtx, objecttype.ObjectTypeTenant, tenantId, *tenantSpec.ToUpdateObjectSpec())
 		if err != nil {
 			return err
 		}
@@ -117,7 +112,7 @@ func (svc TenantService) UpdateByTenantId(ctx context.Context, tenantId string, 
 }
 
 func (svc TenantService) DeleteByTenantId(ctx context.Context, tenantId string) error {
-	_, err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypeTenant, tenantId)
+	_, err := svc.objectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypeTenant, tenantId)
 	if err != nil {
 		return err
 	}

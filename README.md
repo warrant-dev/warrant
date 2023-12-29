@@ -17,7 +17,7 @@
     <a href="https://www.ycombinator.com/companies/warrant"><img alt="Backed by Y Combinator" src="https://img.shields.io/badge/Backed%20by-Y%20Combinator-%23E16E38"/></a>
 </p>
 
-# Warrant - Open Source Access Control Service
+# Warrant - Google Zanzibar-inspired, centralized authorization service
 
 Warrant is a **highly scalable, centralized authorization service** for _defining_, _storing_, _querying_, _checking_, and _auditing_ application authorization models and access rules. At its core, Warrant is a [relationship based access control (ReBAC)](https://en.wikipedia.org/wiki/Relationship-based_access_control) engine (inspired by [Google Zanzibar](https://research.google/pubs/pub48190/)) capable of enforcing any authorization paradigm, including role based access control (RBAC) (e.g. `[user:1] has [permission:view-billing-details]`), attribute based access control (ABAC) (e.g. `[user:1] can [view] [department:accounting] if [geo == "us"]`), and relationship based access control (ReBAC) (e.g. `[user:1] is an [editor] of [document:docA]`).
 
@@ -26,7 +26,6 @@ Warrant is a **highly scalable, centralized authorization service** for _definin
 - HTTP APIs for managing your authorization model, access rules, and other Warrant resources (roles, permissions, features, tenants, users, etc.) from an application, a CLI tool, etc.
 - Real-time, low latency API for performing access checks in your application(s) at runtime (e.g. `is [user:A] an [editor] of [tenant:X]?`)
 - Integrates with in-house and third-party authn/identity providers like Auth0 and Firebase
-- A queryable, global event log that tracks updates to your authorization model, access rules, and all other Warrant resources, making auditing and debugging simple
 - Officially supported [SDKs](#sdks) for most popular languages and frameworks
 - Support for a number of databases, including: MySQL, Postgres, and SQLite (in-memory or file)
 

@@ -18,24 +18,19 @@ import (
 	"context"
 
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	"github.com/warrant-dev/warrant/pkg/event"
 	object "github.com/warrant-dev/warrant/pkg/object"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-const ResourceTypeUser = "user"
-
 type UserService struct {
 	service.BaseService
-	EventSvc  event.Service
-	ObjectSvc object.Service
+	objectSvc object.Service
 }
 
-func NewService(env service.Env, eventSvc event.Service, objectSvc object.Service) *UserService {
+func NewService(env service.Env, objectSvc object.Service) *UserService {
 	return &UserService{
 		BaseService: service.NewBaseService(env),
-		EventSvc:    eventSvc,
-		ObjectSvc:   objectSvc,
+		objectSvc:   objectSvc,
 	}
 }
 
@@ -47,7 +42,7 @@ func (svc UserService) Create(ctx context.Context, userSpec UserSpec) (*UserSpec
 			return err
 		}
 
-		createdObjectSpec, err := svc.ObjectSvc.Create(txCtx, *objectSpec)
+		createdObjectSpec, err := svc.objectSvc.Create(txCtx, *objectSpec)
 		if err != nil {
 			return err
 		}
@@ -67,7 +62,7 @@ func (svc UserService) Create(ctx context.Context, userSpec UserSpec) (*UserSpec
 }
 
 func (svc UserService) GetByUserId(ctx context.Context, userId string) (*UserSpec, error) {
-	objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(ctx, objecttype.ObjectTypeUser, userId)
+	objectSpec, err := svc.objectSvc.GetByObjectTypeAndId(ctx, objecttype.ObjectTypeUser, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +72,7 @@ func (svc UserService) GetByUserId(ctx context.Context, userId string) (*UserSpe
 
 func (svc UserService) List(ctx context.Context, listParams service.ListParams) ([]UserSpec, error) {
 	userSpecs := make([]UserSpec, 0)
-	objectSpecs, _, _, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeUser}, listParams)
+	objectSpecs, _, _, err := svc.objectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeUser}, listParams)
 	if err != nil {
 		return userSpecs, err
 	}
@@ -97,7 +92,7 @@ func (svc UserService) List(ctx context.Context, listParams service.ListParams) 
 func (svc UserService) UpdateByUserId(ctx context.Context, userId string, userSpec UpdateUserSpec) (*UserSpec, error) {
 	var updatedUserSpec *UserSpec
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		updatedObjectSpec, err := svc.ObjectSvc.UpdateByObjectTypeAndId(txCtx, objecttype.ObjectTypeUser, userId, *userSpec.ToUpdateObjectSpec())
+		updatedObjectSpec, err := svc.objectSvc.UpdateByObjectTypeAndId(txCtx, objecttype.ObjectTypeUser, userId, *userSpec.ToUpdateObjectSpec())
 		if err != nil {
 			return err
 		}
@@ -117,7 +112,7 @@ func (svc UserService) UpdateByUserId(ctx context.Context, userId string, userSp
 }
 
 func (svc UserService) DeleteByUserId(ctx context.Context, userId string) error {
-	_, err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypeUser, userId)
+	_, err := svc.objectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypeUser, userId)
 	if err != nil {
 		return err
 	}

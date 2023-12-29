@@ -28,15 +28,12 @@ jobs:
         run: |
           sudo systemctl start mysql
           mysql -e 'CREATE DATABASE warrant;' -uroot -proot
-          mysql -e 'CREATE DATABASE warrantEvents;' -uroot -proot
       - name: Install apirunner & go-migrate
         run: |
           go install github.com/warrant-dev/apirunner/cmd/apirunner@latest
           go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
       - name: Run datastore migrations 'up'
         run: migrate -path ./migrations/datastore/mysql/ -database mysql://root:root@/warrant up
-      - name: Run eventstore migrations 'up'
-        run: migrate -path ./migrations/eventstore/mysql/ -database mysql://root:root@/warrantEvents up
       - name: Start test server
         id: start-server
         run: ./cmd/warrant/bin/warrant > server.log 2>&1 &
@@ -61,19 +58,6 @@ jobs:
           WARRANT_DATASTORE_MYSQL_READERHOSTNAME: 127.0.0.1
           WARRANT_DATASTORE_MYSQL_READERMAXIDLECONNECTIONS: 5
           WARRANT_DATASTORE_MYSQL_READERMAXOPENCONNECTIONS: 5
-          WARRANT_EVENTSTORE: mysql
-          WARRANT_EVENTSTORE_MYSQL_USERNAME: root
-          WARRANT_EVENTSTORE_MYSQL_PASSWORD: root
-          WARRANT_EVENTSTORE_MYSQL_HOSTNAME: 127.0.0.1
-          WARRANT_EVENTSTORE_MYSQL_DATABASE: warrantEvents
-          WARRANT_EVENTSTORE_MYSQL_MAXIDLECONNECTIONS: 5
-          WARRANT_EVENTSTORE_MYSQL_MAXOPENCONNECTIONS: 5
-          WARRANT_EVENTSTORE_MYSQL_CONNMAXIDLETIME: 4h
-          WARRANT_EVENTSTORE_MYSQL_CONNMAXLIFETIME: 6h
-          WARRANT_EVENTSTORE_MYSQL_READERHOSTNAME: 127.0.0.1
-          WARRANT_EVENTSTORE_MYSQL_READERMAXIDLECONNECTIONS: 5
-          WARRANT_EVENTSTORE_MYSQL_READERMAXOPENCONNECTIONS: 5
-          WARRANT_EVENTSTORE_SYNCHRONIZEEVENTS: true
       - name: Run apirunner tests
         run: |
           sleep 3
@@ -83,8 +67,6 @@ jobs:
         run: kill -9 `lsof -i:8000 -t`
       - name: Run datastore migrations 'down'
         run: echo 'y' | migrate -path ./migrations/datastore/mysql/ -database mysql://root:root@/warrant down
-      - name: Run eventstore migrations 'down'
-        run: echo 'y' | migrate -path ./migrations/eventstore/mysql/ -database mysql://root:root@/warrantEvents down
       - name: Archive server log
         if: failure()
         uses: actions/upload-artifact@v3

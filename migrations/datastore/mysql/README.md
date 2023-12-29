@@ -1,6 +1,6 @@
 # Running Warrant with MySQL
 
-This guide covers how to set up MySQL as a datastore/eventstore for Warrant.
+This guide covers how to set up MySQL as a datastore for Warrant.
 
 Note: Please first refer to the [development guide](/development.md) to ensure that your Go environment is set up and you have checked out the Warrant source or [downloaded a binary](https://github.com/warrant-dev/warrant/releases).
 
@@ -27,20 +27,11 @@ datastore:
     password: replace_with_password
     hostname: 127.0.0.1
     database: warrant
-eventstore:
-  synchronizeEvents: false
-  mysql:
-    username: replace_with_username
-    password: replace_with_password
-    hostname: 127.0.0.1
-    database: warrantEvents
 ```
 
-Note: You must use 2 different databases for `datastore` and `eventstore`. You can create the databases via the mysql command line and configure them as the `database` attribute under datastore and eventstore.
+Note: You can create a database via the mysql command line and configure it as the `database` attribute under `datastore`.
 
-The `synchronizeEvents` attribute in the eventstore section is false by default. Setting it to true means that all events will be tracked in order within the same transaction (helpful for testing locally).
-
-You may also customize your database or eventstore connection by providing a [DSN (Data Source Name)](https://github.com/go-sql-driver/mysql#dsn-data-source-name). If provided, this string is used to open the given database rather using the individual variables, i.e. `user`, `password`, `hostname`.
+You can also customize your database connection by providing a [DSN (Data Source Name)](https://github.com/go-sql-driver/mysql#dsn-data-source-name). If provided, this string is used to open the given database rather using the individual variables, i.e. `user`, `password`, `hostname`.
 
 ```yaml
 datastore:
@@ -57,5 +48,4 @@ You can [install golang-migrate yourself](https://github.com/golang-migrate/migr
 
 ```shell
 migrate -path ./migrations/datastore/mysql/ -database mysql://username:password@hostname/warrant up
-migrate -path ./migrations/eventstore/mysql/ -database mysql://username:password@hostname/warrantEvents up
 ```

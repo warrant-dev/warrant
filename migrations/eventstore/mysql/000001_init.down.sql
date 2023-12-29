@@ -1,6 +1,0 @@
-BEGIN;
-
-DROP TABLE IF EXISTS resourceEvent;
-DROP TABLE IF EXISTS accessEvent;
-
-COMMIT;

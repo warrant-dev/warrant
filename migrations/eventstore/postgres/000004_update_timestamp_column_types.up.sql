@@ -1,9 +1,0 @@
-BEGIN;
-
-ALTER TABLE access_event
-ALTER COLUMN created_at TYPE TIMESTAMPTZ(6);
-
-ALTER TABLE resource_event
-ALTER COLUMN created_at TYPE TIMESTAMPTZ(6);
-
-COMMIT;
