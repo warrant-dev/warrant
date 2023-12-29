@@ -18,7 +18,6 @@ import "github.com/warrant-dev/warrant/pkg/database"
 
 type Env interface {
 	DB() database.Database
-	EventDB() database.Database
 }
 
 type Service interface {

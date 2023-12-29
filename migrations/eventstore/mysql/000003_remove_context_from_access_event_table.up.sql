@@ -1,6 +1,0 @@
-BEGIN;
-
-ALTER TABLE accessEvent
-DROP COLUMN context;
-
-COMMIT;

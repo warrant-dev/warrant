@@ -1,6 +1,6 @@
 # Running Warrant with SQLite
 
-This guide covers how to set up SQLite as a datastore/eventstore for Warrant.
+This guide covers how to set up SQLite as a datastore for Warrant.
 
 Note: Please first refer to the [development guide](/development.md) to ensure that your Go environment is set up and you have checked out the Warrant source or [downloaded a binary](https://github.com/warrant-dev/warrant/releases).
 
@@ -29,15 +29,8 @@ datastore:
   sqlite:
     database: warrant
     inMemory: true
-eventstore:
-  synchronizeEvents: false
-  sqlite:
-    database: warrantEvents
-    inMemory: true
 ```
 
-Note: By default, SQLite will create a database file for both the database and eventstore. The filenames are configurable using the `database` property under `datastore` and `eventstore`. Specifying the `inMemory` option under `datastore` or `eventstore` will bypass creation of a database file and run the SQLite database completely in memory. When running Warrant with the `inMemory` configuration, **any data in Warrant will be lost once the Warrant process is shutdown/killed**.
-
-The `synchronizeEvents` attribute in the eventstore section is false by default. Setting it to true means that all events will be tracked in order within the same transaction (helpful for testing locally).
+Note: By default, SQLite will create a database file for the datastore. The filename is configurable using the `database` property under `datastore`. Specifying the `inMemory` option under `datastore` will create the database file in memory and will not persist it to the filesystem. When running Warrant with the `inMemory` configuration, **any data in Warrant will be lost once the Warrant process is shutdown/killed**.
 
 Unlike `mysql` and `postgresql`, `sqlite` currently does not support manually running db migrations on the command line via golang-migrate. Therefore, you should keep `autoMigrate` set to true in your Warrant config so that the server runs migrations as part of startup.

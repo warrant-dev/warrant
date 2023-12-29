@@ -32,7 +32,6 @@ jobs:
           sudo -u postgres psql --command="ALTER USER warrant_user CREATEDB" --command="\du"
           sudo -u postgres createdb --owner=warrant_user warrant_user
           sudo -u postgres createdb --owner=warrant_user warrant
-          sudo -u postgres createdb --owner=warrant_user warrant_events
           sudo -u postgres psql --command="\l"
       - name: Install apirunner & go-migrate
         run: |
@@ -40,8 +39,6 @@ jobs:
           go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
       - name: Run datastore migrations 'up'
         run: migrate -path ./migrations/datastore/postgres/ -database postgres://warrant_user:db_password@/warrant?sslmode=disable up
-      - name: Run eventstore migrations 'up'
-        run: migrate -path ./migrations/eventstore/postgres/ -database postgres://warrant_user:db_password@/warrant_events?sslmode=disable up
       - name: Start test server
         id: start-server
         run: ./cmd/warrant/bin/warrant > server.log 2>&1 &
@@ -67,20 +64,6 @@ jobs:
           WARRANT_DATASTORE_POSTGRES_READERHOSTNAME: localhost
           WARRANT_DATASTORE_POSTGRES_READERMAXIDLECONNECTIONS: 5
           WARRANT_DATASTORE_POSTGRES_READERMAXOPENCONNECTIONS: 5
-          WARRANT_EVENTSTORE: postgres
-          WARRANT_EVENTSTORE_POSTGRES_USERNAME: warrant_user
-          WARRANT_EVENTSTORE_POSTGRES_PASSWORD: db_password
-          WARRANT_EVENTSTORE_POSTGRES_HOSTNAME: localhost
-          WARRANT_EVENTSTORE_POSTGRES_DATABASE: warrant_events
-          WARRANT_EVENTSTORE_POSTGRES_SSLMODE: disable
-          WARRANT_EVENTSTORE_POSTGRES_MAXIDLECONNECTIONS: 5
-          WARRANT_EVENTSTORE_POSTGRES_MAXOPENCONNECTIONS: 5
-          WARRANT_EVENTSTORE_POSTGRES_CONNMAXIDLETIME: 4h
-          WARRANT_EVENTSTORE_POSTGRES_CONNMAXLIFETIME: 6h
-          WARRANT_EVENTSTORE_POSTGRES_READERHOSTNAME: localhost
-          WARRANT_EVENTSTORE_POSTGRES_READERMAXIDLECONNECTIONS: 5
-          WARRANT_EVENTSTORE_POSTGRES_READERMAXOPENCONNECTIONS: 5
-          WARRANT_EVENTSTORE_SYNCHRONIZEEVENTS: true
       - name: Run apirunner tests
         run: |
           sleep 3
@@ -90,8 +73,6 @@ jobs:
         run: kill -9 `lsof -i:8000 -t`
       - name: Run datastore migrations 'down'
         run: echo 'y' | migrate -path ./migrations/datastore/postgres/ -database postgres://warrant_user:db_password@/warrant?sslmode=disable down
-      - name: Run eventstore migrations 'down'
-        run: echo 'y' | migrate -path ./migrations/eventstore/postgres/ -database postgres://warrant_user:db_password@/warrant_events?sslmode=disable down
       - name: Archive server log
         if: failure()
         uses: actions/upload-artifact@v3

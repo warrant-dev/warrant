@@ -21,7 +21,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"github.com/warrant-dev/warrant/pkg/event"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
@@ -36,22 +35,20 @@ type Service interface {
 
 type ObjectService struct {
 	service.BaseService
-	Repository ObjectRepository
-	EventSvc   event.Service
+	repository ObjectRepository
 }
 
-func NewService(env service.Env, repository ObjectRepository, eventSvc event.Service) *ObjectService {
+func NewService(env service.Env, repository ObjectRepository) *ObjectService {
 	return &ObjectService{
 		BaseService: service.NewBaseService(env),
-		Repository:  repository,
-		EventSvc:    eventSvc,
+		repository:  repository,
 	}
 }
 
 func (svc ObjectService) Create(ctx context.Context, objectSpec CreateObjectSpec) (*ObjectSpec, error) {
 	if objectSpec.ObjectId == "" {
 		// generate an id for the object if one isn't supplied
-		generatedUUID, err := uuid.NewRandom()
+		generatedUUID, err := uuid.NewV7()
 		if err != nil {
 			return nil, errors.New("unable to generate random UUID for object")
 		}
@@ -65,22 +62,12 @@ func (svc ObjectService) Create(ctx context.Context, objectSpec CreateObjectSpec
 			return err
 		}
 
-		newObjectId, err := svc.Repository.Create(txCtx, newObject)
+		newObjectId, err := svc.repository.Create(txCtx, newObject)
 		if err != nil {
 			return err
 		}
 
-		createdObject, err = svc.Repository.GetById(txCtx, newObjectId)
-		if err != nil {
-			return err
-		}
-
-		createdObjectSpec, err := createdObject.ToObjectSpec()
-		if err != nil {
-			return err
-		}
-
-		err = svc.EventSvc.TrackResourceCreated(txCtx, createdObject.GetObjectType(), createdObject.GetObjectId(), createdObjectSpec.Meta)
+		createdObject, err = svc.repository.GetById(txCtx, newObjectId)
 		if err != nil {
 			return err
 		}
@@ -96,7 +83,7 @@ func (svc ObjectService) Create(ctx context.Context, objectSpec CreateObjectSpec
 }
 
 func (svc ObjectService) GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (*ObjectSpec, error) {
-	object, err := svc.Repository.GetByObjectTypeAndId(ctx, objectType, objectId)
+	object, err := svc.repository.GetByObjectTypeAndId(ctx, objectType, objectId)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +92,7 @@ func (svc ObjectService) GetByObjectTypeAndId(ctx context.Context, objectType st
 }
 
 func (svc ObjectService) BatchGetByObjectTypeAndIds(ctx context.Context, objectType string, objectIds []string) ([]ObjectSpec, error) {
-	objects, err := svc.Repository.BatchGetByObjectTypeAndIds(ctx, objectType, objectIds)
+	objects, err := svc.repository.BatchGetByObjectTypeAndIds(ctx, objectType, objectIds)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +112,7 @@ func (svc ObjectService) BatchGetByObjectTypeAndIds(ctx context.Context, objectT
 
 func (svc ObjectService) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]ObjectSpec, *service.Cursor, *service.Cursor, error) {
 	objectSpecs := make([]ObjectSpec, 0)
-	objects, prevCursor, nextCursor, err := svc.Repository.List(ctx, filterOptions, listParams)
+	objects, prevCursor, nextCursor, err := svc.repository.List(ctx, filterOptions, listParams)
 	if err != nil {
 		return objectSpecs, prevCursor, nextCursor, err
 	}
@@ -143,9 +130,9 @@ func (svc ObjectService) List(ctx context.Context, filterOptions *FilterOptions,
 }
 
 func (svc ObjectService) UpdateByObjectTypeAndId(ctx context.Context, objectType string, objectId string, updateSpec UpdateObjectSpec) (*ObjectSpec, error) {
-	var updatedObjectSpec *ObjectSpec
+	var updatedObject Model
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		currentObject, err := svc.Repository.GetByObjectTypeAndId(txCtx, objectType, objectId)
+		currentObject, err := svc.repository.GetByObjectTypeAndId(txCtx, objectType, objectId)
 		if err != nil {
 			return err
 		}
@@ -155,22 +142,12 @@ func (svc ObjectService) UpdateByObjectTypeAndId(ctx context.Context, objectType
 			return err
 		}
 
-		err = svc.Repository.UpdateByObjectTypeAndId(txCtx, objectType, objectId, currentObject)
+		err = svc.repository.UpdateByObjectTypeAndId(txCtx, objectType, objectId, currentObject)
 		if err != nil {
 			return err
 		}
 
-		updatedObject, err := svc.Repository.GetByObjectTypeAndId(txCtx, objectType, objectId)
-		if err != nil {
-			return err
-		}
-
-		err = svc.EventSvc.TrackResourceUpdated(txCtx, objectType, objectId, updateSpec.Meta)
-		if err != nil {
-			return err
-		}
-
-		updatedObjectSpec, err = updatedObject.ToObjectSpec()
+		updatedObject, err = svc.repository.GetByObjectTypeAndId(txCtx, objectType, objectId)
 		if err != nil {
 			return err
 		}
@@ -182,34 +159,29 @@ func (svc ObjectService) UpdateByObjectTypeAndId(ctx context.Context, objectType
 		return nil, err
 	}
 
-	return updatedObjectSpec, nil
+	return updatedObject.ToObjectSpec()
 }
 
 func (svc ObjectService) DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (*wookie.Token, error) {
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		objectSpec, err := svc.GetByObjectTypeAndId(txCtx, objectType, objectId)
+		_, err := svc.GetByObjectTypeAndId(txCtx, objectType, objectId)
 		if err != nil {
 			return err
 		}
 
-		err = svc.Repository.DeleteByObjectTypeAndId(txCtx, objectType, objectId)
+		err = svc.repository.DeleteByObjectTypeAndId(txCtx, objectType, objectId)
 		if err != nil {
 			return err
 		}
 
 		// Delete existing warrants where this object is the object
-		err = svc.Repository.DeleteWarrantsMatchingObject(txCtx, objectType, objectId)
+		err = svc.repository.DeleteWarrantsMatchingObject(txCtx, objectType, objectId)
 		if err != nil {
 			return err
 		}
 
 		// Delete existing warrants where this object is the subject
-		err = svc.Repository.DeleteWarrantsMatchingSubject(txCtx, objectType, objectId)
-		if err != nil {
-			return err
-		}
-
-		err = svc.EventSvc.TrackResourceDeleted(txCtx, objectType, objectId, objectSpec.Meta)
+		err = svc.repository.DeleteWarrantsMatchingSubject(txCtx, objectType, objectId)
 		if err != nil {
 			return err
 		}

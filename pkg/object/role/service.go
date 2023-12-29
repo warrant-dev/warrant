@@ -18,24 +18,19 @@ import (
 	"context"
 
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	"github.com/warrant-dev/warrant/pkg/event"
 	object "github.com/warrant-dev/warrant/pkg/object"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-const ResourceTypeRole = "role"
-
 type RoleService struct {
 	service.BaseService
-	EventSvc  event.Service
-	ObjectSvc object.Service
+	objectSvc object.Service
 }
 
-func NewService(env service.Env, eventSvc event.Service, objectSvc object.Service) *RoleService {
+func NewService(env service.Env, objectSvc object.Service) *RoleService {
 	return &RoleService{
 		BaseService: service.NewBaseService(env),
-		EventSvc:    eventSvc,
-		ObjectSvc:   objectSvc,
+		objectSvc:   objectSvc,
 	}
 }
 
@@ -47,7 +42,7 @@ func (svc RoleService) Create(ctx context.Context, roleSpec RoleSpec) (*RoleSpec
 			return err
 		}
 
-		createdObjectSpec, err := svc.ObjectSvc.Create(txCtx, *objectSpec)
+		createdObjectSpec, err := svc.objectSvc.Create(txCtx, *objectSpec)
 		if err != nil {
 			return err
 		}
@@ -67,7 +62,7 @@ func (svc RoleService) Create(ctx context.Context, roleSpec RoleSpec) (*RoleSpec
 }
 
 func (svc RoleService) GetByRoleId(ctx context.Context, roleId string) (*RoleSpec, error) {
-	objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(ctx, objecttype.ObjectTypeRole, roleId)
+	objectSpec, err := svc.objectSvc.GetByObjectTypeAndId(ctx, objecttype.ObjectTypeRole, roleId)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +72,7 @@ func (svc RoleService) GetByRoleId(ctx context.Context, roleId string) (*RoleSpe
 
 func (svc RoleService) List(ctx context.Context, listParams service.ListParams) ([]RoleSpec, error) {
 	roleSpecs := make([]RoleSpec, 0)
-	objectSpecs, _, _, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeRole}, listParams)
+	objectSpecs, _, _, err := svc.objectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypeRole}, listParams)
 	if err != nil {
 		return roleSpecs, err
 	}
@@ -97,7 +92,7 @@ func (svc RoleService) List(ctx context.Context, listParams service.ListParams) 
 func (svc RoleService) UpdateByRoleId(ctx context.Context, roleId string, roleSpec UpdateRoleSpec) (*RoleSpec, error) {
 	var updatedRoleSpec *RoleSpec
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		updatedObjectSpec, err := svc.ObjectSvc.UpdateByObjectTypeAndId(txCtx, objecttype.ObjectTypeRole, roleId, *roleSpec.ToUpdateObjectSpec())
+		updatedObjectSpec, err := svc.objectSvc.UpdateByObjectTypeAndId(txCtx, objecttype.ObjectTypeRole, roleId, *roleSpec.ToUpdateObjectSpec())
 		if err != nil {
 			return err
 		}
@@ -117,7 +112,7 @@ func (svc RoleService) UpdateByRoleId(ctx context.Context, roleId string, roleSp
 }
 
 func (svc RoleService) DeleteByRoleId(ctx context.Context, roleId string) error {
-	_, err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypeRole, roleId)
+	_, err := svc.objectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypeRole, roleId)
 	if err != nil {
 		return err
 	}

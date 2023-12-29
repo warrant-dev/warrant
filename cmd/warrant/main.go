@@ -28,7 +28,6 @@ import (
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	"github.com/warrant-dev/warrant/pkg/config"
 	"github.com/warrant-dev/warrant/pkg/database"
-	"github.com/warrant-dev/warrant/pkg/event"
 	object "github.com/warrant-dev/warrant/pkg/object"
 	feature "github.com/warrant-dev/warrant/pkg/object/feature"
 	permission "github.com/warrant-dev/warrant/pkg/object/permission"
@@ -40,25 +39,17 @@ import (
 )
 
 const (
-	MySQLDatastoreMigrationVersion     = 000006
-	MySQLEventstoreMigrationVersion    = 000003
-	PostgresDatastoreMigrationVersion  = 000007
-	PostgresEventstoreMigrationVersion = 000004
-	SQLiteDatastoreMigrationVersion    = 000006
-	SQLiteEventstoreMigrationVersion   = 000003
+	MySQLDatastoreMigrationVersion    = 000006
+	PostgresDatastoreMigrationVersion = 000007
+	SQLiteDatastoreMigrationVersion   = 000006
 )
 
 type ServiceEnv struct {
-	Datastore  database.Database
-	Eventstore database.Database
+	Datastore database.Database
 }
 
 func (env ServiceEnv) DB() database.Database {
 	return env.Datastore
-}
-
-func (env ServiceEnv) EventDB() database.Database {
-	return env.Eventstore
 }
 
 func (env *ServiceEnv) InitDB(cfg config.Config) error {
@@ -122,71 +113,9 @@ func (env *ServiceEnv) InitDB(cfg config.Config) error {
 	return errors.New("invalid database configuration provided")
 }
 
-func (env *ServiceEnv) InitEventDB(config config.Config) error {
-	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancelFunc()
-
-	if config.GetEventstore().MySQL.Hostname != "" {
-		db := database.NewMySQL(*config.GetEventstore().MySQL)
-		err := db.Connect(ctx)
-		if err != nil {
-			return err
-		}
-
-		if config.GetAutoMigrate() {
-			err = db.Migrate(ctx, MySQLEventstoreMigrationVersion)
-			if err != nil {
-				return err
-			}
-		}
-
-		env.Eventstore = db
-		return nil
-	}
-
-	if config.GetEventstore().Postgres.Hostname != "" {
-		db := database.NewPostgres(*config.GetEventstore().Postgres)
-		err := db.Connect(ctx)
-		if err != nil {
-			return err
-		}
-
-		if config.GetAutoMigrate() {
-			err = db.Migrate(ctx, PostgresEventstoreMigrationVersion)
-			if err != nil {
-				return err
-			}
-		}
-
-		env.Eventstore = db
-		return nil
-	}
-
-	if config.GetEventstore().SQLite.Database != "" {
-		db := database.NewSQLite(*config.GetEventstore().SQLite)
-		err := db.Connect(ctx)
-		if err != nil {
-			return err
-		}
-
-		if config.GetAutoMigrate() {
-			err = db.Migrate(ctx, SQLiteEventstoreMigrationVersion)
-			if err != nil {
-				return err
-			}
-		}
-
-		env.Eventstore = db
-		return nil
-	}
-
-	return errors.New("invalid database configuration provided")
-}
-
 func NewServiceEnv() ServiceEnv {
 	return ServiceEnv{
-		Datastore:  nil,
-		Eventstore: nil,
+		Datastore: nil,
 	}
 }
 
@@ -198,66 +127,53 @@ func main() {
 		log.Fatal().Err(err).Msg("init: could not initialize and connect to the configured datastore. Shutting down.")
 	}
 
-	err = svcEnv.InitEventDB(cfg)
-	if err != nil {
-		log.Fatal().Err(err).Msg("init: could not initialize and connect to the configured eventstore. Shutting down.")
-	}
-
-	// Init event repo and service
-	eventRepository, err := event.NewRepository(svcEnv.EventDB())
-	if err != nil {
-		log.Fatal().Err(err).Msg("init: could not initialize EventRepository")
-	}
-	eventSvc := event.NewService(svcEnv, eventRepository, cfg.Eventstore.SynchronizeEvents, nil)
-
 	// Init object type repo and service
 	objectTypeRepository, err := objecttype.NewRepository(svcEnv.DB())
 	if err != nil {
 		log.Fatal().Err(err).Msg("init: could not initialize ObjectTypeRepository")
 	}
-	objectTypeSvc := objecttype.NewService(svcEnv, objectTypeRepository, eventSvc)
+	objectTypeSvc := objecttype.NewService(svcEnv, objectTypeRepository)
 
 	// Init object repo and service
 	objectRepository, err := object.NewRepository(svcEnv.DB())
 	if err != nil {
 		log.Fatal().Err(err).Msg("init: could not initialize ObjectRepository")
 	}
-	objectSvc := object.NewService(svcEnv, objectRepository, eventSvc)
+	objectSvc := object.NewService(svcEnv, objectRepository)
 
 	// Init warrant repo and service
 	warrantRepository, err := warrant.NewRepository(svcEnv.DB())
 	if err != nil {
 		log.Fatal().Err(err).Msg("init: could not initialize WarrantRepository")
 	}
-	warrantSvc := warrant.NewService(svcEnv, warrantRepository, eventSvc, objectTypeSvc, objectSvc)
+	warrantSvc := warrant.NewService(svcEnv, warrantRepository, objectTypeSvc, objectSvc)
 
 	// Init check service
-	checkSvc := check.NewService(svcEnv, warrantSvc, eventSvc, objectTypeSvc, cfg.Check, nil)
+	checkSvc := check.NewService(svcEnv, warrantSvc, objectTypeSvc, cfg.Check, nil)
 
 	// Init query service
 	querySvc := query.NewService(svcEnv, objectTypeSvc, warrantSvc, objectSvc)
 
 	// Init feature service
-	featureSvc := feature.NewService(&svcEnv, eventSvc, objectSvc)
+	featureSvc := feature.NewService(&svcEnv, objectSvc)
 
 	// Init permission service
-	permissionSvc := permission.NewService(&svcEnv, eventSvc, objectSvc)
+	permissionSvc := permission.NewService(&svcEnv, objectSvc)
 
 	// Init pricing tier service
-	pricingTierSvc := pricingtier.NewService(&svcEnv, eventSvc, objectSvc)
+	pricingTierSvc := pricingtier.NewService(&svcEnv, objectSvc)
 
 	// Init role service
-	roleSvc := role.NewService(&svcEnv, eventSvc, objectSvc)
+	roleSvc := role.NewService(&svcEnv, objectSvc)
 
 	// Init tenant service
-	tenantSvc := tenant.NewService(&svcEnv, eventSvc, objectSvc)
+	tenantSvc := tenant.NewService(&svcEnv, objectSvc)
 
 	// Init user service
-	userSvc := user.NewService(&svcEnv, eventSvc, objectSvc)
+	userSvc := user.NewService(&svcEnv, objectSvc)
 
 	svcs := []service.Service{
 		checkSvc,
-		eventSvc,
 		featureSvc,
 		objectSvc,
 		objectTypeSvc,

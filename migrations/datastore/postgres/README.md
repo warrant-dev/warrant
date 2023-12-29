@@ -1,6 +1,6 @@
 # Running Warrant with PostgreSQL
 
-This guide covers how to set up PostgreSQL as a datastore/eventstore for Warrant.
+This guide covers how to set up PostgreSQL as a datastore for Warrant.
 
 Note: Please first refer to the [development guide](/development.md) to ensure that your Go environment is set up and you have checked out the Warrant source or [downloaded a binary](https://github.com/warrant-dev/warrant/releases).
 
@@ -28,19 +28,9 @@ datastore:
     hostname: localhost
     database: warrant
     sslmode: disable
-eventstore:
-  synchronizeEvents: false
-  postgres:
-    username: replace_with_username
-    password: replace_with_password
-    hostname: localhost
-    database: warrant_events
-    sslmode: disable
 ```
 
-Note: You must use 2 different databases for `datastore` and `eventstore`. You can create the databases via the postgres command line and configure them as the `database` attribute under datastore and eventstore.
-
-The `synchronizeEvents` attribute in the eventstore section is false by default. Setting it to true means that all events will be tracked in order within the same transaction (helpful for testing locally).
+Note: You can create a databases via the postgres command line and configure it as the `database` attribute under `datastore`.
 
 ## Running db migrations
 
@@ -50,5 +40,4 @@ You can [install golang-migrate yourself](https://github.com/golang-migrate/migr
 
 ```shell
 migrate -path ./migrations/datastore/postgres/ -database postgres://username:password@hostname/warrant up
-migrate -path ./migrations/eventstore/postgres/ -database postgres://username:password@hostname/warrant_events up
 ```

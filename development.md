@@ -21,7 +21,7 @@ To set up your server config file, refer to our [configuration doc](/configurati
 
 ## Build binary & start server
 
-After the datastore, eventstore and configuration are set, build & start the server:
+After the datastore and configuration are set, build & start the server:
 
 ```shell
 cd cmd/warrant

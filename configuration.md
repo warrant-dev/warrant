@@ -1,6 +1,6 @@
 # Server configuration
 
-Warrant requires certain configuration variables to be set via either a `warrant.yaml` config file or via environment variables. There is a set of common variables as well as datastore and eventstore-specific configuration.
+Warrant requires certain configuration variables to be set via either a `warrant.yaml` config file or via environment variables. There is a set of common variables as well as datastore-specific configuration.
 
 ## Common variables
 
@@ -9,7 +9,7 @@ Warrant requires certain configuration variables to be set via either a `warrant
 | `port` | Port where the server runs. | no | 8000 | `port: VALUE` | `WARRANT_PORT=VALUE` |
 | `logLevel` | Log level (e.g. Debug, Info etc.) for the server. Warrant uses zerolog, valid log levels are defined [here](https://github.com/rs/zerolog#leveled-logging). | no | 0 | `logLevel: VALUE` | `WARRANT_LOGLEVEL=VALUE` |
 | `enableAccessLog` | Determines whether the built-in request logger is enabled or not. | no | true | `enableAccessLog: VALUE` | `WARRANT_ENABLEACCESSLOG=VALUE` |
-| `autoMigrate` | If set to `true`, the server will apply datastore and eventstore migrations before starting up. | no | false | `autoMigrate: VALUE` | `WARRANT_AUTOMIGRATE=VALUE` |
+| `autoMigrate` | If set to `true`, the server will apply datastore migrations before starting up. | no | false | `autoMigrate: VALUE` | `WARRANT_AUTOMIGRATE=VALUE` |
 | `check.concurrency` | The default concurrency setting for access checks. | no | 4 | `concurrency: VALUE` | `WARRANT_CHECK_CONCURRENCY=VALUE` |
 | `check.maxConcurrency` | The max concurrency setting for access checks. | no | 1000 | `maxConcurrency: VALUE` | `WARRANT_CHECK_MAXCONCURRENCY=VALUE` |
 | `check.timeout` | Access check global timeout. | no | 1m | `timeout: VALUE` | `WARRANT_CHECK_TIMEOUT=VALUE` |
@@ -36,17 +36,15 @@ You can optionally configure Warrant to allow access check requests made to the 
 
 If you are using Firebase as your authentication provider, the public key value is optional.
 
-## Set up datastore & eventstore
+## Set up datastore
 
-Warrant is a stateful service that runs with an accompanying `datastore` and `eventstore` (for tracking resource & access events). Currently, `MySQL`, `PostgreSQL` and `SQLite` (file and in-memory) are supported. Refer to these guides to set up your desired database(s):
+Warrant is a stateful service that runs with an accompanying `datastore`. Currently, `MySQL`, `PostgreSQL` and `SQLite` (file and in-memory) are supported. Refer to these guides to set up your desired database(s):
 
 - [MySQL](/migrations/datastore/mysql/README.md)
 - [PostgreSQL](/migrations/datastore/postgres/README.md)
 - [SQLite](/migrations/datastore/sqlite/README.md)
 
-Note: It's possible to use different dbs for the `datastore` and `eventstore` (e.g. mysql for datastore and sqlite for eventstore) but we recommend using the same type of db during development for simplicity.
-
-Here is an example of a full server config using `mysql` for both the datastore and eventstore:
+Here is an example of a full server config using `mysql` for the datastore:
 
 ### Sample `warrant.yaml` config (place file in same dir as server binary)
 
@@ -67,13 +65,6 @@ datastore:
     password: replace_with_password
     hostname: replace_with_hostname
     database: warrant
-eventstore:
-  synchronizeEvents: false
-  mysql:
-    username: replace_with_username
-    password: replace_with_password
-    hostname: replace_with_hostname
-    database: warrantEvents
 ```
 
 ### Sample `warrant.yaml` config with JWT authentication config
@@ -101,13 +92,6 @@ datastore:
     password: replace_with_password
     hostname: replace_with_hostname
     database: warrant
-eventstore:
-  synchronizeEvents: false
-  mysql:
-    username: replace_with_username
-    password: replace_with_password
-    hostname: replace_with_hostname
-    database: warrantEvents
 ```
 
 ### Sample environment variables config
@@ -125,9 +109,4 @@ export WARRANT_DATASTORE_MYSQL_USERNAME="replace_with_username"
 export WARRANT_DATASTORE_MYSQL_PASSWORD="replace_with_password"
 export WARRANT_DATASTORE_MYSQL_HOSTNAME="replace_with_hostname"
 export WARRANT_DATASTORE_MYSQL_DATABASE="warrant"
-export WARRANT_EVENTSTORE_SYNCHRONIZEEVENTS=false
-export WARRANT_EVENTSTORE_MYSQL_USERNAME="replace_with_username"
-export WARRANT_EVENTSTORE_MYSQL_PASSWORD="replace_with_password"
-export WARRANT_EVENTSTORE_MYSQL_HOSTNAME="replace_with_hostname"
-export WARRANT_EVENTSTORE_MYSQL_DATABASE="warrantEvents"
 ```

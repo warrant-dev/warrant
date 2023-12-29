@@ -18,24 +18,19 @@ import (
 	"context"
 
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
-	"github.com/warrant-dev/warrant/pkg/event"
 	object "github.com/warrant-dev/warrant/pkg/object"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
 
-const ResourceTypePermission = "permission"
-
 type PermissionService struct {
 	service.BaseService
-	EventSvc  event.Service
-	ObjectSvc object.Service
+	objectSvc object.Service
 }
 
-func NewService(env service.Env, eventSvc event.Service, objectSvc object.Service) *PermissionService {
+func NewService(env service.Env, objectSvc object.Service) *PermissionService {
 	return &PermissionService{
 		BaseService: service.NewBaseService(env),
-		EventSvc:    eventSvc,
-		ObjectSvc:   objectSvc,
+		objectSvc:   objectSvc,
 	}
 }
 
@@ -47,7 +42,7 @@ func (svc PermissionService) Create(ctx context.Context, permissionSpec Permissi
 			return err
 		}
 
-		createdObjectSpec, err := svc.ObjectSvc.Create(txCtx, *objectSpec)
+		createdObjectSpec, err := svc.objectSvc.Create(txCtx, *objectSpec)
 		if err != nil {
 			return err
 		}
@@ -67,7 +62,7 @@ func (svc PermissionService) Create(ctx context.Context, permissionSpec Permissi
 }
 
 func (svc PermissionService) GetByPermissionId(ctx context.Context, permissionId string) (*PermissionSpec, error) {
-	objectSpec, err := svc.ObjectSvc.GetByObjectTypeAndId(ctx, objecttype.ObjectTypePermission, permissionId)
+	objectSpec, err := svc.objectSvc.GetByObjectTypeAndId(ctx, objecttype.ObjectTypePermission, permissionId)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +72,7 @@ func (svc PermissionService) GetByPermissionId(ctx context.Context, permissionId
 
 func (svc PermissionService) List(ctx context.Context, listParams service.ListParams) ([]PermissionSpec, error) {
 	permissionSpecs := make([]PermissionSpec, 0)
-	objectSpecs, _, _, err := svc.ObjectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypePermission}, listParams)
+	objectSpecs, _, _, err := svc.objectSvc.List(ctx, &object.FilterOptions{ObjectType: objecttype.ObjectTypePermission}, listParams)
 	if err != nil {
 		return permissionSpecs, err
 	}
@@ -97,7 +92,7 @@ func (svc PermissionService) List(ctx context.Context, listParams service.ListPa
 func (svc PermissionService) UpdateByPermissionId(ctx context.Context, permissionId string, permissionSpec UpdatePermissionSpec) (*PermissionSpec, error) {
 	var updatedPermissionSpec *PermissionSpec
 	err := svc.Env().DB().WithinTransaction(ctx, func(txCtx context.Context) error {
-		updatedObjectSpec, err := svc.ObjectSvc.UpdateByObjectTypeAndId(txCtx, objecttype.ObjectTypePermission, permissionId, *permissionSpec.ToUpdateObjectSpec())
+		updatedObjectSpec, err := svc.objectSvc.UpdateByObjectTypeAndId(txCtx, objecttype.ObjectTypePermission, permissionId, *permissionSpec.ToUpdateObjectSpec())
 		if err != nil {
 			return err
 		}
@@ -117,7 +112,7 @@ func (svc PermissionService) UpdateByPermissionId(ctx context.Context, permissio
 }
 
 func (svc PermissionService) DeleteByPermissionId(ctx context.Context, permissionId string) error {
-	_, err := svc.ObjectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypePermission, permissionId)
+	_, err := svc.objectSvc.DeleteByObjectTypeAndId(ctx, objecttype.ObjectTypePermission, permissionId)
 	if err != nil {
 		return err
 	}
