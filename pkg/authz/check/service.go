@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	MaxWarrants = 5000
+	MaxWarrants = 10000
 )
 
 type CheckContextFunc func(ctx context.Context) (context.Context, error)
