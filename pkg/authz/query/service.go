@@ -345,7 +345,7 @@ func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, 
 					}
 				}
 			}
-		} else if selectSubjects {
+		} else if selectSubjects && matches(matchFilters.SubjectType, matchedWarrant.Subject.ObjectType) {
 			resultSet.Add(matchedWarrant.Subject.ObjectType, matchedWarrant.Subject.ObjectId, matchedWarrant, level > 0)
 		} else if matches(matchFilters.SubjectType, matchedWarrant.Subject.ObjectType) && matches(matchFilters.SubjectId, matchedWarrant.Subject.ObjectId) {
 			resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant, level > 0)
