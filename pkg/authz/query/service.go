@@ -29,7 +29,7 @@ import (
 
 const (
 	MaxObjectTypes = 1000
-	MaxEdges       = 5000
+	MaxEdges       = 10000
 )
 
 var ErrInvalidQuery = errors.New("invalid query")
