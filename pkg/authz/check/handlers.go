@@ -24,9 +24,14 @@ import (
 
 func (svc CheckService) Routes() ([]service.Route, error) {
 	return []service.Route{
-		// Standard Authorization
 		service.WarrantRoute{
 			Pattern:                    "/v2/authorize",
+			Method:                     "POST",
+			Handler:                    service.NewRouteHandler(svc, authorizeHandler),
+			OverrideAuthMiddlewareFunc: service.ApiKeyAndSessionAuthMiddleware,
+		},
+		service.WarrantRoute{
+			Pattern:                    "/v2/check",
 			Method:                     "POST",
 			Handler:                    service.NewRouteHandler(svc, authorizeHandler),
 			OverrideAuthMiddlewareFunc: service.ApiKeyAndSessionAuthMiddleware,
