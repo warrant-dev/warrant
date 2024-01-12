@@ -406,7 +406,7 @@
             "name": "checkNonexistentObjectType",
             "request": {
                 "method": "POST",
-                "url": "/v2/authorize",
+                "url": "/v2/check",
                 "headers": {
                     "Warrant-Token": "latest"
                 },
@@ -439,7 +439,7 @@
             "name": "checkUserBEditorOfReportAInTenantB",
             "request": {
                 "method": "POST",
-                "url": "/v2/authorize",
+                "url": "/v2/check",
                 "headers": {
                     "Warrant-Token": "latest"
                 },
@@ -499,7 +499,7 @@
             "name": "checkUserBViewerOfReportAInTenantB",
             "request": {
                 "method": "POST",
-                "url": "/v2/authorize",
+                "url": "/v2/check",
                 "headers": {
                     "Warrant-Token": "latest"
                 },
@@ -559,7 +559,7 @@
             "name": "checkUserAMemberOfPermissionEditBalanceSheetInTenantA",
             "request": {
                 "method": "POST",
-                "url": "/v2/authorize",
+                "url": "/v2/check",
                 "headers": {
                     "Warrant-Token": "latest"
                 },
@@ -618,7 +618,7 @@
             "name": "checkUserANotMemberOfPermissionEditBalanceSheetInTenantB",
             "request": {
                 "method": "POST",
-                "url": "/v2/authorize",
+                "url": "/v2/check",
                 "headers": {
                     "Warrant-Token": "latest"
                 },
@@ -654,7 +654,7 @@
             "name": "checkUserAEditorOfReportA",
             "request": {
                 "method": "POST",
-                "url": "/v2/authorize",
+                "url": "/v2/check",
                 "headers": {
                     "Warrant-Token": "latest"
                 },
@@ -700,7 +700,7 @@
             "name": "checkUserAViewerOfReportA",
             "request": {
                 "method": "POST",
-                "url": "/v2/authorize",
+                "url": "/v2/check",
                 "headers": {
                     "Warrant-Token": "latest"
                 },
@@ -746,7 +746,7 @@
             "name": "checkUserAEditorViewerOfReportA",
             "request": {
                 "method": "POST",
-                "url": "/v2/authorize",
+                "url": "/v2/check",
                 "headers": {
                     "Warrant-Token": "latest"
                 },
@@ -792,7 +792,7 @@
             "name": "checkUserANonOwnerOfReportA",
             "request": {
                 "method": "POST",
-                "url": "/v2/authorize",
+                "url": "/v2/check",
                 "headers": {
                     "Warrant-Token": "latest"
                 },
