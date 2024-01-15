@@ -17,15 +17,12 @@ package wookie
 import (
 	"context"
 	"net/http"
-
-	"github.com/pkg/errors"
 )
 
 const HeaderName = "Warrant-Token"
 const Latest = "latest"
 
 type warrantTokenCtxKey struct{}
-type wookieCtxKey struct{}
 
 func WarrantTokenMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -49,32 +46,7 @@ func ContainsLatest(ctx context.Context) bool {
 	return false
 }
 
-func GetWookieFromContext(ctx context.Context) (*Token, error) {
-	wookieCtxVal := ctx.Value(wookieCtxKey{})
-	if wookieCtxVal == nil {
-		return nil, errors.New("wookie not found in context")
-	}
-
-	wookieToken, ok := wookieCtxVal.(Token)
-	if !ok {
-		return nil, errors.New("error fetching wookie from context")
-	}
-
-	return &wookieToken, nil
-}
-
 // Return a context with Warrant-Token set to 'latest'.
 func WithLatest(parent context.Context) context.Context {
 	return context.WithValue(parent, warrantTokenCtxKey{}, Latest)
-}
-
-// Return context with wookie set to specified Token.
-func WithWookie(parent context.Context, wookie *Token) context.Context {
-	return context.WithValue(parent, wookieCtxKey{}, *wookie)
-}
-
-func AddAsResponseHeader(w http.ResponseWriter, token *Token) {
-	if token != nil {
-		w.Header().Set(HeaderName, token.String())
-	}
 }
