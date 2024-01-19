@@ -42,19 +42,15 @@ const (
 	defaultPage              = 1
 	contextKeyListParams key = iota
 
-	SortOrderAsc  SortOrder = iota
-	SortOrderDesc SortOrder = iota
+	SortOrderAsc  SortOrder = "ASC"
+	SortOrderDesc SortOrder = "DESC"
 )
 
-type SortOrder int
+type SortOrder string
 
 func (so SortOrder) String() string {
-	if so == SortOrderAsc {
-		return "ASC"
-	}
-
-	if so == SortOrderDesc {
-		return "DESC"
+	if so == SortOrderAsc || so == SortOrderDesc {
+		return string(so)
 	}
 
 	return ""
@@ -155,18 +151,18 @@ type ListParamParser interface {
 }
 
 type ListParams struct {
-	Page          int
-	Limit         int
-	Query         *string
-	SortBy        string
-	SortOrder     SortOrder
-	NextCursor    *Cursor
-	PrevCursor    *Cursor
+	Page          int       `json:"-"`
+	Limit         int       `json:"limit,omitempty"`
+	Query         *string   `json:"q,omitempty"`
+	SortBy        string    `json:"sortBy,omitempty"`
+	SortOrder     SortOrder `json:"sortOrder,omitempty"`
+	PrevCursor    *Cursor   `json:"prevCursor,omitempty"`
+	NextCursor    *Cursor   `json:"nextCursor,omitempty"`
 	defaultSortBy string
 }
 
 func (lp ListParams) String() string {
-	s := fmt.Sprintf("page=%d&limit=%d&sortBy=%s&sortOrder=%d&defaultSortBy=%s",
+	s := fmt.Sprintf("page=%d&limit=%d&sortBy=%s&sortOrder=%s&defaultSortBy=%s",
 		lp.Page,
 		lp.Limit,
 		lp.SortBy,

@@ -22,7 +22,7 @@ import (
 )
 
 type FilterOptions struct {
-	ObjectType string
+	ObjectType string `json:"objectType,omitempty"`
 }
 
 type ObjectSpec struct {
