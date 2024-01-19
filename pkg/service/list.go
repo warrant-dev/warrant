@@ -42,19 +42,15 @@ const (
 	defaultPage              = 1
 	contextKeyListParams key = iota
 
-	SortOrderAsc  SortOrder = iota
-	SortOrderDesc SortOrder = iota
+	SortOrderAsc  SortOrder = "ASC"
+	SortOrderDesc SortOrder = "DESC"
 )
 
-type SortOrder int
+type SortOrder string
 
 func (so SortOrder) String() string {
-	if so == SortOrderAsc {
-		return "ASC"
-	}
-
-	if so == SortOrderDesc {
-		return "DESC"
+	if so == SortOrderAsc || so == SortOrderDesc {
+		return string(so)
 	}
 
 	return ""
