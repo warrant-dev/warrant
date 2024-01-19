@@ -162,7 +162,7 @@ type ListParams struct {
 }
 
 func (lp ListParams) String() string {
-	s := fmt.Sprintf("page=%d&limit=%d&sortBy=%s&sortOrder=%d&defaultSortBy=%s",
+	s := fmt.Sprintf("page=%d&limit=%d&sortBy=%s&sortOrder=%s&defaultSortBy=%s",
 		lp.Page,
 		lp.Limit,
 		lp.SortBy,
