@@ -151,13 +151,13 @@ type ListParamParser interface {
 }
 
 type ListParams struct {
-	Page          int
-	Limit         int
-	Query         *string
-	SortBy        string
-	SortOrder     SortOrder
-	NextCursor    *Cursor
-	PrevCursor    *Cursor
+	Page          int       `json:"-"`
+	Limit         int       `json:"limit,omitempty"`
+	Query         *string   `json:"q,omitempty"`
+	SortBy        string    `json:"sortBy,omitempty"`
+	SortOrder     SortOrder `json:"sortOrder,omitempty"`
+	PrevCursor    *Cursor   `json:"prevCursor,omitempty"`
+	NextCursor    *Cursor   `json:"nextCursor,omitempty"`
 	defaultSortBy string
 }
 

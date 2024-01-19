@@ -23,13 +23,13 @@ import (
 )
 
 type FilterParams struct {
-	ObjectType      []string
-	ObjectId        []string
-	Relation        []string
-	SubjectType     []string
-	SubjectId       []string
-	SubjectRelation []string
-	Policy          Policy
+	ObjectType      []string `json:"objectType,omitempty"`
+	ObjectId        []string `json:"objectId,omitempty"`
+	Relation        []string `json:"relation,omitempty"`
+	SubjectType     []string `json:"subjectType,omitempty"`
+	SubjectId       []string `json:"subjectId,omitempty"`
+	SubjectRelation []string `json:"subjectRelation,omitempty"`
+	Policy          Policy   `json:"policy,omitempty"`
 }
 
 func (fp FilterParams) String() string {
