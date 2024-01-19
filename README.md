@@ -17,9 +17,9 @@
     <a href="https://www.ycombinator.com/companies/warrant"><img alt="Backed by Y Combinator" src="https://img.shields.io/badge/Backed%20by-Y%20Combinator-%23E16E38"/></a>
 </p>
 
-# Warrant - Google Zanzibar-inspired, centralized authorization service
+# Warrant - Google Zanzibar-inspired, Fine-Grained Authorization Service
 
-Warrant is a **highly scalable, centralized authorization service** for _defining_, _storing_, _querying_, _checking_, and _auditing_ application authorization models and access rules. At its core, Warrant is a [relationship based access control (ReBAC)](https://en.wikipedia.org/wiki/Relationship-based_access_control) engine (inspired by [Google Zanzibar](https://research.google/pubs/pub48190/)) capable of enforcing any authorization paradigm, including role based access control (RBAC) (e.g. `[user:1] has [permission:view-billing-details]`), attribute based access control (ABAC) (e.g. `[user:1] can [view] [department:accounting] if [geo == "us"]`), and relationship based access control (ReBAC) (e.g. `[user:1] is an [editor] of [document:docA]`).
+Warrant is a **highly scalable, centralized, fine-grained authorization service** for _defining_, _storing_, _querying_, _checking_, and _auditing_ application authorization models and access rules. At its core, Warrant is a [relationship based access control (ReBAC)](https://en.wikipedia.org/wiki/Relationship-based_access_control) engine (inspired by [Google Zanzibar](https://research.google/pubs/pub48190/)) capable of enforcing any authorization paradigm, including role based access control (RBAC) (e.g. `[user:1] has [permission:view-billing-details]`), attribute based access control (ABAC) (e.g. `[user:1] can [view] [department:accounting] if [geo == "us"]`), and relationship based access control (ReBAC) (e.g. `[user:1] is an [editor] of [document:docA]`). It is especially useful for implementing fine-grained access control (FGAC) in internal and/or customer-facing applications.
 
 ## Features
 
@@ -33,10 +33,10 @@ Warrant is a **highly scalable, centralized authorization service** for _definin
 
 Warrant is built specifically for application authorization and access control, particularly for product, security, and compliance use-cases. Examples of problems Warrant solves are:
 
-- Add role based access control (RBAC) to your SaaS application with the ability for your customers to self-manage their roles and permissions via the Warrant self service dashboard or your own custom dashboard built using Warrant's component library.
+- Add role based access control (RBAC) to your SaaS application with the ability for your customers to self-manage their roles and permissions via the Warrant self-service dashboard or your own custom dashboard built using Warrant's component library.
 - Allow customers to define and manage their own roles & permissions for their tenant (organization)
-- Add 'fine grained RBAC' (role based access to specific resources)
-- Implement fine grained, object/resource-level authorization specific to your application's data model (`[user:1] is an [editor] of [document:x]`)
+- Add 'fine-grained role-based access control' (role based access to specific resources)
+- Implement fine-grained, object/resource-level authorization specific to your application's data model (`[user:1] is an [editor] of [document:x]`)
 - Add centralized and auditable access control around your internal applications and tools.
 - Implement 'approval flows' (i.e. request access to a resource from an admin -> admin approves access).
 - Add Google Docs-like sharing and permissioning for your application's resources and objects.
