@@ -511,7 +511,10 @@
             "name": "selectDocumentsWhereUserU3IsExplicitlyViewer",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20explicit%20document%20where%20user:U3%20is%20viewer"
+                "url": "/v2/query?q=select%20explicit%20document%20where%20user:U3%20is%20viewer",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -539,7 +542,10 @@
             "name": "selectExplicitViewersOfTypeUserForDocumentF3",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20explicit%20viewer%20of%20type%20user%20for%20document:F3"
+                "url": "/v2/query?q=select%20explicit%20viewer%20of%20type%20user%20for%20document:F3",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -567,7 +573,10 @@
             "name": "selectDocumentsWhereUserU3IsViewer",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20document%20where%20user:U3%20is%20viewer"
+                "url": "/v2/query?q=select%20document%20where%20user:U3%20is%20viewer",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -641,7 +650,10 @@
             "name": "selectDocumentsWhereUserU1IsEditorViewer",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20document%20where%20user:U1%20is%20editor-viewer"
+                "url": "/v2/query?q=select%20document%20where%20user:U1%20is%20editor-viewer",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -767,7 +779,10 @@
             "name": "selectExplicitOwnersOfTypeUserForDocumentD6",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20explicit%20owner%20of%20type%20user%20for%20document:D6"
+                "url": "/v2/query?q=select%20explicit%20owner%20of%20type%20user%20for%20document:D6",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -795,7 +810,10 @@
             "name": "selectViewersOfTypeUserForDocumentD4",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20viewer%20of%20type%20user%20for%20document:D4"
+                "url": "/v2/query?q=select%20viewer%20of%20type%20user%20for%20document:D4",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -865,7 +883,10 @@
             "name": "selectEditorViewersOfTypeUserForDocumentD4",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20editor-viewer%20of%20type%20user%20for%20document:D4"
+                "url": "/v2/query?q=select%20editor-viewer%20of%20type%20user%20for%20document:D4",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -921,7 +942,10 @@
             "name": "selectDocumentsWhereUserU4IsExplicitlyOwner",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20explicit%20document%20where%20user:U4%20is%20owner"
+                "url": "/v2/query?q=select%20explicit%20document%20where%20user:U4%20is%20owner",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -934,7 +958,10 @@
             "name": "selectDocumentsWhereUserU4IsViewer",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20document%20where%20user:U4%20is%20viewer"
+                "url": "/v2/query?q=select%20document%20where%20user:U4%20is%20viewer",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1080,7 +1107,10 @@
             "name": "selectDocumentsWhereUserU4IsViewerLimit3SortOrderDesc",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortOrder=DESC"
+                "url": "/v2/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortOrder=DESC",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1138,7 +1168,10 @@
             "name": "selectDocumentsWhereUserU4IsViewerLimit3SortOrderDescNextCursor1",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortOrder=DESC&nextCursor={{ selectDocumentsWhereUserU4IsViewerLimit3SortOrderDesc.nextCursor }}"
+                "url": "/v2/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortOrder=DESC&nextCursor={{ selectDocumentsWhereUserU4IsViewerLimit3SortOrderDesc.nextCursor }}",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1201,7 +1234,10 @@
             "name": "selectDocumentsWhereUserU4IsViewerLimit3SortOrderDescNextCursor2",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortOrder=DESC&nextCursor={{ selectDocumentsWhereUserU4IsViewerLimit3SortOrderDescNextCursor1.nextCursor }}"
+                "url": "/v2/query?q=select%20document%20where%20user:U4%20is%20viewer&limit=3&sortOrder=DESC&nextCursor={{ selectDocumentsWhereUserU4IsViewerLimit3SortOrderDescNextCursor1.nextCursor }}",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1258,7 +1294,10 @@
             "name": "selectMembersOrViewersOfTypeUserLimit3SortOrderDesc",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20member%2Cviewer%20of%20type%20user&limit=3&sortOrder=DESC"
+                "url": "/v2/query?q=select%20member%2Cviewer%20of%20type%20user&limit=3&sortOrder=DESC",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1315,7 +1354,10 @@
             "name": "selectMembersOrViewersOfTypeUserLimit3SortOrderDescNextCursor1",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20member%2Cviewer%20of%20type%20user&limit=3&sortOrder=DESC&nextCursor={{ selectMembersOrViewersOfTypeUserLimit3SortOrderDesc.nextCursor }}"
+                "url": "/v2/query?q=select%20member%2Cviewer%20of%20type%20user&limit=3&sortOrder=DESC&nextCursor={{ selectMembersOrViewersOfTypeUserLimit3SortOrderDesc.nextCursor }}",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1344,7 +1386,10 @@
             "name": "selectMembersOrViewersOfTypeUserLimit2SortOrderDescPrevCursor1",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20member%2Cviewer%20of%20type%20user&limit=2&sortOrder=DESC&prevCursor={{ selectMembersOrViewersOfTypeUserLimit3SortOrderDescNextCursor1.prevCursor }}"
+                "url": "/v2/query?q=select%20member%2Cviewer%20of%20type%20user&limit=2&sortOrder=DESC&prevCursor={{ selectMembersOrViewersOfTypeUserLimit3SortOrderDescNextCursor1.prevCursor }}",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1388,7 +1433,10 @@
             "name": "selectParentsOfTypeDocumentLimit2SortByCreatedAtAsc",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20parent%20of%20type%20document&limit=2&sortBy=createdAt&sortOrder=ASC"
+                "url": "/v2/query?q=select%20parent%20of%20type%20document&limit=2&sortBy=createdAt&sortOrder=ASC",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1431,7 +1479,10 @@
             "name": "selectParentsOfTypeDocumentLimit2SortByCreatedAtAscNextCursor1",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20parent%20of%20type%20document&limit=2&sortBy=createdAt&sortOrder=ASC&nextCursor={{ selectParentsOfTypeDocumentLimit2SortByCreatedAtAsc.nextCursor }}"
+                "url": "/v2/query?q=select%20parent%20of%20type%20document&limit=2&sortBy=createdAt&sortOrder=ASC&nextCursor={{ selectParentsOfTypeDocumentLimit2SortByCreatedAtAsc.nextCursor }}",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1460,7 +1511,10 @@
             "name": "selectParentsOfTypeDocumentLimit2SortByCreatedAtAscPrevCursor1",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20parent%20of%20type%20document&limit=2&sortBy=createdAt&sortOrder=ASC&prevCursor={{ selectParentsOfTypeDocumentLimit2SortByCreatedAtAscNextCursor1.prevCursor }}"
+                "url": "/v2/query?q=select%20parent%20of%20type%20document&limit=2&sortBy=createdAt&sortOrder=ASC&prevCursor={{ selectParentsOfTypeDocumentLimit2SortByCreatedAtAscNextCursor1.prevCursor }}",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1633,7 +1687,10 @@
             "name": "queryFailsWhenNoneOfIsUsed",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20%2A"
+                "url": "/v2/query?q=select%20%2A",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 400,
@@ -1881,7 +1938,10 @@
             "name": "selectMembersOfTypeUserForPermissionViewDocs",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20member%20of%20type%20user%20for%20permission:view-docs"
+                "url": "/v2/query?q=select%20member%20of%20type%20user%20for%20permission:view-docs",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1909,7 +1969,10 @@
             "name": "selectMembersOfAnyTypeForPermissionViewDocs",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20member%20of%20type%20%2A%20for%20permission:view-docs"
+                "url": "/v2/query?q=select%20member%20of%20type%20%2A%20for%20permission:view-docs",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
