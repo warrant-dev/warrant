@@ -24,9 +24,9 @@ Warrant is a **highly scalable, centralized, fine-grained authorization service*
 ## Features
 
 - HTTP APIs for managing your authorization model, access rules, and other Warrant resources (roles, permissions, features, tenants, users, etc.) from an application, a CLI tool, etc.
-- Real-time, low latency API for performing access checks in your application(s) at runtime (e.g. `is [user:A] an [editor] of [tenant:X]?`)
-- Integrates with in-house and third-party authn/identity providers like Auth0 and Firebase
-- Officially supported [SDKs](#sdks) for most popular languages and frameworks
+- Real-time, low-latency API for performing access checks in your application(s) at runtime (e.g. `is [user:A] an [editor] of [tenant:X]?`)
+- Integrates with in-house and third-party authn/identity providers like Auth0, Firebase, and more
+- Officially supported [SDKs](#sdks) for popular languages and frameworks (backend and frontend)
 - Support for a number of databases, including: MySQL, Postgres, and SQLite (in-memory or file)
 
 ## Use Cases
@@ -45,24 +45,11 @@ Warrant is built specifically for application authorization and access control, 
 
 ## Getting Started
 
-### Warrant Cloud
+Check out the [development guide](/development.md) to learn how to run Warrant locally and refer to the [deployment examples](/deployment.md) for examples of self-hosting Warrant using Docker or Kubernetes.
 
-The quickest and easiest way to get started with Warrant is using the managed cloud service. You can sign-up for a free account [here](https://app.warrant.dev/signup).
+## Resources
 
-Warrant Cloud is compatible with the same APIs as this open source version and provides additional functionality like:
-
-- An admin dashboard for quickly managing your authorization model and access rules via an intuitive, easy-to-use UI
-- A real-time `query` API to query and audit access rules for a given subject or object (e.g. _`which users in tenant:1 have access to object:A?`_)
-- Multi-region availability
-- Improved access check latency & throughput for large scale use cases.
-
-Once you've created an account, refer to our [docs](https://docs.warrant.dev/) to get started.
-
-### Local Development &amp; Self-Hosting
-
-Check out the [development guide](/development.md) to learn how to run Warrant and refer to the [deployment examples](/deployment.md) for examples of self-hosting Warrant using Docker or Kubernetes.
-
-## SDKs
+### SDKs
 
 Warrant's native SDKs are compatible with both the cloud and open-source versions of Warrant. We currently support SDKs for:
 
@@ -76,14 +63,37 @@ Warrant's native SDKs are compatible with both the cloud and open-source version
 - [Angular](https://github.com/warrant-dev/angular-warrant)
 - [Vue](https://github.com/warrant-dev/vue-warrant)
 
-## Documentation
+### Documentation
 
 Visit our [docs](https://docs.warrant.dev/) to learn more about Warrant's key concepts & architecture and view our [quickstarts](https://docs.warrant.dev/quickstart/role-based-access-control/) & [API reference](https://docs.warrant.dev/objecttypes/get-all-object-types/).
 
-## Support
+### Support
 
 Join our [Slack community](https://join.slack.com/t/warrantcommunity/shared_invite/zt-12g84updv-5l1pktJf2bI5WIKN4_~f4w) to ask questions and get support.
 
+## Limitations
+
+Serving check and query requests with low latency at high throughput requires running Warrant as a distributed service with the use of [Warrant-Tokens](https://docs.warrant.dev/data-consistency/) (also referred to as [Zookies](https://blog.warrant.dev/why-zanzibar-shines-at-building-authorization/#global-scale-low-latency) in Google Zanzibar). As a result, this open source version of Warrant is only capable of handling low-to-moderate throughput and is best suited for POCs, development/test environments, and low throughput use-cases.
+
+## Get <10ms Latency at Scale
+
+### Warrant Cloud
+
+The quickest and easiest way to get low-latency performance for high-throughput production usage is to use [Warrant Cloud](https://warrant.dev), a fully managed, serverless offering of Warrant. With Warrant Cloud, you don't need to worry about managing multiple instances of Warrant or its underlying datastore (e.g. Postgres, MySQL, etc). It can scale to millions of warrants and hundreds of millions of check and query requests while still providing <10ms latencies. You can sign up for a free account [here](https://app.warrant.dev/signup).
+
+Warrant Cloud is compatible with the same APIs as this open source version and provides additional functionality like:
+
+- An admin dashboard for quickly managing your authorization model and access rules via an intuitive, easy-to-use UI
+- Batch endpoints
+- Multi-region availability
+- Improved access check latency & throughput for large scale use cases
+
+Once you've created an account, refer to our [docs](https://docs.warrant.dev/) to get started.
+
+### Enterprise Self-Hosted
+
+Customers looking to self-host Warrant for low-latency, high-throughput production use cases can run a licensed version of Warrant Cloud themselves. To learn more about this option, [schedule a call](https://calendly.com/d/489-qxj-xyb) or [contact us](mailto:hello@warrant.dev?subject=Interest%20in%20Warrant%20Enterprise%20Self-Hosted%20Offering).
+
 ## Contributing
 
-Contributions welcome. Please see our [contributing guide](/CONTRIBUTING.md) for more details.
+Contributions are welcome. Please see our [contributing guide](/CONTRIBUTING.md) for more details.
