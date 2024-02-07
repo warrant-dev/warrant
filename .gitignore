@@ -3,3 +3,4 @@ apirunner.conf
 .DS_Store
 bin/
 dist/
+.idea/

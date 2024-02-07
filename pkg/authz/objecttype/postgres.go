@@ -118,35 +118,6 @@ func (repo PostgresRepository) GetByTypeId(ctx context.Context, typeId string) (
 	return &objectType, nil
 }
 
-func (repo PostgresRepository) ListAll(ctx context.Context) ([]Model, error) {
-	models := make([]Model, 0)
-	objectTypes := make([]ObjectType, 0)
-	err := repo.DB.SelectContext(
-		ctx,
-		&objectTypes,
-		`
-			SELECT id, type_id, definition, created_at, updated_at, deleted_at
-			FROM object_type
-			WHERE
-				deleted_at IS NULL
-		`,
-	)
-
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return models, nil
-		}
-
-		return models, errors.Wrap(err, "error listing all object types")
-	}
-
-	for i := range objectTypes {
-		models = append(models, &objectTypes[i])
-	}
-
-	return models, nil
-}
-
 func (repo PostgresRepository) List(ctx context.Context, listParams service.ListParams) ([]Model, *service.Cursor, *service.Cursor, error) {
 	models := make([]Model, 0)
 	objectTypes := make([]ObjectType, 0)
