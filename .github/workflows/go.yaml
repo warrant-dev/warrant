@@ -45,7 +45,7 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
-          version: latest
+          version: v1.55
           args: -v --timeout=5m
           only-new-issues: false
           install-mode: "binary"
