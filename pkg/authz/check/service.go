@@ -77,12 +77,12 @@ func (svc CheckService) getWithPolicyMatch(ctx context.Context, checkPipeline *p
 	warrantSpecs, _, _, err := svc.warrantSvc.List(
 		ctx,
 		warrant.FilterParams{
-			ObjectType:      []string{spec.ObjectType},
-			ObjectId:        []string{spec.ObjectId},
-			Relation:        []string{spec.Relation},
-			SubjectType:     []string{spec.Subject.ObjectType},
-			SubjectId:       []string{spec.Subject.ObjectId},
-			SubjectRelation: []string{spec.Subject.Relation},
+			ObjectType:      spec.ObjectType,
+			ObjectId:        spec.ObjectId,
+			Relation:        spec.Relation,
+			SubjectType:     spec.Subject.ObjectType,
+			SubjectId:       spec.Subject.ObjectId,
+			SubjectRelation: spec.Subject.Relation,
 		},
 		listParams,
 	)
@@ -127,9 +127,9 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, checkPipeline *
 	warrantSpecs, _, _, err = svc.warrantSvc.List(
 		ctx,
 		warrant.FilterParams{
-			ObjectType: []string{objectType},
-			ObjectId:   []string{objectId},
-			Relation:   []string{relation},
+			ObjectType: objectType,
+			ObjectId:   objectId,
+			Relation:   relation,
 		},
 		listParams,
 	)
@@ -171,10 +171,10 @@ func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, ch
 	warrantSpecs, _, _, err = svc.warrantSvc.List(
 		ctx,
 		warrant.FilterParams{
-			ObjectType:  []string{objectType},
-			ObjectId:    []string{objectId},
-			Relation:    []string{relation},
-			SubjectType: []string{subjectType},
+			ObjectType:  objectType,
+			ObjectId:    objectId,
+			Relation:    relation,
+			SubjectType: subjectType,
 		},
 		listParams,
 	)

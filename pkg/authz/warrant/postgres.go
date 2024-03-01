@@ -200,56 +200,38 @@ func (repo PostgresRepository) List(ctx context.Context, filterParams FilterPara
 		WHERE
 			deleted_at IS NULL
 	`
-	replacements := []interface{}{}
+	var replacements []interface{}
 	primarySortKeyColumn := sortRegexp.ReplaceAllString(PrimarySortKey, `_$1`)
 	sortByColumn := sortRegexp.ReplaceAllString(listParams.SortBy, `_$1`)
 
-	if len(filterParams.ObjectType) > 0 {
-		query = fmt.Sprintf("%s AND object_type IN (%s)", query, BuildQuestionMarkString(len(filterParams.ObjectType)+1))
-		for _, objectType := range filterParams.ObjectType {
-			replacements = append(replacements, objectType)
-		}
-		replacements = append(replacements, Wildcard)
+	if filterParams.ObjectType != "" {
+		query = fmt.Sprintf("%s AND object_type = ?", query)
+		replacements = append(replacements, filterParams.ObjectType)
 	}
 
-	if len(filterParams.ObjectId) > 0 {
-		query = fmt.Sprintf("%s AND object_id IN (%s)", query, BuildQuestionMarkString(len(filterParams.ObjectId)+1))
-		for _, objectId := range filterParams.ObjectId {
-			replacements = append(replacements, objectId)
-		}
-		replacements = append(replacements, Wildcard)
+	if filterParams.ObjectId != "" && filterParams.ObjectId != Wildcard {
+		query = fmt.Sprintf("%s AND object_id IN (?, '*')", query)
+		replacements = append(replacements, filterParams.ObjectId)
 	}
 
-	if len(filterParams.Relation) > 0 {
-		query = fmt.Sprintf("%s AND relation IN (%s)", query, BuildQuestionMarkString(len(filterParams.Relation)+1))
-		for _, relation := range filterParams.Relation {
-			replacements = append(replacements, relation)
-		}
-		replacements = append(replacements, Wildcard)
+	if filterParams.Relation != "" {
+		query = fmt.Sprintf("%s AND relation = ?", query)
+		replacements = append(replacements, filterParams.Relation)
 	}
 
-	if len(filterParams.SubjectType) > 0 {
-		query = fmt.Sprintf("%s AND subject_type IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectType)+1))
-		for _, subjectType := range filterParams.SubjectType {
-			replacements = append(replacements, subjectType)
-		}
-		replacements = append(replacements, Wildcard)
+	if filterParams.SubjectType != "" {
+		query = fmt.Sprintf("%s AND subject_type = ?", query)
+		replacements = append(replacements, filterParams.SubjectType)
 	}
 
-	if len(filterParams.SubjectId) > 0 {
-		query = fmt.Sprintf("%s AND subject_id IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectId)+1))
-		for _, subjectId := range filterParams.SubjectId {
-			replacements = append(replacements, subjectId)
-		}
-		replacements = append(replacements, Wildcard)
+	if filterParams.SubjectId != "" {
+		query = fmt.Sprintf("%s AND subject_id IN (?, '*')", query)
+		replacements = append(replacements, filterParams.SubjectId)
 	}
 
-	if len(filterParams.SubjectRelation) > 0 {
-		query = fmt.Sprintf("%s AND subject_relation IN (%s)", query, BuildQuestionMarkString(len(filterParams.SubjectRelation)+1))
-		for _, subjectRelation := range filterParams.SubjectRelation {
-			replacements = append(replacements, subjectRelation)
-		}
-		replacements = append(replacements, Wildcard)
+	if filterParams.SubjectRelation != "" {
+		query = fmt.Sprintf("%s AND subject_relation = ?", query)
+		replacements = append(replacements, filterParams.SubjectRelation)
 	}
 
 	if filterParams.Policy != "" {

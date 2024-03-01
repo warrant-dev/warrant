@@ -16,7 +16,6 @@ package authz
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -153,27 +152,27 @@ func buildFilterOptions(r *http.Request) *FilterParams {
 	queryParams := r.URL.Query()
 
 	if queryParams.Has("objectType") {
-		filterOptions.ObjectType = strings.Split(queryParams.Get("objectType"), ",")
+		filterOptions.ObjectType = queryParams.Get("objectType")
 	}
 
 	if queryParams.Has("objectId") {
-		filterOptions.ObjectId = strings.Split(queryParams.Get("objectId"), ",")
+		filterOptions.ObjectId = queryParams.Get("objectId")
 	}
 
 	if queryParams.Has("relation") {
-		filterOptions.Relation = strings.Split(queryParams.Get("relation"), ",")
+		filterOptions.Relation = queryParams.Get("relation")
 	}
 
 	if queryParams.Has("subjectType") {
-		filterOptions.SubjectType = strings.Split(queryParams.Get("subjectType"), ",")
+		filterOptions.SubjectType = queryParams.Get("subjectType")
 	}
 
 	if queryParams.Has("subjectId") {
-		filterOptions.SubjectId = strings.Split(queryParams.Get("subjectId"), ",")
+		filterOptions.SubjectId = queryParams.Get("subjectId")
 	}
 
 	if queryParams.Has("subjectRelation") {
-		filterOptions.SubjectRelation = strings.Split(queryParams.Get("subjectRelation"), ",")
+		filterOptions.SubjectRelation = queryParams.Get("subjectRelation")
 	}
 
 	if queryParams.Has("policy") {

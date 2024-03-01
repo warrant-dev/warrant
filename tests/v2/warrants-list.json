@@ -253,47 +253,6 @@
             }
         },
         {
-            "name": "listWarrantsFilterByObjectTypePermissionOrReport",
-            "request": {
-                "method": "GET",
-                "url": "/v2/warrants?objectType=permission,report"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": {
-                    "results": [
-                        {
-                            "objectType": "permission",
-                            "objectId": "view-balance-sheet",
-                            "relation": "member",
-                            "subject": {
-                                "objectType": "role",
-                                "objectId": "senior-accountant"
-                            }
-                        },
-                        {
-                            "objectType": "permission",
-                            "objectId": "balance-sheet:edit",
-                            "relation": "member",
-                            "subject": {
-                                "objectType": "user",
-                                "objectId": "user-b"
-                            }
-                        },
-                        {
-                            "objectType": "report",
-                            "objectId": "report-a",
-                            "relation": "owner",
-                            "subject": {
-                                "objectType": "user",
-                                "objectId": "user-a"
-                            }
-                        }
-                    ]
-                }
-            }
-        },
-        {
             "name": "listWarrantsFilterByObjectTypePermissionObjectIdViewBalanceSheet",
             "request": {
                 "method": "GET",

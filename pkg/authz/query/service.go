@@ -16,11 +16,11 @@ package authz
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sort"
 	"strings"
 
+	"github.com/pkg/errors"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	"github.com/warrant-dev/warrant/pkg/object"
@@ -50,7 +50,7 @@ func NewService(env service.Env, objectTypeSvc objecttype.Service, warrantSvc wa
 	}
 }
 
-func (svc QueryService) Query(ctx context.Context, query *Query, listParams service.ListParams) ([]QueryResult, *service.Cursor, *service.Cursor, error) {
+func (svc QueryService) Query(ctx context.Context, query Query, listParams service.ListParams) ([]QueryResult, *service.Cursor, *service.Cursor, error) {
 	queryResults := make([]QueryResult, 0)
 	resultMap := make(map[string]int)
 	objects := make(map[string][]string)
@@ -60,9 +60,123 @@ func (svc QueryService) Query(ctx context.Context, query *Query, listParams serv
 		return nil, nil, nil, ErrInvalidQuery
 	}
 
-	resultSet, err := svc.query(ctx, query)
-	if err != nil {
-		return nil, nil, nil, err
+	resultSet := NewResultSet()
+	switch {
+	case query.SelectObjects != nil:
+		var (
+			objectTypes []objecttype.ObjectTypeSpec
+			err         error
+		)
+		if query.SelectObjects.ObjectTypes[0] == warrant.Wildcard {
+			objectTypesListParams := service.DefaultListParams(objecttype.ObjectTypeListParamParser{})
+			objectTypesListParams.WithLimit(MaxObjectTypes)
+			objectTypes, _, _, err = svc.objectTypeSvc.List(ctx, objectTypesListParams)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+		} else {
+			for _, typeId := range query.SelectObjects.ObjectTypes {
+				objectType, err := svc.objectTypeSvc.GetByTypeId(ctx, typeId)
+				if err != nil {
+					return nil, nil, nil, err
+				}
+
+				objectTypes = append(objectTypes, *objectType)
+			}
+		}
+
+		for _, objectType := range objectTypes {
+			var relations []string
+			if query.SelectObjects.Relations[0] == warrant.Wildcard {
+				for relation := range objectType.Relations {
+					relations = append(relations, relation)
+				}
+			} else {
+				for _, relation := range query.SelectObjects.Relations {
+					if _, ok := objectType.Relations[relation]; ok {
+						relations = append(relations, relation)
+					}
+				}
+			}
+
+			for _, relation := range relations {
+				res, err := svc.query(ctx, Query{
+					Expand: query.Expand,
+					SelectObjects: &SelectObjects{
+						ObjectTypes:  []string{objectType.Type},
+						Relations:    []string{relation},
+						WhereSubject: query.SelectObjects.WhereSubject,
+					},
+					Context: query.Context,
+				}, 0)
+				if err != nil {
+					return nil, nil, nil, err
+				}
+
+				resultSet = resultSet.Union(res)
+			}
+		}
+	case query.SelectSubjects != nil:
+		var (
+			subjectTypes []objecttype.ObjectTypeSpec
+			err          error
+		)
+		if query.SelectSubjects.SubjectTypes[0] == warrant.Wildcard {
+			objectTypesListParams := service.DefaultListParams(objecttype.ObjectTypeListParamParser{})
+			objectTypesListParams.WithLimit(MaxObjectTypes)
+			subjectTypes, _, _, err = svc.objectTypeSvc.List(ctx, objectTypesListParams)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+		} else {
+			for _, typeId := range query.SelectSubjects.SubjectTypes {
+				subjectType, err := svc.objectTypeSvc.GetByTypeId(ctx, typeId)
+				if err != nil {
+					return nil, nil, nil, err
+				}
+
+				subjectTypes = append(subjectTypes, *subjectType)
+			}
+		}
+
+		objectType, err := svc.objectTypeSvc.GetByTypeId(ctx, query.SelectSubjects.ForObject.Type)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+
+		var relations []string
+		if query.SelectSubjects.Relations[0] == warrant.Wildcard {
+			for relation := range objectType.Relations {
+				relations = append(relations, relation)
+			}
+		} else {
+			for _, relation := range query.SelectSubjects.Relations {
+				if _, ok := objectType.Relations[relation]; ok {
+					relations = append(relations, relation)
+				}
+			}
+		}
+
+		for _, subjectType := range subjectTypes {
+			for _, relation := range relations {
+				res, err := svc.query(ctx, Query{
+					Expand: query.Expand,
+					SelectSubjects: &SelectSubjects{
+						SubjectTypes: []string{subjectType.Type},
+						Relations:    []string{relation},
+						ForObject:    query.SelectSubjects.ForObject,
+					},
+					Context: query.Context,
+				}, 0)
+				if err != nil {
+					return nil, nil, nil, err
+				}
+
+				resultSet = resultSet.Union(res)
+			}
+		}
+	default:
+		return nil, nil, nil, ErrInvalidQuery
 	}
 
 	for res := resultSet.List(); res != nil; res = res.Next() {
@@ -186,322 +300,350 @@ func (svc QueryService) Query(ctx context.Context, query *Query, listParams serv
 	return paginatedQueryResults, prevCursor, nextCursor, nil
 }
 
-func (svc QueryService) query(ctx context.Context, query *Query) (*ResultSet, error) {
-	var objectTypes []string
-	var selectSubjects bool
-	objectTypesListParams := service.DefaultListParams(objecttype.ObjectTypeListParamParser{})
-	objectTypesListParams.Limit = MaxObjectTypes
-	typesList, _, _, err := svc.objectTypeSvc.List(ctx, objectTypesListParams)
-	if err != nil {
-		return nil, err
-	}
-	//nolint:gocritic
-	if query.SelectObjects != nil {
-		selectSubjects = false
-		if query.SelectObjects.ObjectTypes[0] == warrant.Wildcard {
-			for _, objectType := range typesList {
-				objectTypes = append(objectTypes, objectType.Type)
-			}
-		} else {
-			objectTypes = append(objectTypes, query.SelectObjects.ObjectTypes...)
-		}
-	} else if query.SelectSubjects != nil {
-		selectSubjects = true
-		if query.SelectSubjects.ForObject != nil {
-			objectTypes = append(objectTypes, query.SelectSubjects.ForObject.Type)
-		} else {
-			for _, objectType := range typesList {
-				objectTypes = append(objectTypes, objectType.Type)
-			}
-		}
-	} else {
-		return nil, ErrInvalidQuery
-	}
-
-	resultSet := NewResultSet()
-	for _, objectType := range objectTypes {
-		var relations []string
+func (svc QueryService) query(ctx context.Context, query Query, level int) (*ResultSet, error) {
+	switch {
+	case query.SelectObjects != nil:
+		objectType := query.SelectObjects.ObjectTypes[0]
+		relation := query.SelectObjects.Relations[0]
 		objectTypeDef, err := svc.objectTypeSvc.GetByTypeId(ctx, objectType)
 		if err != nil {
 			return nil, err
 		}
 
-		if query.SelectObjects != nil {
-			if query.SelectObjects.Relations[0] == warrant.Wildcard {
-				for relation := range objectTypeDef.Relations {
-					relations = append(relations, relation)
-				}
-			} else {
-				relations = append(relations, query.SelectObjects.Relations...)
-			}
-		} else {
-			if query.SelectSubjects.Relations[0] == warrant.Wildcard {
-				for relation := range objectTypeDef.Relations {
-					relations = append(relations, relation)
-				}
-			} else {
-				relations = append(relations, query.SelectSubjects.Relations...)
-			}
+		if _, found := objectTypeDef.Relations[relation]; !found {
+			return nil, errors.New(fmt.Sprintf("query: relation %s does not exist on object type %s", relation, objectType))
 		}
 
-		for _, relation := range relations {
-			var matchFilters warrant.FilterParams
-			if query.SelectObjects != nil && query.SelectObjects.WhereSubject != nil {
-				matchFilters.SubjectType = []string{query.SelectObjects.WhereSubject.Type}
-
-				if query.SelectObjects.WhereSubject.Id != warrant.Wildcard {
-					matchFilters.SubjectId = []string{query.SelectObjects.WhereSubject.Id}
-				}
-			} else if query.SelectSubjects != nil && query.SelectSubjects.ForObject != nil {
-				matchFilters.ObjectType = []string{query.SelectSubjects.ForObject.Type}
-
-				if query.SelectSubjects.ForObject.Id != warrant.Wildcard {
-					matchFilters.ObjectId = []string{query.SelectSubjects.ForObject.Id}
-				}
-
-				if query.SelectSubjects.SubjectTypes[0] != warrant.Wildcard {
-					matchFilters.SubjectType = query.SelectSubjects.SubjectTypes
-				}
-			}
-
-			res, err := svc.matchRelation(ctx, selectSubjects, objectType, relation, matchFilters, query.Expand, 0)
-			if err != nil {
-				return nil, err
-			}
-
-			resultSet = resultSet.Union(res)
-		}
-	}
-
-	return resultSet, nil
-}
-
-func (svc QueryService) matchRelation(ctx context.Context, selectSubjects bool, objectType string, relation string, matchFilters warrant.FilterParams, expand bool, level int) (*ResultSet, error) {
-	objectTypeDef, err := svc.objectTypeSvc.GetByTypeId(ctx, objectType)
-	if err != nil {
-		return nil, err
-	}
-
-	resultSet := NewResultSet()
-	if _, exists := objectTypeDef.Relations[relation]; !exists {
-		return resultSet, nil
-	}
-
-	// match any warrants at this level
-	matchedWarrants, _, _, err := svc.matchWarrants(ctx, warrant.FilterParams{
-		ObjectType: []string{objectType},
-		ObjectId:   matchFilters.ObjectId,
-		Relation:   []string{relation},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	for _, matchedWarrant := range matchedWarrants {
-		// match any encountered group warrants
-		//nolint:gocritic
-		if matchedWarrant.Subject.Relation != "" {
-			// only expand group warrants if requested
-			if !expand {
-				continue
-			}
-
-			res, err := svc.matchRelation(ctx, selectSubjects, matchedWarrant.Subject.ObjectType, matchedWarrant.Subject.Relation, warrant.FilterParams{
-				ObjectId:    []string{matchedWarrant.Subject.ObjectId},
-				SubjectType: matchFilters.SubjectType,
-				SubjectId:   matchFilters.SubjectId,
-			}, expand, level+1)
-			if err != nil {
-				return nil, err
-			}
-
-			if selectSubjects {
-				resultSet = resultSet.Union(res)
-			} else if res.Len() > 0 {
-				//nolint:gocritic
-				if matchedWarrant.ObjectId != warrant.Wildcard {
-					resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant, level > 0)
-				} else if len(matchFilters.ObjectId) > 0 {
-					resultSet.Add(matchedWarrant.ObjectType, matchFilters.ObjectId[0], matchedWarrant, level > 0)
-				} else {
-					//nolint:gocritic
-					if matchedWarrant.ObjectId != warrant.Wildcard {
-						resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant, level > 0)
-					} else if len(matchFilters.ObjectId) > 0 {
-						resultSet.Add(matchedWarrant.ObjectType, matchFilters.ObjectId[0], matchedWarrant, level > 0)
-					} else {
-						wcWarrantMatches, _, _, err := svc.matchWarrants(ctx, warrant.FilterParams{
-							ObjectType: []string{matchedWarrant.ObjectType},
-						})
-						if err != nil {
-							return nil, err
-						}
-
-						for _, wcWarrantMatch := range wcWarrantMatches {
-							if wcWarrantMatch.ObjectId != warrant.Wildcard {
-								resultSet.Add(wcWarrantMatch.ObjectType, wcWarrantMatch.ObjectId, matchedWarrant, level > 0)
-							}
-						}
-					}
-				}
-			}
-		} else if selectSubjects && matches(matchFilters.SubjectType, matchedWarrant.Subject.ObjectType) {
-			resultSet.Add(matchedWarrant.Subject.ObjectType, matchedWarrant.Subject.ObjectId, matchedWarrant, level > 0)
-		} else if matches(matchFilters.SubjectType, matchedWarrant.Subject.ObjectType) && matches(matchFilters.SubjectId, matchedWarrant.Subject.ObjectId) {
-			resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant, level > 0)
-		}
-	}
-
-	// explore following levels if requested
-	if expand {
-		rule := objectTypeDef.Relations[relation]
-		res, err := svc.matchRule(ctx, selectSubjects, objectType, relation, &rule, matchFilters, expand, level+1)
-		if err != nil {
-			return nil, err
-		}
-		resultSet = resultSet.Union(res)
-	}
-
-	return resultSet, nil
-}
-
-func (svc QueryService) matchRule(ctx context.Context, selectSubjects bool, objectType string, relation string, rule *objecttype.RelationRule, matchFilters warrant.FilterParams, expand bool, level int) (*ResultSet, error) {
-	switch rule.InheritIf {
-	case "":
-		// Do nothing, explicit matches already explored in matchRelation
-		return NewResultSet(), nil
-	case objecttype.InheritIfAllOf, objecttype.InheritIfAnyOf, objecttype.InheritIfNoneOf:
-		return svc.matchSetRule(ctx, selectSubjects, objectType, relation, rule.InheritIf, rule.Rules, matchFilters, expand, level)
-	default:
-		// inherit relation if subject has:
-		// (1) InheritIf on this object
-		if rule.OfType == "" && rule.WithRelation == "" {
-			return svc.matchRelation(ctx, selectSubjects, objectType, rule.InheritIf, matchFilters, expand, level+1)
+		// base case: explicit query
+		listParams := service.DefaultListParams(warrant.WarrantListParamParser{})
+		listParams.WithLimit(MaxEdges)
+		filterParams := warrant.FilterParams{
+			ObjectType: query.SelectObjects.ObjectTypes[0],
+			Relation:   query.SelectObjects.Relations[0],
 		}
 
-		// inherit relation if subject has:
-		// (1) InheritIf on object (2) of type OfType
-		// (3) with relation WithRelation on this object
-		matchedWarrants, _, _, err := svc.matchWarrants(ctx, warrant.FilterParams{
-			ObjectType:  []string{objectType},
-			Relation:    []string{rule.WithRelation},
-			ObjectId:    matchFilters.ObjectId,
-			SubjectType: []string{rule.OfType},
-		})
+		matchedWarrants, _, _, err := svc.warrantSvc.List(ctx, filterParams, listParams)
 		if err != nil {
 			return nil, err
 		}
 
 		resultSet := NewResultSet()
 		for _, matchedWarrant := range matchedWarrants {
-			res, err := svc.matchRelation(ctx, selectSubjects, rule.OfType, rule.InheritIf, warrant.FilterParams{
-				ObjectType:  matchFilters.ObjectType,
-				ObjectId:    []string{matchedWarrant.Subject.ObjectId},
-				SubjectType: matchFilters.SubjectType,
-				SubjectId:   matchFilters.SubjectId,
-			}, expand, level+1)
-			if err != nil {
-				return nil, err
-			}
+			if matchedWarrant.Subject.Relation != "" {
+				// handle group warrants
+				userset, err := svc.query(ctx, Query{
+					Expand: query.Expand,
+					SelectSubjects: &SelectSubjects{
+						Relations:    []string{matchedWarrant.Subject.Relation},
+						SubjectTypes: []string{query.SelectObjects.WhereSubject.Type},
+						ForObject: &Resource{
+							Type: matchedWarrant.Subject.ObjectType,
+							Id:   matchedWarrant.Subject.ObjectId,
+						},
+					},
+					Context: query.Context,
+				}, 0)
+				if err != nil {
+					return nil, err
+				}
 
-			if selectSubjects {
-				resultSet = resultSet.Union(res)
-			} else if res.Len() > 0 {
-				//nolint:gocritic
-				if matchedWarrant.ObjectId != warrant.Wildcard {
-					resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant, level > 0)
-				} else if len(matchFilters.ObjectId) > 0 {
-					resultSet.Add(matchedWarrant.ObjectType, matchFilters.ObjectId[0], matchedWarrant, level > 0)
-				} else {
-					wcWarrantMatches, _, _, err := svc.matchWarrants(ctx, warrant.FilterParams{
-						ObjectType: []string{matchedWarrant.ObjectType},
-					})
-					if err != nil {
-						return nil, err
+				for res := userset.List(); res != nil; res = res.Next() {
+					if res.ObjectType != query.SelectObjects.WhereSubject.Type || res.ObjectId != query.SelectObjects.WhereSubject.Id {
+						continue
 					}
 
-					for _, wcWarrantMatch := range wcWarrantMatches {
-						if wcWarrantMatch.ObjectId != warrant.Wildcard {
-							resultSet.Add(wcWarrantMatch.ObjectType, wcWarrantMatch.ObjectId, matchedWarrant, level > 0)
+					if matchedWarrant.ObjectId == warrant.Wildcard {
+						expandedWildcardWarrants, _, _, err := svc.warrantSvc.List(ctx, warrant.FilterParams{
+							ObjectType: matchedWarrant.ObjectType,
+						}, listParams)
+						if err != nil {
+							return nil, err
 						}
+
+						for _, w := range expandedWildcardWarrants {
+							if w.ObjectId != warrant.Wildcard {
+								resultSet.Add(w.ObjectType, w.ObjectId, matchedWarrant, level > 0)
+							}
+						}
+					} else {
+						resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant, level > 0)
 					}
 				}
+			} else if query.SelectObjects.WhereSubject == nil ||
+				(matchedWarrant.Subject.ObjectType == query.SelectObjects.WhereSubject.Type &&
+					matchedWarrant.Subject.ObjectId == query.SelectObjects.WhereSubject.Id) {
+				resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant, level > 0)
 			}
 		}
 
-		return resultSet, nil
-	}
-}
-
-func (svc QueryService) matchSetRule(
-	ctx context.Context,
-	selectSubjects bool,
-	objectType string,
-	relation string,
-	setRuleType string,
-	rules []objecttype.RelationRule,
-	matchFilters warrant.FilterParams,
-	expand bool,
-	level int,
-) (*ResultSet, error) {
-	switch setRuleType {
-	case objecttype.InheritIfAllOf:
-		var resultSet *ResultSet
-		for i := range rules {
-			res, err := svc.matchRule(ctx, selectSubjects, objectType, relation, &rules[i], matchFilters, expand, level)
+		if query.Expand {
+			implicitResultSet, err := svc.queryRule(ctx, query, level, objectTypeDef.Relations[relation])
 			if err != nil {
 				return nil, err
 			}
 
-			// short-circuit if no matches found for a rule
-			if res.Len() == 0 {
-				return NewResultSet(), nil
-			}
-
-			if resultSet == nil {
-				resultSet = res
-			} else {
-				resultSet = resultSet.Intersect(res)
-			}
+			resultSet = resultSet.Union(implicitResultSet)
 		}
 
 		return resultSet, nil
-	case objecttype.InheritIfAnyOf:
+	case query.SelectSubjects != nil:
+		objectType := query.SelectSubjects.ForObject.Type
+		relation := query.SelectSubjects.Relations[0]
+		objectTypeDef, err := svc.objectTypeSvc.GetByTypeId(ctx, objectType)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, found := objectTypeDef.Relations[relation]; !found {
+			return nil, errors.New(fmt.Sprintf("query: relation %s does not exist on object type %s", relation, objectType))
+		}
+
+		// base case: explicit query
+		listParams := service.DefaultListParams(warrant.WarrantListParamParser{})
+		listParams.WithLimit(MaxEdges)
+		filterParams := warrant.FilterParams{
+			ObjectType: query.SelectSubjects.ForObject.Type,
+			ObjectId:   query.SelectSubjects.ForObject.Id,
+			Relation:   query.SelectSubjects.Relations[0],
+		}
+
+		matchedWarrants, _, _, err := svc.warrantSvc.List(ctx, filterParams, listParams)
+		if err != nil {
+			return nil, err
+		}
+
 		resultSet := NewResultSet()
-		for i := range rules {
-			res, err := svc.matchRule(ctx, selectSubjects, objectType, relation, &rules[i], matchFilters, expand, level)
+		for _, matchedWarrant := range matchedWarrants {
+			if matchedWarrant.Subject.Relation != "" {
+				// handle group warrants
+				userset, err := svc.query(ctx, Query{
+					Expand: query.Expand,
+					SelectSubjects: &SelectSubjects{
+						Relations:    []string{matchedWarrant.Subject.Relation},
+						SubjectTypes: query.SelectSubjects.SubjectTypes,
+						ForObject: &Resource{
+							Type: matchedWarrant.Subject.ObjectType,
+							Id:   matchedWarrant.Subject.ObjectId,
+						},
+					},
+					Context: query.Context,
+				}, 0)
+				if err != nil {
+					return nil, err
+				}
+
+				for res := userset.List(); res != nil; res = res.Next() {
+					resultSet.Add(res.ObjectType, res.ObjectId, matchedWarrant, level > 0)
+				}
+			} else if query.SelectSubjects.SubjectTypes[0] == matchedWarrant.Subject.ObjectType {
+				resultSet.Add(matchedWarrant.Subject.ObjectType, matchedWarrant.Subject.ObjectId, matchedWarrant, level > 0)
+			}
+		}
+
+		if query.Expand {
+			implicitResultSet, err := svc.queryRule(ctx, query, level, objectTypeDef.Relations[relation])
 			if err != nil {
 				return nil, err
 			}
-			resultSet = resultSet.Union(res)
+
+			return resultSet.Union(implicitResultSet), nil
 		}
 
 		return resultSet, nil
-	case objecttype.InheritIfNoneOf:
-		return nil, service.NewInvalidRequestError("cannot query authorization models with object types that use the 'noneOf' operator.")
 	default:
 		return nil, ErrInvalidQuery
 	}
 }
 
-func (svc QueryService) matchWarrants(ctx context.Context, matchFilters warrant.FilterParams) ([]warrant.WarrantSpec, *service.Cursor, *service.Cursor, error) {
-	warrantListParams := service.DefaultListParams(warrant.WarrantListParamParser{})
-	warrantListParams.Limit = MaxEdges
-	return svc.warrantSvc.List(ctx, matchFilters, warrantListParams)
-}
+func (svc QueryService) queryRule(ctx context.Context, query Query, level int, rule objecttype.RelationRule) (*ResultSet, error) {
+	switch {
+	case query.SelectObjects != nil:
+		switch rule.InheritIf {
+		case "":
+			return NewResultSet(), nil
+		case objecttype.InheritIfAllOf:
+			var resultSet *ResultSet
+			for _, r := range rule.Rules {
+				res, err := svc.queryRule(ctx, query, level, r)
+				if err != nil {
+					return nil, err
+				}
 
-func matches(set []string, target string) bool {
-	if len(set) == 0 || target == warrant.Wildcard {
-		return true
-	}
+				if resultSet == nil {
+					resultSet = res
+				} else {
+					resultSet = resultSet.Intersect(res)
+				}
+			}
 
-	for _, val := range set {
-		if val == warrant.Wildcard || val == target {
-			return true
+			return resultSet, nil
+		case objecttype.InheritIfAnyOf:
+			var resultSet *ResultSet
+			for _, r := range rule.Rules {
+				res, err := svc.queryRule(ctx, query, level, r)
+				if err != nil {
+					return nil, err
+				}
+
+				if resultSet == nil {
+					resultSet = res
+				} else {
+					resultSet = resultSet.Union(res)
+				}
+			}
+
+			return resultSet, nil
+		case objecttype.InheritIfNoneOf:
+			return nil, service.NewInvalidRequestError("cannot query authorization models with object types that use the 'noneOf' operator.")
+		default:
+			if rule.OfType == "" && rule.WithRelation == "" {
+				return svc.query(ctx, Query{
+					Expand: true,
+					SelectObjects: &SelectObjects{
+						ObjectTypes:  query.SelectObjects.ObjectTypes,
+						Relations:    []string{rule.InheritIf},
+						WhereSubject: query.SelectObjects.WhereSubject,
+					},
+					Context: query.Context,
+				}, level+1)
+			} else {
+				listParams := service.DefaultListParams(warrant.WarrantListParamParser{})
+				listParams.WithLimit(MaxEdges)
+				filterParams := warrant.FilterParams{
+					ObjectType:  query.SelectObjects.ObjectTypes[0],
+					Relation:    rule.InheritIf,
+					SubjectType: query.SelectObjects.WhereSubject.Type,
+					SubjectId:   query.SelectObjects.WhereSubject.Id,
+				}
+
+				usersetWarrants, _, _, err := svc.warrantSvc.List(ctx, filterParams, listParams)
+				if err != nil {
+					return nil, err
+				}
+
+				resultSet := NewResultSet()
+				for _, w := range usersetWarrants {
+					if w.Subject.Relation != "" {
+						continue
+					}
+
+					subset, err := svc.query(ctx, Query{
+						Expand: query.Expand,
+						SelectObjects: &SelectObjects{
+							ObjectTypes: query.SelectObjects.ObjectTypes,
+							Relations:   []string{rule.WithRelation},
+							WhereSubject: &Resource{
+								Type: w.ObjectType,
+								Id:   w.ObjectId,
+							},
+						},
+						Context: query.Context,
+					}, level+1)
+					if err != nil {
+						return nil, err
+					}
+
+					resultSet = resultSet.Union(subset)
+				}
+
+				return resultSet, nil
+			}
 		}
-	}
+	case query.SelectSubjects != nil:
+		switch rule.InheritIf {
+		case "":
+			return NewResultSet(), nil
+		case objecttype.InheritIfAllOf:
+			var resultSet *ResultSet
+			for _, r := range rule.Rules {
+				res, err := svc.queryRule(ctx, query, level, r)
+				if err != nil {
+					return nil, err
+				}
 
-	return false
+				if resultSet == nil {
+					resultSet = res
+				} else {
+					resultSet = resultSet.Intersect(res)
+				}
+			}
+
+			return resultSet, nil
+		case objecttype.InheritIfAnyOf:
+			var resultSet *ResultSet
+			for _, r := range rule.Rules {
+				res, err := svc.queryRule(ctx, query, level, r)
+				if err != nil {
+					return nil, err
+				}
+
+				if resultSet == nil {
+					resultSet = res
+				} else {
+					resultSet = resultSet.Union(res)
+				}
+			}
+
+			return resultSet, nil
+		case objecttype.InheritIfNoneOf:
+			return nil, service.NewInvalidRequestError("cannot query authorization models with object types that use the 'noneOf' operator.")
+		default:
+			if rule.OfType == "" && rule.WithRelation == "" {
+				return svc.query(ctx, Query{
+					Expand: true,
+					SelectSubjects: &SelectSubjects{
+						SubjectTypes: query.SelectSubjects.SubjectTypes,
+						Relations:    []string{rule.InheritIf},
+						ForObject:    query.SelectSubjects.ForObject,
+					},
+					Context: query.Context,
+				}, level+1)
+			} else {
+				listParams := service.DefaultListParams(warrant.WarrantListParamParser{})
+				listParams.WithLimit(MaxEdges)
+				filterParams := warrant.FilterParams{
+					ObjectType:  query.SelectSubjects.ForObject.Type,
+					ObjectId:    query.SelectSubjects.ForObject.Id,
+					Relation:    rule.WithRelation,
+					SubjectType: rule.OfType,
+				}
+
+				userset, _, _, err := svc.warrantSvc.List(ctx, filterParams, listParams)
+				if err != nil {
+					return nil, err
+				}
+
+				resultSet := NewResultSet()
+				for _, w := range userset {
+					if w.Subject.Relation != "" {
+						continue
+					}
+
+					subset, err := svc.query(ctx, Query{
+						Expand: query.Expand,
+						SelectSubjects: &SelectSubjects{
+							SubjectTypes: query.SelectSubjects.SubjectTypes,
+							Relations:    []string{rule.InheritIf},
+							ForObject: &Resource{
+								Type: w.Subject.ObjectType,
+								Id:   w.Subject.ObjectId,
+							},
+						},
+						Context: query.Context,
+					}, level+1)
+					if err != nil {
+						return nil, err
+					}
+
+					resultSet = resultSet.Union(subset)
+				}
+
+				return resultSet, nil
+			}
+		}
+	default:
+		return nil, ErrInvalidQuery
+	}
 }
 
 func objectKey(objectType string, objectId string) string {

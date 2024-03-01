@@ -23,39 +23,39 @@ import (
 )
 
 type FilterParams struct {
-	ObjectType      []string `json:"objectType,omitempty"`
-	ObjectId        []string `json:"objectId,omitempty"`
-	Relation        []string `json:"relation,omitempty"`
-	SubjectType     []string `json:"subjectType,omitempty"`
-	SubjectId       []string `json:"subjectId,omitempty"`
-	SubjectRelation []string `json:"subjectRelation,omitempty"`
-	Policy          Policy   `json:"policy,omitempty"`
+	ObjectType      string `json:"objectType,omitempty"`
+	ObjectId        string `json:"objectId,omitempty"`
+	Relation        string `json:"relation,omitempty"`
+	SubjectType     string `json:"subjectType,omitempty"`
+	SubjectId       string `json:"subjectId,omitempty"`
+	SubjectRelation string `json:"subjectRelation,omitempty"`
+	Policy          Policy `json:"policy,omitempty"`
 }
 
 func (fp FilterParams) String() string {
 	s := ""
 	if len(fp.ObjectType) > 0 {
-		s = fmt.Sprintf("%s&objectType=%s", s, strings.Join(fp.ObjectType, ","))
+		s = fmt.Sprintf("%s&objectType=%s", s, fp.ObjectType)
 	}
 
 	if len(fp.ObjectId) > 0 {
-		s = fmt.Sprintf("%s&objectId=%s", s, strings.Join(fp.ObjectId, ","))
+		s = fmt.Sprintf("%s&objectId=%s", s, fp.ObjectId)
 	}
 
 	if len(fp.Relation) > 0 {
-		s = fmt.Sprintf("%s&relation=%s", s, strings.Join(fp.Relation, ","))
+		s = fmt.Sprintf("%s&relation=%s", s, fp.Relation)
 	}
 
 	if len(fp.SubjectType) > 0 {
-		s = fmt.Sprintf("%s&subjectType=%s", s, strings.Join(fp.SubjectType, ","))
+		s = fmt.Sprintf("%s&subjectType=%s", s, fp.SubjectType)
 	}
 
 	if len(fp.SubjectId) > 0 {
-		s = fmt.Sprintf("%s&subjectId=%s", s, strings.Join(fp.SubjectId, ","))
+		s = fmt.Sprintf("%s&subjectId=%s", s, fp.SubjectId)
 	}
 
 	if len(fp.SubjectRelation) > 0 {
-		s = fmt.Sprintf("%s&subjectRelation=%s", s, strings.Join(fp.SubjectRelation, ","))
+		s = fmt.Sprintf("%s&subjectRelation=%s", s, fp.SubjectRelation)
 	}
 
 	if fp.Policy != "" {

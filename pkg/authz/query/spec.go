@@ -15,6 +15,9 @@
 package authz
 
 import (
+	"fmt"
+	"strings"
+
 	baseWarrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	"github.com/warrant-dev/warrant/pkg/service"
 )
@@ -23,12 +26,25 @@ type Query struct {
 	Expand         bool
 	SelectSubjects *SelectSubjects
 	SelectObjects  *SelectObjects
-	Context        *baseWarrant.PolicyContext
+	Context        baseWarrant.PolicyContext
 	rawString      string
 }
 
 func (q Query) String() string {
-	return q.rawString
+	var str string
+	if q.Expand {
+		str = "select"
+	} else {
+		str = "select explicit"
+	}
+
+	if q.SelectObjects != nil {
+		return fmt.Sprintf("%s %s %s", str, q.SelectObjects.String(), q.Context.String())
+	} else if q.SelectSubjects != nil {
+		return fmt.Sprintf("%s %s %s", str, q.SelectSubjects.String(), q.Context.String())
+	}
+
+	return ""
 }
 
 type SelectSubjects struct {
@@ -37,15 +53,37 @@ type SelectSubjects struct {
 	SubjectTypes []string
 }
 
+func (s SelectSubjects) String() string {
+	str := fmt.Sprintf("%s of type %s", strings.Join(s.Relations, ", "), strings.Join(s.SubjectTypes, ", "))
+	if s.ForObject != nil {
+		str = fmt.Sprintf("%s for %s", str, s.ForObject.String())
+	}
+
+	return str
+}
+
 type SelectObjects struct {
 	ObjectTypes  []string
 	Relations    []string
 	WhereSubject *Resource
 }
 
+func (s SelectObjects) String() string {
+	str := strings.Join(s.ObjectTypes, ", ")
+	if s.WhereSubject != nil {
+		str = fmt.Sprintf("%s where %s", str, s.WhereSubject.String())
+	}
+
+	return fmt.Sprintf("%s is %s", str, strings.Join(s.Relations, ", "))
+}
+
 type Resource struct {
 	Type string
 	Id   string
+}
+
+func (res Resource) String() string {
+	return fmt.Sprintf("%s:%s", res.Type, res.Id)
 }
 
 type QueryHaving struct {
