@@ -207,6 +207,8 @@ func ValidateStruct(ctx context.Context, obj interface{}) error {
 				switch ruleName {
 				case "email":
 					return NewInvalidParameterError(fieldName, "must be a valid email")
+				case "url":
+					return NewInvalidParameterError(fieldName, "must be a valid url")
 				case "max":
 					return NewInvalidParameterError(fieldName, fmt.Sprintf("must be less than %s", validationRules[ruleName]))
 				case "min":
