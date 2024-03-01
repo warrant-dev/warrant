@@ -161,7 +161,35 @@ type ListParams struct {
 	defaultSortBy string
 }
 
-func (lp ListParams) String() string {
+func (lp *ListParams) WithPage(page int) {
+	lp.Page = page
+}
+
+func (lp *ListParams) WithLimit(limit int) {
+	lp.Limit = limit
+}
+
+func (lp *ListParams) WithQuery(query *string) {
+	lp.Query = query
+}
+
+func (lp *ListParams) WithSortBy(sortBy string) {
+	lp.SortBy = sortBy
+}
+
+func (lp *ListParams) WithSortOrder(sortOrder SortOrder) {
+	lp.SortOrder = sortOrder
+}
+
+func (lp *ListParams) WithPrevCursor(prevCursor *Cursor) {
+	lp.PrevCursor = prevCursor
+}
+
+func (lp *ListParams) WithNextCursor(nextCursor *Cursor) {
+	lp.NextCursor = nextCursor
+}
+
+func (lp *ListParams) String() string {
 	s := fmt.Sprintf("page=%d&limit=%d&sortBy=%s&sortOrder=%s&defaultSortBy=%s",
 		lp.Page,
 		lp.Limit,
@@ -183,11 +211,11 @@ func (lp ListParams) String() string {
 	return s
 }
 
-func (lp ListParams) DefaultSortBy() string {
+func (lp *ListParams) DefaultSortBy() string {
 	return lp.defaultSortBy
 }
 
-func (lp ListParams) UseCursorPagination() bool {
+func (lp *ListParams) UseCursorPagination() bool {
 	return lp.NextCursor != nil || lp.PrevCursor != nil
 }
 
@@ -301,7 +329,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 
 		if urlQueryParams.Has(paramNameQuery) {
 			query := urlQueryParams.Get(paramNameQuery)
-			listParams.Query = &query
+			listParams.WithQuery(&query)
 		}
 
 		if urlQueryParams.Has(paramNamePage) {
@@ -310,7 +338,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 				SendErrorResponse(w, NewInvalidParameterError(paramNamePage, err.Error()))
 				return
 			}
-			listParams.Page = page
+			listParams.WithPage(page)
 		}
 
 		if urlQueryParams.Has(paramNameLimit) {
@@ -319,7 +347,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 				SendErrorResponse(w, NewInvalidParameterError(paramNameLimit, err.Error()))
 				return
 			}
-			listParams.Limit = limit
+			listParams.WithLimit(limit)
 		}
 
 		if urlQueryParams.Has(paramNameSortOrder) {
@@ -328,7 +356,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 				SendErrorResponse(w, NewInvalidParameterError(paramNameSortOrder, err.Error()))
 				return
 			}
-			listParams.SortOrder = sortOrder
+			listParams.WithSortOrder(sortOrder)
 		}
 
 		var sortBy string
@@ -338,7 +366,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 				SendErrorResponse(w, NewInvalidParameterError(paramNameSortBy, err.Error()))
 				return
 			}
-			listParams.SortBy = sortBy
+			listParams.WithSortBy(sortBy)
 		}
 
 		if urlQueryParams.Has(paramNameAfterValue) && !urlQueryParams.Has(paramNameAfterId) {
@@ -380,7 +408,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 				nextCursor = NewCursor(afterId, nil)
 			}
 
-			listParams.NextCursor = nextCursor
+			listParams.WithNextCursor(nextCursor)
 		}
 
 		if urlQueryParams.Has(paramNameBeforeId) {
@@ -402,7 +430,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 				prevCursor = NewCursor(beforeId, nil)
 			}
 
-			listParams.PrevCursor = prevCursor
+			listParams.WithPrevCursor(prevCursor)
 		}
 
 		if urlQueryParams.Has(paramNameNextCursor) && urlQueryParams.Has(paramNamePrevCursor) {
@@ -416,7 +444,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 				SendErrorResponse(w, NewInvalidParameterError(paramNameNextCursor, err.Error()))
 				return
 			}
-			listParams.NextCursor = nextCursor
+			listParams.WithNextCursor(nextCursor)
 		}
 
 		if urlQueryParams.Has(paramNamePrevCursor) {
@@ -425,7 +453,7 @@ func ListMiddleware[T ListParamParser](next http.Handler) http.Handler {
 				SendErrorResponse(w, NewInvalidParameterError(paramNamePrevCursor, err.Error()))
 				return
 			}
-			listParams.PrevCursor = prevCursor
+			listParams.WithPrevCursor(prevCursor)
 		}
 
 		ctx := context.WithValue(r.Context(), contextKeyListParams, &listParams)

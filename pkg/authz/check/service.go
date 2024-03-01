@@ -73,7 +73,7 @@ func (svc CheckService) getWithPolicyMatch(ctx context.Context, checkPipeline *p
 	defer checkPipeline.ReleaseServiceLock()
 
 	listParams := service.DefaultListParams(warrant.WarrantListParamParser{})
-	listParams.Limit = MaxWarrants
+	listParams.WithLimit(MaxWarrants)
 	warrantSpecs, _, _, err := svc.warrantSvc.List(
 		ctx,
 		warrant.FilterParams{
@@ -91,16 +91,16 @@ func (svc CheckService) getWithPolicyMatch(ctx context.Context, checkPipeline *p
 	}
 
 	// if a warrant without a policy is found, match it
-	for _, warrant := range warrantSpecs {
-		if warrant.Policy == "" {
-			return &warrant, nil
+	for _, w := range warrantSpecs {
+		if w.Policy == "" {
+			return &w, nil
 		}
 	}
 
-	for _, warrant := range warrantSpecs {
-		if warrant.Policy != "" {
-			if policyMatched := evalWarrantPolicy(warrant, spec.Context); policyMatched {
-				return &warrant, nil
+	for _, w := range warrantSpecs {
+		if w.Policy != "" {
+			if policyMatched := evalWarrantPolicy(w, spec.Context); policyMatched {
+				return &w, nil
 			}
 		}
 	}
@@ -123,7 +123,7 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, checkPipeline *
 	}
 
 	listParams := service.DefaultListParams(warrant.WarrantListParamParser{})
-	listParams.Limit = MaxWarrants
+	listParams.WithLimit(MaxWarrants)
 	warrantSpecs, _, _, err = svc.warrantSvc.List(
 		ctx,
 		warrant.FilterParams{
@@ -138,12 +138,12 @@ func (svc CheckService) getMatchingSubjects(ctx context.Context, checkPipeline *
 	}
 
 	matchingSpecs := make([]warrant.WarrantSpec, 0)
-	for _, warrant := range warrantSpecs {
-		if warrant.Policy == "" {
-			matchingSpecs = append(matchingSpecs, warrant)
+	for _, w := range warrantSpecs {
+		if w.Policy == "" {
+			matchingSpecs = append(matchingSpecs, w)
 		} else {
-			if policyMatched := evalWarrantPolicy(warrant, checkCtx); policyMatched {
-				matchingSpecs = append(matchingSpecs, warrant)
+			if policyMatched := evalWarrantPolicy(w, checkCtx); policyMatched {
+				matchingSpecs = append(matchingSpecs, w)
 			}
 		}
 	}
@@ -167,7 +167,7 @@ func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, ch
 	}
 
 	listParams := service.DefaultListParams(warrant.WarrantListParamParser{})
-	listParams.Limit = MaxWarrants
+	listParams.WithLimit(MaxWarrants)
 	warrantSpecs, _, _, err = svc.warrantSvc.List(
 		ctx,
 		warrant.FilterParams{
@@ -183,12 +183,12 @@ func (svc CheckService) getMatchingSubjectsBySubjectType(ctx context.Context, ch
 	}
 
 	matchingSpecs := make([]warrant.WarrantSpec, 0)
-	for _, warrant := range warrantSpecs {
-		if warrant.Policy == "" {
-			matchingSpecs = append(matchingSpecs, warrant)
+	for _, w := range warrantSpecs {
+		if w.Policy == "" {
+			matchingSpecs = append(matchingSpecs, w)
 		} else {
-			if policyMatched := evalWarrantPolicy(warrant, checkCtx); policyMatched {
-				matchingSpecs = append(matchingSpecs, warrant)
+			if policyMatched := evalWarrantPolicy(w, checkCtx); policyMatched {
+				matchingSpecs = append(matchingSpecs, w)
 			}
 		}
 	}
