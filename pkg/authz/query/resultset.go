@@ -56,7 +56,8 @@ func (rs *ResultSet) Add(objectType string, objectId string, warrant warrant.War
 		next:       nil,
 	}
 
-	if existingRes, exists := rs.m[key(objectType, objectId)]; !exists || (existingRes.IsImplicit && !isImplicit) {
+	existingRes, exists := rs.m[key(objectType, objectId)]
+	if !exists {
 		// Add warrant to list
 		if rs.head == nil {
 			rs.head = newNode
@@ -67,7 +68,9 @@ func (rs *ResultSet) Add(objectType string, objectId string, warrant warrant.War
 		}
 
 		rs.tail = newNode
+	}
 
+	if !exists || (existingRes.IsImplicit && !isImplicit) {
 		// Add result node to map for O(1) lookups
 		rs.m[key(objectType, objectId)] = newNode
 	}
