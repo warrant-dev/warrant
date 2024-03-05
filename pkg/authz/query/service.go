@@ -448,46 +448,46 @@ func (svc QueryService) query(ctx context.Context, query Query, level int) (*Res
 }
 
 func (svc QueryService) queryRule(ctx context.Context, query Query, level int, rule objecttype.RelationRule) (*ResultSet, error) {
-	switch {
-	case query.SelectObjects != nil:
-		switch rule.InheritIf {
-		case "":
-			return NewResultSet(), nil
-		case objecttype.InheritIfAllOf:
-			var resultSet *ResultSet
-			for _, r := range rule.Rules {
-				res, err := svc.queryRule(ctx, query, level, r)
-				if err != nil {
-					return nil, err
-				}
-
-				if resultSet == nil {
-					resultSet = res
-				} else {
-					resultSet = resultSet.Intersect(res)
-				}
+	switch rule.InheritIf {
+	case "":
+		return NewResultSet(), nil
+	case objecttype.InheritIfAllOf:
+		var resultSet *ResultSet
+		for _, r := range rule.Rules {
+			res, err := svc.queryRule(ctx, query, level, r)
+			if err != nil {
+				return nil, err
 			}
 
-			return resultSet, nil
-		case objecttype.InheritIfAnyOf:
-			var resultSet *ResultSet
-			for _, r := range rule.Rules {
-				res, err := svc.queryRule(ctx, query, level, r)
-				if err != nil {
-					return nil, err
-				}
+			if resultSet == nil {
+				resultSet = res
+			} else {
+				resultSet = resultSet.Intersect(res)
+			}
+		}
 
-				if resultSet == nil {
-					resultSet = res
-				} else {
-					resultSet = resultSet.Union(res)
-				}
+		return resultSet, nil
+	case objecttype.InheritIfAnyOf:
+		var resultSet *ResultSet
+		for _, r := range rule.Rules {
+			res, err := svc.queryRule(ctx, query, level, r)
+			if err != nil {
+				return nil, err
 			}
 
-			return resultSet, nil
-		case objecttype.InheritIfNoneOf:
-			return nil, service.NewInvalidRequestError("cannot query authorization models with object types that use the 'noneOf' operator.")
-		default:
+			if resultSet == nil {
+				resultSet = res
+			} else {
+				resultSet = resultSet.Union(res)
+			}
+		}
+
+		return resultSet, nil
+	case objecttype.InheritIfNoneOf:
+		return nil, service.NewInvalidRequestError("cannot query authorization models with object types that use the 'noneOf' operator.")
+	default:
+		switch {
+		case query.SelectObjects != nil:
 			if rule.OfType == "" && rule.WithRelation == "" {
 				return svc.query(ctx, Query{
 					Expand: true,
@@ -536,46 +536,7 @@ func (svc QueryService) queryRule(ctx context.Context, query Query, level int, r
 
 				return resultSet, nil
 			}
-		}
-	case query.SelectSubjects != nil:
-		switch rule.InheritIf {
-		case "":
-			return NewResultSet(), nil
-		case objecttype.InheritIfAllOf:
-			var resultSet *ResultSet
-			for _, r := range rule.Rules {
-				res, err := svc.queryRule(ctx, query, level, r)
-				if err != nil {
-					return nil, err
-				}
-
-				if resultSet == nil {
-					resultSet = res
-				} else {
-					resultSet = resultSet.Intersect(res)
-				}
-			}
-
-			return resultSet, nil
-		case objecttype.InheritIfAnyOf:
-			var resultSet *ResultSet
-			for _, r := range rule.Rules {
-				res, err := svc.queryRule(ctx, query, level, r)
-				if err != nil {
-					return nil, err
-				}
-
-				if resultSet == nil {
-					resultSet = res
-				} else {
-					resultSet = resultSet.Union(res)
-				}
-			}
-
-			return resultSet, nil
-		case objecttype.InheritIfNoneOf:
-			return nil, service.NewInvalidRequestError("cannot query authorization models with object types that use the 'noneOf' operator.")
-		default:
+		case query.SelectSubjects != nil:
 			if rule.OfType == "" && rule.WithRelation == "" {
 				return svc.query(ctx, Query{
 					Expand: true,
@@ -624,9 +585,9 @@ func (svc QueryService) queryRule(ctx context.Context, query Query, level int, r
 
 				return resultSet, nil
 			}
+		default:
+			return nil, ErrInvalidQuery
 		}
-	default:
-		return nil, ErrInvalidQuery
 	}
 }
 
