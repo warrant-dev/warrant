@@ -40,20 +40,24 @@ type ResultSet struct {
 }
 
 func (rs *ResultSet) List() *ResultSetNode {
+	if rs == nil {
+		return nil
+	}
+
 	return rs.head
 }
 
 func (rs *ResultSet) Add(objectType string, objectId string, warrant warrant.WarrantSpec, isImplicit bool) {
-	if _, exists := rs.m[key(objectType, objectId)]; !exists {
-		// Add warrant to list
-		newNode := &ResultSetNode{
-			ObjectType: objectType,
-			ObjectId:   objectId,
-			Warrant:    warrant,
-			IsImplicit: isImplicit,
-			next:       nil,
-		}
+	newNode := &ResultSetNode{
+		ObjectType: objectType,
+		ObjectId:   objectId,
+		Warrant:    warrant,
+		IsImplicit: isImplicit,
+		next:       nil,
+	}
 
+	if existingRes, exists := rs.m[key(objectType, objectId)]; !exists || (existingRes.IsImplicit && !isImplicit) {
+		// Add warrant to list
 		if rs.head == nil {
 			rs.head = newNode
 		}

@@ -84,44 +84,44 @@ func (parser parser) Parse(query string) (*ast, error) {
 	return ast, nil
 }
 
-func NewQueryFromString(queryString string) (*Query, error) {
+func NewQueryFromString(queryString string) (Query, error) {
 	var query Query
 
 	queryParser, err := newParser()
 	if err != nil {
-		return nil, errors.Wrap(err, "error creating query from string")
+		return Query{}, errors.Wrap(err, "error creating query from string")
 	}
 
 	ast, err := queryParser.Parse(queryString)
 	if err != nil {
-		return nil, service.NewInvalidParameterError("q", err.Error())
+		return Query{}, service.NewInvalidParameterError("q", err.Error())
 	}
 
 	if ast.SelectClause == nil {
-		return nil, service.NewInvalidParameterError("q", "must contain a 'select' clause")
+		return Query{}, service.NewInvalidParameterError("q", "must contain a 'select' clause")
 	}
 
 	if ast.SelectClause.ObjectTypesOrRelations == nil && ast.SelectClause.SubjectTypes == nil {
-		return nil, service.NewInvalidParameterError("q", "incomplete 'select' clause")
+		return Query{}, service.NewInvalidParameterError("q", "incomplete 'select' clause")
 	}
 
 	if ast.ForClause != nil && ast.WhereClause != nil {
-		return nil, service.NewInvalidParameterError("q", "cannot contain both a 'for' clause and a 'where' clause")
+		return Query{}, service.NewInvalidParameterError("q", "cannot contain both a 'for' clause and a 'where' clause")
 	}
 
 	query.Expand = !ast.SelectClause.Explicit
 
 	if ast.SelectClause.SubjectTypes != nil { // Querying for subjects
 		if len(ast.SelectClause.SubjectTypes) == 0 {
-			return nil, service.NewInvalidParameterError("q", "must contain one or more types of subjects to select")
+			return Query{}, service.NewInvalidParameterError("q", "must contain one or more types of subjects to select")
 		}
 
 		if ast.SelectClause.ObjectTypesOrRelations == nil || len(ast.SelectClause.ObjectTypesOrRelations) == 0 {
-			return nil, service.NewInvalidParameterError("q", "must select one or more relations for subjects to match on the object")
+			return Query{}, service.NewInvalidParameterError("q", "must select one or more relations for subjects to match on the object")
 		}
 
 		if ast.WhereClause != nil {
-			return nil, service.NewInvalidParameterError("q", "cannot contain a 'where' clause when selecting subjects")
+			return Query{}, service.NewInvalidParameterError("q", "cannot contain a 'where' clause when selecting subjects")
 		}
 
 		query.SelectSubjects = &SelectSubjects{
@@ -129,24 +129,26 @@ func NewQueryFromString(queryString string) (*Query, error) {
 			SubjectTypes: ast.SelectClause.SubjectTypes,
 		}
 
-		if ast.ForClause != nil {
-			objectType, objectId, colonFound := strings.Cut(ast.ForClause.Object, ":")
-			if !colonFound {
-				return nil, service.NewInvalidParameterError("q", "'for' clause contains invalid object")
-			}
+		if ast.ForClause == nil {
+			return Query{}, service.NewInvalidParameterError("q", "must contain a 'for' clause")
+		}
 
-			query.SelectSubjects.ForObject = &Resource{
-				Type: objectType,
-				Id:   objectId,
-			}
+		objectType, objectId, colonFound := strings.Cut(ast.ForClause.Object, ":")
+		if !colonFound {
+			return Query{}, service.NewInvalidParameterError("q", "'for' clause contains invalid object")
+		}
+
+		query.SelectSubjects.ForObject = &Resource{
+			Type: objectType,
+			Id:   objectId,
 		}
 	} else { // Querying for objects
 		if ast.SelectClause.ObjectTypesOrRelations == nil || len(ast.SelectClause.ObjectTypesOrRelations) == 0 {
-			return nil, service.NewInvalidParameterError("q", "must contain one or more types of objects to select")
+			return Query{}, service.NewInvalidParameterError("q", "must contain one or more types of objects to select")
 		}
 
 		if ast.ForClause != nil {
-			return nil, service.NewInvalidParameterError("q", "cannot contain a 'for' clause when selecting objects")
+			return Query{}, service.NewInvalidParameterError("q", "cannot contain a 'for' clause when selecting objects")
 		}
 
 		query.SelectObjects = &SelectObjects{
@@ -154,25 +156,26 @@ func NewQueryFromString(queryString string) (*Query, error) {
 			Relations:   []string{warrant.Wildcard},
 		}
 
-		if ast.WhereClause != nil {
-			if ast.WhereClause.Relations == nil || len(ast.WhereClause.Relations) == 0 {
-				return nil, service.NewInvalidParameterError("q", "must contain one or more relations the subject must have on matching objects")
-			}
+		if ast.WhereClause == nil {
+			return Query{}, service.NewInvalidParameterError("q", "must contain a 'where' clause")
+		}
 
-			subjectType, subjectId, colonFound := strings.Cut(ast.WhereClause.Subject, ":")
-			if !colonFound {
-				return nil, service.NewInvalidParameterError("q", "'where' clause contains invalid subject")
-			}
+		if ast.WhereClause.Relations == nil || len(ast.WhereClause.Relations) == 0 {
+			return Query{}, service.NewInvalidParameterError("q", "must contain one or more relations the subject must have on matching objects")
+		}
 
-			query.SelectObjects.Relations = ast.WhereClause.Relations
-			query.SelectObjects.WhereSubject = &Resource{
-				Type: subjectType,
-				Id:   subjectId,
-			}
+		subjectType, subjectId, colonFound := strings.Cut(ast.WhereClause.Subject, ":")
+		if !colonFound {
+			return Query{}, service.NewInvalidParameterError("q", "'where' clause contains invalid subject")
+		}
+
+		query.SelectObjects.Relations = ast.WhereClause.Relations
+		query.SelectObjects.WhereSubject = &Resource{
+			Type: subjectType,
+			Id:   subjectId,
 		}
 	}
 
 	query.rawString = queryString
-
-	return &query, nil
+	return query, nil
 }
