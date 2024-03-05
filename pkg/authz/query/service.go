@@ -315,14 +315,10 @@ func (svc QueryService) query(ctx context.Context, query Query, level int) (*Res
 		}
 
 		// base case: explicit query
-		listParams := service.DefaultListParams(warrant.WarrantListParamParser{})
-		listParams.WithLimit(MaxEdges)
-		filterParams := warrant.FilterParams{
+		matchedWarrants, err := svc.listWarrants(ctx, warrant.FilterParams{
 			ObjectType: query.SelectObjects.ObjectTypes[0],
 			Relation:   query.SelectObjects.Relations[0],
-		}
-
-		matchedWarrants, _, _, err := svc.warrantSvc.List(ctx, filterParams, listParams)
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -353,9 +349,9 @@ func (svc QueryService) query(ctx context.Context, query Query, level int) (*Res
 					}
 
 					if matchedWarrant.ObjectId == warrant.Wildcard {
-						expandedWildcardWarrants, _, _, err := svc.warrantSvc.List(ctx, warrant.FilterParams{
+						expandedWildcardWarrants, err := svc.listWarrants(ctx, warrant.FilterParams{
 							ObjectType: matchedWarrant.ObjectType,
-						}, listParams)
+						})
 						if err != nil {
 							return nil, err
 						}
@@ -399,15 +395,11 @@ func (svc QueryService) query(ctx context.Context, query Query, level int) (*Res
 		}
 
 		// base case: explicit query
-		listParams := service.DefaultListParams(warrant.WarrantListParamParser{})
-		listParams.WithLimit(MaxEdges)
-		filterParams := warrant.FilterParams{
+		matchedWarrants, err := svc.listWarrants(ctx, warrant.FilterParams{
 			ObjectType: query.SelectSubjects.ForObject.Type,
 			ObjectId:   query.SelectSubjects.ForObject.Id,
 			Relation:   query.SelectSubjects.Relations[0],
-		}
-
-		matchedWarrants, _, _, err := svc.warrantSvc.List(ctx, filterParams, listParams)
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -501,41 +493,37 @@ func (svc QueryService) queryRule(ctx context.Context, query Query, level int, r
 					Expand: true,
 					SelectObjects: &SelectObjects{
 						ObjectTypes:  query.SelectObjects.ObjectTypes,
-						Relations:    []string{rule.InheritIf},
 						WhereSubject: query.SelectObjects.WhereSubject,
+						Relations:    []string{rule.InheritIf},
 					},
 					Context: query.Context,
 				}, level+1)
 			} else {
-				listParams := service.DefaultListParams(warrant.WarrantListParamParser{})
-				listParams.WithLimit(MaxEdges)
-				filterParams := warrant.FilterParams{
-					ObjectType:  query.SelectObjects.ObjectTypes[0],
+				indirectWarrants, err := svc.listWarrants(ctx, warrant.FilterParams{
+					ObjectType:  rule.OfType,
 					Relation:    rule.InheritIf,
 					SubjectType: query.SelectObjects.WhereSubject.Type,
 					SubjectId:   query.SelectObjects.WhereSubject.Id,
-				}
-
-				usersetWarrants, _, _, err := svc.warrantSvc.List(ctx, filterParams, listParams)
+				})
 				if err != nil {
 					return nil, err
 				}
 
 				resultSet := NewResultSet()
-				for _, w := range usersetWarrants {
-					if w.Subject.Relation != "" {
+				for _, indirectWarrant := range indirectWarrants {
+					if indirectWarrant.Subject.Relation != "" {
 						continue
 					}
 
-					subset, err := svc.query(ctx, Query{
+					inheritedResults, err := svc.query(ctx, Query{
 						Expand: query.Expand,
 						SelectObjects: &SelectObjects{
 							ObjectTypes: query.SelectObjects.ObjectTypes,
-							Relations:   []string{rule.WithRelation},
 							WhereSubject: &Resource{
-								Type: w.ObjectType,
-								Id:   w.ObjectId,
+								Type: indirectWarrant.ObjectType,
+								Id:   indirectWarrant.ObjectId,
 							},
+							Relations: []string{rule.WithRelation},
 						},
 						Context: query.Context,
 					}, level+1)
@@ -543,7 +531,7 @@ func (svc QueryService) queryRule(ctx context.Context, query Query, level int, r
 						return nil, err
 					}
 
-					resultSet = resultSet.Union(subset)
+					resultSet = resultSet.Union(inheritedResults)
 				}
 
 				return resultSet, nil
@@ -599,16 +587,12 @@ func (svc QueryService) queryRule(ctx context.Context, query Query, level int, r
 					Context: query.Context,
 				}, level+1)
 			} else {
-				listParams := service.DefaultListParams(warrant.WarrantListParamParser{})
-				listParams.WithLimit(MaxEdges)
-				filterParams := warrant.FilterParams{
+				userset, err := svc.listWarrants(ctx, warrant.FilterParams{
 					ObjectType:  query.SelectSubjects.ForObject.Type,
 					ObjectId:    query.SelectSubjects.ForObject.Id,
 					Relation:    rule.WithRelation,
 					SubjectType: rule.OfType,
-				}
-
-				userset, _, _, err := svc.warrantSvc.List(ctx, filterParams, listParams)
+				})
 				if err != nil {
 					return nil, err
 				}
@@ -643,6 +627,30 @@ func (svc QueryService) queryRule(ctx context.Context, query Query, level int, r
 		}
 	default:
 		return nil, ErrInvalidQuery
+	}
+}
+
+func (svc QueryService) listWarrants(ctx context.Context, filterParams warrant.FilterParams) ([]warrant.WarrantSpec, error) {
+	var result []warrant.WarrantSpec
+	listParams := service.DefaultListParams(warrant.WarrantListParamParser{})
+	listParams.WithLimit(MaxEdges)
+	for {
+		warrantSpecs, _, nextCursor, err := svc.warrantSvc.List(
+			ctx,
+			filterParams,
+			listParams,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, warrantSpecs...)
+
+		if nextCursor == nil {
+			return result, nil
+		}
+
+		listParams.NextCursor = nextCursor
 	}
 }
 

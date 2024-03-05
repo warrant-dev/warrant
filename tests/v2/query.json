@@ -2099,6 +2099,34 @@
             }
         },
         {
+            "name": "assignRoleManagerMemberOfPermissionAddUser",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "add-user",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "manager"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "add-user",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "manager"
+                    }
+                }
+            }
+        },
+        {
             "name": "assignUserRichardMemberOfRoleDeveloper",
             "request": {
                 "method": "POST",
@@ -2127,6 +2155,34 @@
             }
         },
         {
+            "name": "assignUserTomMemberOfRoleManager",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "manager",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "tom"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "role",
+                    "objectId": "manager",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "tom"
+                    }
+                }
+            }
+        },
+        {
             "name": "selectMembersOfTypeUserForPermissionViewDocs",
             "request": {
                 "method": "GET",
@@ -2149,6 +2205,20 @@
                                 "subject": {
                                     "objectType": "user",
                                     "objectId": "richard"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "user",
+                            "objectId": "tom",
+                            "warrant": {
+                                "objectType": "role",
+                                "objectId": "manager",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "tom"
                                 }
                             },
                             "isImplicit": true
@@ -2211,9 +2281,109 @@
                                 }
                             },
                             "isImplicit": true
+                        },
+                        {
+                            "objectType": "user",
+                            "objectId": "tom",
+                            "warrant": {
+                                "objectType": "role",
+                                "objectId": "manager",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "tom"
+                                }
+                            },
+                            "isImplicit": true
                         }
                     ]
                 }
+            }
+        },
+        {
+            "name": "selectPermissionsWhereUserRichardIsMember",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20permission%20where%20user:richard%20is%20member",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "permission",
+                            "objectId": "view-docs",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "view-docs",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "developer"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "selectPermissionsWhereUserTomIsMember",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20permission%20where%20user:tom%20is%20member",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "permission",
+                            "objectId": "add-user",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "add-user",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "manager"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "view-docs",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "view-docs",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "developer"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "deleteUserTom",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/tom"
+            },
+            "expectedResponse": {
+                "statusCode": 200
             }
         },
         {
@@ -2241,6 +2411,16 @@
             "request": {
                 "method": "DELETE",
                 "url": "/v2/objects/role/developer"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePermissionAddUser",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/permission/add-user"
             },
             "expectedResponse": {
                 "statusCode": 200
