@@ -24,6 +24,7 @@ import (
 type ResultSetNode struct {
 	ObjectType string
 	ObjectId   string
+	Relation   string
 	Warrant    warrant.WarrantSpec
 	IsImplicit bool
 	next       *ResultSetNode
@@ -47,16 +48,17 @@ func (rs *ResultSet) List() *ResultSetNode {
 	return rs.head
 }
 
-func (rs *ResultSet) Add(objectType string, objectId string, warrant warrant.WarrantSpec, isImplicit bool) {
+func (rs *ResultSet) Add(objectType string, objectId string, relation string, warrant warrant.WarrantSpec, isImplicit bool) {
 	newNode := &ResultSetNode{
 		ObjectType: objectType,
 		ObjectId:   objectId,
+		Relation:   relation,
 		Warrant:    warrant,
 		IsImplicit: isImplicit,
 		next:       nil,
 	}
 
-	existingRes, exists := rs.m[key(objectType, objectId)]
+	existingRes, exists := rs.m[key(objectType, objectId, relation)]
 	if !exists {
 		// Add warrant to list
 		if rs.head == nil {
@@ -72,7 +74,7 @@ func (rs *ResultSet) Add(objectType string, objectId string, warrant warrant.War
 
 	if !exists || (existingRes.IsImplicit && !isImplicit) {
 		// Add result node to map for O(1) lookups
-		rs.m[key(objectType, objectId)] = newNode
+		rs.m[key(objectType, objectId, relation)] = newNode
 	}
 }
 
@@ -80,27 +82,27 @@ func (rs *ResultSet) Len() int {
 	return len(rs.m)
 }
 
-func (rs *ResultSet) Get(objectType string, objectId string) *ResultSetNode {
-	return rs.m[key(objectType, objectId)]
+func (rs *ResultSet) Get(objectType string, objectId string, relation string) *ResultSetNode {
+	return rs.m[key(objectType, objectId, relation)]
 }
 
-func (rs *ResultSet) Has(objectType string, objectId string) bool {
-	_, exists := rs.m[key(objectType, objectId)]
+func (rs *ResultSet) Has(objectType string, objectId string, relation string) bool {
+	_, exists := rs.m[key(objectType, objectId, relation)]
 	return exists
 }
 
 func (rs *ResultSet) Union(other *ResultSet) *ResultSet {
 	resultSet := NewResultSet()
 	for iter := rs.List(); iter != nil; iter = iter.Next() {
-		resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Warrant, iter.IsImplicit)
+		resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, iter.IsImplicit)
 	}
 
 	for iter := other.List(); iter != nil; iter = iter.Next() {
 		isImplicit := iter.IsImplicit
-		if resultSet.Has(iter.ObjectType, iter.ObjectId) {
-			isImplicit = isImplicit && resultSet.Get(iter.ObjectType, iter.ObjectId).IsImplicit
+		if resultSet.Has(iter.ObjectType, iter.ObjectId, iter.Relation) {
+			isImplicit = isImplicit && resultSet.Get(iter.ObjectType, iter.ObjectId, iter.Relation).IsImplicit
 		}
-		resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Warrant, isImplicit)
+		resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, isImplicit)
 	}
 
 	return resultSet
@@ -110,9 +112,9 @@ func (rs *ResultSet) Intersect(other *ResultSet) *ResultSet {
 	resultSet := NewResultSet()
 	for iter := rs.List(); iter != nil; iter = iter.Next() {
 		isImplicit := iter.IsImplicit
-		if other.Has(iter.ObjectType, iter.ObjectId) {
-			isImplicit = isImplicit || other.Get(iter.ObjectType, iter.ObjectId).IsImplicit
-			resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Warrant, isImplicit)
+		if other.Has(iter.ObjectType, iter.ObjectId, iter.Relation) {
+			isImplicit = isImplicit || other.Get(iter.ObjectType, iter.ObjectId, iter.Relation).IsImplicit
+			resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, isImplicit)
 		}
 	}
 
@@ -122,7 +124,7 @@ func (rs *ResultSet) Intersect(other *ResultSet) *ResultSet {
 func (rs *ResultSet) String() string {
 	var strs []string
 	for iter := rs.List(); iter != nil; iter = iter.Next() {
-		strs = append(strs, fmt.Sprintf("%s => %s", key(iter.ObjectType, iter.ObjectId), iter.Warrant.String()))
+		strs = append(strs, fmt.Sprintf("%s => %s", key(iter.ObjectType, iter.ObjectId, iter.Relation), iter.Warrant.String()))
 	}
 
 	return strings.Join(strs, ", ")
@@ -136,6 +138,6 @@ func NewResultSet() *ResultSet {
 	}
 }
 
-func key(objectType string, objectId string) string {
-	return fmt.Sprintf("%s:%s", objectType, objectId)
+func key(objectType string, objectId string, relation string) string {
+	return fmt.Sprintf("%s:%s#%s", objectType, objectId, relation)
 }
