@@ -97,6 +97,7 @@ type QueryHaving struct {
 type QueryResult struct {
 	ObjectType string                  `json:"objectType"`
 	ObjectId   string                  `json:"objectId"`
+	Relation   string                  `json:"-"`
 	Warrant    baseWarrant.WarrantSpec `json:"warrant"`
 	IsImplicit bool                    `json:"isImplicit"`
 	Meta       map[string]interface{}  `json:"meta,omitempty"`

@@ -1460,10 +1460,10 @@
             }
         },
         {
-            "name": "selectMembersOrViewersOfTypeUserForDocumentD5Limit3SortOrderDesc",
+            "name": "selectExplicitOwnersOrViewersOfTypeUserForDocumentF3Limit1SortOrderDesc",
             "request": {
                 "method": "GET",
-                "url": "/v1/query?q=select%20member%2Cviewer%20of%20type%20user%20for%20document:D5&limit=3&sortOrder=DESC",
+                "url": "/v1/query?q=select%20explicit%20owner%2Cviewer%20of%20type%20user%20for%20document:F3&limit=1&sortOrder=DESC",
                 "headers": {
                     "Warrant-Token": "latest"
                 }
@@ -1485,8 +1485,26 @@
                                     "relation": "member"
                                 }
                             },
-                            "isImplicit": true
-                        },
+                            "isImplicit": false
+                        }
+                    ],
+                    "lastId": "{{ selectExplicitOwnersOrViewersOfTypeUserForDocumentF3Limit1SortOrderDesc.lastId }}"
+                }
+            }
+        },
+        {
+            "name": "selectExplicitOwnersOrViewersOfTypeUserForDocumentF3Limit1SortOrderDescAfterId1",
+            "request": {
+                "method": "GET",
+                "url": "/v1/query?q=select%20explicit%20owner%2Cviewer%20of%20type%20user%20for%20document:F3&limit=3&sortOrder=DESC&lastId={{ selectExplicitOwnersOrViewersOfTypeUserForDocumentF3Limit1SortOrderDesc.lastId }}",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
                         {
                             "objectType": "user",
                             "objectId": "U3",
@@ -1499,53 +1517,7 @@
                                     "objectId": "U3"
                                 }
                             },
-                            "isImplicit": true
-                        },
-                        {
-                            "objectType": "user",
-                            "objectId": "U2",
-                            "warrant": {
-                                "objectType": "document",
-                                "objectId": "F2",
-                                "relation": "editor",
-                                "subject": {
-                                    "objectType": "user",
-                                    "objectId": "U2"
-                                }
-                            },
-                            "isImplicit": true
-                        }
-                    ],
-                    "lastId": "{{ selectMembersOrViewersOfTypeUserForDocumentD5Limit3SortOrderDesc.lastId }}"
-                }
-            }
-        },
-        {
-            "name": "selectMembersOrViewersOfTypeUserLimit3SortOrderDescAfterId1",
-            "request": {
-                "method": "GET",
-                "url": "/v1/query?q=select%20member%2Cviewer%20of%20type%20user%20for%20document:D5&limit=3&sortOrder=DESC&lastId={{ selectMembersOrViewersOfTypeUserForDocumentD5Limit3SortOrderDesc.lastId }}",
-                "headers": {
-                    "Warrant-Token": "latest"
-                }
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": {
-                    "results": [
-                        {
-                            "objectType": "user",
-                            "objectId": "U1",
-                            "warrant": {
-                                "objectType": "document",
-                                "objectId": "F1",
-                                "relation": "owner",
-                                "subject": {
-                                    "objectType": "user",
-                                    "objectId": "U1"
-                                }
-                            },
-                            "isImplicit": true
+                            "isImplicit": false
                         }
                     ]
                 }

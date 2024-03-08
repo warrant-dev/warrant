@@ -100,7 +100,7 @@ func (svc QueryService) Query(ctx context.Context, query Query, listParams servi
 			}
 
 			for _, relation := range relations {
-				res, err := svc.query(ctx, Query{
+				queryResult, err := svc.query(ctx, Query{
 					Expand: query.Expand,
 					SelectObjects: &SelectObjects{
 						ObjectTypes:  []string{objectType.Type},
@@ -113,7 +113,9 @@ func (svc QueryService) Query(ctx context.Context, query Query, listParams servi
 					return nil, nil, nil, err
 				}
 
-				resultSet = resultSet.Union(res)
+				for res := queryResult.List(); res != nil; res = res.Next() {
+					resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, res.IsImplicit)
+				}
 			}
 		}
 	case query.SelectSubjects != nil:
@@ -159,7 +161,7 @@ func (svc QueryService) Query(ctx context.Context, query Query, listParams servi
 
 		for _, subjectType := range subjectTypes {
 			for _, relation := range relations {
-				res, err := svc.query(ctx, Query{
+				queryResult, err := svc.query(ctx, Query{
 					Expand: query.Expand,
 					SelectSubjects: &SelectSubjects{
 						SubjectTypes: []string{subjectType.Type},
@@ -172,7 +174,9 @@ func (svc QueryService) Query(ctx context.Context, query Query, listParams servi
 					return nil, nil, nil, err
 				}
 
-				resultSet = resultSet.Union(res)
+				for res := queryResult.List(); res != nil; res = res.Next() {
+					resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, res.IsImplicit)
+				}
 			}
 		}
 	default:
@@ -183,6 +187,7 @@ func (svc QueryService) Query(ctx context.Context, query Query, listParams servi
 		queryResults = append(queryResults, QueryResult{
 			ObjectType: res.ObjectType,
 			ObjectId:   res.ObjectId,
+			Relation:   res.Relation,
 			Warrant:    res.Warrant,
 			IsImplicit: res.IsImplicit,
 		})
@@ -358,17 +363,17 @@ func (svc QueryService) query(ctx context.Context, query Query, level int) (*Res
 
 						for _, w := range expandedWildcardWarrants {
 							if w.ObjectId != warrant.Wildcard {
-								resultSet.Add(w.ObjectType, w.ObjectId, matchedWarrant, level > 0)
+								resultSet.Add(w.ObjectType, w.ObjectId, relation, matchedWarrant, level > 0)
 							}
 						}
 					} else {
-						resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant, level > 0)
+						resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, relation, matchedWarrant, level > 0)
 					}
 				}
 			} else if query.SelectObjects.WhereSubject == nil ||
 				(matchedWarrant.Subject.ObjectType == query.SelectObjects.WhereSubject.Type &&
 					matchedWarrant.Subject.ObjectId == query.SelectObjects.WhereSubject.Id) {
-				resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, matchedWarrant, level > 0)
+				resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, relation, matchedWarrant, level > 0)
 			}
 		}
 
@@ -425,10 +430,10 @@ func (svc QueryService) query(ctx context.Context, query Query, level int) (*Res
 				}
 
 				for res := userset.List(); res != nil; res = res.Next() {
-					resultSet.Add(res.ObjectType, res.ObjectId, matchedWarrant, level > 0)
+					resultSet.Add(res.ObjectType, res.ObjectId, relation, matchedWarrant, level > 0)
 				}
 			} else if query.SelectSubjects.SubjectTypes[0] == matchedWarrant.Subject.ObjectType {
-				resultSet.Add(matchedWarrant.Subject.ObjectType, matchedWarrant.Subject.ObjectId, matchedWarrant, level > 0)
+				resultSet.Add(matchedWarrant.Subject.ObjectType, matchedWarrant.Subject.ObjectId, relation, matchedWarrant, level > 0)
 			}
 		}
 
