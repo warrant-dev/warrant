@@ -52,7 +52,7 @@ func NewService(env service.Env, objectTypeSvc objecttype.Service, warrantSvc wa
 
 func (svc QueryService) Query(ctx context.Context, query Query, listParams service.ListParams) ([]QueryResult, *service.Cursor, *service.Cursor, error) {
 	queryResults := make([]QueryResult, 0)
-	resultMap := make(map[string]int)
+	resultMap := make(map[string][]int)
 	objects := make(map[string][]string)
 	selectedObjectTypes := make(map[string]bool)
 
@@ -198,9 +198,9 @@ func (svc QueryService) Query(ctx context.Context, query Query, listParams servi
 	case PrimarySortKey:
 		switch listParams.SortOrder {
 		case service.SortOrderAsc:
-			sort.Sort(ByObjectTypeAndObjectIdAsc(queryResults))
+			sort.Sort(ByObjectTypeAndObjectIdAndRelationAsc(queryResults))
 		case service.SortOrderDesc:
-			sort.Sort(ByObjectTypeAndObjectIdDesc(queryResults))
+			sort.Sort(ByObjectTypeAndObjectIdAndRelationDesc(queryResults))
 		}
 	case "createdAt":
 		switch listParams.SortOrder {
@@ -285,7 +285,9 @@ func (svc QueryService) Query(ctx context.Context, query Query, listParams servi
 		paginatedQueryResults = append(paginatedQueryResults, paginatedQueryResult)
 		selectedObjectTypes[paginatedQueryResult.ObjectType] = true
 		objects[paginatedQueryResult.ObjectType] = append(objects[paginatedQueryResult.ObjectType], paginatedQueryResult.ObjectId)
-		resultMap[objectKey(paginatedQueryResult.ObjectType, paginatedQueryResult.ObjectId)] = len(paginatedQueryResults) - 1
+
+		objKey := objectKey(paginatedQueryResult.ObjectType, paginatedQueryResult.ObjectId)
+		resultMap[objKey] = append(resultMap[objKey], len(paginatedQueryResults)-1)
 		start++
 	}
 
@@ -297,7 +299,9 @@ func (svc QueryService) Query(ctx context.Context, query Query, listParams servi
 			}
 
 			for _, objectSpec := range objectSpecs {
-				paginatedQueryResults[resultMap[objectKey(selectedObjectType, objectSpec.ObjectId)]].Meta = objectSpec.Meta
+				for _, resultIdx := range resultMap[objectKey(selectedObjectType, objectSpec.ObjectId)] {
+					paginatedQueryResults[resultIdx].Meta = objectSpec.Meta
+				}
 			}
 		}
 	}

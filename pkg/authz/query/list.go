@@ -48,23 +48,29 @@ func (parser QueryListParamParser) ParseValue(val string, sortBy string) (interf
 	}
 }
 
-type ByObjectTypeAndObjectIdAsc []QueryResult
+type ByObjectTypeAndObjectIdAndRelationAsc []QueryResult
 
-func (res ByObjectTypeAndObjectIdAsc) Len() int      { return len(res) }
-func (res ByObjectTypeAndObjectIdAsc) Swap(i, j int) { res[i], res[j] = res[j], res[i] }
-func (res ByObjectTypeAndObjectIdAsc) Less(i, j int) bool {
+func (res ByObjectTypeAndObjectIdAndRelationAsc) Len() int      { return len(res) }
+func (res ByObjectTypeAndObjectIdAndRelationAsc) Swap(i, j int) { res[i], res[j] = res[j], res[i] }
+func (res ByObjectTypeAndObjectIdAndRelationAsc) Less(i, j int) bool {
 	if res[i].ObjectType == res[j].ObjectType {
+		if res[i].ObjectId == res[j].ObjectId {
+			return res[i].Relation < res[j].Relation
+		}
 		return res[i].ObjectId < res[j].ObjectId
 	}
 	return res[i].ObjectType < res[j].ObjectType
 }
 
-type ByObjectTypeAndObjectIdDesc []QueryResult
+type ByObjectTypeAndObjectIdAndRelationDesc []QueryResult
 
-func (res ByObjectTypeAndObjectIdDesc) Len() int      { return len(res) }
-func (res ByObjectTypeAndObjectIdDesc) Swap(i, j int) { res[i], res[j] = res[j], res[i] }
-func (res ByObjectTypeAndObjectIdDesc) Less(i, j int) bool {
+func (res ByObjectTypeAndObjectIdAndRelationDesc) Len() int      { return len(res) }
+func (res ByObjectTypeAndObjectIdAndRelationDesc) Swap(i, j int) { res[i], res[j] = res[j], res[i] }
+func (res ByObjectTypeAndObjectIdAndRelationDesc) Less(i, j int) bool {
 	if res[i].ObjectType == res[j].ObjectType {
+		if res[i].ObjectId == res[j].ObjectId {
+			return res[i].Relation > res[j].Relation
+		}
 		return res[i].ObjectId > res[j].ObjectId
 	}
 	return res[i].ObjectType > res[j].ObjectType
