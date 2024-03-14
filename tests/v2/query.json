@@ -1144,6 +1144,578 @@
             }
         },
         {
+            "name": "selectDocumentsWhereUserU3IsAnything",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20document%20where%20user:U3%20is%20*",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "document",
+                            "objectId": "D4",
+                            "relation": "viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "D4",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "document",
+                                    "objectId": "F3"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D5",
+                            "relation": "viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "D5",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "document",
+                                    "objectId": "F3"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D6",
+                            "relation": "editor",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "D6",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "U3"
+                                }
+                            },
+                            "isImplicit": true,
+                            "meta": {
+                                "name": "Document 6",
+                                "title": "This is user:U3's document."
+                            }
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D6",
+                            "relation": "editor-viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "D6",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "U3"
+                                }
+                            },
+                            "isImplicit": true,
+                            "meta": {
+                                "name": "Document 6",
+                                "title": "This is user:U3's document."
+                            }
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D6",
+                            "relation": "owner",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "D6",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "U3"
+                                }
+                            },
+                            "isImplicit": false,
+                            "meta": {
+                                "name": "Document 6",
+                                "title": "This is user:U3's document."
+                            }
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D6",
+                            "relation": "viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "D6",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "U3"
+                                }
+                            },
+                            "isImplicit": true,
+                            "meta": {
+                                "name": "Document 6",
+                                "title": "This is user:U3's document."
+                            }
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "F3",
+                            "relation": "viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "F3",
+                                "relation": "viewer",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "U3"
+                                }
+                            },
+                            "isImplicit": false
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "selectDocumentsWhereUserU4IsAnything",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20document%20where%20user:U4%20is%20*",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "document",
+                            "objectId": "D1",
+                            "relation": "editor",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D1",
+                            "relation": "editor-viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D1",
+                            "relation": "owner",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": false
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D1",
+                            "relation": "viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D2",
+                            "relation": "editor",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D2",
+                            "relation": "editor-viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D2",
+                            "relation": "owner",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": false
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D2",
+                            "relation": "viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D3",
+                            "relation": "editor",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D3",
+                            "relation": "editor-viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D3",
+                            "relation": "owner",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": false
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D3",
+                            "relation": "viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D4",
+                            "relation": "editor",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D4",
+                            "relation": "editor-viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D4",
+                            "relation": "owner",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": false
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D4",
+                            "relation": "viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D5",
+                            "relation": "editor",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D5",
+                            "relation": "editor-viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D5",
+                            "relation": "owner",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": false
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D5",
+                            "relation": "viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D6",
+                            "relation": "editor",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true,
+                            "meta": {
+                                "name": "Document 6",
+                                "title": "This is user:U3's document."
+                            }
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D6",
+                            "relation": "editor-viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true,
+                            "meta": {
+                                "name": "Document 6",
+                                "title": "This is user:U3's document."
+                            }
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D6",
+                            "relation": "owner",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": false,
+                            "meta": {
+                                "name": "Document 6",
+                                "title": "This is user:U3's document."
+                            }
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "D6",
+                            "relation": "viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true,
+                            "meta": {
+                                "name": "Document 6",
+                                "title": "This is user:U3's document."
+                            }
+                        },
+                        {
+                            "objectType": "document",
+                            "objectId": "F1",
+                            "relation": "editor",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "*",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin",
+                                    "relation": "member"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ],
+                    "nextCursor": "{{ selectDocumentsWhereUserU4IsAnything.nextCursor }}"
+                }
+            }
+        },
+        {
             "name": "selectDocumentsWhereUserU4IsViewer",
             "request": {
                 "method": "GET",
