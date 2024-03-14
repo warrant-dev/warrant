@@ -198,9 +198,9 @@ func (svc QueryService) Query(ctx context.Context, query Query, listParams servi
 	case PrimarySortKey:
 		switch listParams.SortOrder {
 		case service.SortOrderAsc:
-			sort.Sort(ByObjectTypeAndObjectIdAsc(queryResults))
+			sort.Sort(ByObjectTypeAndObjectIdAndRelationAsc(queryResults))
 		case service.SortOrderDesc:
-			sort.Sort(ByObjectTypeAndObjectIdDesc(queryResults))
+			sort.Sort(ByObjectTypeAndObjectIdAndRelationDesc(queryResults))
 		}
 	case "createdAt":
 		switch listParams.SortOrder {
