@@ -49,32 +49,33 @@ func (rs *ResultSet) List() *ResultSetNode {
 }
 
 func (rs *ResultSet) Add(objectType string, objectId string, relation string, warrant warrant.WarrantSpec, isImplicit bool) {
-	newNode := &ResultSetNode{
-		ObjectType: objectType,
-		ObjectId:   objectId,
-		Relation:   relation,
-		Warrant:    warrant,
-		IsImplicit: isImplicit,
-		next:       nil,
-	}
-
 	existingRes, exists := rs.m[key(objectType, objectId, relation)]
 	if !exists {
+		newNode := ResultSetNode{
+			ObjectType: objectType,
+			ObjectId:   objectId,
+			Relation:   relation,
+			Warrant:    warrant,
+			IsImplicit: isImplicit,
+			next:       nil,
+		}
+
 		// Add warrant to list
 		if rs.head == nil {
-			rs.head = newNode
+			rs.head = &newNode
 		}
 
 		if rs.tail != nil {
-			rs.tail.next = newNode
+			rs.tail.next = &newNode
 		}
 
-		rs.tail = newNode
-	}
+		rs.tail = &newNode
 
-	if !exists || (existingRes.IsImplicit && !isImplicit) {
 		// Add result node to map for O(1) lookups
-		rs.m[key(objectType, objectId, relation)] = newNode
+		rs.m[key(objectType, objectId, relation)] = &newNode
+	} else if existingRes.IsImplicit && !isImplicit { // favor explicit results
+		existingRes.IsImplicit = isImplicit
+		existingRes.Warrant = warrant
 	}
 }
 
