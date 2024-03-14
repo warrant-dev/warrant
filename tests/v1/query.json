@@ -523,6 +523,7 @@
                         {
                             "objectType": "document",
                             "objectId": "F3",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "F3",
@@ -554,6 +555,7 @@
                         {
                             "objectType": "user",
                             "objectId": "U3",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "F3",
@@ -585,6 +587,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D4",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "D4",
@@ -599,6 +602,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D5",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "D5",
@@ -613,6 +617,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D6",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "D6",
@@ -631,6 +636,7 @@
                         {
                             "objectType": "document",
                             "objectId": "F3",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "F3",
@@ -662,6 +668,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D1",
+                            "relation": "editor-viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "D1",
@@ -676,6 +683,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D2",
+                            "relation": "editor-viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "D2",
@@ -690,6 +698,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D3",
+                            "relation": "editor-viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "D3",
@@ -704,6 +713,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D4",
+                            "relation": "editor-viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "D4",
@@ -718,6 +728,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D5",
+                            "relation": "editor-viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "D5",
@@ -732,6 +743,7 @@
                         {
                             "objectType": "document",
                             "objectId": "F1",
+                            "relation": "editor-viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "F1",
@@ -746,6 +758,7 @@
                         {
                             "objectType": "document",
                             "objectId": "F2",
+                            "relation": "editor-viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "F2",
@@ -760,6 +773,7 @@
                         {
                             "objectType": "document",
                             "objectId": "F3",
+                            "relation": "editor-viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "F3",
@@ -791,6 +805,7 @@
                         {
                             "objectType": "user",
                             "objectId": "U3",
+                            "relation": "owner",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "D6",
@@ -805,6 +820,7 @@
                         {
                             "objectType": "user",
                             "objectId": "U4",
+                            "relation": "owner",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -837,6 +853,7 @@
                         {
                             "objectType": "user",
                             "objectId": "U1",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "F1",
@@ -851,6 +868,7 @@
                         {
                             "objectType": "user",
                             "objectId": "U2",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "F2",
@@ -865,6 +883,7 @@
                         {
                             "objectType": "user",
                             "objectId": "U3",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "F3",
@@ -879,6 +898,7 @@
                         {
                             "objectType": "user",
                             "objectId": "U4",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -911,6 +931,7 @@
                         {
                             "objectType": "user",
                             "objectId": "U1",
+                            "relation": "editor-viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "F1",
@@ -925,6 +946,7 @@
                         {
                             "objectType": "user",
                             "objectId": "U2",
+                            "relation": "editor-viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "F2",
@@ -939,6 +961,7 @@
                         {
                             "objectType": "user",
                             "objectId": "U4",
+                            "relation": "editor-viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -971,6 +994,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D1",
+                            "relation": "owner",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -986,6 +1010,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D2",
+                            "relation": "owner",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1001,6 +1026,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D3",
+                            "relation": "owner",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1016,6 +1042,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D4",
+                            "relation": "owner",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1031,6 +1058,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D5",
+                            "relation": "owner",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1046,6 +1074,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D6",
+                            "relation": "owner",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1065,6 +1094,7 @@
                         {
                             "objectType": "document",
                             "objectId": "F1",
+                            "relation": "owner",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1080,6 +1110,7 @@
                         {
                             "objectType": "document",
                             "objectId": "F2",
+                            "relation": "owner",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1095,6 +1126,7 @@
                         {
                             "objectType": "document",
                             "objectId": "F3",
+                            "relation": "owner",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1127,6 +1159,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D1",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1142,6 +1175,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D2",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1157,6 +1191,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D3",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1172,6 +1207,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D4",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1187,6 +1223,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D5",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1202,6 +1239,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D6",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1221,6 +1259,7 @@
                         {
                             "objectType": "document",
                             "objectId": "F1",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1236,6 +1275,7 @@
                         {
                             "objectType": "document",
                             "objectId": "F2",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1251,6 +1291,7 @@
                         {
                             "objectType": "document",
                             "objectId": "F3",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1283,6 +1324,7 @@
                         {
                             "objectType": "document",
                             "objectId": "F3",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1298,6 +1340,7 @@
                         {
                             "objectType": "document",
                             "objectId": "F2",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1313,6 +1356,7 @@
                         {
                             "objectType": "document",
                             "objectId": "F1",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1346,6 +1390,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D6",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1365,6 +1410,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D5",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1380,6 +1426,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D4",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1413,6 +1460,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D3",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1428,6 +1476,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D2",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1443,6 +1492,7 @@
                         {
                             "objectType": "document",
                             "objectId": "D1",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1475,6 +1525,7 @@
                         {
                             "objectType": "user",
                             "objectId": "U4",
+                            "relation": "owner",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "*",
@@ -1508,6 +1559,7 @@
                         {
                             "objectType": "user",
                             "objectId": "U3",
+                            "relation": "viewer",
                             "warrant": {
                                 "objectType": "document",
                                 "objectId": "F3",
