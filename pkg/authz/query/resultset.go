@@ -99,11 +99,9 @@ func (rs *ResultSet) Union(other *ResultSet) *ResultSet {
 	}
 
 	for iter := other.List(); iter != nil; iter = iter.Next() {
-		isImplicit := iter.IsImplicit
-		if resultSet.Has(iter.ObjectType, iter.ObjectId, iter.Relation) {
-			isImplicit = isImplicit && resultSet.Get(iter.ObjectType, iter.ObjectId, iter.Relation).IsImplicit
+		if !resultSet.Has(iter.ObjectType, iter.ObjectId, iter.Relation) || !iter.IsImplicit {
+			resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, iter.IsImplicit)
 		}
-		resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, isImplicit)
 	}
 
 	return resultSet
@@ -112,10 +110,13 @@ func (rs *ResultSet) Union(other *ResultSet) *ResultSet {
 func (rs *ResultSet) Intersect(other *ResultSet) *ResultSet {
 	resultSet := NewResultSet()
 	for iter := rs.List(); iter != nil; iter = iter.Next() {
-		isImplicit := iter.IsImplicit
 		if other.Has(iter.ObjectType, iter.ObjectId, iter.Relation) {
-			isImplicit = isImplicit || other.Get(iter.ObjectType, iter.ObjectId, iter.Relation).IsImplicit
-			resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, isImplicit)
+			otherRes := other.Get(iter.ObjectType, iter.ObjectId, iter.Relation)
+			if !otherRes.IsImplicit {
+				resultSet.Add(otherRes.ObjectType, otherRes.ObjectId, otherRes.Relation, otherRes.Warrant, otherRes.IsImplicit)
+			} else {
+				resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, iter.IsImplicit)
+			}
 		}
 	}
 
@@ -125,7 +126,11 @@ func (rs *ResultSet) Intersect(other *ResultSet) *ResultSet {
 func (rs *ResultSet) String() string {
 	var strs []string
 	for iter := rs.List(); iter != nil; iter = iter.Next() {
-		strs = append(strs, fmt.Sprintf("%s => %s", key(iter.ObjectType, iter.ObjectId, iter.Relation), iter.Warrant.String()))
+		if iter.IsImplicit {
+			strs = append(strs, fmt.Sprintf("%s => %s [implicit]", key(iter.ObjectType, iter.ObjectId, iter.Relation), iter.Warrant.String()))
+		} else {
+			strs = append(strs, fmt.Sprintf("%s => %s", key(iter.ObjectType, iter.ObjectId, iter.Relation), iter.Warrant.String()))
+		}
 	}
 
 	return strings.Join(strs, ", ")
