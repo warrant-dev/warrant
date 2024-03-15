@@ -3076,6 +3076,254 @@
             "expectedResponse": {
                 "statusCode": 200
             }
+        },
+        {
+            "name": "assignUserRoadrunnerAsAdminOfTenantAcme",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "tenant",
+                    "objectId": "acme",
+                    "relation": "admin",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "road-runner"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "tenant",
+                    "objectId": "acme",
+                    "relation": "admin",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "road-runner"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignUserWileyAsMemberOfTenantAcme",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "tenant",
+                    "objectId": "acme",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "wiley"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "tenant",
+                    "objectId": "acme",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "wiley"
+                    }
+                }
+            }
+        },
+        {
+            "name": "selectTenantWhereUserRoadrunnerIsAnything",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20tenant%20where%20user:road-runner%20is%20*"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "tenant",
+                            "objectId": "acme",
+                            "relation": "admin",
+                            "warrant": {
+                                "objectType": "tenant",
+                                "objectId": "acme",
+                                "relation": "admin",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "road-runner"
+                                }
+                            },
+                            "isImplicit": false
+                        },
+                        {
+                            "objectType": "tenant",
+                            "objectId": "acme",
+                            "relation": "manager",
+                            "warrant": {
+                                "objectType": "tenant",
+                                "objectId": "acme",
+                                "relation": "admin",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "road-runner"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "tenant",
+                            "objectId": "acme",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "tenant",
+                                "objectId": "acme",
+                                "relation": "admin",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "road-runner"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "selectTenantWhereUserRoadrunnerIsManager",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20tenant%20where%20user:road-runner%20is%20manager"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "tenant",
+                            "objectId": "acme",
+                            "relation": "manager",
+                            "warrant": {
+                                "objectType": "tenant",
+                                "objectId": "acme",
+                                "relation": "admin",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "road-runner"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "selectAnythingOfTypeUserForTenantAcme",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20*%20of%20type%20user%20for%20tenant:acme"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "user",
+                            "objectId": "road-runner",
+                            "relation": "admin",
+                            "warrant": {
+                                "objectType": "tenant",
+                                "objectId": "acme",
+                                "relation": "admin",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "road-runner"
+                                }
+                            },
+                            "isImplicit": false
+                        },
+                        {
+                            "objectType": "user",
+                            "objectId": "road-runner",
+                            "relation": "manager",
+                            "warrant": {
+                                "objectType": "tenant",
+                                "objectId": "acme",
+                                "relation": "admin",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "road-runner"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "user",
+                            "objectId": "road-runner",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "tenant",
+                                "objectId": "acme",
+                                "relation": "admin",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "road-runner"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "user",
+                            "objectId": "wiley",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "tenant",
+                                "objectId": "acme",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "wiley"
+                                }
+                            },
+                            "isImplicit": false
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "deleteTenantAcme",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/tenant/acme"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserRoadrunner",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/road-runner"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserWiley",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/wiley"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
         }
     ]
 }
