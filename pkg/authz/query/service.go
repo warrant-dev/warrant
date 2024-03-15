@@ -222,25 +222,25 @@ func (svc QueryService) Query(ctx context.Context, query Query, listParams servi
 	paginatedQueryResults := make([]QueryResult, 0)
 	//nolint:gocritic
 	if listParams.NextCursor != nil { // seek forward if NextCursor passed in
-		lastObjectType, lastObjectId, err := objectTypeAndObjectIdFromCursor(listParams.NextCursor)
+		lastObjectType, lastObjectId, lastRelation, err := objectTypeAndObjectIdAndRelationFromCursor(listParams.NextCursor)
 		if err != nil {
 			return nil, nil, nil, service.NewInvalidParameterError("nextCursor", "invalid cursor")
 		}
 
 		start = 0
-		for start < len(queryResults) && (queryResults[start].ObjectType != lastObjectType || queryResults[start].ObjectId != lastObjectId) {
+		for start < len(queryResults) && (queryResults[start].ObjectType != lastObjectType || queryResults[start].ObjectId != lastObjectId || queryResults[start].Relation != lastRelation) {
 			start++
 		}
 
 		end = start + listParams.Limit
 	} else if listParams.PrevCursor != nil { // seek backward if PrevCursor passed in
-		lastObjectType, lastObjectId, err := objectTypeAndObjectIdFromCursor(listParams.PrevCursor)
+		lastObjectType, lastObjectId, lastRelation, err := objectTypeAndObjectIdAndRelationFromCursor(listParams.PrevCursor)
 		if err != nil {
 			return nil, nil, nil, service.NewInvalidParameterError("prevCursor", "invalid cursor")
 		}
 
 		end = len(queryResults) - 1
-		for end > 0 && (queryResults[end].ObjectType != lastObjectType || queryResults[end].ObjectId != lastObjectId) {
+		for end > 0 && (queryResults[end].ObjectType != lastObjectType || queryResults[end].ObjectId != lastObjectId || queryResults[end].Relation != lastRelation) {
 			end--
 		}
 
@@ -262,7 +262,7 @@ func (svc QueryService) Query(ctx context.Context, query Query, listParams servi
 			value = queryResults[start].Meta[listParams.SortBy]
 		}
 
-		prevCursor = service.NewCursor(objectKey(queryResults[start].ObjectType, queryResults[start].ObjectId), value)
+		prevCursor = service.NewCursor(objectRelationKey(queryResults[start].ObjectType, queryResults[start].ObjectId, queryResults[start].Relation), value)
 	}
 
 	// if there are more results forward
@@ -277,7 +277,7 @@ func (svc QueryService) Query(ctx context.Context, query Query, listParams servi
 			value = queryResults[end].Meta[listParams.SortBy]
 		}
 
-		nextCursor = service.NewCursor(objectKey(queryResults[end].ObjectType, queryResults[end].ObjectId), value)
+		nextCursor = service.NewCursor(objectRelationKey(queryResults[end].ObjectType, queryResults[end].ObjectId, queryResults[end].Relation), value)
 	}
 
 	for start < end && start < len(queryResults) {
@@ -628,11 +628,20 @@ func objectKey(objectType string, objectId string) string {
 	return fmt.Sprintf("%s:%s", objectType, objectId)
 }
 
-func objectTypeAndObjectIdFromCursor(cursor *service.Cursor) (string, string, error) {
-	objectType, objectId, found := strings.Cut(cursor.ID(), ":")
+func objectRelationKey(objectType string, objectId string, relation string) string {
+	return fmt.Sprintf("%s:%s#%s", objectType, objectId, relation)
+}
+
+func objectTypeAndObjectIdAndRelationFromCursor(cursor *service.Cursor) (string, string, string, error) {
+	objectType, objectIdRelation, found := strings.Cut(cursor.ID(), ":")
 	if !found {
-		return "", "", errors.New("invalid cursor")
+		return "", "", "", errors.New("invalid cursor")
 	}
 
-	return objectType, objectId, nil
+	objectId, relation, found := strings.Cut(objectIdRelation, "#")
+	if !found {
+		return "", "", "", errors.New("invalid cursor")
+	}
+
+	return objectType, objectId, relation, nil
 }
