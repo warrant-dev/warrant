@@ -21,6 +21,7 @@ type Route interface {
 	GetMethod() string
 	GetHandler() http.Handler
 	GetOverrideAuthMiddlewareFunc() AuthMiddlewareFunc
+	GetDisableAuth() bool
 }
 
 type WarrantRoute struct {
@@ -28,6 +29,7 @@ type WarrantRoute struct {
 	Method                     string
 	Handler                    http.Handler
 	OverrideAuthMiddlewareFunc AuthMiddlewareFunc
+	DisableAuth                bool
 }
 
 func (route WarrantRoute) GetPattern() string {
@@ -44,4 +46,8 @@ func (route WarrantRoute) GetHandler() http.Handler {
 
 func (route WarrantRoute) GetOverrideAuthMiddlewareFunc() AuthMiddlewareFunc {
 	return route.OverrideAuthMiddlewareFunc
+}
+
+func (route WarrantRoute) GetDisableAuth() bool {
+	return route.DisableAuth
 }
