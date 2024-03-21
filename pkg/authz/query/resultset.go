@@ -108,28 +108,28 @@ func (rs *ResultSet) Union(other *ResultSet) *ResultSet {
 }
 
 func (rs *ResultSet) Intersect(other *ResultSet) *ResultSet {
-	resultSet := NewResultSet()
-	var iter *ResultSetNode
+	result := NewResultSet()
+	var a, b *ResultSet
 	if rs.Len() < other.Len() {
-		iter = rs.List()
+		a = rs
+		b = other
 	} else {
-		iter = other.List()
+		a = other
+		b = rs
 	}
 
-	for iter != nil {
-		if other.Has(iter.ObjectType, iter.ObjectId, iter.Relation) {
-			otherRes := other.Get(iter.ObjectType, iter.ObjectId, iter.Relation)
-			if !otherRes.IsImplicit {
-				resultSet.Add(otherRes.ObjectType, otherRes.ObjectId, otherRes.Relation, otherRes.Warrant, otherRes.IsImplicit)
+	for iter := a.List(); iter != nil; iter = iter.Next() {
+		if b.Has(iter.ObjectType, iter.ObjectId, iter.Relation) {
+			bRes := b.Get(iter.ObjectType, iter.ObjectId, iter.Relation)
+			if !bRes.IsImplicit {
+				result.Add(bRes.ObjectType, bRes.ObjectId, bRes.Relation, bRes.Warrant, bRes.IsImplicit)
 			} else {
-				resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, iter.IsImplicit)
+				result.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, iter.IsImplicit)
 			}
 		}
-
-		iter = iter.Next()
 	}
 
-	return resultSet
+	return result
 }
 
 func (rs *ResultSet) String() string {
