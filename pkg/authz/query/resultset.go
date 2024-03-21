@@ -109,7 +109,14 @@ func (rs *ResultSet) Union(other *ResultSet) *ResultSet {
 
 func (rs *ResultSet) Intersect(other *ResultSet) *ResultSet {
 	resultSet := NewResultSet()
-	for iter := rs.List(); iter != nil; iter = iter.Next() {
+	var iter *ResultSetNode
+	if rs.Len() < other.Len() {
+		iter = rs.List()
+	} else {
+		iter = other.List()
+	}
+
+	for iter != nil {
 		if other.Has(iter.ObjectType, iter.ObjectId, iter.Relation) {
 			otherRes := other.Get(iter.ObjectType, iter.ObjectId, iter.Relation)
 			if !otherRes.IsImplicit {
@@ -118,6 +125,8 @@ func (rs *ResultSet) Intersect(other *ResultSet) *ResultSet {
 				resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, iter.IsImplicit)
 			}
 		}
+
+		iter = iter.Next()
 	}
 
 	return resultSet
