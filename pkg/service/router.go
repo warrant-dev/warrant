@@ -96,13 +96,16 @@ func NewRouter(config config.Config, pathPrefix string, routes []Route, authMidd
 		middlewareWrappedHandler := ChainMiddleware(route.GetHandler(), requestMiddlewares...)
 
 		var err error
-		if route.GetOverrideAuthMiddlewareFunc() != nil {
-			middlewareWrappedHandler, err = route.GetOverrideAuthMiddlewareFunc()(config, middlewareWrappedHandler)
-		} else {
-			middlewareWrappedHandler, err = authMiddleware(config, middlewareWrappedHandler)
-		}
-		if err != nil {
-			return nil, err
+		if !route.GetDisableAuth() {
+			if route.GetOverrideAuthMiddlewareFunc() != nil {
+				middlewareWrappedHandler, err = route.GetOverrideAuthMiddlewareFunc()(config, middlewareWrappedHandler)
+			} else {
+				middlewareWrappedHandler, err = authMiddleware(config, middlewareWrappedHandler)
+			}
+
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		router.Handle(routePattern, middlewareWrappedHandler).Methods(route.GetMethod())
