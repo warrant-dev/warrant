@@ -21,13 +21,6 @@ import (
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 )
 
-type MergeOp int
-
-const (
-	MergeOpAnd MergeOp = iota
-	MergeOpOr  MergeOp = iota
-)
-
 type ResultSetNode struct {
 	ObjectType string
 	ObjectId   string
@@ -56,7 +49,7 @@ func (rs *ResultSet) List() *ResultSetNode {
 	return rs.head
 }
 
-func (rs *ResultSet) Add(objectType string, objectId string, relation string, warrant warrant.WarrantSpec, policy warrant.Policy, isImplicit bool, mergeOp MergeOp) {
+func (rs *ResultSet) Add(objectType string, objectId string, relation string, warrant warrant.WarrantSpec, policy warrant.Policy, isImplicit bool) {
 	existingRes, exists := rs.m[key(objectType, objectId, relation)]
 	if !exists {
 		newNode := ResultSetNode{
@@ -90,15 +83,7 @@ func (rs *ResultSet) Add(objectType string, objectId string, relation string, wa
 			existingRes.Policy = policy
 		}
 
-		if existingRes.Policy != "" {
-			if mergeOp == MergeOpAnd {
-				existingRes.Policy = existingRes.Policy.And(policy)
-			} else if existingRes.Policy != "" {
-				existingRes.Policy = existingRes.Policy.Or(policy)
-			}
-		} else {
-			existingRes.Policy = policy
-		}
+		existingRes.Policy = existingRes.Policy.Or(policy)
 	}
 }
 
@@ -118,11 +103,11 @@ func (rs *ResultSet) Has(objectType string, objectId string, relation string) bo
 func (rs *ResultSet) Union(other *ResultSet) *ResultSet {
 	resultSet := NewResultSet()
 	for iter := rs.List(); iter != nil; iter = iter.Next() {
-		resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, iter.Policy, iter.IsImplicit, MergeOpOr)
+		resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, iter.Policy, iter.IsImplicit)
 	}
 
 	for iter := other.List(); iter != nil; iter = iter.Next() {
-		resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, iter.Policy, iter.IsImplicit, MergeOpOr)
+		resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, iter.Policy, iter.IsImplicit)
 	}
 
 	return resultSet
@@ -142,11 +127,14 @@ func (rs *ResultSet) Intersect(other *ResultSet) *ResultSet {
 	for iter := a.List(); iter != nil; iter = iter.Next() {
 		if b.Has(iter.ObjectType, iter.ObjectId, iter.Relation) {
 			bRes := b.Get(iter.ObjectType, iter.ObjectId, iter.Relation)
-			if !bRes.IsImplicit {
-				result.Add(bRes.ObjectType, bRes.ObjectId, bRes.Relation, bRes.Warrant, bRes.Policy, bRes.IsImplicit, MergeOpAnd)
-			} else {
-				result.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, iter.Policy, iter.IsImplicit, MergeOpAnd)
-			}
+			result.Add(
+				iter.ObjectType,
+				iter.ObjectId,
+				iter.Relation,
+				iter.Warrant,
+				iter.Policy.And(bRes.Policy),
+				bRes.IsImplicit || iter.IsImplicit,
+			)
 		}
 	}
 
