@@ -21,11 +21,19 @@ import (
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
 )
 
+type MergeOp int
+
+const (
+	MergeOpAnd MergeOp = iota
+	MergeOpOr  MergeOp = iota
+)
+
 type ResultSetNode struct {
 	ObjectType string
 	ObjectId   string
 	Relation   string
 	Warrant    warrant.WarrantSpec
+	Policy     warrant.Policy
 	IsImplicit bool
 	next       *ResultSetNode
 }
@@ -48,7 +56,7 @@ func (rs *ResultSet) List() *ResultSetNode {
 	return rs.head
 }
 
-func (rs *ResultSet) Add(objectType string, objectId string, relation string, warrant warrant.WarrantSpec, isImplicit bool) {
+func (rs *ResultSet) Add(objectType string, objectId string, relation string, warrant warrant.WarrantSpec, policy warrant.Policy, isImplicit bool, mergeOp MergeOp) {
 	existingRes, exists := rs.m[key(objectType, objectId, relation)]
 	if !exists {
 		newNode := ResultSetNode{
@@ -56,6 +64,7 @@ func (rs *ResultSet) Add(objectType string, objectId string, relation string, wa
 			ObjectId:   objectId,
 			Relation:   relation,
 			Warrant:    warrant,
+			Policy:     policy,
 			IsImplicit: isImplicit,
 			next:       nil,
 		}
@@ -73,9 +82,23 @@ func (rs *ResultSet) Add(objectType string, objectId string, relation string, wa
 
 		// Add result node to map for O(1) lookups
 		rs.m[key(objectType, objectId, relation)] = &newNode
-	} else if existingRes.IsImplicit && !isImplicit { // favor explicit results
-		existingRes.IsImplicit = isImplicit
-		existingRes.Warrant = warrant
+	} else {
+		// favor explicit results
+		if existingRes.IsImplicit && !isImplicit {
+			existingRes.IsImplicit = isImplicit
+			existingRes.Warrant = warrant
+			existingRes.Policy = policy
+		}
+
+		if existingRes.Policy != "" {
+			if mergeOp == MergeOpAnd {
+				existingRes.Policy = existingRes.Policy.And(policy)
+			} else if existingRes.Policy != "" {
+				existingRes.Policy = existingRes.Policy.Or(policy)
+			}
+		} else {
+			existingRes.Policy = policy
+		}
 	}
 }
 
@@ -95,13 +118,11 @@ func (rs *ResultSet) Has(objectType string, objectId string, relation string) bo
 func (rs *ResultSet) Union(other *ResultSet) *ResultSet {
 	resultSet := NewResultSet()
 	for iter := rs.List(); iter != nil; iter = iter.Next() {
-		resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, iter.IsImplicit)
+		resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, iter.Policy, iter.IsImplicit, MergeOpOr)
 	}
 
 	for iter := other.List(); iter != nil; iter = iter.Next() {
-		if !resultSet.Has(iter.ObjectType, iter.ObjectId, iter.Relation) || !iter.IsImplicit {
-			resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, iter.IsImplicit)
-		}
+		resultSet.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, iter.Policy, iter.IsImplicit, MergeOpOr)
 	}
 
 	return resultSet
@@ -122,9 +143,9 @@ func (rs *ResultSet) Intersect(other *ResultSet) *ResultSet {
 		if b.Has(iter.ObjectType, iter.ObjectId, iter.Relation) {
 			bRes := b.Get(iter.ObjectType, iter.ObjectId, iter.Relation)
 			if !bRes.IsImplicit {
-				result.Add(bRes.ObjectType, bRes.ObjectId, bRes.Relation, bRes.Warrant, bRes.IsImplicit)
+				result.Add(bRes.ObjectType, bRes.ObjectId, bRes.Relation, bRes.Warrant, bRes.Policy, bRes.IsImplicit, MergeOpAnd)
 			} else {
-				result.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, iter.IsImplicit)
+				result.Add(iter.ObjectType, iter.ObjectId, iter.Relation, iter.Warrant, iter.Policy, iter.IsImplicit, MergeOpAnd)
 			}
 		}
 	}
@@ -135,11 +156,14 @@ func (rs *ResultSet) Intersect(other *ResultSet) *ResultSet {
 func (rs *ResultSet) String() string {
 	var strs []string
 	for iter := rs.List(); iter != nil; iter = iter.Next() {
-		if iter.IsImplicit {
-			strs = append(strs, fmt.Sprintf("%s => %s [implicit]", key(iter.ObjectType, iter.ObjectId, iter.Relation), iter.Warrant.String()))
-		} else {
-			strs = append(strs, fmt.Sprintf("%s => %s", key(iter.ObjectType, iter.ObjectId, iter.Relation), iter.Warrant.String()))
+		resStr := fmt.Sprintf("%s => %s", key(iter.ObjectType, iter.ObjectId, iter.Relation), iter.Warrant.String())
+		if iter.Policy != "" {
+			resStr += fmt.Sprintf("[%s]", iter.Policy)
 		}
+		if iter.IsImplicit {
+			resStr += "[implicit]"
+		}
+		strs = append(strs, resStr)
 	}
 
 	return strings.Join(strs, ", ")

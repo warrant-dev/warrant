@@ -1,0 +1,1370 @@
+{
+    "ignoredFields": [
+        "createdAt"
+    ],
+    "tests": [
+        {
+            "name": "assignRoleAdminMemberOfAllRoles",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "*",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "admin"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "role",
+                    "objectId": "*",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "admin"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignRoleAdminMemberOfPermissionManageRoles",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "manage-roles",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "admin"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "manage-roles",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "admin"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignRoleManagerMemberOfPermissionCreateItem",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "create-item",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "manager"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "create-item",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "manager"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignRoleManagerMemberOfPermissionDeleteItem",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "delete-item",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "manager"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "delete-item",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "manager"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignRoleManagerMemberOfRoleAccountant",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "accountant",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "manager"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "role",
+                    "objectId": "accountant",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "manager"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignRoleAccountantMemberOfPermissionViewBalanceSheet",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "view-balance-sheet",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "accountant"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "view-balance-sheet",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "accountant"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignRoleAccountantMemberOfRoleReadOnly",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "read-only",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "accountant"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "role",
+                    "objectId": "read-only",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "accountant"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignRoleReadOnlyMemberOfPermissionViewItems",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "view-items",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "read-only"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "permission",
+                    "objectId": "view-items",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "role",
+                        "objectId": "read-only"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignUserJohnMemberOfRoleAdminOnTeam1And2",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
+                "body": {
+                    "objectType": "role",
+                    "objectId": "admin",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "john"
+                    },
+                    "policy": "team in ['team-1', 'team-2']"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "role",
+                    "objectId": "admin",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "john"
+                    },
+                    "policy": "team in ['team-1', 'team-2']"
+                }
+            }
+        },
+        {
+            "name": "assignUserJohnMemberOfRoleAdminOnTeam3",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
+                "body": {
+                    "objectType": "role",
+                    "objectId": "manager",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "john"
+                    },
+                    "policy": "team == 'team-3'"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "role",
+                    "objectId": "manager",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "john"
+                    },
+                    "policy": "team == 'team-3'"
+                }
+            }
+        },
+        {
+            "name": "assignUserJaneMemberOfRoleAccountantOnTeam1And3",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "accountant",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "jane"
+                    },
+                    "policy": "team in ['team-1', 'team-3']"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "role",
+                    "objectId": "accountant",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "jane"
+                    },
+                    "policy": "team in ['team-1', 'team-3']"
+                }
+            }
+        },
+        {
+            "name": "assignUserJaneMemberOfRoleReadOnlyOnTeam2",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "read-only",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "jane"
+                    },
+                    "policy": "team == 'team-2'"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "role",
+                    "objectId": "read-only",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "jane"
+                    },
+                    "policy": "team == 'team-2'"
+                }
+            }
+        },
+        {
+            "name": "assignUserJamesMemberOfRoleAdminOnTeam1",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "admin",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "james"
+                    },
+                    "policy": "team == 'team-1'"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "role",
+                    "objectId": "admin",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "james"
+                    },
+                    "policy": "team == 'team-1'"
+                }
+            }
+        },
+        {
+            "name": "assignUserJamesMemberOfRoleManagerOnTeam2",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "manager",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "james"
+                    },
+                    "policy": "team == 'team-2'"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "role",
+                    "objectId": "manager",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "james"
+                    },
+                    "policy": "team == 'team-2'"
+                }
+            }
+        },
+        {
+            "name": "assignUserJamesMemberOfRoleReadOnlyOnTeam3",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "role",
+                    "objectId": "read-only",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "james"
+                    },
+                    "policy": "team == 'team-3'"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "role",
+                    "objectId": "read-only",
+                    "relation": "member",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "james"
+                    },
+                    "policy": "team == 'team-3'"
+                }
+            }
+        },
+        {
+            "name": "selectPermissionsWhereUserJohnIsMemberInTeam1",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20permission%20where%20user:john%20is%20member&context=%7B%22team%22%3A%22team-1%22%7D"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "permission",
+                            "objectId": "create-item",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "create-item",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "manager"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "delete-item",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "delete-item",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "manager"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "manage-roles",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "manage-roles",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "view-balance-sheet",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "view-balance-sheet",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "accountant"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "view-items",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "view-items",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "read-only"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "selectPermissionsWhereUserJohnIsMemberInTeam2",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20permission%20where%20user:john%20is%20member&context=%7B%22team%22%3A%22team-2%22%7D"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "permission",
+                            "objectId": "create-item",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "create-item",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "manager"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "delete-item",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "delete-item",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "manager"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "manage-roles",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "manage-roles",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "view-balance-sheet",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "view-balance-sheet",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "accountant"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "view-items",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "view-items",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "read-only"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "selectPermissionsWhereUserJohnIsMemberInTeam3",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20permission%20where%20user:john%20is%20member&context=%7B%22team%22%3A%22team-3%22%7D"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "permission",
+                            "objectId": "create-item",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "create-item",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "manager"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "delete-item",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "delete-item",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "manager"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "view-balance-sheet",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "view-balance-sheet",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "accountant"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "view-items",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "view-items",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "read-only"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "selectPermissionsWhereUserJaneIsMemberInTeam1",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20permission%20where%20user:jane%20is%20member&context=%7B%22team%22%3A%22team-1%22%7D"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "permission",
+                            "objectId": "view-balance-sheet",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "view-balance-sheet",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "accountant"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "view-items",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "view-items",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "read-only"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "selectPermissionsWhereUserJaneIsMemberInTeam2",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20permission%20where%20user:jane%20is%20member&context=%7B%22team%22%3A%22team-2%22%7D"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "permission",
+                            "objectId": "view-items",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "view-items",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "read-only"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "selectPermissionsWhereUserJaneIsMemberInTeam3",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20permission%20where%20user:jane%20is%20member&context=%7B%22team%22%3A%22team-3%22%7D"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "permission",
+                            "objectId": "view-balance-sheet",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "view-balance-sheet",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "accountant"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "view-items",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "view-items",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "read-only"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "selectPermissionsWhereUserJamesIsMemberInTeam1",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20permission%20where%20user:james%20is%20member&context=%7B%22team%22%3A%22team-1%22%7D"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "permission",
+                            "objectId": "create-item",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "create-item",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "manager"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "delete-item",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "delete-item",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "manager"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "manage-roles",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "manage-roles",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "admin"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "view-balance-sheet",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "view-balance-sheet",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "accountant"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "view-items",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "view-items",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "read-only"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "selectPermissionsWhereUserJamesIsMemberInTeam2",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20permission%20where%20user:james%20is%20member&context=%7B%22team%22%3A%22team-2%22%7D"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "permission",
+                            "objectId": "create-item",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "create-item",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "manager"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "delete-item",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "delete-item",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "manager"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "view-balance-sheet",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "view-balance-sheet",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "accountant"
+                                }
+                            },
+                            "isImplicit": true
+                        },
+                        {
+                            "objectType": "permission",
+                            "objectId": "view-items",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "view-items",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "read-only"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "selectPermissionsWhereUserJamesIsMemberInTeam3",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20permission%20where%20user:james%20is%20member&context=%7B%22team%22%3A%22team-3%22%7D"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "permission",
+                            "objectId": "view-items",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "permission",
+                                "objectId": "view-items",
+                                "relation": "member",
+                                "subject": {
+                                    "objectType": "role",
+                                    "objectId": "read-only"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "deleteUserJohn",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/john"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserJane",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/jane"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserJames",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/james"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteRoleAdmin",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/role/admin"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteRoleManager",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/role/manager"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteRoleAccountant",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/role/accountant"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteRoleReadOnly",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/role/read-only"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePermissionManageRoles",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/permission/manage-roles"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePermissionCreateItem",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/permission/create-item"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePermissionDeleteItem",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/permission/delete-item"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePermissionViewItems",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/permission/view-items"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePermissionViewBalanceSheet",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/permission/view-balance-sheet"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "createDocumentObjectType",
+            "request": {
+                "method": "POST",
+                "url": "/v2/object-types",
+                "body": {
+                    "type": "document",
+                    "relations": {
+                        "owner": {},
+                        "editor": {
+                            "inheritIf": "owner"
+                        },
+                        "viewer": {
+                            "inheritIf": "editor"
+                        },
+                        "editor-viewer": {
+                            "inheritIf": "allOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "editor"
+                                },
+                                {
+                                    "inheritIf": "viewer"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "document",
+                    "relations": {
+                        "owner": {},
+                        "editor": {
+                            "inheritIf": "owner"
+                        },
+                        "viewer": {
+                            "inheritIf": "editor"
+                        },
+                        "editor-viewer": {
+                            "inheritIf": "allOf",
+                            "rules": [
+                                {
+                                    "inheritIf": "editor"
+                                },
+                                {
+                                    "inheritIf": "viewer"
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignUserU1OwnerOfDocumentD1InTeamT1",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "document",
+                    "objectId": "D1",
+                    "relation": "owner",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "U1"
+                    },
+                    "policy": "team == 'T1'"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "document",
+                    "objectId": "D1",
+                    "relation": "owner",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "U1"
+                    },
+                    "policy": "team == 'T1'"
+                }
+            }
+        },
+        {
+            "name": "assignUserU2ViewerOfDocumentD1InTeamT2",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "document",
+                    "objectId": "D1",
+                    "relation": "viewer",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "U2"
+                    },
+                    "policy": "team == 'T2'"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "document",
+                    "objectId": "D1",
+                    "relation": "viewer",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "U2"
+                    },
+                    "policy": "team == 'T2'"
+                }
+            }
+        },
+        {
+            "name": "selectDocumentsWhereUserU1IsEditorViewerInTeamT1",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20document%20where%20user:U1%20is%20editor-viewer&context=%7B%22team%22%3A%22T1%22%7D"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "document",
+                            "objectId": "D1",
+                            "relation": "editor-viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "D1",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "U1"
+                                },
+                                "policy": "team == 'T1'"
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "selectDocumentsWhereUserU1IsEditorViewerInTeamT2",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20document%20where%20user:U1%20is%20editor-viewer&context=%7B%22team%22%3A%22T2%22%7D"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": []
+                }
+            }
+        },
+        {
+            "name": "selectDocumentsWhereUserU2IsEditorViewerInTeamT1",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20document%20where%20user:U2%20is%20editor-viewer&context=%7B%22team%22%3A%22T1%22%7D"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": []
+                }
+            }
+        },
+        {
+            "name": "selectDocumentsWhereUserU2IsViewerInTeamT2",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20document%20where%20user:U2%20is%20viewer&context=%7B%22team%22%3A%22T2%22%7D"
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "document",
+                            "objectId": "D1",
+                            "relation": "viewer",
+                            "warrant": {
+                                "objectType": "document",
+                                "objectId": "D1",
+                                "relation": "viewer",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "U2"
+                                },
+                                "policy": "team == 'T2'"
+                            },
+                            "isImplicit": false
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "deleteDocumentD1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/document/D1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUser1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/U1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUser2",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/U2"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectTypeDocument",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/object-types/document"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}

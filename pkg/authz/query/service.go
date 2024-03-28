@@ -114,7 +114,7 @@ func (svc QueryService) Query(ctx context.Context, query Query, listParams servi
 				}
 
 				for res := queryResult.List(); res != nil; res = res.Next() {
-					resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, res.IsImplicit)
+					resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, res.Policy, res.IsImplicit, MergeOpOr)
 				}
 			}
 		}
@@ -175,7 +175,7 @@ func (svc QueryService) Query(ctx context.Context, query Query, listParams servi
 				}
 
 				for res := queryResult.List(); res != nil; res = res.Next() {
-					resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, res.IsImplicit)
+					resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, res.Policy, res.IsImplicit, MergeOpOr)
 				}
 			}
 		}
@@ -184,13 +184,24 @@ func (svc QueryService) Query(ctx context.Context, query Query, listParams servi
 	}
 
 	for res := resultSet.List(); res != nil; res = res.Next() {
-		queryResults = append(queryResults, QueryResult{
-			ObjectType: res.ObjectType,
-			ObjectId:   res.ObjectId,
-			Relation:   res.Relation,
-			Warrant:    res.Warrant,
-			IsImplicit: res.IsImplicit,
-		})
+		var err error
+		addResult := true
+		if res.Policy != "" {
+			addResult, err = res.Policy.Eval(query.Context)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+		}
+
+		if addResult {
+			queryResults = append(queryResults, QueryResult{
+				ObjectType: res.ObjectType,
+				ObjectId:   res.ObjectId,
+				Relation:   res.Relation,
+				Warrant:    res.Warrant,
+				IsImplicit: res.IsImplicit,
+			})
+		}
 	}
 
 	// handle sorting and pagination
@@ -358,26 +369,33 @@ func (svc QueryService) query(ctx context.Context, query Query, level int) (*Res
 					}
 
 					if matchedWarrant.ObjectId == warrant.Wildcard {
-						expandedWildcardWarrants, err := svc.listWarrants(ctx, warrant.FilterParams{
-							ObjectType: matchedWarrant.ObjectType,
-						})
+						expandedObjects, err := svc.listObjectsByType(ctx, matchedWarrant.ObjectType)
 						if err != nil {
 							return nil, err
 						}
 
-						for _, w := range expandedWildcardWarrants {
-							if w.ObjectId != warrant.Wildcard {
-								resultSet.Add(w.ObjectType, w.ObjectId, relation, matchedWarrant, sub.IsImplicit || level > 0)
-							}
+						for _, obj := range expandedObjects {
+							resultSet.Add(obj.ObjectType, obj.ObjectId, relation, matchedWarrant, matchedWarrant.Policy, sub.IsImplicit || level > 0, MergeOpOr)
 						}
 					} else {
-						resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, relation, matchedWarrant, sub.IsImplicit || level > 0)
+						resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, relation, matchedWarrant, matchedWarrant.Policy, sub.IsImplicit || level > 0, MergeOpOr)
 					}
 				}
 			} else if query.SelectObjects.WhereSubject == nil ||
 				(matchedWarrant.Subject.ObjectType == query.SelectObjects.WhereSubject.Type &&
 					matchedWarrant.Subject.ObjectId == query.SelectObjects.WhereSubject.Id) {
-				resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, relation, matchedWarrant, false)
+				if matchedWarrant.ObjectId == warrant.Wildcard {
+					expandedObjects, err := svc.listObjectsByType(ctx, matchedWarrant.ObjectType)
+					if err != nil {
+						return nil, err
+					}
+
+					for _, obj := range expandedObjects {
+						resultSet.Add(obj.ObjectType, obj.ObjectId, relation, matchedWarrant, matchedWarrant.Policy, false, MergeOpOr)
+					}
+				} else {
+					resultSet.Add(matchedWarrant.ObjectType, matchedWarrant.ObjectId, relation, matchedWarrant, matchedWarrant.Policy, false, MergeOpOr)
+				}
 			}
 		}
 
@@ -388,7 +406,7 @@ func (svc QueryService) query(ctx context.Context, query Query, level int) (*Res
 			}
 
 			for res := implicitResultSet.List(); res != nil; res = res.Next() {
-				resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, res.IsImplicit || level > 0)
+				resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, res.Policy, res.IsImplicit || level > 0, MergeOpOr)
 			}
 		}
 
@@ -436,10 +454,10 @@ func (svc QueryService) query(ctx context.Context, query Query, level int) (*Res
 				}
 
 				for sub := subset.List(); sub != nil; sub = sub.Next() {
-					resultSet.Add(sub.ObjectType, sub.ObjectId, relation, matchedWarrant, sub.IsImplicit || level > 0)
+					resultSet.Add(sub.ObjectType, sub.ObjectId, relation, matchedWarrant, matchedWarrant.Policy, sub.IsImplicit || level > 0, MergeOpOr)
 				}
 			} else if query.SelectSubjects.SubjectTypes[0] == matchedWarrant.Subject.ObjectType {
-				resultSet.Add(matchedWarrant.Subject.ObjectType, matchedWarrant.Subject.ObjectId, relation, matchedWarrant, false)
+				resultSet.Add(matchedWarrant.Subject.ObjectType, matchedWarrant.Subject.ObjectId, relation, matchedWarrant, matchedWarrant.Policy, false, MergeOpOr)
 			}
 		}
 
@@ -450,7 +468,7 @@ func (svc QueryService) query(ctx context.Context, query Query, level int) (*Res
 			}
 
 			for res := implicitResultSet.List(); res != nil; res = res.Next() {
-				resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, res.IsImplicit || level > 0)
+				resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, res.Policy, res.IsImplicit || level > 0, MergeOpOr)
 			}
 		}
 
@@ -517,7 +535,7 @@ func (svc QueryService) queryRule(ctx context.Context, query Query, level int, r
 
 				resultSet := NewResultSet()
 				for res := results.List(); res != nil; res = res.Next() {
-					resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, res.IsImplicit || level > 0)
+					resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, res.Policy, res.IsImplicit || level > 0, MergeOpOr)
 				}
 
 				return resultSet, nil
@@ -538,24 +556,55 @@ func (svc QueryService) queryRule(ctx context.Context, query Query, level int, r
 						continue
 					}
 
-					inheritedResults, err := svc.query(ctx, Query{
-						Expand: query.Expand,
-						SelectObjects: &SelectObjects{
-							ObjectTypes: query.SelectObjects.ObjectTypes,
-							WhereSubject: &Resource{
-								Type: indirectWarrant.ObjectType,
-								Id:   indirectWarrant.ObjectId,
-							},
-							Relations: []string{rule.WithRelation},
-						},
-						Context: query.Context,
-					}, 0)
-					if err != nil {
-						return nil, err
-					}
+					if indirectWarrant.ObjectId == warrant.Wildcard {
+						expandedObjects, err := svc.listObjectsByType(ctx, indirectWarrant.ObjectType)
+						if err != nil {
+							return nil, err
+						}
 
-					for res := inheritedResults.List(); res != nil; res = res.Next() {
-						resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, res.IsImplicit || level > 0)
+						for _, obj := range expandedObjects {
+							if obj.ObjectId != indirectWarrant.Subject.ObjectId {
+								inheritedResults, err := svc.query(ctx, Query{
+									Expand: query.Expand,
+									SelectObjects: &SelectObjects{
+										ObjectTypes: query.SelectObjects.ObjectTypes,
+										WhereSubject: &Resource{
+											Type: obj.ObjectType,
+											Id:   obj.ObjectId,
+										},
+										Relations: []string{rule.WithRelation},
+									},
+									Context: query.Context,
+								}, 0)
+								if err != nil {
+									return nil, err
+								}
+
+								for res := inheritedResults.List(); res != nil; res = res.Next() {
+									resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, indirectWarrant.Policy.Or(res.Policy), res.IsImplicit || level > 0, MergeOpOr)
+								}
+							}
+						}
+					} else {
+						inheritedResults, err := svc.query(ctx, Query{
+							Expand: query.Expand,
+							SelectObjects: &SelectObjects{
+								ObjectTypes: query.SelectObjects.ObjectTypes,
+								WhereSubject: &Resource{
+									Type: indirectWarrant.ObjectType,
+									Id:   indirectWarrant.ObjectId,
+								},
+								Relations: []string{rule.WithRelation},
+							},
+							Context: query.Context,
+						}, 0)
+						if err != nil {
+							return nil, err
+						}
+
+						for res := inheritedResults.List(); res != nil; res = res.Next() {
+							resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, indirectWarrant.Policy.Or(res.Policy), res.IsImplicit || level > 0, MergeOpOr)
+						}
 					}
 				}
 
@@ -578,7 +627,7 @@ func (svc QueryService) queryRule(ctx context.Context, query Query, level int, r
 
 				resultSet := NewResultSet()
 				for res := results.List(); res != nil; res = res.Next() {
-					resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, res.IsImplicit || level > 0)
+					resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, res.Policy, res.IsImplicit || level > 0, MergeOpOr)
 				}
 
 				return resultSet, nil
@@ -616,7 +665,7 @@ func (svc QueryService) queryRule(ctx context.Context, query Query, level int, r
 					}
 
 					for res := subset.List(); res != nil; res = res.Next() {
-						resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, res.IsImplicit || level > 0)
+						resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, w.Policy.Or(res.Policy), res.IsImplicit || level > 0, MergeOpOr)
 					}
 				}
 
@@ -643,6 +692,30 @@ func (svc QueryService) listWarrants(ctx context.Context, filterParams warrant.F
 		}
 
 		result = append(result, warrantSpecs...)
+
+		if nextCursor == nil {
+			return result, nil
+		}
+
+		listParams.NextCursor = nextCursor
+	}
+}
+
+func (svc QueryService) listObjectsByType(ctx context.Context, objectType string) ([]object.ObjectSpec, error) {
+	var result []object.ObjectSpec
+	listParams := service.DefaultListParams(object.ObjectListParamParser{})
+	listParams.WithLimit(MaxEdges)
+	for {
+		objectSpecs, _, nextCursor, err := svc.objectSvc.List(
+			ctx,
+			&object.FilterOptions{ObjectType: objectType},
+			listParams,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, objectSpecs...)
 
 		if nextCursor == nil {
 			return result, nil
