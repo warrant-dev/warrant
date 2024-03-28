@@ -42,10 +42,18 @@ func (svc QueryService) Routes() ([]service.Route, error) {
 }
 
 func queryV1(svc QueryService, w http.ResponseWriter, r *http.Request) error {
-	queryString := r.URL.Query().Get("q")
+	queryParams := r.URL.Query()
+	queryString := queryParams.Get("q")
 	query, err := NewQueryFromString(queryString)
 	if err != nil {
 		return err
+	}
+
+	if queryParams.Has("context") {
+		err = query.WithContext(queryParams.Get("context"))
+		if err != nil {
+			return service.NewInvalidParameterError("context", "invalid")
+		}
 	}
 
 	listParams := service.GetListParamsFromContext[QueryListParamParser](r.Context())
@@ -88,10 +96,18 @@ func queryV1(svc QueryService, w http.ResponseWriter, r *http.Request) error {
 }
 
 func queryV2(svc QueryService, w http.ResponseWriter, r *http.Request) error {
-	queryString := r.URL.Query().Get("q")
+	queryParams := r.URL.Query()
+	queryString := queryParams.Get("q")
 	query, err := NewQueryFromString(queryString)
 	if err != nil {
 		return err
+	}
+
+	if queryParams.Has("context") {
+		err = query.WithContext(queryParams.Get("context"))
+		if err != nil {
+			return service.NewInvalidParameterError("context", "invalid")
+		}
 	}
 
 	listParams := service.GetListParamsFromContext[QueryListParamParser](r.Context())
