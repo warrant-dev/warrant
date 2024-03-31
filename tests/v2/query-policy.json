@@ -232,9 +232,6 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/warrants",
-                "headers": {
-                    "Warrant-Token": "latest"
-                },
                 "body": {
                     "objectType": "role",
                     "objectId": "admin",
@@ -265,9 +262,6 @@
             "request": {
                 "method": "POST",
                 "url": "/v2/warrants",
-                "headers": {
-                    "Warrant-Token": "latest"
-                },
                 "body": {
                     "objectType": "role",
                     "objectId": "manager",
@@ -447,7 +441,10 @@
             "name": "selectPermissionsWhereUserJohnIsMemberInTeam1",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20permission%20where%20user:john%20is%20member&context=%7B%22team%22%3A%22team-1%22%7D"
+                "url": "/v2/query?q=select%20permission%20where%20user:john%20is%20member&context=%7B%22team%22%3A%22team-1%22%7D",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -536,7 +533,10 @@
             "name": "selectPermissionsWhereUserJohnIsMemberInTeam2",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20permission%20where%20user:john%20is%20member&context=%7B%22team%22%3A%22team-2%22%7D"
+                "url": "/v2/query?q=select%20permission%20where%20user:john%20is%20member&context=%7B%22team%22%3A%22team-2%22%7D",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -625,7 +625,10 @@
             "name": "selectPermissionsWhereUserJohnIsMemberInTeam3",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20permission%20where%20user:john%20is%20member&context=%7B%22team%22%3A%22team-3%22%7D"
+                "url": "/v2/query?q=select%20permission%20where%20user:john%20is%20member&context=%7B%22team%22%3A%22team-3%22%7D",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -699,7 +702,10 @@
             "name": "selectPermissionsWhereUserJaneIsMemberInTeam1",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20permission%20where%20user:jane%20is%20member&context=%7B%22team%22%3A%22team-1%22%7D"
+                "url": "/v2/query?q=select%20permission%20where%20user:jane%20is%20member&context=%7B%22team%22%3A%22team-1%22%7D",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -743,7 +749,10 @@
             "name": "selectPermissionsWhereUserJaneIsMemberInTeam2",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20permission%20where%20user:jane%20is%20member&context=%7B%22team%22%3A%22team-2%22%7D"
+                "url": "/v2/query?q=select%20permission%20where%20user:jane%20is%20member&context=%7B%22team%22%3A%22team-2%22%7D",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -772,7 +781,10 @@
             "name": "selectPermissionsWhereUserJaneIsMemberInTeam3",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20permission%20where%20user:jane%20is%20member&context=%7B%22team%22%3A%22team-3%22%7D"
+                "url": "/v2/query?q=select%20permission%20where%20user:jane%20is%20member&context=%7B%22team%22%3A%22team-3%22%7D",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -816,7 +828,10 @@
             "name": "selectPermissionsWhereUserJamesIsMemberInTeam1",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20permission%20where%20user:james%20is%20member&context=%7B%22team%22%3A%22team-1%22%7D"
+                "url": "/v2/query?q=select%20permission%20where%20user:james%20is%20member&context=%7B%22team%22%3A%22team-1%22%7D",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -905,7 +920,10 @@
             "name": "selectPermissionsWhereUserJamesIsMemberInTeam2",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20permission%20where%20user:james%20is%20member&context=%7B%22team%22%3A%22team-2%22%7D"
+                "url": "/v2/query?q=select%20permission%20where%20user:james%20is%20member&context=%7B%22team%22%3A%22team-2%22%7D",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -979,7 +997,10 @@
             "name": "selectPermissionsWhereUserJamesIsMemberInTeam3",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20permission%20where%20user:james%20is%20member&context=%7B%22team%22%3A%22team-3%22%7D"
+                "url": "/v2/query?q=select%20permission%20where%20user:james%20is%20member&context=%7B%22team%22%3A%22team-3%22%7D",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1244,7 +1265,10 @@
             "name": "selectDocumentsWhereUserU1IsEditorViewerInTeamT1",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20document%20where%20user:U1%20is%20editor-viewer&context=%7B%22team%22%3A%22T1%22%7D"
+                "url": "/v2/query?q=select%20document%20where%20user:U1%20is%20editor-viewer&context=%7B%22team%22%3A%22T1%22%7D",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1274,7 +1298,10 @@
             "name": "selectDocumentsWhereUserU1IsEditorViewerInTeamT2",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20document%20where%20user:U1%20is%20editor-viewer&context=%7B%22team%22%3A%22T2%22%7D"
+                "url": "/v2/query?q=select%20document%20where%20user:U1%20is%20editor-viewer&context=%7B%22team%22%3A%22T2%22%7D",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1287,7 +1314,10 @@
             "name": "selectDocumentsWhereUserU2IsEditorViewerInTeamT1",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20document%20where%20user:U2%20is%20editor-viewer&context=%7B%22team%22%3A%22T1%22%7D"
+                "url": "/v2/query?q=select%20document%20where%20user:U2%20is%20editor-viewer&context=%7B%22team%22%3A%22T1%22%7D",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
@@ -1300,7 +1330,10 @@
             "name": "selectDocumentsWhereUserU2IsViewerInTeamT2",
             "request": {
                 "method": "GET",
-                "url": "/v2/query?q=select%20document%20where%20user:U2%20is%20viewer&context=%7B%22team%22%3A%22T2%22%7D"
+                "url": "/v2/query?q=select%20document%20where%20user:U2%20is%20viewer&context=%7B%22team%22%3A%22T2%22%7D",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
             },
             "expectedResponse": {
                 "statusCode": 200,
