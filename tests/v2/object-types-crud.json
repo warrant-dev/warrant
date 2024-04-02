@@ -40,6 +40,24 @@
             }
         },
         {
+            "name": "updateObjectTypeWithEmptyRelations",
+            "request": {
+                "method": "PUT",
+                "url": "/v2/object-types/A",
+                "body": {
+                    "type": "A",
+                    "relations": {}
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "A",
+                    "relations": {}
+                }
+            }
+        },
+        {
             "name": "deleteObjectTypeWithEmptyRelations",
             "request": {
                 "method": "DELETE",
