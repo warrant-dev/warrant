@@ -4,7 +4,7 @@
     ],
     "tests": [
         {
-            "name": "failToCreateObjectWithoutRelations",
+            "name": "failToCreateObjectTypeWithoutRelations",
             "request": {
                 "method": "POST",
                 "url": "/v2/object-types",
@@ -19,6 +19,34 @@
                     "message": "Missing required parameter relations",
                     "parameter": "relations"
                 }
+            }
+        },
+        {
+            "name": "createObjectTypeWithEmptyRelations",
+            "request": {
+                "method": "POST",
+                "url": "/v2/object-types",
+                "body": {
+                    "type": "A",
+                    "relations": {}
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "A",
+                    "relations": {}
+                }
+            }
+        },
+        {
+            "name": "deleteObjectTypeWithEmptyRelations",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/object-types/A"
+            },
+            "expectedResponse": {
+                "statusCode": 200
             }
         },
         {
