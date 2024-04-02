@@ -62,7 +62,7 @@ func (spec CreateObjectTypeSpec) ToObjectType() (*ObjectType, error) {
 type UpdateObjectTypeSpec struct {
 	Type      string                  `json:"type"` // NOTE: used internally for updates, but value from request is ignored
 	Source    *Source                 `json:"source,omitempty"`
-	Relations map[string]RelationRule `json:"relations"        validate:"required,min=1,dive"` // NOTE: map key = name of relation
+	Relations map[string]RelationRule `json:"relations"        validate:"required,dive"` // NOTE: map key = name of relation
 }
 
 func (spec *UpdateObjectTypeSpec) ToObjectType(typeId string) (*ObjectType, error) {
