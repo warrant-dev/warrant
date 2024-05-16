@@ -37,18 +37,18 @@ type Model interface {
 }
 
 type Warrant struct {
-	ID              int64      `mysql:"id" postgres:"id" sqlite:"id"`
-	ObjectType      string     `mysql:"objectType" postgres:"object_type" sqlite:"objectType"`
-	ObjectId        string     `mysql:"objectId" postgres:"object_id" sqlite:"objectId"`
-	Relation        string     `mysql:"relation" postgres:"relation" sqlite:"relation"`
-	SubjectType     string     `mysql:"subjectType" postgres:"subject_type" sqlite:"subjectType"`
-	SubjectId       string     `mysql:"subjectId" postgres:"subject_id" sqlite:"subjectId"`
+	ID              int64      `mysql:"id"              postgres:"id"               sqlite:"id"`
+	ObjectType      string     `mysql:"objectType"      postgres:"object_type"      sqlite:"objectType"`
+	ObjectId        string     `mysql:"objectId"        postgres:"object_id"        sqlite:"objectId"`
+	Relation        string     `mysql:"relation"        postgres:"relation"         sqlite:"relation"`
+	SubjectType     string     `mysql:"subjectType"     postgres:"subject_type"     sqlite:"subjectType"`
+	SubjectId       string     `mysql:"subjectId"       postgres:"subject_id"       sqlite:"subjectId"`
 	SubjectRelation string     `mysql:"subjectRelation" postgres:"subject_relation" sqlite:"subjectRelation"`
-	Policy          Policy     `mysql:"policy" postgres:"policy" sqlite:"policy"`
-	PolicyHash      string     `mysql:"policyHash" postgres:"policy_hash" sqlite:"policyHash"`
-	CreatedAt       time.Time  `mysql:"createdAt" postgres:"created_at" sqlite:"createdAt"`
-	UpdatedAt       time.Time  `mysql:"updatedAt" postgres:"updated_at" sqlite:"updatedAt"`
-	DeletedAt       *time.Time `mysql:"deletedAt" postgres:"deleted_at" sqlite:"deletedAt"`
+	Policy          Policy     `mysql:"policy"          postgres:"policy"           sqlite:"policy"`
+	PolicyHash      string     `mysql:"policyHash"      postgres:"policy_hash"      sqlite:"policyHash"`
+	CreatedAt       time.Time  `mysql:"createdAt"       postgres:"created_at"       sqlite:"createdAt"`
+	UpdatedAt       time.Time  `mysql:"updatedAt"       postgres:"updated_at"       sqlite:"updatedAt"`
+	DeletedAt       *time.Time `mysql:"deletedAt"       postgres:"deleted_at"       sqlite:"deletedAt"`
 }
 
 func (warrant Warrant) GetID() int64 {

@@ -234,11 +234,6 @@ func (repo PostgresRepository) List(ctx context.Context, filterParams FilterPara
 		replacements = append(replacements, filterParams.SubjectRelation)
 	}
 
-	if filterParams.Policy != "" {
-		query = fmt.Sprintf("%s AND policy_hash = ?", query)
-		replacements = append(replacements, filterParams.Policy.Hash())
-	}
-
 	if listParams.NextCursor != nil {
 		comparisonOp := "<"
 		if listParams.SortOrder == service.SortOrderAsc {
