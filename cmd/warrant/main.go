@@ -48,7 +48,7 @@ type ServiceEnv struct {
 	Datastore database.Database
 }
 
-func (env ServiceEnv) DB() database.Database {
+func (env *ServiceEnv) DB() database.Database {
 	return env.Datastore
 }
 
@@ -56,8 +56,8 @@ func (env *ServiceEnv) InitDB(cfg config.Config) error {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFunc()
 
-	if cfg.GetDatastore().MySQL.Hostname != "" || cfg.GetDatastore().MySQL.DSN != "" {
-		db := database.NewMySQL(*cfg.GetDatastore().MySQL)
+	if cfg.GetDatastore().GetMySQL().Hostname != "" || cfg.GetDatastore().GetMySQL().DSN != "" {
+		db := database.NewMySQL(*cfg.GetDatastore().GetMySQL())
 		err := db.Connect(ctx)
 		if err != nil {
 			return err
@@ -74,8 +74,8 @@ func (env *ServiceEnv) InitDB(cfg config.Config) error {
 		return nil
 	}
 
-	if cfg.GetDatastore().Postgres.Hostname != "" {
-		db := database.NewPostgres(*cfg.GetDatastore().Postgres)
+	if cfg.GetDatastore().GetPostgres().Hostname != "" {
+		db := database.NewPostgres(*cfg.GetDatastore().GetPostgres())
 		err := db.Connect(ctx)
 		if err != nil {
 			return err
@@ -92,8 +92,8 @@ func (env *ServiceEnv) InitDB(cfg config.Config) error {
 		return nil
 	}
 
-	if cfg.GetDatastore().SQLite.Database != "" {
-		db := database.NewSQLite(*cfg.GetDatastore().SQLite)
+	if cfg.GetDatastore().GetSQLite().Database != "" {
+		db := database.NewSQLite(*cfg.GetDatastore().GetSQLite())
 		err := db.Connect(ctx)
 		if err != nil {
 			return err
@@ -113,8 +113,8 @@ func (env *ServiceEnv) InitDB(cfg config.Config) error {
 	return errors.New("invalid database configuration provided")
 }
 
-func NewServiceEnv() ServiceEnv {
-	return ServiceEnv{
+func NewServiceEnv() *ServiceEnv {
+	return &ServiceEnv{
 		Datastore: nil,
 	}
 }
@@ -155,22 +155,22 @@ func main() {
 	querySvc := query.NewService(svcEnv, objectTypeSvc, warrantSvc, objectSvc)
 
 	// Init feature service
-	featureSvc := feature.NewService(&svcEnv, objectSvc)
+	featureSvc := feature.NewService(svcEnv, objectSvc)
 
 	// Init permission service
-	permissionSvc := permission.NewService(&svcEnv, objectSvc)
+	permissionSvc := permission.NewService(svcEnv, objectSvc)
 
 	// Init pricing tier service
-	pricingTierSvc := pricingtier.NewService(&svcEnv, objectSvc)
+	pricingTierSvc := pricingtier.NewService(svcEnv, objectSvc)
 
 	// Init role service
-	roleSvc := role.NewService(&svcEnv, objectSvc)
+	roleSvc := role.NewService(svcEnv, objectSvc)
 
 	// Init tenant service
-	tenantSvc := tenant.NewService(&svcEnv, objectSvc)
+	tenantSvc := tenant.NewService(svcEnv, objectSvc)
 
 	// Init user service
-	userSvc := user.NewService(&svcEnv, objectSvc)
+	userSvc := user.NewService(svcEnv, objectSvc)
 
 	svcs := []service.Service{
 		checkSvc,

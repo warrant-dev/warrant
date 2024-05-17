@@ -374,30 +374,6 @@
             }
         },
         {
-            "name": "listWarrantsFilterByPolicy",
-            "request": {
-                "method": "GET",
-                "url": "/v2/warrants?policy=tenant%20%3D%3D%20%22tenant-a%22%20%26%26%20organization%20%3D%3D%20%22org-a%22"
-            },
-            "expectedResponse": {
-                "statusCode": 200,
-                "body": {
-                    "results": [
-                        {
-                            "objectType": "role",
-                            "objectId": "senior-accountant",
-                            "relation": "member",
-                            "subject": {
-                                "objectType": "user",
-                                "objectId": "user-a"
-                            },
-                            "policy": "tenant == \"tenant-a\" \u0026\u0026 organization == \"org-a\""
-                        }
-                    ]
-                }
-            }
-        },
-        {
             "name": "removeRoleSeniorAccountantFromUserAWithPolicy",
             "request": {
                 "method": "DELETE",

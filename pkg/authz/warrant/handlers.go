@@ -175,9 +175,5 @@ func buildFilterOptions(r *http.Request) *FilterParams {
 		filterOptions.SubjectRelation = queryParams.Get("subjectRelation")
 	}
 
-	if queryParams.Has("policy") {
-		filterOptions.Policy = Policy(queryParams.Get("policy"))
-	}
-
 	return &filterOptions
 }

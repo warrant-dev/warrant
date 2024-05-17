@@ -41,17 +41,17 @@ type Config interface {
 	GetLogLevel() int8
 	GetEnableAccessLog() bool
 	GetAutoMigrate() bool
-	GetDatastore() *DatastoreConfig
+	GetDatastore() DatastoreConfig
 }
 
 type WarrantConfig struct {
-	Port            int              `mapstructure:"port"`
-	LogLevel        int8             `mapstructure:"logLevel"`
-	EnableAccessLog bool             `mapstructure:"enableAccessLog"`
-	AutoMigrate     bool             `mapstructure:"autoMigrate"`
-	Datastore       *DatastoreConfig `mapstructure:"datastore"`
-	Authentication  *AuthConfig      `mapstructure:"authentication"`
-	Check           *CheckConfig     `mapstructure:"check"`
+	Port            int                     `mapstructure:"port"`
+	LogLevel        int8                    `mapstructure:"logLevel"`
+	EnableAccessLog bool                    `mapstructure:"enableAccessLog"`
+	AutoMigrate     bool                    `mapstructure:"autoMigrate"`
+	Datastore       *WarrantDatastoreConfig `mapstructure:"datastore"`
+	Authentication  *AuthConfig             `mapstructure:"authentication"`
+	Check           *CheckConfig            `mapstructure:"check"`
 }
 
 func (warrantConfig WarrantConfig) GetPort() int {
@@ -70,7 +70,7 @@ func (warrantConfig WarrantConfig) GetAutoMigrate() bool {
 	return warrantConfig.AutoMigrate
 }
 
-func (warrantConfig WarrantConfig) GetDatastore() *DatastoreConfig {
+func (warrantConfig WarrantConfig) GetDatastore() DatastoreConfig {
 	return warrantConfig.Datastore
 }
 
@@ -82,10 +82,28 @@ func (warrantConfig WarrantConfig) GetCheck() *CheckConfig {
 	return warrantConfig.Check
 }
 
-type DatastoreConfig struct {
+type DatastoreConfig interface {
+	GetMySQL() *MySQLConfig
+	GetPostgres() *PostgresConfig
+	GetSQLite() *SQLiteConfig
+}
+
+type WarrantDatastoreConfig struct {
 	MySQL    *MySQLConfig    `mapstructure:"mysql"`
 	Postgres *PostgresConfig `mapstructure:"postgres"`
 	SQLite   *SQLiteConfig   `mapstructure:"sqlite"`
+}
+
+func (warrantDatastoreConfig WarrantDatastoreConfig) GetMySQL() *MySQLConfig {
+	return warrantDatastoreConfig.MySQL
+}
+
+func (warrantDatastoreConfig WarrantDatastoreConfig) GetPostgres() *PostgresConfig {
+	return warrantDatastoreConfig.Postgres
+}
+
+func (warrantDatastoreConfig WarrantDatastoreConfig) GetSQLite() *SQLiteConfig {
+	return warrantDatastoreConfig.SQLite
 }
 
 type MySQLConfig struct {

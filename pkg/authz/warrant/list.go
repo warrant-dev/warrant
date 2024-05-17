@@ -29,7 +29,6 @@ type FilterParams struct {
 	SubjectType     string `json:"subjectType,omitempty"`
 	SubjectId       string `json:"subjectId,omitempty"`
 	SubjectRelation string `json:"subjectRelation,omitempty"`
-	Policy          Policy `json:"policy,omitempty"`
 }
 
 func (fp FilterParams) String() string {
@@ -58,10 +57,6 @@ func (fp FilterParams) String() string {
 		s = fmt.Sprintf("%s&subjectRelation=%s", s, fp.SubjectRelation)
 	}
 
-	if fp.Policy != "" {
-		s = fmt.Sprintf("%s&policy=%s", s, fp.Policy)
-	}
-
 	return strings.TrimPrefix(s, "&")
 }
 
@@ -79,7 +74,6 @@ func (parser WarrantListParamParser) GetSupportedSortBys() []string {
 }
 
 func (parser WarrantListParamParser) ParseValue(val string, sortBy string) (interface{}, error) {
-	// TODO: add support for more sortBy columns
 	switch sortBy {
 	case "createdAt":
 		value, err := time.Parse(time.RFC3339, val)

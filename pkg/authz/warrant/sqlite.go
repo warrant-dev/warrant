@@ -238,11 +238,6 @@ func (repo SQLiteRepository) List(ctx context.Context, filterParams FilterParams
 		replacements = append(replacements, filterParams.SubjectRelation)
 	}
 
-	if filterParams.Policy != "" {
-		query = fmt.Sprintf("%s AND policyHash = ?", query)
-		replacements = append(replacements, filterParams.Policy.Hash())
-	}
-
 	if listParams.NextCursor != nil {
 		comparisonOp := "<"
 		if listParams.SortOrder == service.SortOrderAsc {

@@ -64,8 +64,8 @@ func (q SqlTx) ExecContext(ctx context.Context, query string, args ...interface{
 	query = q.Tx.Rebind(query)
 	result, err := q.Tx.ExecContext(ctx, query, args...)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return result, err
 		default:
 			return result, errors.Wrap(err, "SqlTx error")
@@ -78,8 +78,8 @@ func (q SqlTx) GetContext(ctx context.Context, dest interface{}, query string, a
 	query = q.Tx.Rebind(query)
 	err := q.Tx.GetContext(ctx, dest, query, args...)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return err
 		default:
 			return errors.Wrap(err, "SqlTx error")
@@ -92,8 +92,8 @@ func (q SqlTx) NamedExecContext(ctx context.Context, query string, arg interface
 	query = q.Tx.Rebind(query)
 	result, err := q.Tx.NamedExecContext(ctx, query, arg)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return result, err
 		default:
 			return result, errors.Wrap(err, "SqlTx error")
@@ -119,8 +119,8 @@ func (q SqlTx) SelectContext(ctx context.Context, dest interface{}, query string
 	query = q.Tx.Rebind(query)
 	err := q.Tx.SelectContext(ctx, dest, query, args...)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return err
 		default:
 			return errors.Wrap(err, "SqlTx error")
@@ -203,8 +203,8 @@ func (ds SQL) ExecContext(ctx context.Context, query string, args ...interface{}
 
 	result, err := queryable.ExecContext(ctx, query, args...)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return result, err
 		default:
 			return result, errors.Wrap(err, "Error when calling sql ExecContext")
@@ -222,8 +222,8 @@ func (ds SQL) GetContext(ctx context.Context, dest interface{}, query string, ar
 
 	err := queryable.GetContext(ctx, dest, query, args...)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return err
 		default:
 			return errors.Wrap(err, "Error when calling sql GetContext")
@@ -241,8 +241,8 @@ func (ds SQL) NamedExecContext(ctx context.Context, query string, arg interface{
 
 	result, err := queryable.NamedExecContext(ctx, query, arg)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return result, err
 		default:
 			return result, errors.Wrap(err, "Error when calling sql NamedExecContext")
@@ -278,8 +278,8 @@ func (ds SQL) SelectContext(ctx context.Context, dest interface{}, query string,
 
 	err := queryable.SelectContext(ctx, dest, query, args...)
 	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return err
 		default:
 			return errors.Wrap(err, "Error when calling sql SelectContext")
