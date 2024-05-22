@@ -28,7 +28,6 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/golang-migrate/migrate/v4/source/github"
-	"github.com/lib/pq"
 	"github.com/warrant-dev/warrant/pkg/config"
 )
 
@@ -44,7 +43,7 @@ func NewPostgres(config config.PostgresConfig) *Postgres {
 	}
 }
 
-func (ds Postgres) Type() string {
+func (ds *Postgres) Type() string {
 	return TypePostgres
 }
 
@@ -52,26 +51,12 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 	var db *sqlx.DB
 	var err error
 
-	// open new database connection without specifying the database name
-	usernamePassword := url.UserPassword(ds.Config.Username, ds.Config.Password).String()
-	db, err = sqlx.Open("postgres", fmt.Sprintf("postgres://%s@%s/?sslmode=%s", usernamePassword, ds.Config.Hostname, ds.Config.SSLMode))
-	if err != nil {
-		return errors.Wrap(err, fmt.Sprintf("Unable to establish connection to postgres database %s. Shutting down server.", ds.Config.Database))
+	if ds.Config.DSN != "" {
+		db, err = sqlx.Open("postgres", ds.Config.DSN)
+	} else {
+		usernamePassword := url.UserPassword(ds.Config.Username, ds.Config.Password).String()
+		db, err = sqlx.Open("postgres", fmt.Sprintf("postgres://%s@%s/%s?sslmode=%s", usernamePassword, ds.Config.Hostname, ds.Config.Database, ds.Config.SSLMode))
 	}
-
-	// create database if it does not already exist
-	_, err = db.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE %s", ds.Config.Database))
-	if err != nil {
-		pgErr, ok := err.(*pq.Error)
-		if ok && pgErr.Code.Name() != "duplicate_database" {
-			return errors.Wrap(err, fmt.Sprintf("Unable to create postgres database %s", ds.Config.Database))
-		}
-	}
-
-	db.Close()
-
-	// open new database connection, this time specifying the database name
-	db, err = sqlx.Open("postgres", fmt.Sprintf("postgres://%s@%s/%s?sslmode=%s", usernamePassword, ds.Config.Hostname, ds.Config.Database, ds.Config.SSLMode))
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Unable to establish connection to postgres database %s. Shutting down server.", ds.Config.Database))
 	}
@@ -101,8 +86,14 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 		ds.Config.Database, ds.Config.MaxIdleConnections, ds.Config.ConnMaxIdleTime, ds.Config.MaxOpenConnections, ds.Config.ConnMaxLifetime)
 
 	// connect to reader if provided
-	if ds.Config.ReaderHostname != "" {
-		reader, err := sqlx.Open("postgres", fmt.Sprintf("postgres://%s@%s/%s?sslmode=%s", usernamePassword, ds.Config.ReaderHostname, ds.Config.Database, ds.Config.SSLMode))
+	if ds.Config.ReaderHostname != "" || ds.Config.ReaderDSN != "" {
+		var reader *sqlx.DB
+		if ds.Config.ReaderDSN != "" {
+			reader, err = sqlx.Open("postgres", ds.Config.ReaderDSN)
+		} else {
+			usernamePassword := url.UserPassword(ds.Config.Username, ds.Config.Password).String()
+			reader, err = sqlx.Open("postgres", fmt.Sprintf("postgres://%s@%s/%s?sslmode=%s", usernamePassword, ds.Config.ReaderHostname, ds.Config.Database, ds.Config.SSLMode))
+		}
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("Unable to establish connection to postgres reader %s. Shutting down server.", ds.Config.Database))
 		}
@@ -126,7 +117,6 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 
 		// map struct attributes to db column names
 		reader.Mapper = reflectx.NewMapperFunc("postgres", func(s string) string { return s })
-
 		ds.Reader = reader
 		log.Info().Msgf("init: connected to postgres reader database %s [maxIdleConns: %d, connMaxIdleTime: %s, maxOpenConns: %d, connMaxLifetime: %s]",
 			ds.Config.Database, ds.Config.ReaderMaxIdleConnections, ds.Config.ConnMaxIdleTime, ds.Config.ReaderMaxOpenConnections, ds.Config.ConnMaxLifetime)
@@ -135,7 +125,7 @@ func (ds *Postgres) Connect(ctx context.Context) error {
 	return nil
 }
 
-func (ds Postgres) Migrate(ctx context.Context, toVersion uint) error {
+func (ds *Postgres) Migrate(ctx context.Context, toVersion uint) error {
 	log.Info().Msgf("init: migrating postgres database %s", ds.Config.Database)
 	// migrate database to latest schema
 	usernamePassword := url.UserPassword(ds.Config.Username, ds.Config.Password).String()
@@ -173,7 +163,7 @@ func (ds Postgres) Migrate(ctx context.Context, toVersion uint) error {
 	return nil
 }
 
-func (ds Postgres) Ping(ctx context.Context) error {
+func (ds *Postgres) Ping(ctx context.Context) error {
 	err := ds.Writer.PingContext(ctx)
 	if err != nil {
 		return errors.Wrap(err, "Error while attempting to ping postgres database")

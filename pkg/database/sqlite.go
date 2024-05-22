@@ -46,7 +46,7 @@ func NewSQLite(config config.SQLiteConfig) *SQLite {
 	}
 }
 
-func (ds SQLite) Type() string {
+func (ds *SQLite) Type() string {
 	return TypeSQLite
 }
 
@@ -94,7 +94,7 @@ func (ds *SQLite) Connect(ctx context.Context) error {
 	return nil
 }
 
-func (ds SQLite) Migrate(ctx context.Context, toVersion uint) error {
+func (ds *SQLite) Migrate(ctx context.Context, toVersion uint) error {
 	log.Info().Msgf("init: migrating sqlite database %s", ds.Config.Database)
 	// migrate database to latest schema
 	instance, err := sqlite3.WithInstance(ds.Writer.DB, &sqlite3.Config{})
@@ -136,6 +136,6 @@ func (ds SQLite) Migrate(ctx context.Context, toVersion uint) error {
 	return nil
 }
 
-func (ds SQLite) Ping(ctx context.Context) error {
+func (ds *SQLite) Ping(ctx context.Context) error {
 	return ds.Writer.PingContext(ctx)
 }

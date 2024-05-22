@@ -74,7 +74,7 @@ func (env *ServiceEnv) InitDB(cfg config.Config) error {
 		return nil
 	}
 
-	if cfg.GetDatastore().GetPostgres().Hostname != "" {
+	if cfg.GetDatastore().GetPostgres().Hostname != "" || cfg.GetDatastore().GetPostgres().DSN != "" {
 		db := database.NewPostgres(*cfg.GetDatastore().GetPostgres())
 		err := db.Connect(ctx)
 		if err != nil {
