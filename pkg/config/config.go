@@ -137,6 +137,8 @@ type PostgresConfig struct {
 	ReaderHostname           string        `mapstructure:"readerHostname"`
 	ReaderMaxIdleConnections int           `mapstructure:"readerMaxIdleConnections"`
 	ReaderMaxOpenConnections int           `mapstructure:"readerMaxOpenConnections"`
+	DSN                      string        `mapstructure:"dsn"`
+	ReaderDSN                string        `mapstructure:"readerDsn"`
 }
 
 type SQLiteConfig struct {

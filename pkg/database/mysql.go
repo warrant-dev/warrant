@@ -42,7 +42,7 @@ func NewMySQL(config config.MySQLConfig) *MySQL {
 	}
 }
 
-func (ds MySQL) Type() string {
+func (ds *MySQL) Type() string {
 	return TypeMySQL
 }
 
@@ -122,7 +122,7 @@ func (ds *MySQL) Connect(ctx context.Context) error {
 	return nil
 }
 
-func (ds MySQL) Migrate(ctx context.Context, toVersion uint) error {
+func (ds *MySQL) Migrate(ctx context.Context, toVersion uint) error {
 	log.Info().Msgf("init: migrating mysql database %s", ds.Config.Database)
 	// migrate database to latest schema
 	mig, err := migrate.New(
@@ -159,7 +159,7 @@ func (ds MySQL) Migrate(ctx context.Context, toVersion uint) error {
 	return nil
 }
 
-func (ds MySQL) Ping(ctx context.Context) error {
+func (ds *MySQL) Ping(ctx context.Context) error {
 	err := ds.Writer.PingContext(ctx)
 	if err != nil {
 		return errors.Wrap(err, "Error while attempting to ping mysql database")
