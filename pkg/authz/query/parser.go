@@ -46,12 +46,12 @@ type ast struct {
 }
 
 var participleLexer = lexer.MustSimple([]lexer.SimpleRule{
-	{Name: "Select", Pattern: `(?i)select`},
-	{Name: "Explicit", Pattern: `(?i)explicit`},
-	{Name: "Where", Pattern: `(?i)where`},
-	{Name: "Is", Pattern: `(?i)is`},
-	{Name: "For", Pattern: `(?i)for`},
-	{Name: "OfType", Pattern: `(?i)of type`},
+	{Name: "Select", Pattern: `(?i)\bselect\b`},
+	{Name: "Explicit", Pattern: `(?i)\bexplicit\b`},
+	{Name: "Where", Pattern: `(?i)\bwhere\b`},
+	{Name: "Is", Pattern: `(?i)\bis\b`},
+	{Name: "For", Pattern: `(?i)\bfor\b`},
+	{Name: "OfType", Pattern: `(?i)\bof type\b`},
 	{Name: "Resource", Pattern: `[a-zA-Z0-9_\-]+:[a-zA-Z0-9_\-\.@\|:]+`},
 	{Name: "TypeOrRelation", Pattern: `[a-zA-Z0-9_\-]+`},
 	{Name: "Wildcard", Pattern: `\*`},
