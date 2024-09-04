@@ -43,9 +43,9 @@ jobs:
         with:
           fetch-depth: 0
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v6
         with:
-          version: v1.55
+          version: v1.60.3
           args: -v --timeout=5m
           only-new-issues: false
           install-mode: "binary"
