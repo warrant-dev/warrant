@@ -55,7 +55,7 @@ jobs:
         run: kill -9 `lsof -i:8000 -t`
       - name: Archive server log
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: server-log
           path: server.log

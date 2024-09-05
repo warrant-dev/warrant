@@ -66,7 +66,7 @@ jobs:
         run: echo 'y' | migrate -path ./migrations/datastore/mysql/ -database mysql://root:root@/warrant down
       - name: Archive server log
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: server-log
           path: server.log
