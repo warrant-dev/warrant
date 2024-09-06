@@ -6,4 +6,4 @@ We recommend always using the latest version of Warrant in order to remain up-to
 
 ## Reporting a Vulnerability
 
-If you discover a vulnerability, please contact us at security@warrant.dev.
+If you discover a vulnerability, please contact us at security@workos.com.
