@@ -14,11 +14,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go env
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
-          go-version: "^1.22.0"
+          go-version: "^1.23.0"
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 2
       - name: Build binary
@@ -55,7 +55,7 @@ jobs:
         run: kill -9 `lsof -i:8000 -t`
       - name: Archive server log
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: server-log
           path: server.log
