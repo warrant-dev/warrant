@@ -1,0 +1,24 @@
+port: 8000
+logLevel: 1
+enableAccessLog: true
+autoMigrate: false
+check:
+  concurrency: 4
+  maxConcurrency: 1000
+  timeout: 1m
+authentication:
+  apiKey: QyI4Khdel)G6c_DE1o)vV^OSUqR93a0
+#  provider: auth0
+#  publicKey: |
+#    -----BEGIN CERTIFICATE-----
+#    your_public_signing_key
+#    -----END CERTIFICATE-----
+#  userIdClaim: sub
+#  tenantIdClaim: aud
+datastore:
+  postgres:
+    username: warrant
+    password:
+    hostname: localhost
+    database: warrant
+    sslmode: disable
