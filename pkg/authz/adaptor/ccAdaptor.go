@@ -3,6 +3,7 @@ package adaptor
 import (
 	"context"
 	"encoding/json"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	grpcClients "github.com/warrant-dev/warrant/pkg/grpc/client"
 	"github.com/warrant-dev/warrant/pkg/grpc/pb"
@@ -18,6 +19,10 @@ func GetUserIds(userId string, includeOrgId bool, includeImGroupsId bool) (orgId
 		if err != nil {
 			log.Error().Err(err).Msgf("Failed to query user org, userId: %s", userId)
 			return "", nil, err
+		}
+		if resp.GetStatus() != 0 || resp.Data == nil {
+			log.Error().Err(err).Msgf("Failed to query user org, userId: %s,status:%d,reason:%s", userId, resp.GetStatus(), resp.GetReason())
+			return "", nil, errors.New("Failed to query user org, userId: " + userId)
 		}
 		orgAny := resp.GetData()
 		orgResponse := pb.QueryUserOrgResponse{}
