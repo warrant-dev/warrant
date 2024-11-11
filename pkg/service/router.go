@@ -16,6 +16,7 @@ package service
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -63,25 +64,19 @@ func (rh RouteHandler[T]) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func NewRouter(config config.Config, pathPrefix string, routes []Route, authMiddleware AuthMiddlewareFunc, routerMiddlewares []Middleware, requestMiddlewares []Middleware) (*mux.Router, error) {
 	router := mux.NewRouter()
 
-	var logger zerolog.Logger
+	var logout io.Writer
 	logFile, err := os.Create("warrant.log")
 	if err != nil {
-		logger = zerolog.New(os.Stderr).
-			With().
-			Timestamp().
-			Logger().
-			Level(zerolog.Level(config.GetLogLevel()))
+		logout = os.Stderr
 	} else {
-		logger = zerolog.New(logFile).
-			With().
-			Timestamp().
-			Logger().
-			Level(zerolog.Level(config.GetLogLevel()))
+		logout = zerolog.MultiLevelWriter(os.Stderr, logFile)
 	}
+	logger := zerolog.New(logout).
+		With().
+		Timestamp().
+		Logger().
+		Level(zerolog.Level(config.GetLogLevel()))
 	// Setup default middleware
-	//if logger.GetLevel() == zerolog.DebugLevel {
-	//	logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	//}
 	router.Use(hlog.NewHandler(logger))
 	router.Use(stats.RequestStatsMiddleware)
 	router.Use(wookie.WarrantTokenMiddleware)
