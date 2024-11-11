@@ -90,7 +90,7 @@ type Resource struct {
 
 type CheckUserSpec struct {
 	UserId   string   `json:"userId" validate:"required"`
-	BizType  BizType  `json:"bizType" validate:"required,validBizType"`
+	BizType  BizType  `json:"bizType" validate:"required"`
 	Resource Resource `json:"resource" validate:"required"`
 	Operate  string   `json:"operate" validate:"required"`
 	Debug    bool     `json:"debug"`

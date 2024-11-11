@@ -19,7 +19,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	authz "github.com/warrant-dev/warrant/pkg/authz/check"
 	"io"
 	"net/http"
 	"reflect"
@@ -118,20 +117,6 @@ func validInheritIf(fl validator.FieldLevel) bool {
 		return true
 	default:
 		return validRelation(fl)
-	}
-}
-
-func validBizType(fl validator.FieldLevel) bool {
-	value := fl.Field().String()
-	if value == "" {
-		return false
-	}
-
-	switch value {
-	case string(authz.BizTypeWorkspaceAppAccess):
-		return true
-	default:
-		return false
 	}
 }
 
