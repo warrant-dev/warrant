@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	ObjectIdPattern   = `^[a-zA-Z0-9_\-\.@\|:]+$`
+	ObjectIdPattern   = `^[a-zA-Z0-9_\-\.@\|:\+]+$`
 	ObjectTypePattern = `^[a-zA-Z0-9_\-]+$`
 	RelationPattern   = `^[a-zA-Z0-9_\-]+$`
 )
@@ -229,7 +229,7 @@ func ValidateStruct(ctx context.Context, obj interface{}) error {
 				case "valid_object_type", "valid_relation":
 					return NewInvalidParameterError(fieldName, "can only contain lower-case alphanumeric characters and/or '-' and '_'")
 				case "valid_object_id":
-					return NewInvalidParameterError(fieldName, "can only contain alphanumeric characters and/or '-', '_', '@', ':', and '|'")
+					return NewInvalidParameterError(fieldName, "can only contain alphanumeric characters and/or '-', '_', '@', ':','+' and '|'")
 				case "valid_inheritif":
 					return NewInvalidParameterError(fieldName, "can only be 'anyOf', 'allOf', 'noneOf', or a valid relation name")
 				default:

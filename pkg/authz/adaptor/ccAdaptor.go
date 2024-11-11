@@ -33,7 +33,7 @@ func GetUserIds(userId string, includeOrgId bool, includeImGroupsId bool) (orgId
 		}
 		if orgResponse.GetOrg() == nil {
 			log.Error().Msgf("User org not found, userId: %s", userId)
-			orgId = ""
+			return "", nil, errors.New("User org not found, userId: " + userId)
 		} else {
 			orgId = orgResponse.GetOrg().GetId()
 		}
@@ -46,6 +46,10 @@ func GetUserIds(userId string, includeOrgId bool, includeImGroupsId bool) (orgId
 		if err != nil {
 			log.Error().Err(err).Msgf("Failed to get groups for user, userId: %s", userId)
 			return orgId, nil, err
+		}
+		if resp.GetStatus() != 0 || resp.Data == nil {
+			log.Error().Err(err).Msgf("Failed to get groups for user, userId: %s,status:%d,reason:%s", userId, resp.GetStatus(), resp.GetReason())
+			return "", nil, errors.New("Failed to get groups for user, userId: " + userId)
 		}
 		groupsAny := resp.GetData()
 		baseAnyResp := pb.BaseAnyResponse{}
