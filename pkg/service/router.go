@@ -24,7 +24,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/hlog"
-	"github.com/rs/zerolog/log"
 	"github.com/warrant-dev/warrant/pkg/config"
 	"github.com/warrant-dev/warrant/pkg/stats"
 	"github.com/warrant-dev/warrant/pkg/wookie"
@@ -64,15 +63,25 @@ func (rh RouteHandler[T]) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func NewRouter(config config.Config, pathPrefix string, routes []Route, authMiddleware AuthMiddlewareFunc, routerMiddlewares []Middleware, requestMiddlewares []Middleware) (*mux.Router, error) {
 	router := mux.NewRouter()
 
-	// Setup default middleware
-	logger := zerolog.New(os.Stderr).
-		With().
-		Timestamp().
-		Logger().
-		Level(zerolog.Level(config.GetLogLevel()))
-	if logger.GetLevel() == zerolog.DebugLevel {
-		logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	var logger zerolog.Logger
+	logFile, err := os.Create("warrant.log")
+	if err != nil {
+		logger = zerolog.New(os.Stderr).
+			With().
+			Timestamp().
+			Logger().
+			Level(zerolog.Level(config.GetLogLevel()))
+	} else {
+		logger = zerolog.New(logFile).
+			With().
+			Timestamp().
+			Logger().
+			Level(zerolog.Level(config.GetLogLevel()))
 	}
+	// Setup default middleware
+	//if logger.GetLevel() == zerolog.DebugLevel {
+	//	logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	//}
 	router.Use(hlog.NewHandler(logger))
 	router.Use(stats.RequestStatsMiddleware)
 	router.Use(wookie.WarrantTokenMiddleware)
