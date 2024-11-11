@@ -22,12 +22,15 @@ import (
 )
 
 const (
-	ObjectTypeFeature     = "feature"
-	ObjectTypePermission  = "permission"
-	ObjectTypePricingTier = "pricing-tier"
-	ObjectTypeRole        = "role"
-	ObjectTypeTenant      = "tenant"
-	ObjectTypeUser        = "user"
+	ObjectTypeFeature      = "feature"
+	ObjectTypePermission   = "permission"
+	ObjectTypePricingTier  = "pricing-tier"
+	ObjectTypeRole         = "role"
+	ObjectTypeTenant       = "tenant"
+	ObjectTypeUser         = "user"
+	ObjectTypeImGroup      = "imGroup"
+	ObjectTypeWorkspaceApp = "workspaceApp"
+	ObjectTypeOrg          = "org"
 
 	InheritIfAllOf  = "allOf"
 	InheritIfAnyOf  = "anyOf"

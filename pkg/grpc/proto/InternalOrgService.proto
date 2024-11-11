@@ -1,0 +1,126 @@
+syntax = "proto2";
+
+option go_package = "/proto";
+option java_multiple_files = true;
+option java_package = "org.whispersystems.textsecuregcm.internal.orgs";
+
+import "common.proto";
+
+message Org {
+  required string id = 1;
+  required string name = 2;
+  required int32  teamId = 3;
+  optional string domain = 4;
+  optional string allowDomains = 5;
+  optional int64 createdAt = 6;
+  optional int64 updatedAt = 7;
+  optional string ssoOrgId = 8;
+  optional string logo = 9;
+  optional string teamName = 10;
+}
+
+message QueryOrgRequest {
+  repeated string orgIDs = 1; // The list of org IDs to query
+  repeated int32 teamIds = 2; // The list of team IDs to query
+  optional int32 pageNumber = 3; // orgIDs\teamIds will be ignored if page_number is set
+  optional int32 pageSize = 4;
+  repeated string ssoOrgIds = 5;
+}
+
+message QueryOrgResponse {
+  repeated Org orgs = 1;
+  required int32 totalCount = 2;
+}
+
+message CreateOrgRequest {
+  required string name = 1;
+  required int32 teamId = 2;
+  optional string domain = 3;
+  optional string allowDomains = 4;
+  optional string ssoOrgId = 5;
+  optional string logo = 6;
+}
+
+// 修改Org
+message UpdateOrgRequest {
+  required string id = 1;
+  optional string name = 2;
+  optional string domain = 3;
+  optional string allowDomains = 4;
+  optional string ssoOrgId = 5;
+  optional string logo = 6;
+}
+
+message QueryUserOrgRequest {
+  required string uid = 1;
+}
+
+message QueryUserOrgResponse {
+  required Org org = 1;
+}
+
+message QueryUsersOrgRequest {
+  repeated string uid = 1;
+}
+
+message QueryUsersOrgResponse {
+  message UserOrg {
+    required string uid = 1;
+    required Org org = 2;
+  }
+  repeated UserOrg userOrg = 1;
+}
+
+message SetUserOrgRequest {
+  repeated string uid = 1;
+  required string orgID = 2;
+}
+
+message SetUserOrgResponse {
+  message SetUserOrgResult {
+    required string uid = 1;
+    required bool success = 2;
+    optional string error = 3;
+  }
+
+  repeated SetUserOrgResult result = 1;
+}
+
+message RemoveUserOrgRequest {
+  repeated string uid = 1;
+}
+
+message QueryOrgUsersRequest {
+  optional string orgId = 1;
+  optional string ssoOrgId = 2;
+}
+
+message OrgAdmin {
+  required string uid = 1;
+  optional int32 role = 2;
+  optional int32 operate = 3;
+}
+
+message QueryOrgAdminResponse {
+  repeated OrgAdmin orgAdmin = 1;
+}
+
+message SetOrgAdminRequest {
+  required string id = 1;
+  repeated OrgAdmin orgAdmin = 2;
+}
+
+service InternalOrgService {
+  rpc QueryOrg(QueryOrgRequest) returns (BaseResponse);
+  rpc CreateOrg(CreateOrgRequest) returns (BaseResponse);
+  rpc UpdateOrg(UpdateOrgRequest) returns (BaseResponse);
+  rpc QueryUserOrg(QueryUserOrgRequest) returns (BaseResponse);
+  rpc SetUserOrg(SetUserOrgRequest) returns (BaseResponse);
+  rpc RemoveUserOrg(RemoveUserOrgRequest) returns (BaseResponse);
+  rpc QueryOrgUsers(QueryOrgUsersRequest) returns (BaseResponse);
+  rpc QueryOrgAdmin(QueryOrgUsersRequest) returns (BaseResponse);
+  rpc SetOrgAdmin(SetOrgAdminRequest) returns(BaseResponse);
+  rpc QueryUsersOrg(QueryUsersOrgRequest) returns (BaseResponse);
+}
+
+

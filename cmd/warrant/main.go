@@ -17,6 +17,7 @@ package main
 import (
 	"context"
 	"fmt"
+	grpcClients "github.com/warrant-dev/warrant/pkg/grpc/client"
 	"net/http"
 	"time"
 
@@ -126,6 +127,9 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("init: could not initialize and connect to the configured datastore. Shutting down.")
 	}
+
+	// init grpc clients
+	grpcClients.Start(cfg)
 
 	// Init object type repo and service
 	objectTypeRepository, err := objecttype.NewRepository(svcEnv.DB())

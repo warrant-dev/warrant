@@ -1,6 +1,6 @@
 module github.com/warrant-dev/warrant
 
-go 1.23
+go 1.23.1
 
 require (
 	github.com/alecthomas/participle/v2 v2.1.1
@@ -16,6 +16,8 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/viper v1.19.0
+	google.golang.org/grpc v1.65.0
+	google.golang.org/protobuf v1.34.2
 )
 
 require (

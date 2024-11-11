@@ -15,7 +15,10 @@
 package authz
 
 import (
+	"github.com/pkg/errors"
+	"github.com/warrant-dev/warrant/pkg/authz/adaptor"
 	"net/http"
+	"strings"
 
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	warrant "github.com/warrant-dev/warrant/pkg/authz/warrant"
@@ -34,6 +37,12 @@ func (svc CheckService) Routes() ([]service.Route, error) {
 			Pattern:                    "/v2/check",
 			Method:                     "POST",
 			Handler:                    service.NewRouteHandler(svc, authorizeHandler),
+			OverrideAuthMiddlewareFunc: service.ApiKeyAndSessionAuthMiddleware,
+		},
+		service.WarrantRoute{
+			Pattern:                    "/v2/checkUser",
+			Method:                     "POST",
+			Handler:                    service.NewRouteHandler(svc, authorize4UserHandler),
 			OverrideAuthMiddlewareFunc: service.ApiKeyAndSessionAuthMiddleware,
 		},
 	}, nil
@@ -94,4 +103,87 @@ func authorizeHandler(svc CheckService, w http.ResponseWriter, r *http.Request) 
 
 	service.SendJSONResponse(w, checkResult)
 	return nil
+}
+
+func authorize4UserHandler(svc CheckService, w http.ResponseWriter, r *http.Request) error {
+	var checkUserSpec CheckUserSpec
+	err := service.ParseJSONBody(r.Context(), r.Body, &checkUserSpec)
+	if err != nil {
+		return err
+	}
+
+	if checkUserSpec.BizType == BizTypeWorkspaceAppAccess {
+		orgId, imGroupIds, err := adaptor.GetUserIds(checkUserSpec.UserId, true, true)
+		if err != nil {
+			return err
+		}
+
+		checkManySpec := CheckManySpec{
+			Op:       objecttype.InheritIfAnyOf,
+			Warrants: buildWarrantSpecs(checkUserSpec, orgId, imGroupIds),
+			Context: warrant.PolicyContext{
+				"orgId": orgId,
+			},
+			Debug: checkUserSpec.Debug,
+		}
+
+		checkResult, err := svc.CheckMany(r.Context(), nil, &checkManySpec)
+		if err != nil {
+			return err
+		}
+
+		service.SendJSONResponse(w, checkResult)
+		return nil
+	}
+
+	return errors.New("unsupported bizType:" + string(checkUserSpec.BizType))
+}
+
+func buildWarrantSpecs(checkUserSpec CheckUserSpec, orgId string, imGroupIds []string) []CheckWarrantSpec {
+	var objectId string
+	if checkUserSpec.Resource.Id != "" {
+		objectId = checkUserSpec.Resource.Id
+	} else {
+		//todo
+		objectId = "xxxx"
+	}
+
+	warrantSpecs := make([]CheckWarrantSpec, 0)
+
+	warrantSpecs = append(warrantSpecs, CheckWarrantSpec{
+		ObjectType: checkUserSpec.Resource.ResType,
+		ObjectId:   objectId,
+		Relation:   checkUserSpec.Operate,
+		Subject: &warrant.SubjectSpec{
+			ObjectType: objecttype.ObjectTypeUser,
+			ObjectId:   checkUserSpec.UserId,
+		},
+	})
+
+	if len(strings.TrimSpace(orgId)) > 0 {
+		warrantSpecs = append(warrantSpecs, CheckWarrantSpec{
+			ObjectType: checkUserSpec.Resource.ResType,
+			ObjectId:   objectId,
+			Relation:   checkUserSpec.Operate,
+			Subject: &warrant.SubjectSpec{
+				ObjectType: objecttype.ObjectTypeOrg,
+				ObjectId:   orgId,
+			},
+		})
+	}
+
+	if len(imGroupIds) > 0 {
+		for _, imGroupId := range imGroupIds {
+			warrantSpecs = append(warrantSpecs, CheckWarrantSpec{
+				ObjectType: checkUserSpec.Resource.ResType,
+				ObjectId:   objectId,
+				Relation:   checkUserSpec.Operate,
+				Subject: &warrant.SubjectSpec{
+					ObjectType: objecttype.ObjectTypeImGroup,
+					ObjectId:   imGroupId,
+				},
+			})
+		}
+	}
+	return warrantSpecs
 }

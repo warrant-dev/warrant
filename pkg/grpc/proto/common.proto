@@ -1,0 +1,70 @@
+syntax = "proto2";
+
+option go_package = "/proto";
+option java_multiple_files = true;
+option java_package = "org.whispersystems.textsecuregcm.internal.common";
+import "google/protobuf/any.proto";
+
+message Empty {
+}
+
+message Step {
+  required uint32 offset = 1;
+  required uint32 length = 2;
+  optional string number = 3;
+  optional string email = 4;
+  optional string name = 5;
+  optional uint64 teamsId = 6;
+  repeated bool disabled = 7;
+  optional string appid = 8;
+  optional string pid = 9;
+}
+
+
+enum STATUS {
+    OK  =0;
+    INVALID_PARAMETER=1;
+    NO_PERMISSION=2;
+    NO_SUCH_GROUP=3;
+    NO_SUCH_GROUP_MEMBER=4;
+    INVALID_TOKEN=5;
+    SERVER_INTERNAL_ERROR=6;
+    NO_SUCH_GROUP_ANNOUNCEMENT=7;
+    GROUP_EXISTS=8;
+    NO_SUCH_FILE=9;
+    GROUP_IS_FULL_OR_EXCEEDS=10;
+    NO_SUCH_USER=11;
+    RATE_LIMIT_EXCEEDED=12;
+    INVALID_INVITER=13;
+    USER_IS_DISABLED=14;
+    PUID_IS_REGISTERING=15;
+    NUMBER_IS_BINDING_OTHER_PUID=16;
+    TEAM_HAS_MEMBERS=17;
+    VOTE_IS_CLOSED=18;
+    NO_SUCH_GROUP_PIN=19;
+    USER_EMAIL_EXIST=20;
+    USER_OKTAID_EXIST=21;
+    GROUP_PIN_CONTENT_TOO_LONG=22;
+    OTHER_ERROR=99;
+}
+
+
+message BaseResponse {
+  required uint32 ver = 1;
+  required uint32 status = 2;
+  optional string reason = 3;
+  optional google.protobuf.Any data = 4;
+}
+
+message BaseAnyResponse {
+  required string value = 1;
+}
+
+message BaseAnyRequest {
+  required string value = 1;
+}
+
+message WebsocketAddressRequest {
+  required string number = 1;
+  optional uint64 device = 2;
+}

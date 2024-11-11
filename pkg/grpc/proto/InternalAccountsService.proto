@@ -1,0 +1,306 @@
+syntax = "proto2";
+
+option go_package = "/proto";
+option java_multiple_files = true;
+option java_package = "org.whispersystems.textsecuregcm.internal.accounts";
+import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
+import "common.proto";
+
+message UidsRequest {
+  repeated string uids = 1;
+  optional string appid = 2;
+}
+
+message UidRequest {
+  required string uid = 1;
+  optional uint64 did = 2;
+  repeated string mustTeams=3;
+  optional string appid = 4;
+}
+
+message EmailsRequest {
+  repeated string emails = 1;
+}
+
+message AccountInfoAnnResponse {
+  repeated string uids = 1;
+}
+
+message AccountProto{
+  required string number = 1;
+  repeated Device devices = 2;
+  optional string identityKey = 3;
+  optional string name = 4;
+  optional string avatar = 5;
+  optional string avatarDigest = 6;
+  optional string pin = 7;
+  optional string plainName = 8;
+  optional string pushType = 9;
+  optional string pushToken = 10;
+  optional uint32 vcode = 11;
+  optional bool registered = 12;
+  optional uint32 invitationPerDay = 13;
+  optional bool disabled = 14;
+  optional string email = 15;
+  optional string oktaId = 16;
+  optional string timeZone = 17;
+  optional string teamId = 18;
+  optional string teamName = 19;
+  optional string oktaOrg = 20;
+  optional string signature = 21;
+  optional string nickname = 22;
+  optional bool inactive = 23;
+  optional string pid = 24;
+  optional Device authenticatedDevice=25;
+  optional string avatar2=26;
+  optional string avatar2Key=27;
+  optional string department=28;
+  optional string superior=29;
+  optional uint32 gender=30;
+  optional string address=31;
+  optional uint32 flag=32;
+  optional string puid=33;
+  optional uint32 accountMsgHandleType=34;
+  optional uint64 extId=35;
+  optional google.protobuf.Struct privateConfigs=36;
+  optional google.protobuf.Struct protectedConfigs=37;
+  optional google.protobuf.Struct publicConfigs=38;
+  optional uint64 lastSeen=39;
+  optional string lastUA=40;
+  optional string ssoId=41;
+  optional string ssoOrg=42;
+  optional uint64 registerTime=43;
+  optional string passcode=44;
+  optional int64 screenLockTimeout=45;
+
+  message Device{
+    required uint64 id=1;
+    optional string name=2;
+    optional string authToken=3;
+    optional string salt=4;
+    optional string signalingKey=5;
+    optional string gcmId=6;
+    optional string apnId=7;
+    optional string voipApnId=8;
+    optional uint64 pushTimestamp=9;
+    optional bool fetchesMessages=10;
+    optional uint32  registrationId=11;
+    optional SignedPreKey signedPreKey=12;
+    optional uint64 lastSeen=13;
+    optional uint64 created=14;
+    optional bool voice=15;
+    optional bool video=16;
+    optional string userAgent=17;
+    optional uint32 receiveType=18;
+    optional string receiveChannel=19;
+    optional string appId=20;
+    optional AndroidNotify androidNotify=21;
+  }
+
+  message SignedPreKey{
+    optional string signature=1;
+    optional uint64 keyId=2;
+    optional string publicKey=3;
+  }
+  message AndroidNotify{
+    optional string tpnID=1;
+    optional string fcmID=2;
+  }
+
+}
+
+message AccountInfoResponse {
+  message AccountInfo {
+    required string number = 1;
+    repeated uint64 devices = 2;
+    optional string identityKey = 3;
+    optional string name = 4;
+    optional string avatar = 5;
+    optional string avatarDigest = 6;
+    optional string pin = 7;
+    optional string plainName = 8;
+    optional string pushType = 9;
+    optional string pushToken = 10;
+    optional uint32 vcode = 11;
+    optional bool registered = 12;
+    optional uint32 invitationPerDay = 13;
+    optional bool disabled = 14;
+    optional string email = 15;
+    optional string oktaId = 16;
+    optional string timeZone = 17;
+    optional string teamId = 18;
+    optional string teamName = 19;
+    optional string oktaOrg = 20;
+    optional string signature = 21;
+    optional string nickname = 22;
+    optional bool inactive = 23;
+    optional string pid = 24;
+    optional string lastUA = 25;
+  }
+
+  repeated AccountInfo accounts = 1;
+  optional uint64 total = 2;
+}
+
+message AccountInfoRequest {
+  optional string number = 1;
+  optional string name = 2;
+  optional string email = 3;
+  optional bool disabled = 4;
+  optional string oktaId = 5;
+  optional string appid = 6;
+  optional string pid = 7;
+  optional string oktaOrg = 8;
+  optional string binancian = 9;
+  optional bytes avatarContent = 10;
+  optional string signature = 11;
+  optional string avatar = 12;
+}
+
+message RenewResponse {
+  required uint32 vcode = 1;
+}
+
+message AccountCreateRequest {
+  required string pid = 1;
+  required string puid = 2;
+  required string nickname = 4;
+  required string identityKey=5;
+  optional string inviter = 6;
+  required DeviceInfo deviceInfo=7;
+  optional string wuid=8;
+  optional string segment=9;//number分段
+  optional int32 accountMsgHandleType=10;//0:正常收发 1：不接收消息 2：不发送消息 3：不发不收，默认0
+
+  message DeviceInfo{
+    required uint64 deviceId=1;
+    required string pwd=2;
+    required int32 receiveType=3;
+    required string receiveChannel=4;
+    required uint32 registrationId = 5;
+    required string signalingKey=6;
+    required SignedPreKey signedPreKey=7;
+    repeated PreKey preKeys=8;
+    required string appid=9;
+  }
+
+  message PreKey{
+    required uint64 keyId=1;
+    required string publicKey=2;
+  }
+
+  message SignedPreKey{
+    required string signature=1;
+    required PreKey preKey=2;
+  }
+
+  enum ReceiveType {
+    WEBSOCKET  = 0;
+    KAFKA  = 1;
+    HTTP   = 2;
+  }
+}
+
+message AccountCreateResponse {
+  required string number = 1;
+  optional int32  teamId = 2;
+}
+
+message AccountQueryRequest {
+  required string appid = 1;
+  repeated string emails = 2;
+  repeated string wuids = 3;
+  optional string inviter = 4;
+  optional string operator = 5;
+  optional string oktaOrg = 6;
+
+  optional bool fetchAvatar = 7;
+  optional bool fetchSig = 8;
+  optional bool fetchNickname = 9;
+  optional bool fetchFullName = 10;
+  optional bool fetchEmail = 11;
+  optional bool fetchLineManager = 12;
+}
+
+message AccountQueryResponse {
+  repeated AccountQueryInfo accountInfos = 1;
+}
+
+message LineManager {
+  optional string email = 1;
+  optional string wuid = 2;
+}
+
+message AccountQueryInfo {
+  optional string email = 1;
+  optional string wuid = 2;
+  optional string nickname = 3;
+  optional string reason= 4;
+  optional AvatarInfo avatarInfo = 5;
+  optional string signature = 6;
+  optional string fullName = 7;
+  optional LineManager lineManager = 8;
+}
+
+message AvatarInfo{
+  required string id = 1;
+  required string url = 2;
+  required string encAlgo = 3;
+  required string encKey = 4;
+}
+
+message TeamRequest{
+  required string appid = 1;
+  required string wuid = 2;
+}
+
+message TeamResponse{
+  repeated string teams = 1;
+}
+
+message UploadRequest{
+  required bytes content = 1;
+}
+
+message UploadResponse{
+  map<string, string> map = 1;
+}
+
+message UploadAvatarRequest{
+  required string wuid          = 1;
+  required bytes  avatarContent = 2;
+}
+
+message DownloadAvatarResponse{
+  required bytes avatarContent = 1;
+}
+
+message SyncAccountBuRequest{
+  required string oktaOrg = 1;
+  map<string, string> buInfo = 2;
+}
+
+
+service InternalAccountsService {
+  rpc getInfo(UidsRequest) returns (AccountInfoResponse);
+  rpc getInfoByEmail(EmailsRequest) returns (AccountInfoResponse);
+  rpc disable(UidsRequest) returns (BaseResponse);
+  rpc enable(UidsRequest) returns (BaseResponse);
+  rpc getAll(Step) returns (AccountInfoResponse);
+  rpc edit(AccountInfoRequest) returns (BaseResponse);
+  rpc renew(AccountInfoRequest) returns (BaseResponse);
+  rpc createAccount(AccountCreateRequest) returns (BaseResponse);
+  rpc queryAccount(AccountQueryRequest) returns (BaseResponse);
+  rpc upload(UploadRequest) returns (BaseResponse);
+  rpc uploadAvatar(UploadAvatarRequest) returns(BaseResponse);
+  rpc kickOffDevice(AccountInfoRequest) returns(BaseResponse);
+  rpc getUserTeams(TeamRequest) returns(BaseResponse);
+  rpc syncAccountBuInfo(SyncAccountBuRequest) returns (BaseResponse);
+  rpc inactive(UidsRequest) returns (BaseResponse);
+  rpc downloadAvatar(AccountInfoRequest) returns (BaseResponse);
+  rpc getAllAnnUser(Empty) returns (AccountInfoAnnResponse);
+  rpc queryAccountByEmail(AccountQueryRequest) returns (BaseResponse);
+  rpc getAccountInfo(BaseAnyRequest) returns (BaseResponse);
+  rpc queryAccountStatus(UidRequest) returns (BaseResponse);
+}

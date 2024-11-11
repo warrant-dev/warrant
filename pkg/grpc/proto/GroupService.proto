@@ -1,0 +1,209 @@
+syntax = "proto2";
+option go_package = "/proto";
+option java_multiple_files = true;
+option java_package = "org.whispersystems.textsecuregcm.internal.groups";
+
+import "common.proto";
+import "InternalAccountsService.proto";
+
+message KickoutResponse {
+  message ResultInfo {
+    required string number = 1;
+    optional string result = 2;
+  }
+
+  repeated ResultInfo resultInfos = 1;
+}
+
+message GroupsInfo {
+  optional string id = 1;
+  optional string name = 2;
+  optional string creator = 3;
+  optional int64 createTime = 4;
+  optional int32 status = 5;
+  optional int64 messageExpiry = 6;
+  optional string avatar = 7;
+  optional int32 version = 8;
+  optional int32 invitationRule = 9;
+  optional int64  lastActiveTime = 10;
+  optional string owner = 11;
+  optional string backup1 = 12;
+  optional string backup2 = 13;
+  optional string remindCycle = 14;
+  optional bool anyoneRemove=15;
+  optional bool rejoin=16;
+  optional int32 publishRule=17;
+  optional string maxSize = 18;
+  optional bool anyoneChangeName = 19;
+  optional bool anyoneChangeAutoClear = 20;
+  optional bool autoClear = 21;
+  optional bool privilegeConfidential = 22;
+  optional bool cost = 23;
+  optional bool privateChat = 24;
+}
+
+message GroupMemberInfo {
+  required string uid = 1;
+  required string gid = 2;
+  optional string role = 3;
+  optional string avatar = 4;
+  optional string inviter = 5;
+  optional string plainName = 6;
+  optional string displayName = 7;
+  optional string remark = 8;
+  optional string notification = 9;
+  optional string email = 10;
+  optional string oktaId = 11;
+  optional int64 lastActiveTime = 12;
+}
+
+message GroupsRequest {
+  optional Step step = 1;
+  optional GroupsInfo groupInfo = 2;
+}
+
+message GroupsResponse {
+  optional uint64 total = 1;
+  repeated GroupsInfo groupsInfo = 2;
+}
+
+message GroupsCreateRequest {
+  required GroupsInfo groupsInfo = 1;
+  repeated string members = 2;
+}
+
+message GroupsAnnouncementRequest {
+  required string content = 1;
+  required string gid = 2;
+}
+
+message GroupMembersResponse {
+  repeated GroupMemberInfo groupMemberInfo = 1;
+}
+
+message GroupAvatarRequest{
+  required string gid           = 1;
+  required string operator      = 2;
+  required bytes  avatarContent = 3;
+}
+
+message GroupJoinRequest {
+  repeated GroupsCreateRequest groupCreateRequest = 1;
+}
+
+message GroupDismissRequest{
+  required string gid           = 1;
+  required bool archive      = 2;
+}
+
+message GroupProto {
+  optional string id = 1;
+  optional string name = 2;
+  optional string creator = 3;
+  optional int64 createTime = 4;
+  optional int32 status = 5;
+  optional int64 messageExpiry = 6;
+  optional string avatar = 7;
+  optional int32 version = 8;
+  optional int32 invitationRule = 9;
+  optional int64  lastActiveTime = 10;
+  optional string remindCycle = 11;
+  optional bool anyoneRemove=12;
+  optional bool rejoin=13;
+  optional bool ext=14;
+  optional int32 publishRule=15;
+  optional string maxSize = 16;
+  optional bool anyoneChangeName = 17;
+  optional bool anyoneChangeAutoClear = 18;
+  optional bool autoClear = 19;
+  optional bool privilegeConfidential = 20;
+  optional int32 type = 21;
+  optional bool cost = 22;
+  optional bool privateChat = 23;
+}
+
+message GroupMemberProto {
+  optional string gid = 1;
+  optional string uid = 2;
+  optional int32 role = 3;
+  optional int64 createTime = 4;
+  optional string inviter = 5;
+  optional string displayName = 6;
+  optional string remark = 7;
+  optional int32 notification = 8;
+  optional bool useGlobal = 9;
+  optional int32 rapidRole = 10;
+  optional int64 lastActiveTime = 11;
+}
+
+message GroupMemberRequest{
+  required string gid           = 1;
+  required string number      = 2;
+}
+
+message GroupRequest{
+  required string gid           = 1;
+}
+
+message MemberGroupRequest{
+  required string number           = 1;
+}
+
+message PrivateChatRequest{
+  required string source           = 1;
+  required string destination      = 2;
+
+}
+
+message CreateGroupRequest{
+  required string creator=1;
+  repeated string numbers = 2;
+  required string name=3;
+  optional int64 messageExpiry=4;
+  optional string avatar=5;
+  optional int32 invitationRule=6;
+  optional int32 notification=7;
+}
+
+message CreateGroupResponse{
+  optional string gid=1;
+  optional string inviteCode=2;
+  optional string number = 3;
+}
+
+enum OperateType {
+  SUBSCRIBE  =0;
+  UNSUBSCRIBE=1;
+}
+
+message GroupSubscribeRequest{
+  repeated string gids = 1;
+  required OperateType operateType     = 2;
+  required string appId=3;
+}
+
+service GroupService {
+  rpc kickoutAllGroupForUser(UidsRequest) returns (BaseResponse);
+  rpc kickoutAllGroupForUserBase(BaseAnyRequest) returns (BaseResponse);
+  rpc getAll(GroupsRequest) returns (GroupsResponse);
+  rpc create(CreateGroupRequest) returns (BaseResponse);
+  rpc join(GroupsCreateRequest) returns (BaseResponse);
+  rpc leave(GroupsCreateRequest) returns (BaseResponse);
+  rpc edit(GroupsRequest) returns (BaseResponse);
+  rpc announcement(GroupsAnnouncementRequest) returns (BaseResponse);
+  rpc getGroupMembers(GroupsRequest) returns (BaseResponse);
+  rpc getMyGroups(GroupsRequest) returns (BaseResponse);
+  rpc changeRole(GroupMembersResponse) returns (BaseResponse);
+  rpc bulkJoin(GroupJoinRequest) returns (BaseResponse);
+  rpc uploadAvatar(GroupAvatarRequest) returns (BaseResponse);
+  rpc dismissGroup(GroupDismissRequest) returns (BaseResponse);
+  rpc changeGroupExtForUser(BaseAnyRequest) returns (BaseResponse);
+  rpc getMember(GroupMemberRequest) returns (BaseResponse);
+  rpc getGroup(GroupRequest) returns (BaseResponse);
+  rpc getGroupMembersForProto(GroupRequest) returns (BaseResponse);
+  rpc updateGroupActiveTime(GroupMemberRequest) returns (BaseResponse);
+  rpc getMemberGroups(MemberGroupRequest) returns (BaseResponse);
+  rpc isAllowPrivateChat(PrivateChatRequest) returns (BaseResponse);
+  rpc getPrivateChatGroups(Empty) returns (BaseResponse);
+  rpc subscribeGroup(GroupSubscribeRequest) returns (BaseResponse);
+}

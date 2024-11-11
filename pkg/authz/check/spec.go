@@ -75,3 +75,23 @@ type CheckResultSpec struct {
 	ProcessingTime int64                            `json:"processingTime,omitempty"`
 	DecisionPath   map[string][]warrant.WarrantSpec `json:"decisionPath,omitempty"`
 }
+
+type BizType string
+
+const (
+	BizTypeWorkspaceAppAccess BizType = "workspace_app_access"
+)
+
+type Resource struct {
+	ResType     string `json:"resType" validate:"required"`
+	Id          string `json:"id"`
+	Description string `json:"description"`
+}
+
+type CheckUserSpec struct {
+	UserId   string   `json:"userId" validate:"required"`
+	BizType  BizType  `json:"bizType" validate:"required,validBizType"`
+	Resource Resource `json:"resource" validate:"required"`
+	Operate  string   `json:"operate" validate:"required"`
+	Debug    bool     `json:"debug"`
+}

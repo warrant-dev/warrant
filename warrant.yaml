@@ -1,7 +1,7 @@
 port: 8000
 logLevel: 1
 enableAccessLog: true
-autoMigrate: false
+autoMigrate: true
 check:
   concurrency: 4
   maxConcurrency: 1000
@@ -22,3 +22,6 @@ datastore:
     hostname: localhost
     database: warrant
     sslmode: disable
+grpc:
+  client:
+    mainServerHost: MainServersTestInternal-f8f83f8a4cdae750.elb.ap-southeast-1.amazonaws.com:55565

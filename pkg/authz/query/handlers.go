@@ -15,6 +15,11 @@
 package authz
 
 import (
+	"context"
+	"github.com/rs/zerolog/log"
+	"github.com/warrant-dev/warrant/pkg/authz/adaptor"
+	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
+	authz "github.com/warrant-dev/warrant/pkg/authz/warrant"
 	"net/http"
 
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -103,6 +108,8 @@ func queryV2(svc QueryService, w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	syncUserRelationsOnQuery(r.Context(), svc, query)
+
 	if queryParams.Has("context") {
 		err = query.WithContext(queryParams.Get("context"))
 		if err != nil {
@@ -122,4 +129,49 @@ func queryV2(svc QueryService, w http.ResponseWriter, r *http.Request) error {
 		NextCursor: nextCursor,
 	})
 	return nil
+}
+
+func syncUserRelationsOnQuery(context context.Context, svc QueryService, query Query) {
+	if query.SelectObjects == nil ||
+		query.SelectObjects.WhereSubject == nil ||
+		query.SelectObjects.WhereSubject.Type != objecttype.ObjectTypeUser ||
+		query.SelectObjects.WhereSubject.Id == "" {
+		return
+	}
+	userId := query.SelectObjects.WhereSubject.Id
+	orgId, imGroupIds, err := adaptor.GetUserIds(userId, true, true)
+	if err != nil {
+		log.Error().Err(err).Msgf("syncUserRelationsOnQuery: cannot get user ids for user %s", userId)
+		return
+	}
+	if orgId != "" {
+		_, _, err = svc.warrantSvc.Create(context, authz.CreateWarrantSpec{
+			ObjectType: objecttype.ObjectTypeOrg,
+			ObjectId:   orgId,
+			Relation:   "member",
+			Subject: &authz.SubjectSpec{
+				ObjectType: objecttype.ObjectTypeUser,
+				ObjectId:   userId,
+			},
+		})
+		if err != nil {
+			log.Error().Err(err).Msgf("syncUserRelationsOnQuery: cannot create warrant  for user %s and  orgId %s", userId, orgId)
+		}
+	}
+	if imGroupIds != nil && len(imGroupIds) > 0 {
+		for _, groupId := range imGroupIds {
+			_, _, err = svc.warrantSvc.Create(context, authz.CreateWarrantSpec{
+				ObjectType: objecttype.ObjectTypeImGroup,
+				ObjectId:   groupId,
+				Relation:   "member",
+				Subject: &authz.SubjectSpec{
+					ObjectType: objecttype.ObjectTypeUser,
+					ObjectId:   userId,
+				},
+			})
+			if err != nil {
+				log.Error().Err(err).Msgf("syncUserRelationsOnQuery: cannot create warrant  for user %s and  imGroupId %s", userId, groupId)
+			}
+		}
+	}
 }

@@ -52,6 +52,7 @@ type WarrantConfig struct {
 	Datastore       *WarrantDatastoreConfig `mapstructure:"datastore"`
 	Authentication  *AuthConfig             `mapstructure:"authentication"`
 	Check           *CheckConfig            `mapstructure:"check"`
+	Grpc            *GrpcConfig             `mapstructure:"grpc"`
 }
 
 func (warrantConfig WarrantConfig) GetPort() int {
@@ -167,6 +168,13 @@ type CheckConfig struct {
 	Concurrency    int           `mapstructure:"concurrency"`
 	MaxConcurrency int           `mapstructure:"maxConcurrency"`
 	Timeout        time.Duration `mapstructure:"timeout"`
+}
+type GrpcConfig struct {
+	Client *GrpcClientConfig `mapstructure:"client"`
+}
+
+type GrpcClientConfig struct {
+	MainServerHost string `mapstructure:"mainServerHost"`
 }
 
 func NewConfig() WarrantConfig {
