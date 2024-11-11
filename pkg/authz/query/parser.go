@@ -52,7 +52,7 @@ var participleLexer = lexer.MustSimple([]lexer.SimpleRule{
 	{Name: "Is", Pattern: `(?i)\bis\b`},
 	{Name: "For", Pattern: `(?i)\bfor\b`},
 	{Name: "OfType", Pattern: `(?i)\bof type\b`},
-	{Name: "Resource", Pattern: `[a-zA-Z0-9_\-]+:[a-zA-Z0-9_\-\.@\|:]+`},
+	{Name: "Resource", Pattern: `[a-zA-Z0-9_\-]+:[a-zA-Z0-9_\-\.@\|:\+]+`},
 	{Name: "TypeOrRelation", Pattern: `[a-zA-Z0-9_\-]+`},
 	{Name: "Wildcard", Pattern: `\*`},
 	{Name: "Comma", Pattern: `,`},
