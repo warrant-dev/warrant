@@ -40,6 +40,10 @@ func WarrantTokenMiddleware(next http.Handler) http.Handler {
 
 func OrgIdMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			next.ServeHTTP(w, r)
+			return
+		}
 		orgId := r.Header.Get(OrgIdHeaderName)
 		if orgId == "" {
 			orgId = r.URL.Query().Get("orgId")
