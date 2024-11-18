@@ -158,11 +158,6 @@ func (svc WarrantService) Delete(ctx context.Context, spec DeleteWarrantSpec) (*
 			return err
 		}
 
-		_, err = svc.repository.Get(txCtx, warrantToDelete.GetObjectType(), warrantToDelete.GetObjectId(), warrantToDelete.GetRelation(), warrantToDelete.GetSubjectType(), warrantToDelete.GetSubjectId(), warrantToDelete.GetSubjectRelation(), warrantToDelete.GetPolicyHash())
-		if err != nil {
-			return err
-		}
-
 		err = svc.repository.Delete(txCtx, warrantToDelete.GetObjectType(), warrantToDelete.GetObjectId(), warrantToDelete.GetRelation(), warrantToDelete.GetSubjectType(), warrantToDelete.GetSubjectId(), warrantToDelete.GetSubjectRelation(), warrantToDelete.GetPolicyHash())
 		if err != nil {
 			return err

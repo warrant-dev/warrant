@@ -26,6 +26,7 @@ type Model interface {
 	GetID() int64
 	GetObjectType() string
 	GetObjectId() string
+	GetOrgId() string
 	GetMeta() *string
 	SetMeta(meta map[string]interface{}) error
 	GetCreatedAt() time.Time
@@ -39,6 +40,7 @@ type Object struct {
 	ObjectType string     `mysql:"objectType" postgres:"object_type" sqlite:"objectType"`
 	ObjectId   string     `mysql:"objectId"   postgres:"object_id"   sqlite:"objectId"`
 	Meta       *string    `mysql:"meta"       postgres:"meta"        sqlite:"meta"`
+	OrgId      string     `mysql:"orgId"   postgres:"org_id"   sqlite:"orgId"`
 	CreatedAt  time.Time  `mysql:"createdAt"  postgres:"created_at"  sqlite:"createdAt"`
 	UpdatedAt  time.Time  `mysql:"updatedAt"  postgres:"updated_at"  sqlite:"updatedAt"`
 	DeletedAt  *time.Time `mysql:"deletedAt"  postgres:"deleted_at"  sqlite:"deletedAt"`
@@ -54,6 +56,10 @@ func (object Object) GetObjectType() string {
 
 func (object Object) GetObjectId() string {
 	return object.ObjectId
+}
+
+func (object Object) GetOrgId() string {
+	return object.OrgId
 }
 
 func (object Object) GetMeta() *string {

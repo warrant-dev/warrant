@@ -32,6 +32,7 @@ type WarrantSpec struct {
 	Subject    *SubjectSpec      `json:"subject"`
 	Context    map[string]string `json:"context,omitempty"`
 	Policy     Policy            `json:"policy,omitempty"`
+	OrgId      string            `json:"orgId"`
 	CreatedAt  time.Time         `json:"createdAt,omitempty"`
 }
 
@@ -99,6 +100,10 @@ type CreateWarrantSpec struct {
 	Policy     Policy            `json:"policy,omitempty"  validate:"excluded_with=Context"`
 }
 
+type BatchWarrantSpec struct {
+	Warrants []CreateWarrantSpec `json:"warrants" validate:"min=1,dive"`
+}
+
 func (spec CreateWarrantSpec) ToWarrant() (*Warrant, error) {
 	warrant := &Warrant{
 		ObjectType: spec.ObjectType,
@@ -154,10 +159,10 @@ func (spec CreateWarrantSpec) String() string {
 }
 
 type DeleteWarrantSpec struct {
-	ObjectType string            `json:"objectType"        validate:"required,valid_object_type"`
-	ObjectId   string            `json:"objectId"          validate:"required,valid_object_id"`
-	Relation   string            `json:"relation"          validate:"required,valid_relation"`
-	Subject    *SubjectSpec      `json:"subject"           validate:"required"`
+	ObjectType string            `json:"objectType,omitempty"        validate:"valid_object_type"`
+	ObjectId   string            `json:"objectId,omitempty"          validate:"valid_object_id"`
+	Relation   string            `json:"relation,omitempty"          validate:"valid_relation"`
+	Subject    *SubjectSpec      `json:"subject,omitempty"`
 	Context    map[string]string `json:"context,omitempty" validate:"excluded_with=Policy"`
 	Policy     Policy            `json:"policy,omitempty"  validate:"excluded_with=Context"`
 }

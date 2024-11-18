@@ -31,6 +31,7 @@ type ObjectSpec struct {
 	ID         int64                  `json:"-"`
 	ObjectType string                 `json:"objectType"`
 	ObjectId   string                 `json:"objectId"`
+	OrgId      string                 `json:"orgId"`
 	Meta       map[string]interface{} `json:"meta,omitempty"`
 	CreatedAt  time.Time              `json:"createdAt"`
 }
@@ -38,6 +39,7 @@ type ObjectSpec struct {
 type CreateObjectSpec struct {
 	ObjectType string                 `json:"objectType" validate:"required,valid_object_type"`
 	ObjectId   string                 `json:"objectId"   validate:"omitempty,valid_object_id"`
+	OrgId      string                 `json:"orgId"`
 	Meta       map[string]interface{} `json:"meta"`
 }
 
@@ -56,6 +58,7 @@ func (spec CreateObjectSpec) ToObject() (*Object, error) {
 	return &Object{
 		ObjectType: spec.ObjectType,
 		ObjectId:   spec.ObjectId,
+		OrgId:      spec.OrgId,
 		Meta:       meta,
 	}, nil
 }

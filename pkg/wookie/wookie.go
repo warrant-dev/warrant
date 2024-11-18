@@ -20,7 +20,9 @@ import (
 )
 
 const HeaderName = "Warrant-Token"
+const OrgIdHeaderName = "x-org-id"
 const Latest = "latest"
+const OrgIdKey = "orgId"
 
 type warrantTokenCtxKey struct{}
 
@@ -33,6 +35,21 @@ func WarrantTokenMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		next.ServeHTTP(w, r)
+	})
+}
+
+func OrgIdMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		orgId := r.Header.Get(OrgIdHeaderName)
+		if orgId == "" {
+			orgId = r.URL.Query().Get("orgId")
+		}
+		if orgId == "" {
+			http.Error(w, "no orgId found in header[X-org-id] or query[orgId]", http.StatusUnauthorized)
+			return
+		}
+		orgIdCtx := context.WithValue(r.Context(), OrgIdKey, orgId)
+		next.ServeHTTP(w, r.WithContext(orgIdCtx))
 	})
 }
 

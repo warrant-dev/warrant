@@ -29,6 +29,7 @@ type FilterParams struct {
 	SubjectType     string `json:"subjectType,omitempty"`
 	SubjectId       string `json:"subjectId,omitempty"`
 	SubjectRelation string `json:"subjectRelation,omitempty"`
+	OrgId           string `json:"orgId,omitempty"`
 }
 
 func (fp FilterParams) String() string {

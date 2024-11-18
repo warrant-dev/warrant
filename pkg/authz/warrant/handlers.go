@@ -75,26 +75,28 @@ func (svc WarrantService) Routes() ([]service.Route, error) {
 }
 
 func createHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
-	var spec CreateWarrantSpec
-	err := service.ParseJSONBody(r.Context(), r.Body, &spec)
+	var specs BatchWarrantSpec
+	err := service.ParseJSONBody(r.Context(), r.Body, &specs)
 	if err != nil {
 		return err
 	}
-
-	// TODO: move into a custom golang-validate function
-	if spec.Policy != "" {
-		err := spec.Policy.Validate()
-		if err != nil {
-			return service.NewInvalidParameterError("policy", err.Error())
+	var createdWarrants []*WarrantSpec
+	for _, spec := range specs.Warrants {
+		if spec.Policy != "" {
+			err := spec.Policy.Validate()
+			if err != nil {
+				return service.NewInvalidParameterError("policy", err.Error())
+			}
 		}
+
+		createdWarrant, _, err := svc.Create(r.Context(), spec)
+		if err != nil {
+			return err
+		}
+		createdWarrants = append(createdWarrants, createdWarrant)
 	}
 
-	createdWarrant, _, err := svc.Create(r.Context(), spec)
-	if err != nil {
-		return err
-	}
-
-	service.SendJSONResponse(w, createdWarrant)
+	service.SendJSONResponse(w, createdWarrants)
 	return nil
 }
 

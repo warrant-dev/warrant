@@ -18,6 +18,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/warrant-dev/warrant/pkg/wookie"
 	"regexp"
 
 	"github.com/jmoiron/sqlx"
@@ -39,6 +40,14 @@ func NewPostgresRepository(db *database.Postgres) *PostgresRepository {
 }
 
 func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, error) {
+	orgId := ctx.Value(wookie.OrgIdKey)
+	if orgId == nil || orgId == "" {
+		orgId = model.GetOrgId()
+	}
+	if orgId == nil || orgId == "" {
+		return 0, service.NewInvalidParameterError("orgId", "orgId must be set")
+	}
+
 	var newObjectId int64
 	err := repo.DB.GetContext(
 		database.CtxWithWriterOverride(ctx),
@@ -47,9 +56,10 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 			INSERT INTO object (
 				object_type,
 				object_id,
+			    org_id,
 				meta
-			) VALUES (?, ?, ?)
-			ON CONFLICT (object_type, object_id) DO UPDATE SET
+			) VALUES (?, ?, ?,?)
+			ON CONFLICT (object_type, object_id,org_id) DO UPDATE SET
 				meta = ?,
 				created_at = CASE
 					WHEN object.deleted_at IS NULL THEN object.created_at
@@ -61,6 +71,7 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 		`,
 		model.GetObjectType(),
 		model.GetObjectId(),
+		orgId,
 		model.GetMeta(),
 		model.GetMeta(),
 	)
@@ -77,7 +88,7 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, er
 		ctx,
 		&object,
 		`
-			SELECT id, object_type, object_id, meta, created_at, updated_at, deleted_at
+			SELECT id, object_type, object_id,org_id, meta, created_at, updated_at, deleted_at
 			FROM object
 			WHERE
 				id = ? AND
@@ -97,20 +108,27 @@ func (repo PostgresRepository) GetById(ctx context.Context, id int64) (Model, er
 }
 
 func (repo PostgresRepository) GetByObjectTypeAndId(ctx context.Context, objectType string, objectId string) (Model, error) {
+	orgId := ctx.Value(wookie.OrgIdKey)
+	if orgId == nil || orgId == "" {
+		return nil, service.NewInvalidParameterError("orgId", "orgId must be set")
+	}
+
 	var object Object
 	err := repo.DB.GetContext(
 		ctx,
 		&object,
 		`
-			SELECT id, object_type, object_id, meta, created_at, updated_at, deleted_at
+			SELECT id, object_type, object_id, meta,org_id, created_at, updated_at, deleted_at
 			FROM object
 			WHERE
 				object_type = ? AND
 				object_id = ? AND
+				org_id = ? AND
 				deleted_at IS NULL
 		`,
 		objectType,
 		objectId,
+		orgId,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -124,6 +142,11 @@ func (repo PostgresRepository) GetByObjectTypeAndId(ctx context.Context, objectT
 }
 
 func (repo PostgresRepository) BatchGetByObjectTypeAndIds(ctx context.Context, objectType string, objectIds []string) ([]Model, error) {
+	orgId := ctx.Value(wookie.OrgIdKey)
+	if orgId == nil || orgId == "" {
+		return nil, service.NewInvalidParameterError("orgId", "orgId must be set")
+	}
+
 	models := make([]Model, 0)
 	objects := make([]Object, 0)
 	if len(objectIds) == 0 {
@@ -132,16 +155,18 @@ func (repo PostgresRepository) BatchGetByObjectTypeAndIds(ctx context.Context, o
 
 	query, args, err := sqlx.In(
 		`
-			SELECT id, object_type, object_id, meta, created_at, updated_at, deleted_at
+			SELECT id, object_type, object_id, meta,org_id, created_at, updated_at, deleted_at
 			FROM object
 			WHERE
 				object_type = ? AND
 				object_id IN (?) AND
+				org_id = ? AND
 				deleted_at IS NULL
 			ORDER BY object_id ASC
 		`,
 		objectType,
 		objectIds,
+		orgId,
 	)
 	if err != nil {
 		return models, errors.Wrap(err, "error getting objects batch")
@@ -165,14 +190,21 @@ func (repo PostgresRepository) BatchGetByObjectTypeAndIds(ctx context.Context, o
 }
 
 func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOptions, listParams service.ListParams) ([]Model, *service.Cursor, *service.Cursor, error) {
+	orgId := ctx.Value(wookie.OrgIdKey)
+	if orgId == nil || orgId == "" {
+		return nil, nil, nil, service.NewInvalidParameterError("orgId", "orgId must be set")
+	}
+
 	models := make([]Model, 0)
 	objects := make([]Object, 0)
 	query := `
-		SELECT id, object_type, object_id, meta, created_at, updated_at, deleted_at
+		SELECT id, object_type, object_id, meta,org_id, created_at, updated_at, deleted_at
 		FROM object
 		WHERE
 			deleted_at IS NULL
 	`
+	query = fmt.Sprintf("%s AND org_id = %s", query, orgId)
+
 	replacements := []interface{}{}
 	primaryKeyColumn := sortRegexp.ReplaceAllString(PrimarySortKey, `_$1`)
 
@@ -388,6 +420,11 @@ func (repo PostgresRepository) List(ctx context.Context, filterOptions *FilterOp
 }
 
 func (repo PostgresRepository) UpdateByObjectTypeAndId(ctx context.Context, objectType string, objectId string, model Model) error {
+	orgId := ctx.Value(wookie.OrgIdKey)
+	if orgId == nil || orgId == "" {
+		return service.NewInvalidParameterError("orgId", "orgId must be set")
+	}
+
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -398,11 +435,13 @@ func (repo PostgresRepository) UpdateByObjectTypeAndId(ctx context.Context, obje
 			WHERE
 				object_type = ? AND
 				object_id = ? AND
+				org_id = ? AND
 				deleted_at IS NULL
 		`,
 		model.GetMeta(),
 		objectType,
 		objectId,
+		orgId,
 	)
 	if err != nil {
 		return errors.Wrapf(err, "error updating object %s:%s", objectType, objectId)
@@ -412,6 +451,11 @@ func (repo PostgresRepository) UpdateByObjectTypeAndId(ctx context.Context, obje
 }
 
 func (repo PostgresRepository) DeleteByObjectTypeAndId(ctx context.Context, objectType string, objectId string) error {
+	orgId := ctx.Value(wookie.OrgIdKey)
+	if orgId == nil || orgId == "" {
+		return service.NewInvalidParameterError("orgId", "orgId must be set")
+	}
+
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -422,10 +466,12 @@ func (repo PostgresRepository) DeleteByObjectTypeAndId(ctx context.Context, obje
 			WHERE
 				object_type = ? AND
 				object_id = ? AND
+				org_id = ? AND
 				deleted_at IS NULL
 		`,
 		objectType,
 		objectId,
+		orgId,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -439,6 +485,11 @@ func (repo PostgresRepository) DeleteByObjectTypeAndId(ctx context.Context, obje
 }
 
 func (repo PostgresRepository) DeleteWarrantsMatchingObject(ctx context.Context, objectType string, objectId string) error {
+	orgId := ctx.Value(wookie.OrgIdKey)
+	if orgId == nil || orgId == "" {
+		return service.NewInvalidParameterError("orgId", "orgId must be set")
+	}
+
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -449,10 +500,12 @@ func (repo PostgresRepository) DeleteWarrantsMatchingObject(ctx context.Context,
 			WHERE
 				object_type = ? AND
 				object_id = ? AND
+				org_id = ? AND
 				deleted_at IS NULL
 		`,
 		objectType,
 		objectId,
+		orgId,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -466,6 +519,11 @@ func (repo PostgresRepository) DeleteWarrantsMatchingObject(ctx context.Context,
 }
 
 func (repo PostgresRepository) DeleteWarrantsMatchingSubject(ctx context.Context, subjectType string, subjectId string) error {
+	orgId := ctx.Value(wookie.OrgIdKey)
+	if orgId == nil || orgId == "" {
+		return service.NewInvalidParameterError("orgId", "orgId must be set")
+	}
+
 	_, err := repo.DB.ExecContext(
 		ctx,
 		`
@@ -476,10 +534,12 @@ func (repo PostgresRepository) DeleteWarrantsMatchingSubject(ctx context.Context
 			WHERE
 				subject_type = ? AND
 				subject_id = ? AND
+				org_id = ? AND
 				deleted_at IS NULL
 		`,
 		subjectType,
 		subjectId,
+		orgId,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

@@ -18,6 +18,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/warrant-dev/warrant/pkg/wookie"
 	"regexp"
 	"strconv"
 
@@ -39,6 +40,13 @@ func NewPostgresRepository(db *database.Postgres) *PostgresRepository {
 }
 
 func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, error) {
+	orgId := ctx.Value(wookie.OrgIdKey)
+	if orgId == nil || orgId == "" {
+		orgId = model.GetOrgId()
+	}
+	if orgId == nil || orgId == "" {
+		return 0, service.NewInvalidParameterError("orgId", "orgId is required")
+	}
 	var newWarrantId int64
 	err := repo.DB.GetContext(
 		database.CtxWithWriterOverride(ctx),
@@ -52,9 +60,10 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 				subject_id,
 				subject_relation,
 				policy,
-				policy_hash
-			) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-			ON CONFLICT (object_type, object_id, relation, subject_type, subject_id, subject_relation, policy_hash) DO UPDATE SET
+				policy_hash,
+				org_id
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)
+			ON CONFLICT (object_type, object_id, relation, subject_type, subject_id, subject_relation, policy_hash,org_id) DO UPDATE SET
 				created_at = CASE
 					WHEN warrant.deleted_at IS NULL THEN warrant.created_at
 					ELSE CURRENT_TIMESTAMP(6)
@@ -71,6 +80,7 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 		model.GetSubjectRelation(),
 		model.GetPolicy(),
 		model.GetPolicy().Hash(),
+		orgId,
 	)
 	if err != nil {
 		return -1, errors.Wrap(err, "error creating warrant")
@@ -80,30 +90,55 @@ func (repo PostgresRepository) Create(ctx context.Context, model Model) (int64, 
 }
 
 func (repo PostgresRepository) Delete(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) error {
-	_, err := repo.DB.ExecContext(
-		ctx,
-		`
+	orgId := ctx.Value(wookie.OrgIdKey)
+	if orgId == nil || orgId == "" {
+		return service.NewInvalidParameterError("orgId", "orgId is required")
+	}
+
+	query := fmt.Sprintf(`
 			UPDATE warrant
 			SET
 				updated_at = CURRENT_TIMESTAMP(6),
 				deleted_at = CURRENT_TIMESTAMP(6)
-			WHERE
-				object_type = ? AND
-				object_id = ? AND
-				relation = ? AND
-				subject_type = ? AND
-				subject_id = ? AND
-				subject_relation = ? AND
-				policy_hash = ? AND
-				deleted_at IS NULL
-		`,
-		objectType,
-		objectId,
-		relation,
-		subjectType,
-		subjectId,
-		subjectRelation,
-		policyHash,
+			WHERE deleted_at IS NULL
+			and org_id = ?
+	`)
+	var replacements []interface{}
+	replacements = append(replacements, orgId)
+
+	if objectType != "" {
+		query = fmt.Sprintf("%s AND object_type = ?", query)
+		replacements = append(replacements, objectType)
+	}
+	if objectId != "" && objectId != Wildcard {
+		query = fmt.Sprintf("%s AND object_id = ?", query)
+		replacements = append(replacements, objectId)
+	}
+	if relation != "" && relation != Wildcard {
+		query = fmt.Sprintf("%s AND relation = ?", query)
+		replacements = append(replacements, relation)
+	}
+	if subjectType != "" {
+		query = fmt.Sprintf("%s AND subject_type = ?", query)
+		replacements = append(replacements, subjectType)
+	}
+	if subjectId != "" && subjectId != Wildcard {
+		query = fmt.Sprintf("%s AND subject_id = ?", query)
+		replacements = append(replacements, subjectId)
+	}
+	if subjectRelation != "" && subjectRelation != Wildcard {
+		query = fmt.Sprintf("%s AND subject_relation = ?", query)
+		replacements = append(replacements, subjectRelation)
+	}
+	if policyHash != "" {
+		query = fmt.Sprintf("%s AND policy_hash = ?", query)
+		replacements = append(replacements, policyHash)
+	}
+
+	_, err := repo.DB.ExecContext(
+		ctx,
+		query,
+		replacements...,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -125,11 +160,16 @@ func (repo PostgresRepository) Delete(ctx context.Context, objectType string, ob
 
 func (repo PostgresRepository) Get(ctx context.Context, objectType string, objectId string, relation string, subjectType string, subjectId string, subjectRelation string, policyHash string) (Model, error) {
 	var warrant Warrant
+	orgId := ctx.Value(wookie.OrgIdKey)
+	if orgId == nil || orgId == "" {
+		return nil, service.NewInvalidParameterError("orgId", "orgId is required")
+	}
+
 	err := repo.DB.GetContext(
 		ctx,
 		&warrant,
 		`
-			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, policy, created_at, updated_at, deleted_at
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, policy,org_id,created_at, updated_at, deleted_at
 			FROM warrant
 			WHERE
 				object_type = ? AND
@@ -139,6 +179,7 @@ func (repo PostgresRepository) Get(ctx context.Context, objectType string, objec
 				subject_id = ? AND
 				subject_relation = ? AND
 				policy_hash = ? AND
+				org_id = ? AND
 				deleted_at IS NULL
 		`,
 		objectType,
@@ -148,6 +189,7 @@ func (repo PostgresRepository) Get(ctx context.Context, objectType string, objec
 		subjectId,
 		subjectRelation,
 		policyHash,
+		orgId,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -173,7 +215,7 @@ func (repo PostgresRepository) GetByID(ctx context.Context, id int64) (Model, er
 		ctx,
 		&warrant,
 		`
-			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, policy, created_at, updated_at, deleted_at
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, policy, org_id,created_at, updated_at, deleted_at
 			FROM warrant
 			WHERE
 				id = ? AND
@@ -192,10 +234,18 @@ func (repo PostgresRepository) GetByID(ctx context.Context, id int64) (Model, er
 }
 
 func (repo PostgresRepository) List(ctx context.Context, filterParams FilterParams, listParams service.ListParams) ([]Model, *service.Cursor, *service.Cursor, error) {
+	orgId := ctx.Value(wookie.OrgIdKey)
+	if orgId == nil || orgId == "" {
+		orgId = filterParams.OrgId
+	}
+	if orgId == nil || orgId == "" {
+		return nil, nil, nil, service.NewInvalidParameterError("orgId", "orgId is required")
+	}
+
 	models := make([]Model, 0)
 	warrants := make([]Warrant, 0)
 	query := `
-		SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, policy, created_at, updated_at, deleted_at
+		SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, policy, org_id,created_at, updated_at, deleted_at
 		FROM warrant
 		WHERE
 			deleted_at IS NULL
@@ -233,6 +283,9 @@ func (repo PostgresRepository) List(ctx context.Context, filterParams FilterPara
 		query = fmt.Sprintf("%s AND subject_relation = ?", query)
 		replacements = append(replacements, filterParams.SubjectRelation)
 	}
+
+	query = fmt.Sprintf("%s AND org_id = ?", query)
+	replacements = append(replacements, orgId)
 
 	if listParams.NextCursor != nil {
 		comparisonOp := "<"

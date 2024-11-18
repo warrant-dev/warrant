@@ -29,6 +29,7 @@ type Model interface {
 	GetSubjectRelation() string
 	GetPolicy() Policy
 	GetPolicyHash() string
+	GetOrgId() string
 	GetCreatedAt() time.Time
 	GetUpdatedAt() time.Time
 	GetDeletedAt() *time.Time
@@ -46,6 +47,7 @@ type Warrant struct {
 	SubjectRelation string     `mysql:"subjectRelation" postgres:"subject_relation" sqlite:"subjectRelation"`
 	Policy          Policy     `mysql:"policy"          postgres:"policy"           sqlite:"policy"`
 	PolicyHash      string     `mysql:"policyHash"      postgres:"policy_hash"      sqlite:"policyHash"`
+	OrgId           string     `mysql:"orgId"      postgres:"org_id"      sqlite:"orgId"`
 	CreatedAt       time.Time  `mysql:"createdAt"       postgres:"created_at"       sqlite:"createdAt"`
 	UpdatedAt       time.Time  `mysql:"updatedAt"       postgres:"updated_at"       sqlite:"updatedAt"`
 	DeletedAt       *time.Time `mysql:"deletedAt"       postgres:"deleted_at"       sqlite:"deletedAt"`
@@ -99,11 +101,16 @@ func (warrant Warrant) GetDeletedAt() *time.Time {
 	return warrant.DeletedAt
 }
 
+func (warrant Warrant) GetOrgId() string {
+	return warrant.OrgId
+}
+
 func (warrant Warrant) ToWarrantSpec() *WarrantSpec {
 	warrantSpec := WarrantSpec{
 		ObjectType: warrant.ObjectType,
 		ObjectId:   warrant.ObjectId,
 		Relation:   warrant.Relation,
+		OrgId:      warrant.OrgId,
 		Subject: &SubjectSpec{
 			ObjectType: warrant.SubjectType,
 			ObjectId:   warrant.SubjectId,

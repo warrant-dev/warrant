@@ -24,6 +24,7 @@ import (
 type Model interface {
 	GetID() int64
 	GetTypeId() string
+	GetOrgId() string
 	GetDefinition() string
 	SetDefinition(string)
 	GetCreatedAt() time.Time
@@ -35,6 +36,7 @@ type Model interface {
 type ObjectType struct {
 	ID         int64      `mysql:"id"         postgres:"id"         sqlite:"id"`
 	TypeId     string     `mysql:"typeId"     postgres:"type_id"    sqlite:"typeId"`
+	OrgId      string     `mysql:"orgId"   postgres:"org_id"   sqlite:"orgId"`
 	Definition string     `mysql:"definition" postgres:"definition" sqlite:"definition"`
 	CreatedAt  time.Time  `mysql:"createdAt"  postgres:"created_at" sqlite:"createdAt"`
 	UpdatedAt  time.Time  `mysql:"updatedAt"  postgres:"updated_at" sqlite:"updatedAt"`
@@ -47,6 +49,10 @@ func (objectType ObjectType) GetID() int64 {
 
 func (objectType ObjectType) GetTypeId() string {
 	return objectType.TypeId
+}
+
+func (objectType ObjectType) GetOrgId() string {
+	return objectType.OrgId
 }
 
 func (objectType ObjectType) GetDefinition() string {
