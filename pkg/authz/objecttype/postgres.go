@@ -129,13 +129,13 @@ func (repo PostgresRepository) GetByTypeId(ctx context.Context, typeId string) (
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			if orgId != '*' {
+			if orgId != "*" {
 				err := repo.DB.GetContext(
 					ctx,
 					&objectType,
 					query,
 					typeId,
-					'*',
+					"*",
 				)
 				if err == nil {
 					return &objectType, nil
