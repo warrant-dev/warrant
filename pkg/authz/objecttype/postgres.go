@@ -110,23 +110,40 @@ func (repo PostgresRepository) GetByTypeId(ctx context.Context, typeId string) (
 	if orgId == nil || orgId == "" {
 		return nil, service.NewInvalidParameterError("orgId", "orgId must be set")
 	}
-	err := repo.DB.GetContext(
-		ctx,
-		&objectType,
-		`
+
+	query := `
 			SELECT id, type_id, definition, created_at,org_id, updated_at, deleted_at
 			FROM object_type
 			WHERE
 				type_id = ? AND
 				org_id = ? AND
 				deleted_at IS NULL
-		`,
+		`
+
+	err := repo.DB.GetContext(
+		ctx,
+		&objectType,
+		query,
 		typeId,
 		orgId,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return &objectType, service.NewRecordNotFoundError("ObjectType", typeId)
+			if orgId != '*' {
+				err := repo.DB.GetContext(
+					ctx,
+					&objectType,
+					query,
+					typeId,
+					'*',
+				)
+				if err == nil {
+					return &objectType, nil
+				}
+			}
+			if errors.Is(err, sql.ErrNoRows) {
+				return &objectType, service.NewRecordNotFoundError("ObjectType", typeId)
+			}
 		}
 		return &objectType, errors.Wrapf(err, "error getting object type %s", typeId)
 	}
