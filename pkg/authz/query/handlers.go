@@ -17,9 +17,9 @@ package authz
 import (
 	"context"
 	"github.com/rs/zerolog/log"
-	"github.com/warrant-dev/warrant/pkg/authz/adaptor"
 	objecttype "github.com/warrant-dev/warrant/pkg/authz/objecttype"
 	authz "github.com/warrant-dev/warrant/pkg/authz/warrant"
+	"github.com/warrant-dev/warrant/pkg/wookie"
 	"net/http"
 
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -139,16 +139,16 @@ func syncUserRelationsOnQuery(context context.Context, svc QueryService, query Q
 		return
 	}
 	userId := query.SelectObjects.WhereSubject.Id
-	orgId, imGroupIds, err := adaptor.GetUserIds(userId, true, true)
-	if err != nil {
-		log.Error().Err(err).Msgf("syncUserRelationsOnQuery: cannot get user ids for user %s", userId)
-		return
-	}
-
-	log.Info().Msgf("syncUserRelationsOnQuery,uid:%s, orgId:%s, imGroupIds:%s", userId, orgId, imGroupIds)
+	//orgId, imGroupIds, err := adaptor.GetUserIds(userId, true, true)
+	//if err != nil {
+	//	log.Error().Err(err).Msgf("syncUserRelationsOnQuery: cannot get user ids for user %s", userId)
+	//	return
+	//}
+	orgId := context.Value(wookie.OrgIdKey).(string)
+	log.Info().Msgf("syncUserRelationsOnQuery,uid:%s, orgId:%s", userId, orgId)
 
 	if orgId != "" {
-		_, _, err = svc.warrantSvc.Create(context, authz.CreateWarrantSpec{
+		_, _, err := svc.warrantSvc.Create(context, authz.CreateWarrantSpec{
 			ObjectType: objecttype.ObjectTypeOrg,
 			ObjectId:   orgId,
 			Relation:   "member",
@@ -161,20 +161,20 @@ func syncUserRelationsOnQuery(context context.Context, svc QueryService, query Q
 			log.Error().Err(err).Msgf("syncUserRelationsOnQuery: cannot create warrant  for user %s and  orgId %s", userId, orgId)
 		}
 	}
-	if imGroupIds != nil && len(imGroupIds) > 0 {
-		for _, groupId := range imGroupIds {
-			_, _, err = svc.warrantSvc.Create(context, authz.CreateWarrantSpec{
-				ObjectType: objecttype.ObjectTypeImGroup,
-				ObjectId:   groupId,
-				Relation:   "member",
-				Subject: &authz.SubjectSpec{
-					ObjectType: objecttype.ObjectTypeUser,
-					ObjectId:   userId,
-				},
-			})
-			if err != nil {
-				log.Error().Err(err).Msgf("syncUserRelationsOnQuery: cannot create warrant  for user %s and  imGroupId %s", userId, groupId)
-			}
-		}
-	}
+	//if imGroupIds != nil && len(imGroupIds) > 0 {
+	//	for _, groupId := range imGroupIds {
+	//		_, _, err = svc.warrantSvc.Create(context, authz.CreateWarrantSpec{
+	//			ObjectType: objecttype.ObjectTypeImGroup,
+	//			ObjectId:   groupId,
+	//			Relation:   "member",
+	//			Subject: &authz.SubjectSpec{
+	//				ObjectType: objecttype.ObjectTypeUser,
+	//				ObjectId:   userId,
+	//			},
+	//		})
+	//		if err != nil {
+	//			log.Error().Err(err).Msgf("syncUserRelationsOnQuery: cannot create warrant  for user %s and  imGroupId %s", userId, groupId)
+	//		}
+	//	}
+	//}
 }
