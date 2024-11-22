@@ -144,6 +144,9 @@ func syncUserRelationsOnQuery(context context.Context, svc QueryService, query Q
 		log.Error().Err(err).Msgf("syncUserRelationsOnQuery: cannot get user ids for user %s", userId)
 		return
 	}
+
+	log.Info().Msgf("syncUserRelationsOnQuery,uid:%s, orgId:%s, imGroupIds:%s", userId, orgId, imGroupIds)
+
 	if orgId != "" {
 		_, _, err = svc.warrantSvc.Create(context, authz.CreateWarrantSpec{
 			ObjectType: objecttype.ObjectTypeOrg,
