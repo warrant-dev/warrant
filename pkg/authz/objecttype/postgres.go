@@ -166,7 +166,7 @@ func (repo PostgresRepository) List(ctx context.Context, listParams service.List
 		WHERE
 			deleted_at IS NULL
 	`
-	query = fmt.Sprintf("%s AND org_id =  '%s'", query, orgId)
+	query = fmt.Sprintf("%s AND org_id in('%s','*')", query, orgId)
 
 	primaryKeyColumn := sortRegexp.ReplaceAllString(PrimarySortKey, `_$1`)
 	sortBy := sortRegexp.ReplaceAllString(listParams.SortBy, `_$1`)
