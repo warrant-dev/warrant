@@ -335,10 +335,15 @@ func (svc QueryService) query(ctx context.Context, query Query, level int) (*Res
 		}
 
 		// base case: explicit query
-		matchedWarrants, err := svc.listWarrants(ctx, warrant.FilterParams{
+		filterParams := warrant.FilterParams{
 			ObjectType: query.SelectObjects.ObjectTypes[0],
 			Relation:   query.SelectObjects.Relations[0],
-		})
+		}
+		if query.SelectObjects.WhereSubject != nil {
+			filterParams.SubjectType = query.SelectObjects.WhereSubject.Type
+			filterParams.SubjectId = query.SelectObjects.WhereSubject.Id
+		}
+		matchedWarrants, err := svc.listWarrants(ctx, filterParams)
 		if err != nil {
 			return nil, err
 		}
