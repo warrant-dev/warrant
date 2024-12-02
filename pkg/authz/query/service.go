@@ -17,6 +17,7 @@ package authz
 import (
 	"context"
 	"fmt"
+	"github.com/rs/zerolog/log"
 	"sort"
 	"strings"
 
@@ -343,6 +344,9 @@ func (svc QueryService) query(ctx context.Context, query Query, level int) (*Res
 			filterParams.SubjectType = query.SelectObjects.WhereSubject.Type
 			filterParams.SubjectId = query.SelectObjects.WhereSubject.Id
 		}
+
+		log.Info().Msgf("filterParams:%v", filterParams)
+
 		matchedWarrants, err := svc.listWarrants(ctx, filterParams)
 		if err != nil {
 			return nil, err
