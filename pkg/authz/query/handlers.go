@@ -145,7 +145,7 @@ func syncUserRelationsOnQuery(context context.Context, svc QueryService, query Q
 	//	return
 	//}
 	orgId := context.Value(wookie.OrgIdKey).(string)
-	log.Info().Msgf("syncUserRelationsOnQuery,uid:%s, orgId:%s", userId, orgId)
+	log.Ctx(context).Info().Msgf("syncUserRelationsOnQuery,uid:%s, orgId:%s", userId, orgId)
 
 	if orgId != "" {
 		_, _, err := svc.warrantSvc.Create(context, authz.CreateWarrantSpec{
@@ -158,7 +158,7 @@ func syncUserRelationsOnQuery(context context.Context, svc QueryService, query Q
 			},
 		})
 		if err != nil {
-			log.Error().Err(err).Msgf("syncUserRelationsOnQuery: cannot create warrant  for user %s and  orgId %s", userId, orgId)
+			log.Ctx(context).Error().Err(err).Msgf("syncUserRelationsOnQuery: cannot create warrant  for user %s and  orgId %s", userId, orgId)
 		}
 	}
 	//if imGroupIds != nil && len(imGroupIds) > 0 {

@@ -345,12 +345,12 @@ func (svc QueryService) query(ctx context.Context, query Query, level int) (*Res
 			filterParams.SubjectId = query.SelectObjects.WhereSubject.Id
 		}
 
-		log.Info().Msgf("filterParams:%v", filterParams)
-
 		matchedWarrants, err := svc.listWarrants(ctx, filterParams)
 		if err != nil {
 			return nil, err
 		}
+
+		log.Ctx(ctx).Info().Msgf("query:%v matched warrants size: %v", query, len(matchedWarrants))
 
 		resultSet := NewResultSet()
 		for _, matchedWarrant := range matchedWarrants {
