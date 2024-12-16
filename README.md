@@ -3,9 +3,9 @@
 </p>
 <p align="center">
   <a href="https://warrant.dev/">Website</a> |
-  <a href="https://app.warrant.dev/signup">Warrant Cloud</a> |
-  <a href="https://docs.warrant.dev/">Docs</a> |
-  <a href="https://docs.warrant.dev/objecttypes/get-all-object-types/">API Reference</a>
+  <a href="https://workos.com/fine-grained-authorization">WorkOS FGA</a> |
+  <a href="https://workos.com/docs/fga">Docs</a> |
+  <a href="https://workos.com/docs/reference/fga">API Reference</a>
 </p>
 
 <p align="center">
@@ -13,7 +13,6 @@
     <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/warrant-dev/warrant?color=FF5E00">
     <img alt="GitHub Workflow Status (with branch)" src="https://img.shields.io/github/actions/workflow/status/warrant-dev/warrant/go.yaml?branch=main">
     <a href="https://twitter.com/warrant_dev"><img alt="Twitter Follow" src="https://img.shields.io/badge/follow-%40warrant__dev-1DA1F2?logo=twitter"></a>
-    <a href="https://www.ycombinator.com/companies/warrant"><img alt="Backed by Y Combinator" src="https://img.shields.io/badge/Backed%20by-Y%20Combinator-%23E16E38"/></a>
 </p>
 
 # Warrant - Google Zanzibar-inspired, Fine-Grained Authorization Service
@@ -25,7 +24,7 @@ Warrant is a **highly scalable, centralized, fine-grained authorization service*
 - HTTP APIs for managing your authorization model, access rules, and other Warrant resources (roles, permissions, features, tenants, users, etc.) from an application, a CLI tool, etc.
 - Real-time, low-latency API for performing access checks in your application(s) at runtime (e.g. `is [user:A] an [editor] of [tenant:X]?`)
 - Integrates with in-house and third-party authn/identity providers like Auth0, Firebase, and more
-- Officially supported [SDKs](#sdks) for popular languages and frameworks (backend and frontend)
+- [SDKs](#sdks) for popular languages and frameworks (backend and frontend)
 - Support for a number of databases, including: MySQL, Postgres, and SQLite (in-memory or file)
 
 ## Use Cases
@@ -46,11 +45,7 @@ Warrant is built specifically for application authorization and access control, 
 
 Check out the [development guide](/development.md) to learn how to run Warrant locally and refer to the [deployment examples](/deployment.md) for examples of self-hosting Warrant using Docker or Kubernetes.
 
-## Resources
-
-### SDKs
-
-Warrant's native SDKs are compatible with both the cloud and open-source versions of Warrant. We currently support SDKs for:
+## SDKs
 
 - [Node.js](https://github.com/warrant-dev/warrant-node)
 - [Go](https://github.com/warrant-dev/warrant-go)
@@ -62,32 +57,28 @@ Warrant's native SDKs are compatible with both the cloud and open-source version
 - [Angular](https://github.com/warrant-dev/angular-warrant)
 - [Vue](https://github.com/warrant-dev/vue-warrant)
 
-### Documentation
-
-Visit our [docs](https://docs.warrant.dev/) to learn more about Warrant's key concepts & architecture and view our [quickstarts](https://docs.warrant.dev/quickstart/role-based-access-control/) & [API reference](https://docs.warrant.dev/objecttypes/get-all-object-types/).
-
 ## Limitations
 
-Serving check and query requests with low latency at high throughput requires running Warrant as a distributed service with the use of [Warrant-Tokens](https://docs.warrant.dev/data-consistency/) (also referred to as [Zookies](https://blog.warrant.dev/why-zanzibar-shines-at-building-authorization/#global-scale-low-latency) in Google Zanzibar). As a result, this open source version of Warrant is only capable of handling low-to-moderate throughput and is best suited for POCs, development/test environments, and low throughput use-cases.
+Serving check and query requests with low latency at high throughput requires running Warrant as a distributed service with the use of [Warrant-Tokens](https://workos.com/docs/fga/warrant-tokens) (also referred to as [Zookies](https://workos.com/blog/google-zanzibar-authorization#global-scale-low-latency) in Google Zanzibar). As a result, this open source version of Warrant is only capable of handling low-to-moderate throughput and is best suited for POCs, development/test environments, and low throughput use-cases.
 
 ## Get <10ms Latency at Scale
 
-### Warrant Cloud
+### WorkOS FGA
 
-The quickest and easiest way to get low-latency performance for high-throughput production usage is to use [Warrant Cloud](https://warrant.dev), a fully managed, serverless offering of Warrant. With Warrant Cloud, you don't need to worry about managing multiple instances of Warrant or its underlying datastore (e.g. Postgres, MySQL, etc). It can scale to millions of warrants and hundreds of millions of check and query requests while still providing <10ms latencies. You can sign up for a free account [here](https://app.warrant.dev/signup).
+The quickest and easiest way to get low-latency performance for high-throughput production usage is to use [WorkOS FGA](https://workos.com/fine-grained-authorization), a fully managed, serverless fine-grained authorization service. With WorkOS FGA, you don't need to worry about managing multiple instances of Warrant or its underlying datastore (e.g. Postgres, MySQL, etc). It can scale to millions of warrants and hundreds of millions of check and query requests while still providing <10ms latencies. You can sign up for a free account [here](https://signin.workos.com/sign-up).
 
-Warrant Cloud is compatible with the same APIs as this open source version and provides additional functionality like:
+WorkOS FGA also provides additional functionality like:
 
 - An admin dashboard for quickly managing your authorization model and access rules via an intuitive, easy-to-use UI
 - Batch endpoints
 - Multi-region availability
 - Improved access check latency & throughput for large scale use cases
 
-Once you've created an account, refer to our [docs](https://docs.warrant.dev/) to get started.
+Once you've created an account, refer to our [docs](https://workos.com/docs/fga) to get started.
 
 ### Enterprise Self-Hosted
 
-Customers looking to self-host Warrant for low-latency, high-throughput production use cases can run a licensed version of Warrant Cloud themselves. To learn more about this option, [schedule a call](https://calendly.com/d/489-qxj-xyb) or [contact us](mailto:hello@warrant.dev?subject=Interest%20in%20Warrant%20Enterprise%20Self-Hosted%20Offering).
+Interested in self-hosting an enterprise version of Warrant or WorkOS FGA? Please [contact us](https://workos.com/contact) for more information.
 
 ## Contributing
 
