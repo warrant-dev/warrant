@@ -191,22 +191,62 @@ func (repo PostgresRepository) Get(ctx context.Context, objectType string, objec
 		policyHash,
 		orgId,
 	)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			wntErrorId := fmt.Sprintf("%s:%s#%s@%s:%s", objectType, objectId, relation, subjectType, subjectId)
-			if subjectRelation != "" {
-				wntErrorId = fmt.Sprintf("%s#%s", wntErrorId, subjectRelation)
-			}
-			if policyHash != "" {
-				wntErrorId = fmt.Sprintf("%s[%s]", wntErrorId, policyHash)
-			}
-
-			return nil, service.NewRecordNotFoundError("Warrant", wntErrorId)
-		}
+	if err == nil {
+		return &warrant, nil
+	}
+	if !errors.Is(err, sql.ErrNoRows) {
 		return nil, errors.Wrap(err, "error getting warrant")
 	}
-
-	return &warrant, nil
+	if orgId == "*" {
+		wntErrorId := fmt.Sprintf("%s:%s#%s@%s:%s", objectType, objectId, relation, subjectType, subjectId)
+		if subjectRelation != "" {
+			wntErrorId = fmt.Sprintf("%s#%s", wntErrorId, subjectRelation)
+		}
+		if policyHash != "" {
+			wntErrorId = fmt.Sprintf("%s[%s]", wntErrorId, policyHash)
+		}
+		return nil, service.NewRecordNotFoundError("Warrant", wntErrorId)
+	}
+	err = repo.DB.GetContext(
+		ctx,
+		&warrant,
+		`
+			SELECT id, object_type, object_id, relation, subject_type, subject_id, subject_relation, policy,org_id,created_at, updated_at, deleted_at
+			FROM warrant
+			WHERE
+				object_type = ? AND
+				object_id = ? AND
+				relation = ? AND
+				subject_type = ? AND
+				subject_id = ? AND
+				subject_relation = ? AND
+				policy_hash = ? AND
+				org_id = ? AND
+				deleted_at IS NULL
+		`,
+		objectType,
+		objectId,
+		relation,
+		subjectType,
+		subjectId,
+		subjectRelation,
+		policyHash,
+		"*",
+	)
+	if err == nil {
+		return &warrant, nil
+	}
+	if errors.Is(err, sql.ErrNoRows) {
+		wntErrorId := fmt.Sprintf("%s:%s#%s@%s:%s", objectType, objectId, relation, subjectType, subjectId)
+		if subjectRelation != "" {
+			wntErrorId = fmt.Sprintf("%s#%s", wntErrorId, subjectRelation)
+		}
+		if policyHash != "" {
+			wntErrorId = fmt.Sprintf("%s[%s]", wntErrorId, policyHash)
+		}
+		return nil, service.NewRecordNotFoundError("Warrant", wntErrorId)
+	}
+	return nil, errors.Wrap(err, "error getting warrant")
 }
 
 func (repo PostgresRepository) GetByID(ctx context.Context, id int64) (Model, error) {
@@ -284,7 +324,7 @@ func (repo PostgresRepository) List(ctx context.Context, filterParams FilterPara
 		replacements = append(replacements, filterParams.SubjectRelation)
 	}
 
-	query = fmt.Sprintf("%s AND org_id = ?", query)
+	query = fmt.Sprintf("%s AND org_id in (?,'*')", query)
 	replacements = append(replacements, orgId)
 
 	if listParams.NextCursor != nil {
