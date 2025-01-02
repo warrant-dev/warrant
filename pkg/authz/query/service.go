@@ -393,7 +393,7 @@ func (svc QueryService) query(ctx context.Context, query Query, level int) (*Res
 				}
 			} else if query.SelectObjects.WhereSubject == nil ||
 				(matchedWarrant.Subject.ObjectType == query.SelectObjects.WhereSubject.Type &&
-					matchedWarrant.Subject.ObjectId == query.SelectObjects.WhereSubject.Id) {
+					(matchedWarrant.Subject.ObjectId == warrant.Wildcard || matchedWarrant.Subject.ObjectId == query.SelectObjects.WhereSubject.Id)) {
 				if matchedWarrant.ObjectId == warrant.Wildcard {
 					expandedObjects, err := svc.listObjectsByType(ctx, matchedWarrant.ObjectType)
 					if err != nil {
