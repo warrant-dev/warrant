@@ -42,15 +42,12 @@ func WarrantTokenMiddleware(next http.Handler) http.Handler {
 
 func OrgIdMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		supportCrossOrg := strings.HasPrefix(r.URL.Path, "/mgmt")
+		r = r.WithContext(context.WithValue(r.Context(), SupportCrossOrgKey, supportCrossOrg))
+
 		if r.URL.Path == "/" {
 			next.ServeHTTP(w, r)
 			return
-		}
-
-		supportCrossOrg := false
-		if strings.HasPrefix(r.URL.Path, "/mgmt") {
-			supportCrossOrg = true
-			r = r.WithContext(context.WithValue(r.Context(), SupportCrossOrgKey, supportCrossOrg))
 		}
 
 		orgId := r.Header.Get(OrgIdHeaderName)
