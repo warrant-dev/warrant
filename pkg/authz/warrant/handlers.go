@@ -55,6 +55,15 @@ func (svc WarrantService) Routes() ([]service.Route, error) {
 				service.ListMiddleware[WarrantListParamParser],
 			),
 		},
+		// mgmt list
+		service.WarrantRoute{
+			Pattern: "/mgmt/warrants",
+			Method:  "GET",
+			Handler: service.ChainMiddleware(
+				service.NewRouteHandler(svc, list4MgmtHandler),
+				service.ListMiddleware[WarrantListParamParser],
+			),
+		},
 
 		// delete
 		service.WarrantRoute{
@@ -112,6 +121,10 @@ func listV1Handler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 
 	service.SendJSONResponse(w, warrants)
 	return nil
+}
+
+func list4MgmtHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
+	return listV2Handler(svc, w, r)
 }
 
 func listV2Handler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {

@@ -278,7 +278,8 @@ func (repo PostgresRepository) List(ctx context.Context, filterParams FilterPara
 	if orgId == nil || orgId == "" {
 		orgId = filterParams.OrgId
 	}
-	if orgId == nil || orgId == "" {
+	supportCrossOrg := ctx.Value(wookie.SupportCrossOrgKey).(bool)
+	if !supportCrossOrg && (orgId == nil || orgId == "") {
 		return nil, nil, nil, service.NewInvalidParameterError("orgId", "orgId is required")
 	}
 
@@ -324,8 +325,10 @@ func (repo PostgresRepository) List(ctx context.Context, filterParams FilterPara
 		replacements = append(replacements, filterParams.SubjectRelation)
 	}
 
-	query = fmt.Sprintf("%s AND org_id in (?,'*')", query)
-	replacements = append(replacements, orgId)
+	if orgId != "" {
+		query = fmt.Sprintf("%s AND org_id in (?,'*')", query)
+		replacements = append(replacements, orgId)
+	}
 
 	if listParams.NextCursor != nil {
 		comparisonOp := "<"

@@ -17,12 +17,14 @@ package wookie
 import (
 	"context"
 	"net/http"
+	"strings"
 )
 
 const HeaderName = "Warrant-Token"
 const OrgIdHeaderName = "x-org-id"
 const Latest = "latest"
 const OrgIdKey = "orgId"
+const SupportCrossOrgKey = "supportCrossOrg"
 
 type warrantTokenCtxKey struct{}
 
@@ -44,16 +46,26 @@ func OrgIdMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
+
+		supportCrossOrg := false
+		if strings.HasPrefix(r.URL.Path, "/mgmt") {
+			supportCrossOrg = true
+			r = r.WithContext(context.WithValue(r.Context(), SupportCrossOrgKey, supportCrossOrg))
+		}
+
 		orgId := r.Header.Get(OrgIdHeaderName)
 		if orgId == "" {
 			orgId = r.URL.Query().Get("orgId")
 		}
-		if orgId == "" {
+		if !supportCrossOrg && orgId == "" {
 			http.Error(w, "no orgId found in header[X-org-id] or query[orgId]", http.StatusUnauthorized)
 			return
 		}
-		orgIdCtx := context.WithValue(r.Context(), OrgIdKey, orgId)
-		next.ServeHTTP(w, r.WithContext(orgIdCtx))
+		if orgId != "" {
+			r = r.WithContext(context.WithValue(r.Context(), OrgIdKey, orgId))
+		}
+
+		next.ServeHTTP(w, r)
 	})
 }
 
