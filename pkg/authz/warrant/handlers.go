@@ -15,6 +15,8 @@
 package authz
 
 import (
+	"context"
+	"github.com/warrant-dev/warrant/pkg/wookie"
 	"net/http"
 
 	"github.com/warrant-dev/warrant/pkg/service"
@@ -32,6 +34,14 @@ func (svc WarrantService) Routes() ([]service.Route, error) {
 		},
 		service.WarrantRoute{
 			Pattern: "/v2/warrants",
+			Method:  "POST",
+			Handler: service.ChainMiddleware(
+				service.NewRouteHandler(svc, createHandler),
+			),
+		},
+		// mgmt list
+		service.WarrantRoute{
+			Pattern: "/mgmt/warrants",
 			Method:  "POST",
 			Handler: service.ChainMiddleware(
 				service.NewRouteHandler(svc, createHandler),
@@ -82,10 +92,10 @@ func (svc WarrantService) Routes() ([]service.Route, error) {
 		},
 	}, nil
 }
-
 func createHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
 	var specs BatchWarrantSpec
-	err := service.ParseJSONBody(r.Context(), r.Body, &specs)
+	ctx := r.Context()
+	err := service.ParseJSONBody(ctx, r.Body, &specs)
 	if err != nil {
 		return err
 	}
@@ -98,7 +108,12 @@ func createHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 			}
 		}
 
-		createdWarrant, _, err := svc.Create(r.Context(), spec)
+		orgIdInCtx := ctx.Value(wookie.OrgIdKey)
+		if orgIdInCtx == nil || orgIdInCtx == "" {
+			ctx = context.WithValue(ctx, wookie.OrgIdKey, spec.OrgId)
+		}
+
+		createdWarrant, _, err := svc.Create(ctx, spec)
 		if err != nil {
 			return err
 		}

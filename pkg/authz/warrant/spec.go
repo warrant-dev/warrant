@@ -98,6 +98,7 @@ type CreateWarrantSpec struct {
 	Subject    *SubjectSpec      `json:"subject"           validate:"required"`
 	Context    map[string]string `json:"context,omitempty" validate:"excluded_with=Policy"`
 	Policy     Policy            `json:"policy,omitempty"  validate:"excluded_with=Context"`
+	OrgId      string            `json:"orgId"`
 }
 
 type BatchWarrantSpec struct {
