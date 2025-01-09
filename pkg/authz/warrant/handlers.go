@@ -39,7 +39,7 @@ func (svc WarrantService) Routes() ([]service.Route, error) {
 				service.NewRouteHandler(svc, createHandler),
 			),
 		},
-		// mgmt list
+		// mgmt create
 		service.WarrantRoute{
 			Pattern: "/mgmt/warrants",
 			Method:  "POST",

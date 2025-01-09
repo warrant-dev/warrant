@@ -55,7 +55,7 @@ func OrgIdMiddleware(next http.Handler) http.Handler {
 			orgId = r.URL.Query().Get("orgId")
 		}
 		if !supportCrossOrg && orgId == "" {
-			http.Error(w, "no orgId found in header[X-org-id] or query[orgId]", http.StatusUnauthorized)
+			http.Error(w, "no orgId found in header[x-org-id] or query[orgId]", http.StatusUnauthorized)
 			return
 		}
 		if orgId != "" {
