@@ -28,6 +28,7 @@ type Service interface {
 	Create(ctx context.Context, spec CreateWarrantSpec) (*WarrantSpec, *wookie.Token, error)
 	List(ctx context.Context, filterParams FilterParams, listParams service.ListParams) ([]WarrantSpec, *service.Cursor, *service.Cursor, error)
 	Delete(ctx context.Context, spec DeleteWarrantSpec) (*wookie.Token, error)
+	ListWarrantApps(ctx context.Context) ([]*WarrantApp, error)
 }
 
 type WarrantService struct {
@@ -171,4 +172,8 @@ func (svc WarrantService) Delete(ctx context.Context, spec DeleteWarrantSpec) (*
 
 	//nolint:nilnil
 	return nil, nil
+}
+
+func (svc WarrantService) ListWarrantApps(ctx context.Context) ([]*WarrantApp, error) {
+	return svc.repository.ListWarrantApps(ctx)
 }
