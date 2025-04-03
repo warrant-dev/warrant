@@ -507,3 +507,39 @@ func (repo PostgresRepository) List(ctx context.Context, filterParams FilterPara
 
 	return models, prevCursor, nextCursor, nil
 }
+
+func (repo PostgresRepository) ListWarrantApps(ctx context.Context) ([]*WarrantApp, error) {
+	orgId := ctx.Value(wookie.OrgIdKey)
+	supportCrossOrg := ctx.Value(wookie.SupportCrossOrgKey).(bool)
+	if !supportCrossOrg && (orgId == nil || orgId == "") {
+		return nil, service.NewInvalidParameterError("orgId", "orgId is required")
+	}
+	query := `
+		SELECT 
+		    object_id,
+		    COUNT(DISTINCT CASE WHEN subject_type = 'user' THEN subject_id ELSE NULL END) as warrant_user_count,
+			COUNT(DISTINCT CASE WHEN subject_type = 'org' THEN subject_id ELSE NULL END) as warrant_org_count
+		FROM warrant
+		WHERE deleted_at IS NULL
+		AND object_type = 'workspaceApp'
+		AND relation = 'member'
+	`
+	if orgId != nil && orgId != "" {
+		query = fmt.Sprintf("%s AND org_id  in ('*','%s')", query, orgId)
+	}
+	query = fmt.Sprintf("%s GROUP BY object_id", query)
+
+	apps := make([]*WarrantApp, 0)
+	err := repo.DB.SelectContext(
+		ctx,
+		&apps,
+		query,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return apps, nil
+		}
+		return nil, errors.Wrap(err, "error ListWarrantApps")
+	}
+	return apps, nil
+}

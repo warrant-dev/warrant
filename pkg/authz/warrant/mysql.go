@@ -395,3 +395,7 @@ func (repo MySQLRepository) List(ctx context.Context, filterParams FilterParams,
 
 	return models, prevCursor, nextCursor, nil
 }
+
+func (repo MySQLRepository) ListWarrantApps(ctx context.Context) ([]*WarrantApp, error) {
+	return nil, nil
+}

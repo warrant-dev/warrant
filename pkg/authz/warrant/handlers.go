@@ -90,6 +90,14 @@ func (svc WarrantService) Routes() ([]service.Route, error) {
 				service.NewRouteHandler(svc, deleteHandler),
 			),
 		},
+
+		service.WarrantRoute{
+			Pattern: "/mgmt/warrant/list/org/apps",
+			Method:  "GET",
+			Handler: service.ChainMiddleware(
+				service.NewRouteHandler(svc, listAppsHandler),
+			),
+		},
 	}, nil
 }
 func createHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
@@ -174,6 +182,15 @@ func deleteHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	return nil
+}
+
+func listAppsHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
+	apps, err := svc.ListWarrantApps(r.Context())
+	if err != nil {
+		return err
+	}
+	service.SendJSONResponse(w, apps)
 	return nil
 }
 

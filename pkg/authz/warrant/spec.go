@@ -229,3 +229,9 @@ type ListWarrantsSpecV2 struct {
 	NextCursor *service.Cursor `json:"nextCursor,omitempty"`
 	PrevCursor *service.Cursor `json:"prevCursor,omitempty"`
 }
+
+type WarrantApp struct {
+	AppId            string `json:"appId" postgres:"object_id"`
+	WarrantUserCount int    `json:"warrantUserCount" postgres:"warrant_user_count"`
+	WarrantOrgCount  int    `json:"warrantOrgCount"  postgres:"warrant_org_count"`
+}
