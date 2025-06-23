@@ -27,6 +27,13 @@ type SubjectSpec struct {
 	Relation   string `json:"relation,omitempty" validate:"omitempty,valid_relation"`
 }
 
+func (s *SubjectSpec) HasAnyValue() bool {
+	if s.ObjectType == "" && s.ObjectId == "" {
+		return false
+	}
+	return true
+}
+
 func (spec *SubjectSpec) String() string {
 	if spec.Relation != "" {
 		return fmt.Sprintf("%s:%s#%s", spec.ObjectType, spec.ObjectId, spec.Relation)

@@ -92,6 +92,14 @@ func (svc WarrantService) Routes() ([]service.Route, error) {
 		},
 
 		service.WarrantRoute{
+			Pattern: "/v2/warrants/batch",
+			Method:  "DELETE",
+			Handler: service.ChainMiddleware(
+				service.NewRouteHandler(svc, batchDeleteHandler),
+			),
+		},
+
+		service.WarrantRoute{
 			Pattern: "/mgmt/warrant/list/org/apps",
 			Method:  "GET",
 			Handler: service.ChainMiddleware(
@@ -168,6 +176,29 @@ func listV2Handler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 	return nil
 }
 
+func batchDeleteHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
+	var specs BatchDeleteWarrantSpec
+	err := service.ParseJSONBody(r.Context(), r.Body, &specs)
+	if err != nil {
+		return err
+	}
+
+	if len(specs.Warrants) == 0 || len(specs.Warrants) >= MaxDeleteCountLimit {
+		return service.NewInvalidParameterError("deleteSize", "batch delete size must be less than 500 and greater than 1")
+	}
+
+	for _, spec := range specs.Warrants {
+		err = deleteOneWarrant(svc, r.Context(), spec)
+		if err != nil {
+			return err
+		}
+	}
+
+	w.Header().Set("Content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	return nil
+}
+
 func deleteHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) error {
 	var spec DeleteWarrantSpec
 	err := service.ParseJSONBody(r.Context(), r.Body, &spec)
@@ -175,13 +206,25 @@ func deleteHandler(svc WarrantService, w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 
-	_, err = svc.Delete(r.Context(), spec)
+	err = deleteOneWarrant(svc, r.Context(), spec)
 	if err != nil {
 		return err
 	}
 
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	return nil
+}
+
+func deleteOneWarrant(svc WarrantService, context context.Context, spec DeleteWarrantSpec) error {
+	if !spec.HasAnyValue() {
+		return service.NewInvalidParameterError("objectType", "must specify at least one of objectType or objectId or Subject")
+	}
+
+	_, err := svc.Delete(context, spec)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -135,6 +135,10 @@ func (repo PostgresRepository) Delete(ctx context.Context, objectType string, ob
 		replacements = append(replacements, policyHash)
 	}
 
+	if length := len(replacements); length <= 1 {
+		return service.NewInvalidParameterError("deleteParams", "at least one of objectType, objectId, relation, subjectType, subjectId, subjectRelation, policyHash must be specified")
+	}
+
 	_, err := repo.DB.ExecContext(
 		ctx,
 		query,
