@@ -61,25 +61,6 @@ Check out the [development guide](/development.md) to learn how to run Warrant l
 
 Serving check and query requests with low latency at high throughput requires running Warrant as a distributed service with the use of [Warrant-Tokens](https://workos.com/docs/fga/warrant-tokens) (also referred to as [Zookies](https://workos.com/blog/google-zanzibar-authorization#global-scale-low-latency) in Google Zanzibar). As a result, this open source version of Warrant is only capable of handling low-to-moderate throughput and is best suited for POCs, development/test environments, and low throughput use-cases.
 
-## Get <10ms Latency at Scale
-
-### WorkOS FGA
-
-The quickest and easiest way to get low-latency performance for high-throughput production usage is to use [WorkOS FGA](https://workos.com/fine-grained-authorization), a fully managed, serverless fine-grained authorization service. With WorkOS FGA, you don't need to worry about managing multiple instances of Warrant or its underlying datastore (e.g. Postgres, MySQL, etc). It can scale to millions of warrants and hundreds of millions of check and query requests while still providing <10ms latencies. You can sign up for a free account [here](https://signin.workos.com/sign-up).
-
-WorkOS FGA also provides additional functionality like:
-
-- An admin dashboard for quickly managing your authorization model and access rules via an intuitive, easy-to-use UI
-- Batch endpoints
-- Multi-region availability
-- Improved access check latency & throughput for large scale use cases
-
-Once you've created an account, refer to our [docs](https://workos.com/docs/fga) to get started.
-
-### Enterprise Self-Hosted
-
-Interested in self-hosting an enterprise version of Warrant or WorkOS FGA? Please [contact us](https://workos.com/contact) for more information.
-
 ## Contributing
 
 Contributions are welcome. Please see our [contributing guide](/CONTRIBUTING.md) for more details.
