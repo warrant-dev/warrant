@@ -1,0 +1,392 @@
+{
+    "ignoredFields": [
+        "createdAt",
+        "processingTime"
+    ],
+    "tests": [
+        {
+            "name": "createPartnerObjectType",
+            "request": {
+                "method": "POST",
+                "url": "/v2/object-types",
+                "body": {
+                    "type": "partner",
+                    "relations": {
+                        "parent": {},
+                        "member": {
+                            "inheritIf": "admin",
+                            "withRelation": "parent",
+                            "ofType": "tenant"
+                        }
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "partner",
+                    "relations": {
+                        "parent": {},
+                        "member": {
+                            "inheritIf": "admin",
+                            "ofType": "tenant",
+                            "withRelation": "parent"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "createAccountObjectType",
+            "request": {
+                "method": "POST",
+                "url": "/v2/object-types",
+                "body": {
+                    "type": "account",
+                    "relations": {
+                        "owner": {},
+                        "member": {
+                            "inheritIf": "member",
+                            "withRelation": "owner",
+                            "ofType": "partner"
+                        }
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "type": "account",
+                    "relations": {
+                        "owner": {},
+                        "member": {
+                            "inheritIf": "member",
+                            "ofType": "partner",
+                            "withRelation": "owner"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignUserStephenAdminOfTenantTest",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "tenant",
+                    "objectId": "test",
+                    "relation": "admin",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "stephen"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "tenant",
+                    "objectId": "test",
+                    "relation": "admin",
+                    "subject": {
+                        "objectType": "user",
+                        "objectId": "stephen"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignTenantTestParentOfPartnerTestpart",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "partner",
+                    "objectId": "testpart",
+                    "relation": "parent",
+                    "subject": {
+                        "objectType": "tenant",
+                        "objectId": "test"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "partner",
+                    "objectId": "testpart",
+                    "relation": "parent",
+                    "subject": {
+                        "objectType": "tenant",
+                        "objectId": "test"
+                    }
+                }
+            }
+        },
+        {
+            "name": "assignPartnerTestpartOwnerOfAccountCustomer1",
+            "request": {
+                "method": "POST",
+                "url": "/v2/warrants",
+                "body": {
+                    "objectType": "account",
+                    "objectId": "customer1",
+                    "relation": "owner",
+                    "subject": {
+                        "objectType": "partner",
+                        "objectId": "testpart"
+                    }
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "objectType": "account",
+                    "objectId": "customer1",
+                    "relation": "owner",
+                    "subject": {
+                        "objectType": "partner",
+                        "objectId": "testpart"
+                    }
+                }
+            }
+        },
+        {
+            "name": "checkUserStephenMemberPartnerTestpart",
+            "request": {
+                "method": "POST",
+                "url": "/v2/check",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "partner",
+                            "objectId": "testpart",
+                            "relation": "member",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "stephen"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized",
+                    "isImplicit": true
+                }
+            }
+        },
+        {
+            "name": "selectPartnersWhereUserStephenIsMember",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20partner%20where%20user:stephen%20is%20member",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "partner",
+                            "objectId": "testpart",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "partner",
+                                "objectId": "testpart",
+                                "relation": "parent",
+                                "subject": {
+                                    "objectType": "tenant",
+                                    "objectId": "test"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "checkUserStephenMemberAccountCustomer1",
+            "request": {
+                "method": "POST",
+                "url": "/v2/check",
+                "headers": {
+                    "Warrant-Token": "latest"
+                },
+                "body": {
+                    "op": "anyOf",
+                    "warrants": [
+                        {
+                            "objectType": "account",
+                            "objectId": "customer1",
+                            "relation": "member",
+                            "subject": {
+                                "objectType": "user",
+                                "objectId": "stephen"
+                            }
+                        }
+                    ]
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "code": 200,
+                    "result": "Authorized",
+                    "isImplicit": true
+                }
+            }
+        },
+        {
+            "name": "selectAccountsWhereUserStephenIsMember",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20account%20where%20user:stephen%20is%20member",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "account",
+                            "objectId": "customer1",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "account",
+                                "objectId": "customer1",
+                                "relation": "owner",
+                                "subject": {
+                                    "objectType": "partner",
+                                    "objectId": "testpart"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "selectMembersOfTypeUserForAccountCustomer1",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20member%20of%20type%20user%20for%20account:customer1",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": [
+                        {
+                            "objectType": "user",
+                            "objectId": "stephen",
+                            "relation": "member",
+                            "warrant": {
+                                "objectType": "tenant",
+                                "objectId": "test",
+                                "relation": "admin",
+                                "subject": {
+                                    "objectType": "user",
+                                    "objectId": "stephen"
+                                }
+                            },
+                            "isImplicit": true
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "selectExplicitAccountsWhereUserStephenIsMember",
+            "request": {
+                "method": "GET",
+                "url": "/v2/query?q=select%20explicit%20account%20where%20user:stephen%20is%20member",
+                "headers": {
+                    "Warrant-Token": "latest"
+                }
+            },
+            "expectedResponse": {
+                "statusCode": 200,
+                "body": {
+                    "results": []
+                }
+            }
+        },
+        {
+            "name": "deleteAccountCustomer1",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/account/customer1"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deletePartnerTestpart",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/partner/testpart"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteTenantTest",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/tenant/test"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteUserStephen",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/objects/user/stephen"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectTypeAccount",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/object-types/account"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        },
+        {
+            "name": "deleteObjectTypePartner",
+            "request": {
+                "method": "DELETE",
+                "url": "/v2/object-types/partner"
+            },
+            "expectedResponse": {
+                "statusCode": 200
+            }
+        }
+    ]
+}
