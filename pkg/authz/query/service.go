@@ -30,6 +30,7 @@ import (
 const (
 	MaxObjectTypes = 1000
 	MaxEdges       = 10000
+	MaxQueryDepth  = 32
 )
 
 var ErrInvalidQuery = errors.New("invalid query")
@@ -321,6 +322,10 @@ func (svc QueryService) Query(ctx context.Context, query Query, listParams servi
 }
 
 func (svc QueryService) query(ctx context.Context, query Query, level int) (*ResultSet, error) {
+	if level > MaxQueryDepth {
+		return NewResultSet(), nil
+	}
+
 	switch {
 	case query.SelectObjects != nil:
 		objectType := query.SelectObjects.ObjectTypes[0]
@@ -541,6 +546,52 @@ func (svc QueryService) queryRule(ctx context.Context, query Query, level int, r
 
 				return resultSet, nil
 			} else {
+				// listWarrants only returns explicit inheritIf edges on ofType, which
+				// is required for self-referential rules (document.owner via parent)
+				// to stay bounded. It misses implicit intermediate grants such as
+				// partner.member inherited from tenant.admin.
+				currentObjectType := query.SelectObjects.ObjectTypes[0]
+				currentRelation := query.SelectObjects.Relations[0]
+				if currentObjectType != rule.OfType || currentRelation != rule.InheritIf {
+					intermediateResults, err := svc.query(ctx, Query{
+						Expand: true,
+						SelectObjects: &SelectObjects{
+							ObjectTypes:  []string{rule.OfType},
+							WhereSubject: query.SelectObjects.WhereSubject,
+							Relations:    []string{rule.InheritIf},
+						},
+						Context: query.Context,
+					}, level+1)
+					if err != nil {
+						return nil, err
+					}
+
+					resultSet := NewResultSet()
+					for intermediate := intermediateResults.List(); intermediate != nil; intermediate = intermediate.Next() {
+						inheritedResults, err := svc.query(ctx, Query{
+							Expand: query.Expand,
+							SelectObjects: &SelectObjects{
+								ObjectTypes: query.SelectObjects.ObjectTypes,
+								WhereSubject: &Resource{
+									Type: intermediate.ObjectType,
+									Id:   intermediate.ObjectId,
+								},
+								Relations: []string{rule.WithRelation},
+							},
+							Context: query.Context,
+						}, level+1)
+						if err != nil {
+							return nil, err
+						}
+
+						for res := inheritedResults.List(); res != nil; res = res.Next() {
+							resultSet.Add(res.ObjectType, res.ObjectId, relation, res.Warrant, intermediate.Policy.Or(res.Policy), res.IsImplicit || level > 0)
+						}
+					}
+
+					return resultSet, nil
+				}
+
 				indirectWarrants, err := svc.listWarrants(ctx, warrant.FilterParams{
 					ObjectType:  rule.OfType,
 					Relation:    rule.InheritIf,
